@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'admin@jeep.app';
+    }
+    function isUser(username) {
+      return request.auth != null && request.auth.token.email == username + '@jeep.app';
+    }
+
+    // GDPR consent (user reads own, admin reads all)
+    match /users/{username} {
+      allow read: if isUser(username) || isAdmin();
+      allow write: if isUser(username) || isAdmin();
+    }
+
+    // Personal data
+    match /userData/{username} {
+      allow read, write: if isUser(username) || isAdmin();
+    }
+
+    // Todos (subcollection per user)
+    match /todos/{username}/items/{itemId} {
+      allow read, write: if isUser(username) || isAdmin();
+    }
+
+    // Events (all authenticated read, admin write)
+    match /events/{eventId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin() || request.auth != null; // personal events allowed
+    }
+
+    // Forum (all authenticated read/write)
+    match /forum/{channel}/posts/{postId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Messages to Teresa (authenticated write, admin read)
+    match /messages/{msgId} {
+      allow create: if request.auth != null;
+      allow read: if isAdmin();
+    }
+
+    // Suggestions (authenticated write, admin read)
+    match /suggestions/{suggId} {
+      allow create: if request.auth != null;
+      allow read: if isAdmin();
+    }
+
+    // Medals (admin writes, users read their own)
+    match /medals/{username} {
+      allow read: if isUser(username) || isAdmin();
+      allow write: if isAdmin();
+    }
+  }
+}
