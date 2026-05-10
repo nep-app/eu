@@ -128,12 +128,84 @@ var USERS = [
 ];
 
 var DIMS = [
-  { id:"D1", label:"Comunicação, Assertividade e Relação em Equipa", desc:"Comunica de forma clara e adaptada às diferentes pessoas, ouve o outro e mantém ambiente de respeito.", s:{ a:"Tenho muita dificuldade em comunicar. Evito pedir ajuda.", b:"Às vezes comunico mal ou evito conversas difíceis.", c:"Consigo comunicar nas situações do dia a dia.", d:"Adapto a forma como comunico consoante com quem estou.", e:"Comunico bem em situações difíceis. Apoio os colegas.", f:"Sou referência na comunicação. Ajudo a resolver tensões." } },
-  { id:"D2", label:"Resiliência, Gestão da Frustração e Adaptação", desc:"Enfrenta dificuldades com maturidade, sem desistir à primeira.", s:{ a:"Quando as coisas não correm bem, bloqueio ou desisto.", b:"As dificuldades afetam demasiado o meu estado de espírito.", c:"Consigo manter-me estável na maior parte das situações.", d:"Mantenho-me calmo/a e encontro formas de continuar.", e:"Lido bem com situações difíceis. Estabilizo os outros.", f:"Sou referência de calma. Transformo problemas em oportunidades." } },
-  { id:"D3", label:"Autonomia, Proatividade e Cumprimento de Tarefas", desc:"Trabalha de forma independente e antecipa necessidades.", s:{ a:"Preciso que me digam sempre o que fazer.", b:"Faço o que me pedem, mas raramente ajo por iniciativa.", c:"Trabalho de forma autónoma nas tarefas habituais.", d:"Às vezes antecipo o que precisa de ser feito.", e:"Identifico o que é preciso antes que me digam.", f:"A minha iniciativa faz diferença. A equipa conta comigo." } },
-  { id:"D4", label:"Autoconhecimento, Autocrítica e Clareza de Objetivos", desc:"Autorreflexão para reconhecer competências e limitações de forma realista.", s:{ a:"Não penso muito sobre o que faço bem ou mal.", b:"Tenho alguma noção das minhas limitações, mas custa-me admiti-las.", c:"Sei, de forma geral, o que faço bem e o que preciso de melhorar.", d:"Conheço bem as minhas competências e limitações.", e:"Reflito regularmente. Tenho um projeto de vida concreto.", f:"Conheço-me profundamente. Isso guia as minhas decisões." } },
-  { id:"D5", label:"Competências Digitais e Autonomia Administrativa", desc:"Domínio de ferramentas digitais e gestão das exigências do quotidiano adulto.", s:{ a:"Tenho muita dificuldade com tecnologia e burocracia.", b:"Consigo usar algumas ferramentas digitais, mas com dificuldade.", c:"Uso ferramentas digitais básicas de forma autónoma.", d:"Uso bem as ferramentas digitais e os processos burocráticos.", e:"Uso a tecnologia de forma proativa. Às vezes ajudo outros.", f:"A minha literacia digital faz diferença." } },
-  { id:"D6", label:"Qualidade da Intervenção e Conhecimentos Profissionais", desc:"Concebe e dinamiza atividades relevantes ajustadas à população-alvo.", s:{ a:"Tenho dificuldade em fazer atividades adequadas para o grupo.", b:"As atividades ainda não estão bem ajustadas.", c:"Faço atividades básicas adaptadas. Cumpro as regras.", d:"Faço atividades adaptadas. Tenho postura profissional adequada.", e:"As atividades têm impacto real. Reflito sobre como melhorá-las.", f:"A qualidade do meu trabalho tem impacto duradouro." } },
+  { 
+    id:"D1", 
+    label:"Comunicação, Assertividade e Relação em Equipa", 
+    desc:"Comunica de forma clara, adequada e adaptada às diferentes pessoas (crianças, colegas, coordenadores), ouve o outro e mantem ambiente de respeito e entreajuda. Capacidade de pedir apoio quando necessário e de lidar com críticas e opiniões diversas de forma construtiva. Colabora com a equipa e partilha responsabilidades.", 
+    s:{ 
+      a:"Tenho muita dificuldade em comunicar com a equipa e com as crianças. Evito pedir ajuda e não me sinto à vontade para receber observações sobre o meu trabalho.", 
+      b:"Às vezes comunico mal, uso o tom errado ou evito conversas difíceis. Prefiro trabalhar sozinho/a e tenho dificuldade em aceitar críticas sem me defender.", 
+      c:"Consigo comunicar nas situações do dia a dia sem grandes problemas. Sou respeitoso/a com a equipa e as crianças. Aceito feedback, embora me custe um pouco. Só peço ajuda quando mesmo preciso.", 
+      d:"Consigo adaptar a forma como comunico consoante com quem estou. Trabalho bem em equipa, partilho responsabilidades e peço ajuda quando preciso. Recebo feedback de forma tranquila.", 
+      e:"Comunico bem mesmo quando as situações são difíceis. Apoio os colegas, peço feedback regularmente e uso-o para melhorar. Contribuo para um ambiente de equipa positivo.", 
+      f:"Sinto que sou uma referência na comunicação dentro da equipa. Ajudo a resolver situações de tensão, apoio os colegas e contribuo para que o espaço seja melhor para todos." 
+    } 
+  },
+  { 
+    id:"D2", 
+    label:"Resiliência, Gestão da Frustração e Adaptação", 
+    desc:"Enfrenta dificuldades e o stress do dia a dia com maturidade, sem desistir à primeira tentativa ou ter reações desproporcionais. Controla a frustração quando as situações não correm como planeado e tem facilidade em aceitar imprevistos, manter a calma em momentos de tensão e adaptar as suas ações para encontrar soluções e alternativas", 
+    s:{ 
+      a:"Quando as coisas não correm bem, bloqueio, desisto ou fico muito agitado/a. Tenho muita dificuldade em lidar com imprevistos ou situações de stress.", 
+      b:"Às vezes as dificuldades afetam demasiado o meu estado de espírito e isso nota-se no trabalho. Tenho dificuldade em manter a calma quando as coisas não correm como esperava.", 
+      c:"Consigo manter-me estável na maior parte das situações do dia a dia. Quando há imprevistos, fico desconfortável, mas consigo continuar.", 
+      d:"Quando surgem dificuldades ou imprevistos, consigo manter-me calmo/a e encontrar formas de continuar. Não desisto à primeira e consigo adaptar-me quando o plano muda.", 
+      e:"Lido bem com situações difíceis, pois mantenho-me focado/a e encontro alternativas. A minha estabilidade ajuda os que estão à minha volta.", 
+      f:"Sinto que sou uma referência de calma para a equipa. Mesmo nas situações mais difíceis, mantenho equilíbrio, apoio os colegas e transformo os problemas em oportunidades de crescimento." 
+    } 
+  },
+  { 
+    id:"D3", 
+    label:"Autonomia, Proatividade e Cumprimento de Tarefas", 
+    desc:"Trabalha de forma independente e antecipa as necessidades do local. Identifica tarefas que precisam de ser feitas e age por iniciativa própria sem esperar por ordens externas. Cumpre os compromissos a que se propõe até ao fim.", 
+    s:{ 
+      a:"Preciso que me digam sempre o que fazer. Não tenho iniciativa própria e nem sempre consigo cumprir o que me comprometo a fazer.", 
+      b:"Faço o que me pedem, mas não costumo agir por iniciativa própria. Preciso de orientação frequente e nem sempre consigo cumprir os compromissos até ao fim.", 
+      c:"Consigo trabalhar de forma autónoma nas tarefas habituais. Não preciso que me estejam sempre a orientar e cumpro o que me comprometo a fazer.", 
+      d:"Trabalho de forma autónoma e às vezes antecipo o que precisa de ser feito sem que me peçam. Cumpro o que me comprometo e termino o que começo.", 
+      e:"Costumo identificar o que precisa de ser feito antes que me digam. Proponho, tomo iniciativa e cumpro os compromissos que assumo com rigor.", 
+      f:"Sinto que a minha iniciativa faz diferença no espaço. A equipa conta comigo sem precisar de me acompanhar. Proponho, executo e cumpro, e isso nota-se no dia a dia." 
+    } 
+  },
+  { 
+    id:"D4", 
+    label:"Autoconhecimento, Autocrítica e Clareza de Objetivos", 
+    desc:"Autorreflexão e maturidade para reconhecer de forma realista as suas competências e limitações. Honestidade com que assume as falhas e procura melhoria contínua. Esforço em definir metas concretas e exequíveis para o futuro e identificar e levar a cabo os passos que precisa de dar para lá chegar.", 
+    s:{ 
+      a:"Não penso muito sobre o que faço bem ou mal. Não tenho objetivos claros para o futuro nem sei o que fazer para lá chegar.", 
+      b:"Tenho alguma noção das minhas limitações, mas custa-me admiti-las. Tenho ideias para o futuro, mas são vagas e não sei como concretizá-las.", 
+      c:"Sei, de forma geral, o que faço bem e o que preciso de melhorar. Tenho alguns objetivos para o futuro, mas ainda não tenho um plano claro.", 
+      d:"Conheço bem as minhas competências e limitações. Defino objetivos concretos e sei o que preciso de fazer para os atingir. Quando falho, assumo e procuro melhorar.", 
+      e:"Reflito regularmente sobre o meu desempenho e os meus padrões. Tenho um projeto de vida concreto, sei os passos que preciso de dar e estou a trabalhar nisso ativamente.", 
+      f:"Conheço-me a um nível profundo. Esse autoconhecimento guia as minhas decisões, o meu projeto de vida e a forma como me relaciono com os outros e com o trabalho." 
+    } 
+  },
+  { 
+    id:"D5", 
+    label:"Competências Digitais e Autonomia Administrativa", 
+    desc:"Domínio de ferramentas digitais e gestão das exigências práticas do quotidiano adulto. Capacidade de recorrer à tecnologia de forma útil e orientada para o trabalho ou responsabilidades pessoais e cívicas. e de navegar processos administrativos e burocráticos. Literacia burocrática e digital.", 
+    s:{ 
+      a:"Tenho muita dificuldade com tecnologia e com processos burocráticos. Não consigo usar ferramentas digitais básicas nem tratar dos meus assuntos de forma autónoma.", 
+      b:"Consigo usar algumas ferramentas digitais, mas com dificuldade. Preciso frequentemente de ajuda para tratar de assuntos burocráticos ou usar ferramentas de trabalho online.", 
+      c:"Consigo usar as ferramentas digitais básicas no dia a dia. Trato dos meus assuntos administrativos simples de forma autónoma.", 
+      d:"Uso bem as ferramentas digitais no trabalho. Consigo tratar de processos burocráticos de forma autónoma e sei onde procurar informação quando preciso.", 
+      e:"Uso a tecnologia de forma proativa para melhorar o meu trabalho. Tenho facilidade com processos burocráticos, mesmo os mais complexos, e às vezes ajudo outros a navegá-los.", 
+      f:"Tenho uma literacia digital e burocrática que faz diferença no espaço. Resolvo situações que outros não sabem tratar e sou um recurso para a equipa nesta área." 
+    } 
+  },
+  { 
+    id:"D6", 
+    label:"Qualidade da Intervenção e Conhecimentos Profissionais", 
+    desc:"Capacidade de conceção e dinamização de atividades relevantes e ajustadas à população-alvo e às necessidades identificadas. Adequação da postura profissional, respeito pelas regras e rotinas e alinhamento com a missão e objetivos da entidade. Compreende o seu papel na equipa e corresponde às expectativas do local.", 
+    s:{ 
+      a:"Tenho muita dificuldade em fazer atividades adequadas para o grupo. Não me identifico com as regras e rotinas do espaço e não tenho clareza sobre o meu papel aqui.", 
+      b:"As atividades que faço ainda não estão bem ajustadas ao grupo. A minha postura profissional é inconsistente e tenho dificuldade em corresponder regularmente ao que é esperado.", 
+      c:"Consigo fazer atividades básicas adaptadas ao grupo. Cumpro as regras e rotinas e percebo o que é esperado de mim.", 
+      d:"Faço atividades adaptadas ao grupo e às suas necessidades. Tenho uma postura profissional adequada e identifico-me com os objetivos do espaço.", 
+      e:"As atividades que faço têm impacto real no grupo e reflito sobre como melhorá-las. Tenho uma postura profissional que me orgulha e vou além do que é apenas esperado.", 
+      f:"A qualidade do meu trabalho tem impacto real e duradouro no grupo. Sou uma referência para a equipa na conceção de atividades e a minha presença faz diferença no espaço." 
+    } 
+  }
 ];
 var RODA_DIMS = [
   { id:"familia",  label:"Família",            icon:"🏠", desc:"Como te sentes nas relações com a tua família?" },
