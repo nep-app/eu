@@ -115,7 +115,7 @@ function RadarChart(props) {
 }
 
 // ── DATA ────────────────────────────────────────────────────────────────
-var ALLOWED_USERNAMES = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo"];
+var ALLOWED_USERNAMES = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","teresa"];
 var USERS = [
   { username:"nilton",   realName:"Nilton",   color:"#7C3AED" },
   { username:"erick",    realName:"Erick",    color:"#2563EB" },
@@ -124,6 +124,7 @@ var USERS = [
   { username:"rudmilo",  realName:"Rudmilo",  color:"#D97706" },
   { username:"bruno",    realName:"Bruno",    color:"#0891B2" },
   { username:"salimo",   realName:"Salimo",   color:"#DC2626" },
+  { username:"teresa",   realName:"Teresa",   color:"#1e293b" },
 ];
 
 var DIMS = [
@@ -901,7 +902,7 @@ export default function App() {
                       <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:8 }}>
                         {SURVEY_CATS.map(function(c){return(<div key={c.id} style={{ display:"flex", alignItems:"center", gap:4, background:"white", borderRadius:8, padding:"4px 10px", border:"1px solid #e8edf2" }}>{c.icon}<span style={{ fontSize:13 }}>{SEMOJIS[s.ratings[c.id]]}</span><span style={{ fontSize:11, color:"#94a3b8" }}>{s.ratings[c.id]}/5</span></div>);})}
                       </div>
-                      {s.mudaria&&(<div style={{ fontSize:12, color:"#374151", fontStyle:"italic", padding:"8px 12px", background:"white", borderRadius:8 }}>"{s.mudaria}"</div>)}
+                      {s.mudaria&&(<div style={{ fontSize:12, color:"#374151", fontStyle:"italic", padding:"8px 12px", background:"white", borderRadius:8 }}>"  {s.mudaria}"</div>)}
                     </div>
                   );
                 })}
