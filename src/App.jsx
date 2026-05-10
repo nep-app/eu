@@ -1151,7 +1151,7 @@ export default function App() {
                             <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:6 }}>
                               {Object.keys(d.sRatings).map(function(k){return(<div key={k} style={{ background:"#DC262610", borderRadius:8, padding:"4px 10px", fontSize:12 }}>{k}: {SEMOJIS[d.sRatings[k]]} <strong>{d.sRatings[k]}/5</strong></div>);})}
                             </div>
-                            {d.sMudaria&&(<div style={{ fontSize:12, color:"#374151", fontStyle:"italic", padding:"6px 10px", background:"#fef9f0", borderRadius:8 }}>"{d.sMudaria}"</div>)}
+                            {d.sMudaria&&(<div style={{ fontSize:12, color:"#374151", fontStyle:"italic", padding:"6px 10px", background:"#fef9f0", borderRadius:8 }}>"  {d.sMudaria}"</div>)}
                           </div>
                         )}
                       </div>
