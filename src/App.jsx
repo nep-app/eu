@@ -1115,7 +1115,7 @@ export default function App() {
                 <textarea value={adminMsgTxt} onChange={function(e){setAdminMsgTxt(e.target.value);}} placeholder="Mensagem para o/a utilizador/a..." rows={2} style={{ width:"100%", padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none", resize:"none", boxSizing:"border-box", marginBottom:8 }}/>
                 <button onClick={sendAdminMsg} style={{ background:"#7C3AED", color:"white", border:"none", borderRadius:12, padding:"10px 18px", fontSize:13, fontWeight:700, cursor:"pointer" }}>Enviar Mensagem →</button>
               </div>
-              <div style={CARD}>
+<div style={CARD}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
                   <div style={SL}>Mensagens Recebidas</div>
                   <div style={{ background:"#fef9f0", border:"1px solid #fde68a", borderRadius:20, padding:"3px 10px", fontSize:9, fontWeight:800, color:"#92400e" }}>inclui anónimas</div>
@@ -1123,7 +1123,7 @@ export default function App() {
                 {msgs.length===0 ? (
                   <div style={{ textAlign:"center", padding:"30px 0", color:"#94a3b8", fontSize:13 }}>Ainda não tens mensagens.</div>
                 ) : (
-                msgs.slice().reverse().map(function(m) {
+                  msgs.slice().reverse().map(function(m) {
                     return (
                       <div key={m.id} style={{ padding:"12px 14px", background:m.anon?"#fef9f0":"#f8fafc", borderRadius:14, marginBottom:10, border:m.anon?"1px solid #fde68a":"1px solid #e8edf2" }}>
                         <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
@@ -1149,6 +1149,7 @@ export default function App() {
                       </div>
                     );
                   })
+                )}
               </div>
               <div style={CARD}>
                 <div style={SL}>Sugestões Recebidas</div>
