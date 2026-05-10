@@ -707,12 +707,30 @@ export default function App() {
   }
 
   // ── MENSAGENS & SUGESTÕES ────────────────────────────────────────
-  async function sendMsg() {
+ async function sendMsg() {
     if (!msgTxt.trim() || !user) return;
     await addDoc(collection(db,"messages"),{
-      text:msgTxt, anon:msgAnon, from:msgAnon?"Anónimo":user.username, date:nowLabel()
+      text:msgTxt, anon:msgAnon, from:msgAnon?"Anónimo":user.username, hiddenUser:user.username, date:nowLabel(), adminReply:""
     });
     setMsgTxt(""); setMsgSent(true);
+  }
+
+  async function replyToMsg(msgId, hiddenUser, replyText) {
+    if (!replyText.trim()) return;
+    var targetUser = hiddenUser || "desconhecido";
+    
+    // Atualiza a mensagem original
+    await updateDoc(doc(db, "messages", msgId), { adminReply: replyText });
+    
+    // Envia a notificação secreta para o utilizador
+    if (targetUser !== "desconhecido") {
+      await addDoc(collection(db, "notifications", targetUser, "items"), {
+        from:"teresa", text:"Resposta à tua mensagem: " + replyText, date:nowLabel(), read:false
+      });
+    }
+    setAdminReplyId(null);
+    setAdminReplyTxt("");
+    alert("Resposta enviada com sucesso!");
   }
   async function sendSugg() {
     if (!suggTxt.trim() || !user) return;
