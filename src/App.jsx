@@ -1,1 +1,220 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsKICBzaWduSW5XaXRoRW1haWxBbmRQYXNzd29yZCwgY3JlYXRlVXNlcldpdGhFbWFpbEFuZFBhc3N3b3JkLCBzaWduT3V0LCBvbkF1dGhTdGF0ZUNoYW5nZWQsCn0gZnJvbSAiZmlyZWJhc2UvYXV0aCI7CmltcG9ydCB7CiAgZG9jLCBnZXREb2MsIHNldERvYywgY29sbGVjdGlvbiwgYWRkRG9jLCBvblNuYXBzaG90LCB1cGRhdGVEb2MsIGRlbGV0ZURvYywKfSBmcm9tICJmaXJlYmFzZS9maXJlc3RvcmUiOwppbXBvcnQgeyBhdXRoLCBkYiB9IGZyb20gIi4vZmlyZWJhc2UiOwoKdmFyIEJHID0gIiNlZWYxZjYiOwp2YXIgQ0FSRCA9IHsgYmFja2dyb3VuZDoid2hpdGUiLCBib3JkZXJSYWRpdXM6MjAsIHBhZGRpbmc6IjE4cHggMjBweCIsIG1hcmdpbkJvdHRvbToxNCwgYm94U2hhZG93OiIwIDJweCAxMnB4IHJnYmEoMTUsMjMsNDIsMC4wNyksIDAgMCAwIDFweCByZ2JhKDE1LDIzLDQyLDAuMDQpIiB9Owp2YXIgU0wgPSB7IGZvbnRTaXplOjEwLCBmb250V2VpZ2h0OjgwMCwgbGV0dGVyU3BhY2luZzoxLjUsIHRleHRUcmFuc2Zvcm06InVwcGVyY2FzZSIsIGNvbG9yOiIjOTRhM2I4IiwgbWFyZ2luQm90dG9tOjEwIH07CnZhciBQUyA9IHsKICB1cmdlbnQ6ICB7IGRvdDoiI2VmNDQ0NCIsIGJnOiIjZmZmMWYyIiwgYmFkZ2U6IlVSR0VOVEUiLCAgIGJjOiIjZWY0NDQ0IiwgYmw6IiNmZWNhY2EiIH0sCiAgcGVuZGluZzogeyBkb3Q6IiNmNTllMGIiLCBiZzoiI2ZmZmJmMCIsIGJhZGdlOiJQT1IgRkFaRVIiLCBiYzoiI2Q5NzYwNiIsIGJsOiIjZmRlNjhhIiB9LAogIG5ldzogICAgIHsgZG90OiIjNjM2NmYxIiwgYmc6IiNmNWYzZmYiLCBiYWRnZToiTk9WTyIsICAgICAgYmM6IiM0ZjQ2ZTUiLCBibDoiI2M3ZDJmZSIgfSwKfTsKCmZ1bmN0aW9uIHVwZChvYmosIGtleSwgdmFsKSB7IHZhciByID0gT2JqZWN0LmFzc2lnbih7fSwgb2JqKTsgcltrZXldID0gdmFsOyByZXR1cm4gcjsgfQpmdW5jdGlvbiBzY29yZUxhYmVsKHYpIHsKICBpZiAodiA8PSAyKSByZXR1cm4gWyJJbnN1ZmljaWVudGUiLCIjZWY0NDQ0Il07CiAgaWYgKHYgPD0gNCkgcmV0dXJuIFsiQWJhaXhvIGRvIGVzcGVyYWRvIiwiI2Y5NzMxNiJdOwogIGlmICh2ID09PSA1KSByZXR1cm4gWyJTdWZpY2llbnRlIiwiI2VhYjMwOCJdOwogIGlmICh2IDw9IDcpIHJldHVybiBbIkJvbSIsIiMzYjgyZjYiXTsKICBpZiAodiA8PSA5KSByZXR1cm4gWyJNdWl0byBCb20iLCIjOGI1Y2Y2Il07CiAgcmV0dXJuIFsiRXhjZWxlbnRlIiwiIzIyYzU1ZSJdOwp9CmZ1bmN0aW9uIGdldERpbURlc2MoZGltLCB2KSB7CiAgaWYgKHYgPD0gMikgcmV0dXJuIGRpbS5zLmE7IGlmICh2IDw9IDQpIHJldHVybiBkaW0ucy5iOyBpZiAodiA9PT0gNSkgcmV0dXJuIGRpbS5zLmM7CiAgaWYgKHYgPD0gNykgcmV0dXJuIGRpbS5zLmQ7IGlmICh2IDw9IDkpIHJldHVybiBkaW0ucy5lOyByZXR1cm4gZGltLnMuZjsKfQp2YXIgTVRIUyA9IFsiSmFuIiwiRmV2IiwiTWFyIiwiQWJyIiwiTWFpIiwiSnVuIiwiSnVsIiwiQWdvIiwiU2V0IiwiT3V0IiwiTm92IiwiRGV6Il07CmZ1bmN0aW9uIG5vd0xhYmVsKCkgeyB2YXIgZCA9IG5ldyBEYXRlKCk7IHJldHVybiBNVEhTW2QuZ2V0TW9udGgoKV0gKyAiICIgKyBkLmdldEZ1bGxZZWFyKCk7IH0KZnVuY3Rpb24gZm10RGF0ZShzKSB7CiAgaWYgKCFzKSByZXR1cm4gIiI7CiAgdmFyIHAgPSBzLnNwbGl0KCItIik7CiAgaWYgKHAubGVuZ3RoIDwgMykgcmV0dXJuIHM7CiAgcmV0dXJuIHBbMl0gKyAiICIgKyBNVEhTW3BhcnNlSW50KHBbMV0sIDEwKSAtIDFdOwp9CmZ1bmN0aW9uIGlzT3ZlcmR1ZShzKSB7CiAgaWYgKCFzKSByZXR1cm4gZmFsc2U7CiAgcmV0dXJuIG5ldyBEYXRlKHMpIDwgbmV3IERhdGUoKTsKfQoKZnVuY3Rpb24gQXBwSWNvbihwcm9wcykgewogIHZhciBzeiA9IHByb3BzLnNpemUgfHwgNjQ7CiAgcmV0dXJuICgKICAgIDxzdmcgd2lkdGg9e3N6fSBoZWlnaHQ9e3N6fSB2aWV3Qm94PSIwIDAgNjQgNjQiPgogICAgICA8ZGVmcz4KICAgICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImlnMSIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3BDb2xvcj0iIzFlMjkzYiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcENvbG9yPSIjMGYxNzJhIi8+PC9saW5lYXJHcmFkaWVudD4KICAgICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImlnMiIgeDE9IjAiIHkxPSIxIiB4Mj0iMSIgeTI9IjAiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3BDb2xvcj0iIzIyYzU1ZSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcENvbG9yPSIjNGFkZTgwIi8+PC9saW5lYXJHcmFkaWVudD4KICAgICAgPC9kZWZzPgogICAgICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxNiIgZmlsbD0idXJsKCNpZzEpIi8+CiAgICAgIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzIiIHI9IjIyIiBmaWxsPSIjMjJjNTVlIiBvcGFjaXR5PSIwLjA2Ii8+CiAgICAgIDxsaW5lIHgxPSIzMiIgeTE9IjUwIiB4Mj0iMzIiIHkyPSIyOCIgc3Ryb2tlPSJ1cmwoI2lnMikiIHN0cm9rZVdpZHRoPSIyLjUiIHN0cm9rZUxpbmVjYXA9InJvdW5kIi8+CiAgICAgIDxwYXRoIGQ9Ik0zMiAzMSBRNDMgMjQgNDYgMTMgUTM1IDE1IDMyIDMxIiBmaWxsPSJ1cmwoI2lnMikiLz4KICAgICAgPHBhdGggZD0iTTMyIDM4IFEyMSAzMSAxOSAyMCBRMjkgMjMgMzIgMzgiIGZpbGw9IiM0YWRlODAiIG9wYWNpdHk9IjAuOCIvPgogICAgICA8bGluZSB4MT0iMjUiIHkxPSI1MCIgeDI9IjM5IiB5Mj0iNTAiIHN0cm9rZT0iIzIyYzU1ZSIgc3Ryb2tlV2lkdGg9IjIiIHN0cm9rZUxpbmVjYXA9InJvdW5kIiBvcGFjaXR5PSIwLjM1Ii8+CiAgICA8L3N2Zz4KICApOwp9CmZ1bmN0aW9uIFN1YlRhYnMocHJvcHMpIHsKICB2YXIgb3B0aW9ucyA9IHByb3BzLm9wdGlvbnM7IHZhciBhY3RpdmUgPSBwcm9wcy5hY3RpdmU7IHZhciBvbkNoYW5nZSA9IHByb3BzLm9uQ2hhbmdlOyB2YXIgY29sb3IgPSBwcm9wcy5jb2xvcjsKICByZXR1cm4gKAogICAgPGRpdiBzdHlsZT17eyBkaXNwbGF5OiJmbGV4IiwgZ2FwOjQsIG1hcmdpbkJvdHRvbToxNiwgcGFkZGluZzo0LCBiYWNrZ3JvdW5kOiIjZThlZGYyIiwgYm9yZGVyUmFkaXVzOjE2LCBvdmVyZmxvd1g6ImF1dG8iIH19PgogICAgICB7b3B0aW9ucy5tYXAoZnVuY3Rpb24ob3B0KSB7CiAgICAgICAgdmFyIGlkID0gb3B0WzBdOyB2YXIgbGIgPSBvcHRbMV07IHZhciBpc0EgPSBhY3RpdmUgPT09IGlkOwogICAgICAgIHJldHVybiAoCiAgICAgICAgICA8YnV0dG9uIGtleT17aWR9IG9uQ2xpY2s9e2Z1bmN0aW9uKCkgeyBvbkNoYW5nZShpZCk7IH19CiAgICAgICAgICAgIHN0eWxlPXt7IGZsZXg6MSwgcGFkZGluZzoiOHB4IDRweCIsIGJvcmRlclJhZGl1czoxMiwgYm9yZGVyOiJub25lIiwgYmFja2dyb3VuZDppc0EgPyAid2hpdGUiIDogInRyYW5zcGFyZW50IiwKICAgICAgICAgICAgICBmb250U2l6ZTo5LCBmb250V2VpZ2h0OjcwMCwgY3Vyc29yOiJwb2ludGVyIiwgY29sb3I6aXNBID8gY29sb3IgOiAiIzY0NzQ4YiIsCiAgICAgICAgICAgICAgYm94U2hhZG93OmlzQSA/ICIwIDFweCA0cHggcmdiYSgwLDAsMCwwLjEpIiA6ICJub25lIiwgd2hpdGVTcGFjZToibm93cmFwIiwgbWluV2lkdGg6NTAgfX0+CiAgICAgICAgICAgIHtsYn0KICAgICAgICAgIDwvYnV0dG9uPgogICAgICAgICk7CiAgICAgIH0pfQogICAgPC9kaXY+CiAgKTsKfQpmdW5jdGlvbiBCdG4ocHJvcHMpIHsKICB2YXIgY2ggPSBwcm9wcy5jaGlsZHJlbjsgdmFyIG9uQ2xpY2sgPSBwcm9wcy5vbkNsaWNrOyB2YXIgdmFyaWFudCA9IHByb3BzLnZhcmlhbnQ7IHZhciBjb2xvciA9IHByb3BzLmNvbG9yIHx8ICIjMWUyOTNiIjsKICB2YXIgYmFzZSA9IHsgd2lkdGg6IjEwMCUiLCBwYWRkaW5nOiIxNHB4IiwgZm9udFNpemU6MTUsIGZvbnRXZWlnaHQ6NzAwLCBjdXJzb3I6InBvaW50ZXIiLCBib3JkZXI6Im5vbmUiLCBib3JkZXJSYWRpdXM6MTQgfTsKICBpZiAodmFyaWFudCA9PT0gInN1Y2Nlc3MiKSByZXR1cm4gKDxidXR0b24gb25DbGljaz17b25DbGlja30gc3R5bGU9e09iamVjdC5hc3NpZ24oe30sIGJhc2UsIHsgYmFja2dyb3VuZDoibGluZWFyLWdyYWRpZW50KDEzNWRlZywjMjJjNTVlLCMxNmEzNGEpIiwgY29sb3I6IndoaXRlIiwgYm94U2hhZG93OiIwIDRweCAxNHB4IHJnYmEoMzQsMTk3LDk0LDAuMzUpIiB9KX0+e2NoPC9idXR0b24+KTsKICBpZiAodmFyaWFudCA9PT0gImRhcmsiKSAgICByZXR1cm4gKDxidXR0b24gb25DbGljaz17b25DbGlja30gc3R5bGU9e09iamVjdC5hc3NpZ24oe30sIGJhc2UsIHsgYmFja2dyb3VuZDoibGluZWFyLWdyYWRpZW50KDEzNWRlZywjMWUyOTNiLCMwZjE3MmEpIiwgY29sb3I6IndoaXRlIiwgYm94U2hhZG93OiIwIDRweCAxNHB4IHJnYmEoMTUsMjMsNDIsMC4zKSIgfSl9PntjaH08L2J1dHRvbj4pOwogIGlmICh2YXJpYW50ID09PSAiZ2hvc3QiKSAgIHJldHVybiAoPGJ1dHRvbiBvbkNsaWNrPXtvbkNsaWNrfSBzdHlsZT17T2JqZWN0LmFzc2lnbih7fSwgYmFzZSwgeyBiYWNrZ3JvdW5kOiJ3aGl0ZSIsIGNvbG9yOiIjNjQ3NDhiIiwgYm9yZGVyOiIycHggc29saWQgI2U4ZWRmMiIgfSl9PntjaH08L2J1dHRvbj4pOwogIHJldHVybiAoPGJ1dHRvbiBvbkNsaWNrPXtvbkNsaWNrfSBzdHlsZT17T2JqZWN0LmFzc2lnbih7fSwgYmFzZSwgeyBiYWNrZ3JvdW5kOiJsaW5lYXItZ3JhZGllbnQoMTM1ZGVnLCIrY29sb3IrIiwiK2NvbG9yKyJjYykiLCBjb2xvcjoid2hpdGUiLCBib3hTaGFkb3c6IjAgNHB4IDE0cHggIitjb2xvcisiNDAiIH0pfT57Y2h9PC9idXR0b24+KTsKfQpmdW5jdGlvbiBSYWRhckNoYXJ0KHByb3BzKSB7CiAgdmFyIHNjb3JlcyA9IHByb3BzLnNjb3JlczsgdmFyIGNvbG9yID0gcHJvcHMuY29sb3I7IHZhciBwcmV2ID0gcHJvcHMucHJldjsKICB2YXIgTlI9NzsgdmFyIENYPTE1MDsgdmFyIENZPTE1MDsgdmFyIFJSPTEwMDsKICB2YXIgSURTID0gWyJmYW1pbGlhIiwiYW1pZ29zIiwiZGluaGVpcm8iLCJ0cmFiYWxobyIsImNyZXNjIiwic2F1ZGUiLCJsYXplciJdOwogIHZhciBMQkwgPSBbIvCfj4AgRmFtw61saWEiLCLwn5Gl0KEgQW1pZ29zIiwi8J+SsCBEaW5oZWlybyIsIvCfkrwgVHJhYmFsaG8iLCLwn4yxIENyZXNjaW1lbnRvIiwi4p2k77iPIFNhw7pkZSIsIvCfjokg0KFhemVyIl07CiAgZnVuY3Rpb24gYW5nKGkpIHsgcmV0dXJuIChpL05SKSoyKk1hdGguUEkgLSBNYXRoLlBJLzI7IH0KICBmdW5jdGlvbiBwdChpLGYpIHsgcmV0dXJuIFtDWCtmKlJSKk1hdGguY29zKGFuZyhpKSksIENZK2YqUlIqTWF0aC5zaW4oYW5nKGkpKV07IH0KICBmdW5jdGlvbiBwb2x5U3RyKGZyYWNzKSB7IHJldHVybiBmcmFjcy5tYXAoZnVuY3Rpb24oZixpKSB7IHZhciBjPXB0KGksZik7IHJldHVybiBjWzBdLnRvRml4ZWQoMSkrIiwiK2NbMV0udG9GaXhlZCgxKTsgfSkuam9pbigiICIpOyB9CiAgdmFyIGZyYWNzID0gSURTLm1hcChmdW5jdGlvbihpZCkgeyByZXR1cm4gKHNjb3Jlc1tpZF18fDApLzEwOyB9KTsKICB2YXIgcEYgPSBwcmV2ID8gSURTLm1hcChmdW5jdGlvbihpZCkgeyByZXR1cm4gKHByZXZbaWRdfHwwKS8xMDsgfSkgOiBudWxsOwogIHZhciByaW5ncyA9IFswLjIsMC40LDAuNiwwLjgsMC4wXS5tYXAoZnVuY3Rpb24oZikgeyByZXR1cm4gKDxwb2x5Z29uIGtleT17Zn0gcG9pbnRzPXtwb2x5U3RyKEFycmF5KE5SKS5maWxsKGYpKX0gZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZTJlOGYwIiBzdHJva2VXaWR0aD0iMSIvPik7IH0pOwogIHZhciBheGVzID0gSURTLm1hcChmdW5jdGlvbihfLGkpIHsgdmFyIGM9cHQoaSwxKTsgcmV0dXJuICg8bGluZSBrZXk9e2l9IHgxPXtDWH0geTE9e0NZfSB4Mj17Y1swXS50b0ZpeGVkKDEpfSB5Mj17Y1sxXS50b0ZpeGVkKDEpfSBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZVdpZHRoPSIxIi8+KTsgfSk7CiAgdmFyIGRvdHMgPSBJRFMubWFwKGZ1bmN0aW9uKF8saSkgeyB2YXIgYz1wdChpLGZyYWNzW2ldKTsgcmV0dXJuICg8Y2lyY2xlIGtleT17aX0gY3g9e2NbMF0udG9GaXhlZCgxKX0gY3k9e2NbMV0udG9GaXhlZCgxKX0gcj0iNSIgZmlsbD17Y29sb3J9IHN0cm9rZT0id2hpdGUiIHN0cm9rZVdpZHRoPSIyIi8+KTsgfSk7CiAgdmFyIGxhYmVscyA9IExCTC5tYXAoZnVuY3Rpb24obGIsaSkgewogICAgdmFyIGE9YW5nKGkpOyB2YXIgbHg9Q1grKFJSKzI2KSpNYXRoLmNvcyhhKTsgdmFyIGx5PUNZK1JSKzI2KSpNYXRoLnNpbihhKTsKICAgIHZhciBhbmNob3I9TWF0aC5jb3MoYSk+MC4yPyJzdGFydCI6TWF0aC5jb3MoYSk8LTAuMj8iZW5kIjoibWlkZGxlIjsKICAgIHZhciBiYXNlbGluZT1NYXRoLnNpbihhKT4wLjM/ImhhbmdpbmciOk1hdGguc2luKGEpPC0wLjM/ImF1dG8iOiJtaWRkbGUiOwogICAgcmV0dXJuICg8dGV4dCBrZXk9e2l9IHg9e2x4LnRvRml4ZWQoMSl9IHk9e2x5LnRvRml4ZWQoMSl9IHRleHRBbmNob3I9e2FuY2hvcn0gZG9taW5hbnRCYXNlbGluZT17YmFzZWxpbmV9IGZvbnRTaXplPSI5IiBmaWxsPSIjNDc1NTY5IiBmb250V2VpZ2h0PSI3MDAiPntsYn08L3RleHQ+KTsKICB9KTsKICByZXR1cm4gKAogICAgPHN2ZyB2aWV3Qm94PSIwIDAgMzAwIDMwMCIgc3R5bGU9e3sgd2lkdGg6IjEwMCUiLCBtYXhXaWR0aDoyNzAsIGRpc3BsYXk6ImJsb2NrIiwgbWFyZ2luOiIwIGF1dG8iIH19PgogICAgICB7cmluZ3N9e2F4ZXN9CiAgICAgIHtwRiAmJiAoPHBvbHlnb24gcG9pbnRzPXtwb2x5U3RyKHBGKX0gZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2JkNWUxIiBzdHJva2VXaWR0aD0iMS41IiBzdHJva2VEYXNoYXJyYXk9IjQsMyIvPil9CiAgICAgIDxwb2x5Z29uIHBvaW50cz17cG9seVN0cihmcmFjcyl9IGZpbGw9e2NvbG9yKyIyOCJ9IHN0cm9rZT17Y29sb3J9IHN0cm9rZVdpZHRoPSIyLjUiIHN0cm9rZUxpbmVqb2luPSJyb3VuZCIvPgogICAgICB7ZG90c317bGFiZWxzfQogICAgPC9zdmc+CiAgKTsKfQoKLy8g4pSQ4pSA4pSQIERBVEEg4pSQ4pSA4pSQ4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACnZhciBBTExPV0VEX1VTRVJOQU1FUyA9IFsibmlsdG9uIiwiZXJpY2siLCJqdWNpbGluYSIsImNhcmluYSIsInJ1ZG1pbG8iLCJicnVubyIsInNhbGltbyJdOwp2YXIgVVNFUlMgPSBbCiAgeyB1c2VybmFtZToibmlsdG9uIiwgICByZWFsTmFtZToiTmlsdG9uIiwgICBjb2xvcjoiIzdDM0FFRCB9LAogIHsgdXNlcm5hbWU6ImVyaWNrIiwgICAgcmVhbE5hbWU6IkVyaWNrIiwgICAgY29sb3I6IiMyNTYzRUIiIH0sCiAgeyB1c2VybmFtZToianVjaWxpbmEiLCByZWFsTmFtZToiSnVjaWxpbmEiLCBjb2xvcjoiI0RCMjc3NyIgfSwKICB7IHVzZXJuYW1lOiJjYXJpbmEiLCAgIHJlYWxOYW1lOiJDYXJpbmEiLCAgIGNvbG9yOiIjMDU5NjY5IiB9LAogIHsgdXNlcm5hbWU6InJ1ZG1pbG8iLCAgcmVhbE5hbWU6IlJ1ZG1pbG8iLCAgY29sb3I6IiNEOTc2MDYiIH0sCiAgeyB1c2VybmFtZToiYnJ1bm8iLCAgICByZWFsTmFtZToiQnJ1bm8iLCAgICBjb2xvcjoiIzA4OTFCMiIgfSwKICB7IHVzZXJuYW1lOiJzYWxpbW8iLCAgIHJlYWxOYW1lOiJTYWxpbW8iLCAgIGNvbG9yOiIjREMyNjI2IiB9LApdOw==
+import { useState, useEffect } from "react";
+import {
+  signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged,
+} from "firebase/auth";
+import {
+  doc, getDoc, setDoc, collection, addDoc, onSnapshot, updateDoc, deleteDoc,
+} from "firebase/firestore";
+import { auth, db } from "./firebase";
+
+var BG = "#eef1f6";
+var CARD = { background:"white", borderRadius:20, padding:"18px 20px", marginBottom:14, boxShadow:"0 2px 12px rgba(15,23,42,0.07),0 0 0 1px rgba(15,23,42,0.04)" };
+var SL = { fontSize:10, fontWeight:800, letterSpacing:1.5, textTransform:"uppercase", color:"#94a3b8", marginBottom:10 };
+var PS = {
+  urgent:  { dot:"#ef4444", bg:"#fff1f2", badge:"URGENTE",   bc:"#ef4444", bl:"#fecaca" },
+  pending: { dot:"#f59e0b", bg:"#fffbf0", badge:"POR FAZER", bc:"#d97706", bl:"#fde68a" },
+  new:     { dot:"#6366f1", bg:"#f5f3ff", badge:"NOVO",      bc:"#4f46e5", bl:"#c7d2fe" },
+};
+
+function upd(obj, key, val) { var r = Object.assign({}, obj); r[key] = val; return r; }
+function scoreLabel(v) {
+  if (v <= 2) return ["Insuficiente","#ef4444"];
+  if (v <= 4) return ["Abaixo do esperado","#f97316"];
+  if (v === 5) return ["Suficiente","#eab308"];
+  if (v <= 7) return ["Bom","#3b82f6"];
+  if (v <= 9) return ["Muito Bom","#8b5cf6"];
+  return ["Excelente","#22c55e"];
+}
+function getDimDesc(dim, v) {
+  if (v <= 2) return dim.s.a; if (v <= 4) return dim.s.b; if (v === 5) return dim.s.c;
+  if (v <= 7) return dim.s.d; if (v <= 9) return dim.s.e; return dim.s.f;
+}
+var MTHS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+function nowLabel() { var d = new Date(); return MTHS[d.getMonth()] + " " + d.getFullYear(); }
+function fmtDate(s) {
+  if (!s) return "";
+  var p = s.split("-");
+  if (p.length < 3) return s;
+  return p[2] + " " + MTHS[parseInt(p[1], 10) - 1];
+}
+function isOverdue(s) {
+  if (!s) return false;
+  return new Date(s) < new Date();
+}
+
+function AppIcon(props) {
+  var sz = props.size || 64;
+  return (
+    <svg width={sz} height={sz} viewBox="0 0 64 64">
+      <defs>
+        <linearGradient id="ig1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#1e293b"/><stop offset="100%" stopColor="#0f172a"/></linearGradient>
+        <linearGradient id="ig2" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stopColor="#22c55e"/><stop offset="100%" stopColor="#4ade80"/></linearGradient>
+      </defs>
+      <rect width="64" height="64" rx="16" fill="url(#ig1)"/>
+      <circle cx="32" cy="32" r="22" fill="#22c55e" opacity="0.06"/>
+      <line x1="32" y1="50" x2="32" y2="28" stroke="url(#ig2)" strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M32 31 Q43 24 46 13 Q35 15 32 31" fill="url(#ig2)"/>
+      <path d="M32 38 Q21 31 19 20 Q29 23 32 38" fill="#4ade80" opacity="0.8"/>
+      <line x1="25" y1="50" x2="39" y2="50" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" opacity="0.35"/>
+    </svg>
+  );
+}
+function SubTabs(props) {
+  var options = props.options; var active = props.active; var onChange = props.onChange; var color = props.color;
+  return (
+    <div style={{ display:"flex", gap:4, marginBottom:16, padding:4, background:"#e8edf2", borderRadius:16, overflowX:"auto" }}>
+      {options.map(function(opt) {
+        var id = opt[0]; var lb = opt[1]; var isA = active === id;
+        return (
+          <button key={id} onClick={function() { onChange(id); }}
+            style={{ flex:1, padding:"8px 4px", borderRadius:12, border:"none", background:isA ? "white" : "transparent",
+              fontSize:9, fontWeight:700, cursor:"pointer", color:isA ? color : "#64748b",
+              boxShadow:isA ? "0 1px 4px rgba(0,0,0,0.1)" : "none", whiteSpace:"nowrap", minWidth:50 }}>
+            {lb}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+function Btn(props) {
+  var ch = props.children; var onClick = props.onClick; var variant = props.variant; var color = props.color || "#1e293b";
+  var base = { width:"100%", padding:"14px", fontSize:15, fontWeight:700, cursor:"pointer", border:"none", borderRadius:14 };
+  if (variant === "success") return (<button onClick={onClick} style={Object.assign({}, base, { background:"linear-gradient(135deg,#22c55e,#16a34a)", color:"white", boxShadow:"0 4px 14px rgba(34,197,94,0.35)" })}>{ch}</button>);
+  if (variant === "dark")    return (<button onClick={onClick} style={Object.assign({}, base, { background:"linear-gradient(135deg,#1e293b,#0f172a)", color:"white", boxShadow:"0 4px 14px rgba(15,23,42,0.3)" })}>{ch}</button>);
+  if (variant === "ghost")   return (<button onClick={onClick} style={Object.assign({}, base, { background:"white", color:"#64748b", border:"2px solid #e8edf2" })}>{ch}</button>);
+  return (<button onClick={onClick} style={Object.assign({}, base, { background:"linear-gradient(135deg,"+color+","+color+"cc)", color:"white", boxShadow:"0 4px 14px "+color+"40" })}>{ch}</button>);
+}
+function RadarChart(props) {
+  var scores = props.scores; var color = props.color; var prev = props.prev;
+  var NR=7; var CX=150; var CY=150; var RR=100;
+  var IDS = ["familia","amigos","dinheiro","trabalho","cresc","saude","lazer"];
+  var LBL = ["🏠 Família","👥 Amigos","💰 Dinheiro","💼 Trabalho","🌱 Crescimento","❤️ Saúde","🎉 Lazer"];
+  function ang(i) { return (i/NR)*2*Math.PI - Math.PI/2; }
+  function pt(i,f) { return [CX+f*RR*Math.cos(ang(i)), CY+f*RR*Math.sin(ang(i))]; }
+  function polyStr(fracs) { return fracs.map(function(f,i) { var c=pt(i,f); return c[0].toFixed(1)+","+c[1].toFixed(1); }).join(" "); }
+  var fracs = IDS.map(function(id) { return (scores[id]||0)/10; });
+  var pF = prev ? IDS.map(function(id) { return (prev[id]||0)/10; }) : null;
+  var rings = [0.2,0.4,0.6,0.8,1.0].map(function(f) { return (<polygon key={f} points={polyStr(Array(NR).fill(f))} fill="none" stroke="#e2e8f0" strokeWidth="1"/>); });
+  var axes = IDS.map(function(_,i) { var c=pt(i,1); return (<line key={i} x1={CX} y1={CY} x2={c[0].toFixed(1)} y2={c[1].toFixed(1)} stroke="#e2e8f0" strokeWidth="1"/>); });
+  var dots = IDS.map(function(_,i) { var c=pt(i,fracs[i]); return (<circle key={i} cx={c[0].toFixed(1)} cy={c[1].toFixed(1)} r="5" fill={color} stroke="white" strokeWidth="2"/>); });
+  var labels = LBL.map(function(lb,i) {
+    var a=ang(i); var lx=CX+(RR+26)*Math.cos(a); var ly=CY+(RR+26)*Math.sin(a);
+    var anchor=Math.cos(a)>0.2?"start":Math.cos(a)<-0.2?"end":"middle";
+    var baseline=Math.sin(a)>0.3?"hanging":Math.sin(a)<-0.3?"auto":"middle";
+    return (<text key={i} x={lx.toFixed(1)} y={ly.toFixed(1)} textAnchor={anchor} dominantBaseline={baseline} fontSize="9" fill="#475569" fontWeight="700">{lb}</text>);
+  });
+  return (
+    <svg viewBox="0 0 300 300" style={{ width:"100%", maxWidth:270, display:"block", margin:"0 auto" }}>
+      {rings}{axes}
+      {pF && (<polygon points={polyStr(pF)} fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="4,3"/>)}
+      <polygon points={polyStr(fracs)} fill={color+"28"} stroke={color} strokeWidth="2.5" strokeLinejoin="round"/>
+      {dots}{labels}
+    </svg>
+  );
+}
+
+// ── DATA ────────────────────────────────────────────────────────────────────────
+var ALLOWED_USERNAMES = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo"];
+var USERS = [
+  { username:"nilton",   realName:"Nilton",   color:"#7C3AED" },
+  { username:"erick",    realName:"Erick",    color:"#2563EB" },
+  { username:"jucilina", realName:"Jucilina", color:"#DB2777" },
+  { username:"carina",   realName:"Carina",   color:"#059669" },
+  { username:"rudmilo",  realName:"Rudmilo",  color:"#D97706" },
+  { username:"bruno",    realName:"Bruno",    color:"#0891B2" },
+  { username:"salimo",   realName:"Salimo",   color:"#DC2626" },
+];
+
+var DIMS = [
+  { id:"D1", label:"Comunicação, Assertividade e Relação em Equipa", desc:"Comunica de forma clara e adaptada às diferentes pessoas, ouve o outro e mantém ambiente de respeito.", s:{ a:"Tenho muita dificuldade em comunicar. Evito pedir ajuda.", b:"Às vezes comunico mal ou evito conversas difíceis.", c:"Consigo comunicar nas situações do dia a dia.", d:"Adapto a forma como comunico consoante com quem estou.", e:"Comunico bem em situações difíceis. Apoio os colegas.", f:"Sou referência na comunicação. Ajudo a resolver tensões." } },
+  { id:"D2", label:"Resiliência, Gestão da Frustração e Adaptação", desc:"Enfrenta dificuldades com maturidade, sem desistir à primeira.", s:{ a:"Quando as coisas não correm bem, bloqueio ou desisto.", b:"As dificuldades afetam demasiado o meu estado de espírito.", c:"Consigo manter-me estável na maior parte das situações.", d:"Mantenho-me calmo/a e encontro formas de continuar.", e:"Lido bem com situações difíceis. Estabilizo os outros.", f:"Sou referência de calma. Transformo problemas em oportunidades." } },
+  { id:"D3", label:"Autonomia, Proatividade e Cumprimento de Tarefas", desc:"Trabalha de forma independente e antecipa necessidades.", s:{ a:"Preciso que me digam sempre o que fazer.", b:"Faço o que me pedem, mas raramente ajo por iniciativa.", c:"Trabalho de forma autónoma nas tarefas habituais.", d:"Às vezes antecipo o que precisa de ser feito.", e:"Identifico o que é preciso antes que me digam.", f:"A minha iniciativa faz diferença. A equipa conta comigo." } },
+  { id:"D4", label:"Autoconhecimento, Autocrítica e Clareza de Objetivos", desc:"Autorreflexão para reconhecer competências e limitações de forma realista.", s:{ a:"Não penso muito sobre o que faço bem ou mal.", b:"Tenho alguma noção das minhas limitações, mas custa-me admiti-las.", c:"Sei, de forma geral, o que faço bem e o que preciso de melhorar.", d:"Conheço bem as minhas competências e limitações.", e:"Reflito regularmente. Tenho um projeto de vida concreto.", f:"Conheço-me profundamente. Isso guia as minhas decisões." } },
+  { id:"D5", label:"Competências Digitais e Autonomia Administrativa", desc:"Domínio de ferramentas digitais e gestão das exigências do quotidiano adulto.", s:{ a:"Tenho muita dificuldade com tecnologia e burocracia.", b:"Consigo usar algumas ferramentas digitais, mas com dificuldade.", c:"Uso ferramentas digitais básicas de forma autónoma.", d:"Uso bem as ferramentas digitais e os processos burocráticos.", e:"Uso a tecnologia de forma proativa. Às vezes ajudo outros.", f:"A minha literacia digital faz diferença." } },
+  { id:"D6", label:"Qualidade da Intervenção e Conhecimentos Profissionais", desc:"Concebe e dinamiza atividades relevantes ajustadas à população-alvo.", s:{ a:"Tenho dificuldade em fazer atividades adequadas para o grupo.", b:"As atividades ainda não estão bem ajustadas.", c:"Faço atividades básicas adaptadas. Cumpro as regras.", d:"Faço atividades adaptadas. Tenho postura profissional adequada.", e:"As atividades têm impacto real. Reflito sobre como melhorá-las.", f:"A qualidade do meu trabalho tem impacto duradouro." } },
+];
+var RODA_DIMS = [
+  { id:"familia",  label:"Família",            icon:"🏠", desc:"Como te sentes nas relações com a tua família?" },
+  { id:"amigos",   label:"Amigos",              icon:"👥", desc:"Tens amizades que te fazem bem?" },
+  { id:"dinheiro", label:"Dinheiro",            icon:"💰", desc:"Como está a tua situação financeira?" },
+  { id:"trabalho", label:"Trabalho",            icon:"💼", desc:"Como te sentes no local de colocação?" },
+  { id:"cresc",    label:"Crescimento Pessoal", icon:"🌱", desc:"Estás a aprender coisas novas? Sentes que evoluís?" },
+  { id:"saude",    label:"Saúde",               icon:"❤️", desc:"Como está a tua saúde física e mental?" },
+  { id:"lazer",    label:"Lazer",               icon:"🎉", desc:"Tens tempo para ti? Fazes atividades que te dão prazer?" },
+];
+var CHANNELS = [
+  { id:"feed",      icon:"📣", label:"O Feed",             desc:"Perguntas e vitórias da semana" },
+  { id:"pias",      icon:"🚀", label:"Os Nossos PIAs",     desc:"Fotos e ideias dos projetos" },
+  { id:"sos",       icon:"🆘", label:"SOS JEEP",           desc:"Pede ou oferece ajuda à malta" },
+  { id:"desabafos", icon:"💭", label:"Desabafos & Ideias", desc:"O espaço livre, sem filtros" },
+];
+var SURVEY_CATS = [
+  { id:"ludoteca", icon:"🏢", label:"A tua Ludoteca",   q:"Como te sentes no teu local de trabalho?",               chips:["Boa equipa 🤝","Aprendo muito 📚","Sinto-me útil 💡","Boa energia ✨","Difícil integração 😓","Pouco apoio ⚡","Rotina chata 😐"] },
+  { id:"teresa",   icon:"📞", label:"Apoio da Câmara",  q:"Sentes que a Teresa tem estado presente quando precisas?", chips:["Disponível quando preciso ✓","Reuniões úteis 🗓️","Bom acompanhamento 👍","Sinto-me apoiado/a 🤗","Difícil de contactar 📵","Preciso de mais apoio"] },
+  { id:"equipa",   icon:"👥", label:"A tua Equipa",     q:"Sentes que a equipa do local te apoia?",                  chips:["Somos um bom grupo 💪","Aprendo com eles 🎓","Integrado/a ✨","Boa comunicação 📢","Há conflitos 😬","Sinto-me de fora 😔"] },
+  { id:"geral",    icon:"⭐", label:"Satisfação Geral", q:"No geral, como estás a sentir o programa?",               chips:["Melhor do que esperava 🚀","Está a correr bem ✓","Estou a aprender 📚","Difícil mas vale a pena 💪","Podia ser melhor 🤔"] },
+];
+var SEMOJIS = ["","😞","😕","😐","🙂","😄"];
+var MOCK_SURVEYS = [
+  { anon:"Resposta Anónima 1", ratings:{ ludoteca:4,teresa:5,equipa:3,geral:4 }, mudaria:"Ter mais tempo para o PIA" },
+  { anon:"Resposta Anónima 2", ratings:{ ludoteca:3,teresa:4,equipa:4,geral:3 }, mudaria:"Mais formação no início" },
+];
+var QUIZZES = [
+  { id:"q1", title:"Dilema da Autonomia", badge:"D3 — Proatividade",
+    scenario:"O Coordenador pediu-te para organizares os materiais de uma sala, mas teve de sair de urgência. O que fazes?",
+    opts:[{ id:"A", text:"Faço tudo à minha maneira.", reveal:"Muita autonomia — mas risco de retrabalho." },
+          { id:"B", text:"Paro e vou fazer outra tarefa até ele voltar.", reveal:"Respeito pela hierarquia — mas falta de iniciativa." },
+          { id:"C", text:"Arrumo uma prateleira, tiro foto e mando WhatsApp.", reveal:"Iniciativa + comunicação proativa. A mais equilibrada." }], mock:{ A:28, B:15, C:57 } },
+  { id:"q2", title:"O Desafio do PIA", badge:"D6 — Intervenção",
+    scenario:"Preparaste uma atividade incrível. Mas os jovens dizem que estão com preguiça e preferem os telemoóveis. Como dás a volta?",
+    opts:[{ id:"A", text:"Sento-me com eles, crio ligação, depois puxo-os.", reveal:"Relação primeiro — boa estratégia." },
+          { id:"B", text:"Relembro as regras e dou-lhes a escolher.", reveal:"Limites claros — pode criar resistência." },
+          { id:"C", text:"Pergunto o que mudariam e adapto na hora.", reveal:"Cocriação — a forma mais genuína." }], mock:{ A:35, B:22, C:43 } },
+  { id:"q3", title:"Conflito com a Equipa", badge:"D1 — Comunicação",
+    scenario:"Estás a fazer um jogo com os miúdos, mas o auxiliar interrompe e muda as regras. Como geres?",
+    opts:[{ id:"A", text:"Deixo-o ajudar, mas depois falo com ele a sós.", reveal:"Harmonia imediata + resolução privada." },
+          { id:"B", text:"Interrompo-o de forma simpática: as regras são estas.", reveal:"Assertividade direta — exige confiança." },
+          { id:"C", text:"Afasto-me com ele 1 min para alinharmos as regras.", reveal:"Gestão discreta do conflito — provavelmente a mais eficaz." }], mock:{ A:38, B:25, C:37 } },
+];
+var SWOT_Q = [
+  { id:"forcas",    label:"💪 Forças",        sub:"O que faço bem no trabalho",      color:"#22c55e", ph:"Ex: Sou criativo/a, comunico bem..." },
+  { id:"fraquezas", label:"⚠️ Fraquezas",     sub:"O que ainda preciso de melhorar", color:"#f97316", ph:"Ex: Tenho dificuldade em pedir ajuda..." },
+  { id:"oprtns",    label:"🌟 Oportunidades", sub:"O que posso aproveitar no PIA",   color:"#3b82f6", ph:"Ex: A Ludoteca tem espaço exterior..." },
+  { id:"riscos",    label:"🚧 Riscos",        sub:"O que pode fazer o PIA falhar",   color:"#ef4444", ph:"Ex: Falta de materiais, agenda cheia..." },
+];
+var ALL_MEDALS = [
+  { id:"proativo",    icon:"🎯", label:"Proatividade",       desc:"Agiu por iniciativa própria" },
+  { id:"equipa",      icon:"🤝", label:"Espírito de Equipa", desc:"Apoiou os colegas de forma notável" },
+  { id:"criativo",    icon:"💡", label:"Criatividade",       desc:"Propôs ou executou uma ideia original" },
+  { id:"destaque",    icon:"⭐", label:"Destaque da Semana", desc:"Momento especial reconhecido pela GO" },
+  { id:"pia",         icon:"📋", label:"PIA Completo",       desc:"Completou o Plano Individual de Ação" },
+  { id:"evolucao",    icon:"📈", label:"Evolução",           desc:"Progresso notável desde o início" },
+  { id:"voz",         icon:"🎤", label:"Voz Ativa",          desc:"Participou ativamente no mural" },
+  { id:"resiliencia", icon:"💪", label:"Resiliência",        desc:"Superou uma situação difícil com maturidade" },
+  { id:"pontual",     icon:"⏰", label:"Pontualidade",       desc:"Presença e pontualidade consistentes" },
+  { id:"crescimento", icon:"🌱", label:"Crescimento",        desc:"Demonstrou vontade genuína de melhorar" },
+];
+var JEEP_LIST = [
+  { name:"Nilton",   username:"nilton",   color:"#7C3AED", entidade:"", estado:"verde" },
+  { name:"Erick",    username:"erick",    color:"#2563EB", entidade:"", estado:"verde" },
+  { name:"Jucilina", username:"jucilina", color:"#DB2777", entidade:"", estado:"verde" },
+  { name:"Carina",   username:"carina",   color:"#059669", entidade:"", estado:"verde" },
+  { name:"Rudmilo",  username:"rudmilo",  color:"#D97706", entidade:"", estado:"verde" },
+  { name:"Bruno",    username:"bruno",    color:"#0891B2", entidade:"", estado:"verde" },
+  { name:"Salimo",   username:"salimo",   color:"#DC2626", entidade:"", estado:"verde" },
+];
+var EC = { verde:"#22c55e", amarelo:"#f59e0b", vermelho:"#ef4444" };
+var PIA_FIELDS = [
+  { key:"oQue",     title:"O QUÊ",    icon:"🎯", hint:"Título e natureza do projeto",   ph:"Que projeto ou atividade quero desenvolver?" },
+  { key:"paraQue",  title:"PARA QUÊ", icon:"🏁", hint:"Objetivo global",               ph:"Qual é o propósito? O que vai mudar?" },
+  { key:"quanto",   title:"QUANTO",   icon:"📊", hint:"Volume e frequência",            ph:"Quantas sessões? Com que frequência?" },
+  { key:"onde",     title:"ONDE",     icon:"📍", hint:"Local e contexto",              ph:"Onde vai acontecer? Com que grupo?" },
+  { key:"recursos", title:"RECURSOS", icon:"🧰", hint:"O que é necessário",            ph:"Materiais, pessoas, espaços." },
+  { key:"comoSaber",title:"COMO SABER SE CORREU BEM", icon:"📏", hint:"Critérios de avaliação", ph:"O que vai ser diferente? Como vou medir?" },
+];
+var COMPL = ["Esta semana aprendi que...","A maior dificuldade foi...","Surpreendi-me quando...","Da próxima vez vou...","Orgulhei-me quando..."];
+var MOODS = ["😴","😟","😐","🙂","😄","🔥"];
+var EVT_COLORS = { visit:"#7C3AED", group:"#2563EB", reminder:"#D97706", personal:"#059669" };
+var EVT_ICONS  = { visit:"🏢",      group:"👥",      reminder:"🔔",      personal:"📌" };
+var GDPR_TEXT = "Os dados recolhidos nesta plataforma destinam-se exclusivamente ao acompanhamento do Programa JEEP EDUCA+ pela Câmara Municipal de Cascais. Os teus dados pessoais (nome, avaliações, PIA, Roda da Vida e reflexões) serão tratados de forma confidencial e utilizados apenas para fins de monitorização e melhoria do programa. Não serão partilhados com terceiros sem o teu consentimento. Podes solicitar o acesso, correção ou eliminação dos teus dados em qualquer momento, contactando a coordenadora do programa: teresa.castro@cm-cascais.pt. O armazenamento dos dados é feito de forma segura e o acesso é restrito à coordenadora do programa. Esta plataforma cumpre os requisitos do Regulamento Geral sobre a Proteção de Dados (RGPD) — Regulamento (UE) 2016/679.";
