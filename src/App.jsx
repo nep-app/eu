@@ -1268,7 +1268,7 @@ export default function App() {
               </div>
               {msgSent ? (
                 <div style={{ textAlign:"center", padding:"12px", background:"rgba(34,197,94,0.15)", borderRadius:12 }}>
-                  <span style={{ color:"#22c55e", fontWeight:700, fontSize:13 }}>✓ Mensagem enviada{msgAnon?" anonimamente":"!"}!</span>
+                  <span style={{ color:"#22c55e", fontWeight:700, fontSize:13 }}>✓ Mensagem enviada{msgAnon?" anonimamente":""}!</span>
                 </div>
               ) : (
                 <div>
