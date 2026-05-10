@@ -336,6 +336,19 @@ export default function App() {
   var [userGdpr,     setUserGdpr]     = useState({});
   var [rulesOpen,    setRulesOpen]    = useState(false);
 
+  // ── PARTILHAS & NOTIFICAÇÕES ──────────────────────────────────────
+  var [piaShared,      setPiaShared]      = useState(false);
+  var [rodaShared,     setRodaShared]     = useState(false);
+  var [autoShared,     setAutoShared]     = useState(false);
+  var [swotShared,     setSwotShared]     = useState(false);
+  var [activeQ,        setActiveQ]        = useState("Esta semana, qual foi o momento em que te sentiste mais capaz?");
+  var [activeQEdit,    setActiveQEdit]    = useState("");
+  var [adminMsgTarget, setAdminMsgTarget] = useState("nilton");
+  var [adminMsgTxt,    setAdminMsgTxt]    = useState("");
+  var [myNotifs,       setMyNotifs]       = useState([]);
+  var [allShared,      setAllShared]      = useState({});
+  var [adminSharedSel, setAdminSharedSel] = useState(null);
+
   // ── FIREBASE AUTH STATE ──────────────────────────────────────────
   useEffect(function() {
     var unsub = onAuthStateChanged(auth, function(fbUser) {
@@ -429,6 +442,33 @@ export default function App() {
     return unsub;
   }, [channel, user, screen]);
 
+  // ── REAL-TIME: PERGUNTA ATIVA ─────────────────────────────────────
+  useEffect(function() {
+    var unsub = onSnapshot(doc(db, "config", "activeQuestion"), function(snap) {
+      if (snap.exists()) setActiveQ(snap.data().text);
+    });
+    return unsub;
+  }, []);
+
+  // ── REAL-TIME: NOTIFICAÇÕES DA TERESA ────────────────────────────
+  useEffect(function() {
+    if (!user || user.isAdmin) return;
+    var unsub = onSnapshot(collection(db, "notifications", user.username, "items"), function(snap) {
+      setMyNotifs(snap.docs.map(function(d) { return Object.assign({ id:d.id }, d.data()); }));
+    });
+    return unsub;
+  }, [user]);
+
+  // ── CARREGAR DADOS PARTILHADOS (admin) ────────────────────────────
+  useEffect(function() {
+    if (!user || !user.isAdmin) return;
+    ALLOWED_USERNAMES.forEach(function(uname) {
+      getDoc(doc(db, "userData", uname)).then(function(snap) {
+        if (snap.exists()) setAllShared(function(prev) { return upd(prev, uname, snap.data()); });
+      });
+    });
+  }, [user]);
+
   // ── LOAD USER DATA ───────────────────────────────────────────────
   async function loadUserData(uname) {
     var snap = await getDoc(doc(db, "userData", uname));
@@ -452,6 +492,10 @@ export default function App() {
     if (d.sChips)    setSChips(d.sChips);
     if (d.sMudaria !== undefined) setSMudaria(d.sMudaria);
     if (d.sSaved)    setSSaved(d.sSaved);
+    if (d.piaShared)  setPiaShared(d.piaShared);
+    if (d.rodaShared) setRodaShared(d.rodaShared);
+    if (d.autoShared) setAutoShared(d.autoShared);
+    if (d.swotShared) setSwotShared(d.swotShared);
     // medals
     var mSnap = await getDoc(doc(db, "medals", uname));
     if (mSnap.exists()) {
@@ -604,22 +648,42 @@ export default function App() {
   }
 
   // ── SAVE FUNCTIONS ───────────────────────────────────────────────
-  async function savePia() {
-    setPiaSaved(true);
-    await saveUserField(user.username, { pia, piaActs, piaSaved:true });
+  async function savePia(share) {
+    var sh = share !== undefined ? share : piaShared;
+    setPiaSaved(true); setPiaShared(sh);
+    await saveUserField(user.username, { pia, piaActs, piaSaved:true, piaShared:sh });
   }
-  async function saveAutoEval() {
-    setAutoSaved(true);
-    await saveUserField(user.username, { dScores, dNotas, autoSaved:true });
+  async function saveAutoEval(share) {
+    var sh = share !== undefined ? share : autoShared;
+    setAutoSaved(true); setAutoShared(sh);
+    await saveUserField(user.username, { dScores, dNotas, autoSaved:true, autoShared:sh });
   }
-  async function saveSwot() {
-    setSwotSaved(true);
-    await saveUserField(user.username, { swotP, swotPia, swotSaved:true });
+  async function saveSwot(share) {
+    var sh = share !== undefined ? share : swotShared;
+    setSwotSaved(true); setSwotShared(sh);
+    await saveUserField(user.username, { swotP, swotPia, swotSaved:true, swotShared:sh });
   }
-  async function saveRoda() {
+  async function saveRoda(share) {
+    var sh = share !== undefined ? share : rodaShared;
     var newSaves = rodaSaves.concat([{ label:nowLabel(), scores:Object.assign({},roda) }]);
-    setRodaSaves(newSaves);
-    await saveUserField(user.username, { roda, rodaSaves:newSaves });
+    setRodaSaves(newSaves); setRodaShared(sh);
+    await saveUserField(user.username, { roda, rodaSaves:newSaves, rodaShared:sh });
+  }
+  async function updateActiveQ() {
+    if (!activeQEdit.trim()) return;
+    await setDoc(doc(db, "config", "activeQuestion"), { text:activeQEdit.trim(), date:nowLabel() });
+    setActiveQEdit("");
+  }
+  async function sendAdminMsg() {
+    if (!adminMsgTxt.trim()) return;
+    await addDoc(collection(db, "notifications", adminMsgTarget, "items"), {
+      from:"teresa", text:adminMsgTxt.trim(), date:nowLabel(), read:false
+    });
+    setAdminMsgTxt(""); alert("Mensagem enviada!");
+  }
+  async function dismissNotif(id) {
+    if (!user) return;
+    await deleteDoc(doc(db, "notifications", user.username, "items", id));
   }
   async function saveSatisf() {
     setSSaved(true);
@@ -782,7 +846,7 @@ export default function App() {
 
   // ── ADMIN ────────────────────────────────────────────────────────
   if (user && user.isAdmin) {
-    var ADMIN_TABS = [["geral","📊 Geral"],["tasks","✅ Tarefas"],["agenda","📅 Agenda"],["msgs","💬 Msgs"],["users","👥 Utilizadores"]];
+    var ADMIN_TABS = [["geral","📊 Geral"],["partilhas","📂 Partilhas"],["tasks","✅ Tarefas"],["agenda","📅 Agenda"],["msgs","💬 Msgs"],["users","👥 Utilizadores"]];
     return (
       <div style={{ minHeight:"100vh", background:BG, fontFamily:"system-ui,sans-serif" }}>
         <div style={{ background:"linear-gradient(135deg,#1e293b,#0f172a)", color:"white", padding:"16px 20px 20px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
@@ -804,10 +868,10 @@ export default function App() {
             <div>
               <div style={CARD}>
                 <div style={SL}>Pergunta Ativa</div>
-                <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Esta semana, qual foi o momento em que te sentiste mais capaz?</div>
+                <div style={{ fontSize:13, color:"#374151", fontWeight:600, marginBottom:12, padding:"10px 12px", background:"#f8fafc", borderRadius:10, borderLeft:"3px solid #7C3AED" }}>{activeQ}</div>
                 <div style={{ display:"flex", gap:8 }}>
-                  <input placeholder="Nova pergunta..." style={{ flex:1, padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none" }}/>
-                  <button style={{ background:"#7C3AED", color:"white", border:"none", borderRadius:12, padding:"11px 18px", fontSize:13, fontWeight:700, cursor:"pointer" }}>Publicar</button>
+                  <input value={activeQEdit} onChange={function(e){setActiveQEdit(e.target.value);}} placeholder="Escreve nova pergunta para todos..." style={{ flex:1, padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none" }}/>
+                  <button onClick={updateActiveQ} style={{ background:"#7C3AED", color:"white", border:"none", borderRadius:12, padding:"11px 18px", fontSize:13, fontWeight:700, cursor:"pointer" }}>Publicar</button>
                 </div>
               </div>
               <div style={CARD}>
@@ -951,6 +1015,14 @@ export default function App() {
           {adminTab === "msgs" && (
             <div>
               <div style={CARD}>
+                <div style={SL}>Enviar Mensagem a Utilizador</div>
+                <div style={{ display:"flex", gap:6, marginBottom:10, flexWrap:"wrap" }}>
+                  {JEEP_LIST.map(function(j){return(<button key={j.name} onClick={function(){setAdminMsgTarget(j.username);}} style={{ padding:"6px 14px", borderRadius:20, border:adminMsgTarget===j.username?"2px solid "+j.color:"2px solid #e8edf2", background:adminMsgTarget===j.username?j.color+"15":"white", fontSize:12, fontWeight:700, cursor:"pointer", color:adminMsgTarget===j.username?j.color:"#64748b" }}>{j.name}</button>);})}
+                </div>
+                <textarea value={adminMsgTxt} onChange={function(e){setAdminMsgTxt(e.target.value);}} placeholder="Mensagem para o/a utilizador/a..." rows={2} style={{ width:"100%", padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none", resize:"none", boxSizing:"border-box", marginBottom:8 }}/>
+                <button onClick={sendAdminMsg} style={{ background:"#7C3AED", color:"white", border:"none", borderRadius:12, padding:"10px 18px", fontSize:13, fontWeight:700, cursor:"pointer" }}>Enviar Mensagem →</button>
+              </div>
+              <div style={CARD}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
                   <div style={SL}>Mensagens Recebidas</div>
                   <div style={{ background:"#fef9f0", border:"1px solid #fde68a", borderRadius:20, padding:"3px 10px", fontSize:9, fontWeight:800, color:"#92400e" }}>inclui anónimas</div>
@@ -1014,6 +1086,81 @@ export default function App() {
               </div>
             </div>
           )}
+
+          {adminTab === "partilhas" && (
+            <div>
+              <div style={Object.assign({},CARD,{background:"linear-gradient(135deg,#1e293b,#0f172a)",border:"none",marginBottom:14})}>
+                <div style={{ fontSize:13, fontWeight:800, color:"white", marginBottom:4 }}>📂 Dados Partilhados</div>
+                <div style={{ fontSize:12, color:"#94a3b8" }}>Só aparecem aqui os dados que cada utilizador escolheu partilhar contigo.</div>
+              </div>
+              {ALLOWED_USERNAMES.map(function(uname) {
+                var d = allShared[uname] || {};
+                var jInfo = null; for(var j=0;j<JEEP_LIST.length;j++){if(JEEP_LIST[j].username===uname){jInfo=JEEP_LIST[j];break;}}
+                var hasAny = d.piaShared || d.rodaShared || d.autoShared || d.swotShared || d.sSaved;
+                var isOpen = adminSharedSel === uname;
+                return (
+                  <div key={uname} style={CARD}>
+                    <div onClick={function(){setAdminSharedSel(isOpen?null:uname);}} style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer" }}>
+                      <div style={{ width:10, height:10, borderRadius:"50%", background:jInfo?jInfo.color:"#94a3b8", flexShrink:0 }}/>
+                      <div style={{ flex:1 }}><div style={{ fontSize:14, fontWeight:800 }}>{jInfo?jInfo.name:uname}</div></div>
+                      <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
+                        {d.piaShared&&(<span style={{ fontSize:10, background:"#7C3AED15", color:"#7C3AED", padding:"2px 8px", borderRadius:20, fontWeight:700 }}>PIA</span>)}
+                        {d.rodaShared&&(<span style={{ fontSize:10, background:"#2563EB15", color:"#2563EB", padding:"2px 8px", borderRadius:20, fontWeight:700 }}>Roda</span>)}
+                        {d.autoShared&&(<span style={{ fontSize:10, background:"#05966915", color:"#059669", padding:"2px 8px", borderRadius:20, fontWeight:700 }}>Auto</span>)}
+                        {d.swotShared&&(<span style={{ fontSize:10, background:"#D9770615", color:"#D97706", padding:"2px 8px", borderRadius:20, fontWeight:700 }}>SWOT</span>)}
+                        {d.sSaved&&(<span style={{ fontSize:10, background:"#DC262615", color:"#DC2626", padding:"2px 8px", borderRadius:20, fontWeight:700 }}>Satisfação</span>)}
+                        {!hasAny&&(<span style={{ fontSize:10, color:"#94a3b8" }}>Nada partilhado ainda</span>)}
+                      </div>
+                      <span style={{ color:"#94a3b8", fontSize:16, marginLeft:4 }}>{isOpen?"▲":"▼"}</span>
+                    </div>
+                    {isOpen&&(
+                      <div style={{ marginTop:14, borderTop:"1px solid #f1f5f9", paddingTop:14 }}>
+                        {!hasAny&&(<div style={{ textAlign:"center", padding:"16px 0", color:"#94a3b8", fontSize:13 }}>Este utilizador ainda não partilhou nada.</div>)}
+                        {d.piaShared&&d.pia&&(
+                          <div style={{ marginBottom:14 }}>
+                            <div style={{ fontSize:12, fontWeight:800, color:"#7C3AED", marginBottom:8 }}>📋 PIA</div>
+                            {Object.keys(d.pia).filter(function(k){return d.pia[k];}).map(function(k){return(<div key={k} style={{ fontSize:12, color:"#374151", padding:"6px 10px", background:"#f8fafc", borderRadius:8, marginBottom:4 }}><strong>{k}:</strong> {d.pia[k]}</div>);})}
+                          </div>
+                        )}
+                        {d.rodaShared&&d.roda&&(
+                          <div style={{ marginBottom:14 }}>
+                            <div style={{ fontSize:12, fontWeight:800, color:"#2563EB", marginBottom:8 }}>🌸 Roda da Vida</div>
+                            <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                              {Object.keys(d.roda).map(function(k){return(<div key={k} style={{ background:"#2563EB10", borderRadius:8, padding:"4px 10px", fontSize:12 }}>{k}: <strong>{d.roda[k]}</strong></div>);})}
+                            </div>
+                          </div>
+                        )}
+                        {d.autoShared&&d.dScores&&(
+                          <div style={{ marginBottom:14 }}>
+                            <div style={{ fontSize:12, fontWeight:800, color:"#059669", marginBottom:8 }}>📊 Autoavaliação</div>
+                            <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:8 }}>
+                              {Object.keys(d.dScores).map(function(k){return(<div key={k} style={{ background:"#05966915", borderRadius:8, padding:"4px 10px", fontSize:12 }}>{k}: <strong>{d.dScores[k]}/10</strong></div>);})}
+                            </div>
+                            {d.dNotas&&Object.keys(d.dNotas).filter(function(k){return d.dNotas[k];}).map(function(k){return(<div key={k} style={{ fontSize:11, color:"#64748b", padding:"3px 8px", fontStyle:"italic" }}>{k}: {d.dNotas[k]}</div>);})}
+                          </div>
+                        )}
+                        {d.swotShared&&d.swotP&&(
+                          <div style={{ marginBottom:14 }}>
+                            <div style={{ fontSize:12, fontWeight:800, color:"#D97706", marginBottom:8 }}>🔍 Raio-X Pessoal</div>
+                            {Object.keys(d.swotP).filter(function(k){return d.swotP[k];}).map(function(k){return(<div key={k} style={{ fontSize:12, color:"#374151", padding:"6px 10px", background:"#fef3c715", borderRadius:8, marginBottom:4 }}><strong>{k}:</strong> {d.swotP[k]}</div>);})}
+                          </div>
+                        )}
+                        {d.sSaved&&d.sRatings&&(
+                          <div>
+                            <div style={{ fontSize:12, fontWeight:800, color:"#DC2626", marginBottom:8 }}>😊 Satisfação (anónima)</div>
+                            <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:6 }}>
+                              {Object.keys(d.sRatings).map(function(k){return(<div key={k} style={{ background:"#DC262610", borderRadius:8, padding:"4px 10px", fontSize:12 }}>{k}: {SEMOJIS[d.sRatings[k]]} <strong>{d.sRatings[k]}/5</strong></div>);})}
+                            </div>
+                            {d.sMudaria&&(<div style={{ fontSize:12, color:"#374151", fontStyle:"italic", padding:"6px 10px", background:"#fef9f0", borderRadius:8 }}>"{d.sMudaria}"</div>)}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -1063,6 +1210,23 @@ export default function App() {
         {/* ── HOME ── */}
         {tab === "home" && (
           <div style={{ padding:"18px 16px" }}>
+            {myNotifs.length>0&&(
+              <div style={Object.assign({},CARD,{background:"linear-gradient(135deg,#f5f3ff,#ede9fe)",border:"2px solid #7C3AED30"})}>
+                <div style={{ fontSize:13, fontWeight:800, color:"#7C3AED", marginBottom:10 }}>📩 {myNotifs.length} mensagem{myNotifs.length>1?"ns":""} da Teresa</div>
+                {myNotifs.map(function(n) {
+                  return (
+                    <div key={n.id} style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"10px 12px", background:"white", borderRadius:12, marginBottom:8, border:"1px solid #7C3AED20" }}>
+                      <span style={{ fontSize:20 }}>💜</span>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontSize:13, color:"#374151", lineHeight:1.6 }}>{n.text}</div>
+                        <div style={{ fontSize:10, color:"#94a3b8", marginTop:4 }}>{n.date}</div>
+                      </div>
+                      <button onClick={function(){dismissNotif(n.id);}} style={{ background:"none", border:"none", color:"#94a3b8", cursor:"pointer", fontSize:18, lineHeight:1, flexShrink:0 }}>✕</button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
             {pendingItems.length > 0 ? (
               <div style={CARD}>
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
@@ -1104,7 +1268,7 @@ export default function App() {
               </div>
               {msgSent ? (
                 <div style={{ textAlign:"center", padding:"12px", background:"rgba(34,197,94,0.15)", borderRadius:12 }}>
-                  <span style={{ color:"#22c55e", fontWeight:700, fontSize:13 }}>✓ Mensagem enviada{msgAnon?" anonimamente":""}!</span>
+                  <span style={{ color:"#22c55e", fontWeight:700, fontSize:13 }}>✓ Mensagem enviada{msgAnon?" anonimamente":"!"}!</span>
                 </div>
               ) : (
                 <div>
@@ -1148,7 +1312,7 @@ export default function App() {
           <div style={{ padding:"18px 16px" }}>
             <div style={CARD}>
               <div style={SL}>Pergunta da Semana</div>
-              <div style={{ fontSize:15, color:"#0f172a", fontWeight:700, lineHeight:1.5, marginBottom:16, padding:"12px 14px", background:C+"08", borderRadius:12, borderLeft:"3px solid "+C }}>Esta semana, qual foi o momento em que te sentiste mais capaz?</div>
+              <div style={{ fontSize:15, color:"#0f172a", fontWeight:700, lineHeight:1.5, marginBottom:16, padding:"12px 14px", background:C+"08", borderRadius:12, borderLeft:"3px solid "+C }}>{activeQ}</div>
               {answered ? (
                 <div style={{ textAlign:"center", padding:"20px 0" }}>
                   <div style={{ fontSize:48, marginBottom:10 }}>✅</div>
@@ -1333,7 +1497,17 @@ export default function App() {
                     );
                   })}
                 </div>
-                {piaSaved ? (<Btn variant="success" onClick={function(){}}>✓ PIA Guardado — {nowLabel()}</Btn>) : (<Btn color={C} onClick={savePia}>💾 Guardar PIA</Btn>)}
+                {piaSaved ? (
+                  <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                    <Btn variant="success" onClick={function(){}}>✓ Guardado{piaShared?" e Partilhado":""}</Btn>
+                    {!piaShared&&(<Btn color="#7C3AED" onClick={function(){savePia(true);}}>🔗 Partilhar com Teresa</Btn>)}
+                  </div>
+                ) : (
+                  <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                    <Btn color={C} onClick={function(){savePia(false);}}>💾 Guardar só para mim</Btn>
+                    <Btn color="#7C3AED" onClick={function(){savePia(true);}}>🔗 Guardar e Partilhar</Btn>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1343,8 +1517,8 @@ export default function App() {
                 {avalSub === "auto" && (
                   <div>
                     <div style={{ background:"linear-gradient(135deg,#1e293b,#0f172a)", borderRadius:20, padding:22, marginBottom:14 }}>
-                      <div style={{ fontSize:17, fontWeight:900, color:"white", marginBottom:8 }}>🔒 Ninguém vai ver isto.</div>
-                      <div style={{ fontSize:13, color:"#94a3b8", lineHeight:1.8 }}>Só tu e eu (Teresa) temos acesso. Sê honesto/a. 🌱</div>
+                      <div style={{ fontSize:17, fontWeight:900, color:"white", marginBottom:8 }}>📊 Autoavaliação</div>
+                      <div style={{ fontSize:13, color:"#94a3b8", lineHeight:1.8 }}>Preenche com honestidade. Podes guardar só para ti ou partilhar com a Teresa. 🌱</div>
                     </div>
                     {DIMS.map(function(dim) {
                       var v=dScores[dim.id]; var sl=scoreLabel(v); var lb=sl[0]; var col=sl[1];
@@ -1361,7 +1535,17 @@ export default function App() {
                         </div>
                       );
                     })}
-                    {autoSaved ? (<Btn variant="success" onClick={function(){}}>✓ Guardado — {nowLabel()}</Btn>) : (<Btn variant="dark" onClick={saveAutoEval}>Guardar Autoavaliação</Btn>)}
+                    {autoSaved ? (
+                      <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                        <Btn variant="success" onClick={function(){}}>✓ Guardado{autoShared?" e Partilhado":""}</Btn>
+                        {!autoShared&&(<Btn color="#7C3AED" onClick={function(){saveAutoEval(true);}}>🔗 Partilhar com Teresa</Btn>)}
+                      </div>
+                    ) : (
+                      <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                        <Btn variant="dark" onClick={function(){saveAutoEval(false);}}>💾 Guardar só para mim</Btn>
+                        <Btn color="#7C3AED" onClick={function(){saveAutoEval(true);}}>🔗 Guardar e Partilhar</Btn>
+                      </div>
+                    )}
                   </div>
                 )}
                 {avalSub === "satisf" && (
@@ -1426,7 +1610,17 @@ export default function App() {
                     </div>
                   );
                 })}
-                {swotSaved ? (<Btn variant="success" onClick={function(){}}>✓ Guardado — {nowLabel()}</Btn>) : (<Btn color={C} onClick={saveSwot}>💾 Guardar Raio-X</Btn>)}
+                {swotSaved ? (
+                  <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                    <Btn variant="success" onClick={function(){}}>✓ Guardado{swotShared?" e Partilhado":""}</Btn>
+                    {!swotShared&&(<Btn color="#7C3AED" onClick={function(){saveSwot(true);}}>🔗 Partilhar com Teresa</Btn>)}
+                  </div>
+                ) : (
+                  <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                    <Btn color={C} onClick={function(){saveSwot(false);}}>💾 Guardar só para mim</Btn>
+                    <Btn color="#7C3AED" onClick={function(){saveSwot(true);}}>🔗 Guardar e Partilhar</Btn>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1535,7 +1729,10 @@ export default function App() {
                     </div>
                   );
                 })}
-                <Btn color={C} onClick={saveRoda}>💾 Guardar Roda — {nowLabel()}</Btn>
+                <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                  <Btn color={C} onClick={function(){saveRoda(false);}}>💾 Guardar só para mim</Btn>
+                  <Btn color="#7C3AED" onClick={function(){saveRoda(true);}}>🔗 Guardar e Partilhar</Btn>
+                </div>
               </div>
             )}
 
