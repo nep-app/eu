@@ -944,7 +944,7 @@ async function replyToMsg(msgId, hiddenUser, replyText) {
 
   // ── ADMIN ────────────────────────────────────────────────────────
   if (user && user.isAdmin) {
-    var ADMIN_TABS = [["geral","📊 Geral"],["partilhas","📂 Partilhas"],["tasks","✅ Tarefas"],["agenda","📅 Agenda"],["msgs","💬 Msgs"],["users","👥 Utilizadores"]];
+  var ADMIN_TABS = [["geral","📊 Geral"],["mural","🌐 Fórum"],["partilhas","📂 Partilhas"],["tasks","✅ Tarefas"],["agenda","📅 Agenda"],["msgs","💬 Msgs"],["users","👥 Utilizadores"]];
     return (
       <div style={{ minHeight:"100vh", background:BG, fontFamily:"system-ui,sans-serif" }}>
         <div style={{ background:"linear-gradient(135deg,#1e293b,#0f172a)", color:"white", padding:"16px 20px 20px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
@@ -962,6 +962,61 @@ async function replyToMsg(msgId, hiddenUser, replyText) {
         </div>
         <div style={{ maxWidth:720, margin:"0 auto", padding:"20px 16px" }}>
 
+{adminTab === "mural" && (
+            <div>
+              <div style={{ background:"linear-gradient(135deg,#1e293b,#0f172a)", borderRadius:20, padding:22, marginBottom:14 }}>
+                <div style={{ fontSize:17, fontWeight:900, color:"white", marginBottom:8 }}>🌐 O Nosso Fórum</div>
+                <div style={{ fontSize:13, color:"#94a3b8", lineHeight:1.7 }}>Participa e responde aos jovens diretamente no mural.</div>
+              </div>
+              <div style={{ display:"flex", gap:6, marginBottom:12, overflowX:"auto", paddingBottom:2 }}>
+                {CHANNELS.map(function(ch) {
+                  var isA=channel===ch.id;
+                  return (<button key={ch.id} onClick={function(){setChannel(ch.id);}} style={{ display:"flex", alignItems:"center", gap:5, padding:"9px 14px", borderRadius:20, border:"none", background:isA?"#1e293b":"white", fontSize:12, fontWeight:700, cursor:"pointer", color:isA?"white":"#64748b", whiteSpace:"nowrap", flexShrink:0, boxShadow:isA?"0 4px 12px rgba(15,23,42,0.4)":"0 1px 4px rgba(0,0,0,0.06)" }}>{ch.icon} {ch.label}</button>);
+                })}
+              </div>
+              <div style={CARD}>
+                <div style={{ display:"flex", gap:8 }}>
+                  <input value={fPost} onChange={function(e){setFPost(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")postForum();}} placeholder="Escreve no mural como Admin..." style={{ flex:1, padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none" }}/>
+                  <button onClick={postForum} style={{ background:"#1e293b", color:"white", border:"none", borderRadius:12, padding:"11px 16px", fontSize:16, cursor:"pointer" }}>↑</button>
+                </div>
+              </div>
+              {(posts[channel]||[]).slice().reverse().map(function(p) {
+                return (
+                  <div key={p.id} style={Object.assign({},CARD,{marginBottom:10,padding:"14px 16px"})}>
+                    <div style={{ display:"flex", gap:10 }}>
+                      <div style={{ width:38, height:38, borderRadius:"50%", background:p.user==="Teresa (GO)"?"#1e293b":"linear-gradient(135deg,"+p.color+","+p.color+"cc)", display:"flex", alignItems:"center", justifyContent:"center", color:"white", fontSize:14, fontWeight:800, flexShrink:0 }}>{p.user[0]}</div>
+                      <div style={{ flex:1 }}>
+                        <div style={{ display:"flex", justifyContent:"space-between" }}><span style={{ fontSize:13, fontWeight:700 }}>{p.user} {p.user==="Teresa (GO)"&&<span style={{fontSize:9, background:"#7C3AED", color:"white", padding:"2px 6px", borderRadius:6, marginLeft:4}}>ADMIN</span>}</span><span style={{ fontSize:11, color:"#94a3b8" }}>{p.time}</span></div>
+                        <div style={{ fontSize:14, color:"#374151", marginTop:4, lineHeight:1.55 }}>{p.text}</div>
+                        <div style={{ marginTop:9, display:"flex", gap:12 }}>
+                          <span onClick={function(){likePost(p.id);}} style={{ fontSize:12, color:"#94a3b8", cursor:"pointer" }}>❤️ {p.likes}</span>
+                          <span onClick={function(){setReplyTo(replyTo===p.id?null:p.id);setExpanded(p.id);}} style={{ fontSize:12, color:"#94a3b8", cursor:"pointer", fontWeight:600 }}>💬 Responder</span>
+                          {p.replies.length>0&&(<span onClick={function(){setExpanded(expanded===p.id?null:p.id);}} style={{ fontSize:12, color:"#1e293b", fontWeight:700, cursor:"pointer" }}>{expanded===p.id?"▲":"▼"} {p.replies.length}</span>)}
+                        </div>
+                      </div>
+                    </div>
+                    {expanded===p.id&&p.replies.length>0&&(
+                      <div style={{ marginTop:10, marginLeft:48, borderLeft:"2px solid #e8edf2", paddingLeft:12 }}>
+                        {p.replies.map(function(rp,ri) {
+                          return (<div key={ri} style={{ display:"flex", gap:8, marginBottom:8 }}>
+                            <div style={{ width:28, height:28, borderRadius:"50%", background:rp.user==="Teresa (GO)"?"#1e293b":"linear-gradient(135deg,"+rp.color+","+rp.color+"cc)", display:"flex", alignItems:"center", justifyContent:"center", color:"white", fontSize:11, fontWeight:800, flexShrink:0 }}>{rp.user[0]}</div>
+                            <div><div style={{ fontSize:12, fontWeight:700 }}>{rp.user} {rp.user==="Teresa (GO)"&&<span style={{fontSize:8, background:"#7C3AED", color:"white", padding:"1px 4px", borderRadius:4, marginLeft:4}}>ADMIN</span>} <span style={{ color:"#94a3b8", fontWeight:400 }}>· {rp.time}</span></div><div style={{ fontSize:12, color:"#374151", marginTop:2 }}>{rp.text}</div></div>
+                          </div>);
+                        })}
+                      </div>
+                    )}
+                    {replyTo===p.id&&(
+                      <div style={{ marginTop:10, marginLeft:48, display:"flex", gap:8 }}>
+                        <input value={replyTxt} onChange={function(e){setReplyTxt(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")sendReply(p.id);}} placeholder={"Responder a "+p.user+"..."} style={{ flex:1, padding:"9px 14px", borderRadius:20, border:"2px solid #1e293b", fontSize:12, outline:"none" }} autoFocus/>
+                        <button onClick={function(){sendReply(p.id);}} style={{ background:"#1e293b", color:"white", border:"none", borderRadius:20, padding:"9px 16px", fontSize:12, cursor:"pointer" }}>↑</button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          
           {adminTab === "geral" && (
             <div>
               <div style={CARD}>
