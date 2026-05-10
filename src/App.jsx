@@ -418,6 +418,8 @@ export default function App() {
   var [activeQEdit,    setActiveQEdit]    = useState("");
   var [adminMsgTarget, setAdminMsgTarget] = useState("nilton");
   var [adminMsgTxt,    setAdminMsgTxt]    = useState("");
+  var [adminReplyId,   setAdminReplyId]   = useState(null);
+  var [adminReplyTxt,  setAdminReplyTxt]  = useState("");
   var [myNotifs,       setMyNotifs]       = useState([]);
   var [allShared,      setAllShared]      = useState({});
   var [adminSharedSel, setAdminSharedSel] = useState(null);
@@ -1121,17 +1123,32 @@ export default function App() {
                 {msgs.length===0 ? (
                   <div style={{ textAlign:"center", padding:"30px 0", color:"#94a3b8", fontSize:13 }}>Ainda não tens mensagens.</div>
                 ) : (
-                  msgs.slice().reverse().map(function(m) {
+                msgs.slice().reverse().map(function(m) {
                     return (
                       <div key={m.id} style={{ padding:"12px 14px", background:m.anon?"#fef9f0":"#f8fafc", borderRadius:14, marginBottom:10, border:m.anon?"1px solid #fde68a":"1px solid #e8edf2" }}>
                         <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
                           <div style={{ fontSize:12, fontWeight:700, color:m.anon?"#92400e":"#374151" }}>{m.anon?"🔒 Anónimo":m.from} <span style={{ fontWeight:400, color:"#94a3b8" }}>· {m.date}</span></div>
                         </div>
-                        <div style={{ fontSize:13, color:"#374151", lineHeight:1.6 }}>{m.text}</div>
+                        <div style={{ fontSize:13, color:"#374151", lineHeight:1.6, marginBottom:8 }}>{m.text}</div>
+                        
+                        {m.adminReply ? (
+                          <div style={{ padding:"8px 10px", background:"rgba(124, 58, 237, 0.1)", borderRadius:8, borderLeft:"3px solid #7C3AED", fontSize:12, color:"#4c1d95" }}>
+                            <strong>Teresa respondeu:</strong> {m.adminReply}
+                          </div>
+                        ) : (
+                          adminReplyId === m.id ? (
+                            <div style={{ display:"flex", gap:8, marginTop:8 }}>
+                              <input value={adminReplyTxt} onChange={function(e){setAdminReplyTxt(e.target.value);}} placeholder="Escreve a resposta..." style={{ flex:1, padding:"8px 10px", borderRadius:8, border:"1px solid #cbd5e1", fontSize:12 }} />
+                              <button onClick={function(){replyToMsg(m.id, m.hiddenUser, adminReplyTxt);}} style={{ background:"#7C3AED", color:"white", border:"none", borderRadius:8, padding:"8px 12px", fontSize:12, fontWeight:700, cursor:"pointer" }}>Enviar</button>
+                              <button onClick={function(){setAdminReplyId(null);}} style={{ background:"transparent", color:"#94a3b8", border:"none", fontSize:12, cursor:"pointer" }}>Cancelar</button>
+                            </div>
+                          ) : (
+                            <button onClick={function(){setAdminReplyId(m.id); setAdminReplyTxt("");}} style={{ background:"white", border:"1px solid #cbd5e1", borderRadius:8, padding:"6px 10px", fontSize:11, fontWeight:700, color:"#475569", cursor:"pointer" }}>💬 Responder</button>
+                          )
+                        )}
                       </div>
                     );
                   })
-                )}
               </div>
               <div style={CARD}>
                 <div style={SL}>Sugestões Recebidas</div>
