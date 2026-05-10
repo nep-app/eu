@@ -36,10 +36,11 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
-    // Messages to Teresa (authenticated write, admin read)
+    // Messages to Teresa (authenticated write, admin read/update)
     match /messages/{msgId} {
       allow create: if request.auth != null;
       allow read: if isAdmin();
+      allow update: if isAdmin(); // <-- A permissão que faltava à Teresa!
     }
 
     // Suggestions (authenticated write, admin read)
@@ -52,6 +53,18 @@ service cloud.firestore {
     match /medals/{username} {
       allow read: if isUser(username) || isAdmin();
       allow write: if isAdmin();
+    }
+
+    // Configurações globais (Pergunta da Semana, etc)
+    match /config/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // Notificações para os jovens (Teresa cria, utilizador lê e apaga)
+    match /notifications/{username}/items/{notifId} {
+      allow read, delete: if isUser(username);
+      allow create, update: if isAdmin();
     }
   }
 }
