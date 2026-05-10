@@ -717,22 +717,27 @@ export default function App() {
     setMsgTxt(""); setMsgSent(true);
   }
 
-  async function replyToMsg(msgId, hiddenUser, replyText) {
-    if (!replyText.trim()) return;
-    var targetUser = hiddenUser || "desconhecido";
-    
-    // Atualiza a mensagem original
-    await updateDoc(doc(db, "messages", msgId), { adminReply: replyText });
-    
-    // Envia a notificação secreta para o utilizador
-    if (targetUser !== "desconhecido") {
-      await addDoc(collection(db, "notifications", targetUser, "items"), {
-        from:"teresa", text:"Resposta à tua mensagem: " + replyText, date:nowLabel(), read:false
-      });
+async function replyToMsg(msgId, hiddenUser, replyText) {
+    try {
+      if (!replyText.trim()) return;
+      var targetUser = hiddenUser || "desconhecido";
+      
+      // Tenta atualizar a mensagem original
+      await updateDoc(doc(db, "messages", msgId), { adminReply: replyText });
+      
+      // Tenta enviar a notificação secreta para o utilizador
+      if (targetUser !== "desconhecido") {
+        await addDoc(collection(db, "notifications", targetUser, "items"), {
+          from:"teresa", text:"Resposta à tua mensagem: " + replyText, date:nowLabel(), read:false
+        });
+      }
+      
+      setAdminReplyId(null);
+      setAdminReplyTxt("");
+      alert("Resposta enviada com sucesso!");
+    } catch (erro) {
+      alert("Oops, deu este erro: " + erro.message);
     }
-    setAdminReplyId(null);
-    setAdminReplyTxt("");
-    alert("Resposta enviada com sucesso!");
   }
   async function sendSugg() {
     if (!suggTxt.trim() || !user) return;
