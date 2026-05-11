@@ -415,9 +415,9 @@ export default function App() {
   var [autoShared,     setAutoShared]     = useState(false);
   var [swotShared,     setSwotShared]     = useState(false);
  var [activeQ,          setActiveQ]         = useState("Esta semana, qual foi o momento em que te sentiste mais capaz?");
-  var [activeQMode,      setActiveQMode]     = useState("texto");
+ var [activeQMode,      setActiveQMode]     = useState(["texto"]);
   var [activeQEdit,      setActiveQEdit]     = useState("");
-  var [activeQModeEdit,  setActiveQModeEdit] = useState("texto");
+  var [activeQModeEdit,  setActiveQModeEdit] = useState(["texto"]);
   var [adminMsgTarget, setAdminMsgTarget] = useState("nilton");
   var [adminMsgTxt,    setAdminMsgTxt]    = useState("");
   var [adminReplyId,   setAdminReplyId]   = useState(null);
@@ -523,8 +523,15 @@ export default function App() {
   useEffect(function() {
     var unsub = onSnapshot(doc(db, "config", "activeQuestion"), function(snap) {
       if (snap.exists()) {
-        setActiveQ(snap.data().text);
-        setActiveQMode(snap.data().mode || "texto");
+        var d = snap.data();
+        setActiveQ(d.text);
+        var m = d.mode;
+        // Isto garante que a memória é sempre uma lista, mesmo que tenhas guardado só 1 opção antes
+        if (!m) m = ["texto"];
+        else if (!Array.isArray(m)) m = [m]; 
+        
+        setActiveQMode(m);
+        setCmode(m[0]); // Seleciona automaticamente a 1ª opção permitida para os jovens
       }
     });
     return unsub;
@@ -1027,16 +1034,23 @@ async function updateActiveQ() {
               <div style={CARD}>
                 <div style={SL}>Pergunta Ativa</div>
                 <div style={{ fontSize:13, color:"#374151", fontWeight:600, marginBottom:12, padding:"10px 12px", background:"#f8fafc", borderRadius:10, borderLeft:"3px solid #7C3AED" }}>{activeQ}</div>
-                <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+             <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:10 }}>
                   <input value={activeQEdit} onChange={function(e){setActiveQEdit(e.target.value);}} placeholder="Escreve nova pergunta para todos..." style={{ flex:1, minWidth:200, padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none" }}/>
-                  <select value={activeQModeEdit} onChange={function(e){setActiveQModeEdit(e.target.value);}} style={{ padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none", background:"white", cursor:"pointer" }}>
-                    <option value="texto">✏️ Texto Livre</option>
-                    <option value="mood">🌡️ Mood (Carinhas)</option>
-                    <option value="3p">💡 3 Palavras</option>
-                    <option value="completar">🔤 Completar Frase</option>
-                    <option value="semana">⭐ Avaliação da Semana</option>
-                  </select>
                   <button onClick={updateActiveQ} style={{ background:"#7C3AED", color:"white", border:"none", borderRadius:12, padding:"11px 18px", fontSize:13, fontWeight:700, cursor:"pointer" }}>Publicar</button>
+                </div>
+                <div style={{ fontSize:10, fontWeight:800, color:"#94a3b8", letterSpacing:1, marginBottom:6 }}>PERMITIR RESPOSTAS EM:</div>
+                <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                  {[["texto","✏️ Texto"],["mood","🌡️ Mood"],["3p","💡 3 Palav."],["completar","🔤 Completar"],["semana","⭐ Avaliação"]].map(function(opt) {
+                    var isSel = activeQModeEdit.includes(opt[0]);
+                    return (
+                      <button key={opt[0]} onClick={function(){
+                        if(isSel && activeQModeEdit.length===1) return; // Não deixa desmarcar o último
+                        setActiveQModeEdit(isSel ? activeQModeEdit.filter(function(x){return x!==opt[0];}) : activeQModeEdit.concat([opt[0]]));
+                      }} style={{ padding:"6px 12px", borderRadius:20, border:isSel?"2px solid #7C3AED":"2px solid #e8edf2", background:isSel?"#7C3AED15":"white", fontSize:11, fontWeight:700, cursor:"pointer", color:isSel?"#7C3AED":"#64748b" }}>
+                        {opt[1]}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <div style={CARD}>
@@ -1500,14 +1514,29 @@ async function updateActiveQ() {
                   <div style={{ fontSize:17, fontWeight:800 }}>Enviado!</div>
                   <div style={{ fontSize:13, color:"#64748b", marginTop:4 }}>A Teresa vai ler a tua resposta.</div>
                 </div>
-              ) : (
+) : (
                 <div>
-                  <div style={{ fontSize:11, fontWeight:800, color:C, letterSpacing:1, marginBottom:12, textTransform:"uppercase" }}>
-                    Formato de resposta: {activeQMode === "texto" ? "Texto Livre" : activeQMode === "mood" ? "Estado de Espírito" : activeQMode === "3p" ? "3 Palavras" : activeQMode === "completar" ? "Completar a Frase" : "Avaliação (1 a 5)"}
-                  </div>
+                  {activeQMode.length > 1 ? (
+                    <div style={{ marginBottom:14 }}>
+                      <div style={{ fontSize:11, fontWeight:800, color:C, letterSpacing:1, marginBottom:8, textTransform:"uppercase" }}>
+                        Escolhe como queres responder:
+                      </div>
+                      <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                        {[["texto","✏️","Texto"],["mood","🌡️","Mood"],["3p","💡","3 Palavras"],["completar","🔤","Completar"],["semana","⭐","Semana"]]
+                          .filter(function(m){ return activeQMode.includes(m[0]); }) // Filtra as opções bloqueadas pela Teresa
+                          .map(function(m) {
+                          return (<button key={m[0]} onClick={function(){setCmode(m[0]);}} style={{ display:"flex", alignItems:"center", gap:4, padding:"7px 12px", borderRadius:20, border:cmode===m[0]?"2px solid "+C:"2px solid #e8edf2", background:cmode===m[0]?C+"15":"white", fontSize:12, fontWeight:700, cursor:"pointer", color:cmode===m[0]?C:"#64748b" }}>{m[1]} {m[2]}</button>);
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                     <div style={{ fontSize:11, fontWeight:800, color:C, letterSpacing:1, marginBottom:12, textTransform:"uppercase" }}>
+                       Formato obrigatório: {activeQMode[0] === "texto" ? "Texto Livre" : activeQMode[0] === "mood" ? "Estado de Espírito" : activeQMode[0] === "3p" ? "3 Palavras" : activeQMode[0] === "completar" ? "Completar a Frase" : "Avaliação (1 a 5)"}
+                     </div>
+                  )}
                   
-                  {activeQMode==="texto"&&(<textarea value={aTxt} onChange={function(e){setATxt(e.target.value);}} placeholder="Escreve à vontade..." rows={4} style={{ width:"100%", padding:"12px 14px", borderRadius:14, border:"2px solid #e8edf2", fontSize:14, outline:"none", resize:"none", boxSizing:"border-box" }}/>)}
-                  {activeQMode==="mood"&&(
+                  {cmode==="texto"&&(<textarea value={aTxt} onChange={function(e){setATxt(e.target.value);}} placeholder="Escreve à vontade..." rows={4} style={{ width:"100%", padding:"12px 14px", borderRadius:14, border:"2px solid #e8edf2", fontSize:14, outline:"none", resize:"none", boxSizing:"border-box" }}/>)}
+                  {cmode==="mood"&&(
                     <div>
                       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:10 }}>
                         {MOODS.map(function(m,i){return(<button key={i} onClick={function(){setSelMood(i);}} style={{ fontSize:30, background:"none", border:"none", cursor:"pointer", opacity:selMood===i?1:0.3, transform:selMood===i?"scale(1.35)":"scale(1)" }}>{m}</button>);})}
@@ -1515,12 +1544,12 @@ async function updateActiveQ() {
                       {selMood!==null&&(<div style={{ textAlign:"center", fontSize:13, color:"#64748b", fontWeight:600 }}>{["Esgotado/a","Em baixo","Neutro","Bem","Ótimo","Em chamas!"][selMood]}</div>)}
                     </div>
                   )}
-                  {activeQMode==="3p"&&(
+                  {cmode==="3p"&&(
                     <div>
                       {[0,1,2].map(function(i){return(<input key={i} value={p3[i]||""} onChange={function(e){var n=p3.slice();n[i]=e.target.value;setP3(n);}} placeholder={"Palavra "+(i+1)} style={{ width:"100%", padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:15, outline:"none", boxSizing:"border-box", marginBottom:8 }}/>);})}
                     </div>
                   )}
-                  {activeQMode==="completar"&&(
+                  {cmode==="completar"&&(
                     <div>
                       <div style={{ display:"flex", gap:4, marginBottom:10, flexWrap:"wrap" }}>
                         {COMPL.map(function(p,i){return(<button key={i} onClick={function(){setCidx(i);}} style={{ padding:"5px 10px", borderRadius:20, border:cidx===i?"2px solid "+C:"2px solid #e8edf2", background:cidx===i?C+"15":"white", fontSize:10, fontWeight:700, cursor:"pointer", color:cidx===i?C:"#64748b" }}>{p.slice(0,14)}…</button>);})}
@@ -1529,7 +1558,7 @@ async function updateActiveQ() {
                       <textarea value={aTxt} onChange={function(e){setATxt(e.target.value);}} rows={3} style={{ width:"100%", padding:"12px 14px", borderRadius:14, border:"2px solid #e8edf2", fontSize:14, outline:"none", resize:"none", boxSizing:"border-box" }}/>
                     </div>
                   )}
-                  {activeQMode==="semana"&&(
+                  {cmode==="semana"&&(
                     <div>
                       <div style={{ display:"flex", justifyContent:"center", gap:10, marginBottom:10 }}>
                         {[1,2,3,4,5].map(function(n){return(<button key={n} onClick={function(){setSrating(n);}} style={{ width:46, height:46, borderRadius:"50%", border:"2px solid "+(srating>=n?C:"#e8edf2"), background:srating>=n?"linear-gradient(135deg,"+C+","+C+"cc)":"white", color:srating>=n?"white":"#94a3b8", fontSize:srating>=n?20:16, cursor:"pointer", fontWeight:700 }}>{srating>=n?"⭐":n}</button>);})}
