@@ -1,162 +1,222 @@
 import React, { useState } from 'react';
-import { doc, setDoc, addDoc, collection, deleteDoc, updateDoc } from "firebase/firestore";
-import { db } from "../firebase.js";
-import { CARD, SL, CYN, PNK, INP, Btn, PS } from "../theme.jsx";
 import { 
-  nowLabel, fmtDate, isOverdue, getWeekKey, EVT_COLORS, EVT_ICONS 
+  doc, 
+  setDoc, 
+  addDoc, 
+  collection, 
+  deleteDoc, 
+  updateDoc 
+} from "firebase/firestore";
+import { db } from "../firebase.js";
+import { 
+  CARD, 
+  SL, 
+  CYN, 
+  PNK, 
+  INP, 
+  Btn, 
+  PS, 
+  AppIcon 
+} from "../theme.jsx";
+import { 
+  nowLabel, 
+  fmtDate, 
+  isOverdue, 
+  getWeekKey, 
+  EVT_COLORS, 
+  EVT_ICONS 
 } from "../data.js";
 
 export default function HomeTab({ user, data, setTab }) {
-  // ── ESTADOS LOCAIS ──
-  const [msgTxt, setMsgTxt] = useState("");
-  const [msgAnon, setMsgAnon] = useState(false);
-  const [msgSent, setMsgSent] = useState(false);
+  // ── ESTADOS PARA GESTÃO DE TAREFAS (TO-DO) ──
+  const [novaTarefaTexto, setNovaTarefaTexto] = useState("");
+  const [novaTarefaData, setNovaTarefaData] = useState("");
 
-  // ── EXTRAÇÃO DE DADOS DO ESTADO GLOBAL ──
-  // Garantimos que se o dado não existir, a App não "crasha" (usando || [])
-  const uData = data.userData || {};
-  const myNotifs = data.myNotifs || [];
-  const todos = data.todos || [];
-  const events = data.events || [];
-  const leaderboard = data.leaderboard || {};
-  const missions = data.missions || [];
-  const completedMissions = data.completedMissions || [];
+  // ── ESTADOS PARA GESTÃO DE EVENTOS (AGENDA) ──
+  const [novoEventoTitulo, setNovoEventoTitulo] = useState("");
+  const [novoEventoData, setNovoEventoData] = useState("");
 
-  // ── 1. LÓGICA DE PRIORIDADES (ITENS PENDENTES) ──
-  let pendingItems = [];
-  
-  if (!uData.answered) {
-    pendingItems.push({ 
-      status: "urgent", 
-      icon: "💬", 
-      title: "Pergunta da semana", 
-      sub: "A Teresa aguarda a tua reflexão",
-      go: () => setTab("desafios") 
-    });
-  }
-  
-  if (!uData.autoSaved) {
-    pendingItems.push({ 
-      status: "pending", 
-      icon: "📊", 
-      title: "Autoavaliação mensal", 
-      sub: "Avalia as tuas competências",
-      go: () => { setTab("desafios"); } 
-    });
-  }
-  
-  if (!uData.sSaved) {
-    pendingItems.push({ 
-      status: "new", 
-      icon: "😊", 
-      title: "Satisfação", 
-      sub: "Diz-nos como corre o programa",
-      go: () => { setTab("desafios"); } 
-    });
-  }
-  
-  if (!uData.piaSaved) {
-    pendingItems.push({ 
-      status: "pending", 
-      icon: "🚀", 
-      title: "Plano Individual (PIA)", 
-      sub: "Desenha o teu projeto",
-      go: () => setTab("pia") 
-    });
-  }
+  // ── ESTADOS PARA COMUNICAÇÃO COM A TERESA ──
+  const [mensagemTexto, setMensagemTexto] = useState("");
+  const [mensagemAnonima, setMensagemAnonima] = useState(false);
+  const [mensagemEnviadaSucesso, setMensagemEnviadaSucesso] = useState(false);
 
-  // ── 2. MURAL "JOVENS EM AÇÃO" (ORDEM ALFABÉTICA) ──
-  // Removemos o pódio e o XP para evitar competitividade tóxica
-  const activeUsers = Object.entries(leaderboard)
-    .map(([username, details]) => ({ 
-      username, 
-      name: details.name, 
-      color: details.color 
-    }))
+  // ── EXTRAÇÃO DE DADOS DO ESTADO GLOBAL (FIREBASE) ──
+  const dadosUtilizador = data.userData || {};
+  const notificacoesAdmin = data.myNotifs || [];
+  const listaTarefas = data.todos || [];
+  const listaEventos = data.events || [];
+  const rankingDados = data.leaderboard || {};
+  const listaMissoes = data.missions || [];
+  const missoesConcluidas = data.completedMissions || [];
+
+  // ── LÓGICA DO TOP 3 SECRETO (MOTIVAÇÃO SEM PRESSÃO) ──
+  // 1. Filtramos os 3 com mais XP
+  // 2. Ordenamos esses 3 por ordem alfabética para esconder quem é o 1º
+  const destaquesXp = Object.entries(rankingDados)
+    .map(([username, detalhes]) => ({ username, ...detalhes }))
+    .sort((a, b) => (b.xp || 0) - (a.xp || 0))
+    .slice(0, 3)
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  // ── 3. FUNÇÕES DE INTERAÇÃO ──
+  // ── LÓGICA DE ITENS PENDENTES (AÇÕES RÁPIDAS) ──
+  let acoesPendentes = [];
+  if (!dadosUtilizador.answered) {
+    acoesPendentes.push({ status: "urgent", icon: "💬", title: "Pergunta da semana", sub: "A Teresa aguarda a tua reflexão", go: () => setTab("desafios") });
+  }
+  if (!dadosUtilizador.autoSaved) {
+    acoesPendentes.push({ status: "pending", icon: "📊", title: "Autoavaliação mensal", sub: "Avalia as tuas competências", go: () => setTab("desafios") });
+  }
+  if (!dadosUtilizador.sSaved) {
+    acoesPendentes.push({ status: "new", icon: "😊", title: "Satisfação", sub: "Diz-nos como corre o programa", go: () => setTab("desafios") });
+  }
+  if (!dadosUtilizador.piaSaved) {
+    acoesPendentes.push({ status: "pending", icon: "🚀", title: "Plano Individual (PIA)", sub: "Desenha o teu projeto", go: () => setTab("pia") });
+  }
 
-  async function sendQuickMsg() {
-    if (!msgTxt.trim()) return;
+  // ── FUNÇÕES: GESTÃO DE TAREFAS (TO-DO) ──
+  async function criarNovaTarefa() {
+    if (!novaTarefaTexto.trim()) return;
     try {
-      await addDoc(collection(db, "messages"), { 
-        text: msgTxt, 
-        anon: msgAnon, 
-        from: msgAnon ? "Anónimo" : user.username, 
+      const colecaoRef = collection(db, "todos", user.username, "items");
+      await addDoc(colecaoRef, {
+        text: novaTarefaTexto,
+        due: novaTarefaData,
+        done: false,
+        ts: Date.now()
+      });
+      setNovaTarefaTexto(""); 
+      setNovaTarefaData("");
+    } catch (erro) {
+      console.error("Erro ao criar tarefa:", erro);
+    }
+  }
+
+  async function alternarEstadoTarefa(tarefa) {
+    try {
+      const tarefaRef = doc(db, "todos", user.username, "items", tarefa.id);
+      await updateDoc(tarefaRef, { done: !tarefa.done });
+      
+      if (!tarefa.done) {
+        const historicoAtual = data.history || [];
+        const entradaHistorico = { 
+          date: nowLabel(), 
+          action: `Concluiu a tarefa: ${tarefa.text}`, 
+          ts: Date.now() 
+        };
+        await setDoc(doc(db, "userData", user.username), { 
+          history: [...historicoAtual, entradaHistorico], 
+          weekXp: (dadosUtilizador.weekXp || 0) + 5 
+        }, { merge: true });
+      }
+    } catch (erro) {
+      console.error("Erro ao atualizar tarefa:", erro);
+    }
+  }
+
+  async function removerTarefa(idTarefa) {
+    if (window.confirm("Queres mesmo apagar esta tarefa?")) {
+      try {
+        const tarefaRef = doc(db, "todos", user.username, "items", idTarefa);
+        await deleteDoc(tarefaRef);
+      } catch (erro) {
+        console.error("Erro ao remover tarefa:", erro);
+      }
+    }
+  }
+
+  // ── FUNÇÕES: GESTÃO DE AGENDA (EVENTOS) ──
+  async function criarNovoEvento() {
+    if (!novoEventoTitulo.trim() || !novoEventoData) {
+      alert("Por favor, preenche o título e a data do evento.");
+      return;
+    }
+    try {
+      const eventosRef = collection(db, "events");
+      await addDoc(eventosRef, {
+        title: novoEventoTitulo,
+        date: novoEventoData,
+        userId: user.username,
+        type: "visit",
+        ts: Date.now()
+      });
+      setNovoEventoTitulo(""); 
+      setNovoEventoData("");
+    } catch (erro) {
+      console.error("Erro ao criar evento:", erro);
+    }
+  }
+
+  async function removerEvento(idEvento) {
+    if (window.confirm("Queres remover este evento da tua agenda?")) {
+      try {
+        const eventoRef = doc(db, "events", idEvento);
+        await deleteDoc(eventoRef);
+      } catch (erro) {
+        console.error("Erro ao remover evento:", erro);
+      }
+    }
+  }
+
+  // ── FUNÇÕES: MISSÕES E MENSAGENS ──
+  async function enviarMensagemTeresa() {
+    if (!mensagemTexto.trim()) return;
+    try {
+      const msgsRef = collection(db, "messages");
+      await addDoc(msgsRef, { 
+        text: mensagemTexto, 
+        anon: mensagemAnonima, 
+        from: mensagemAnonima ? "Anónimo" : user.username, 
         hiddenUser: user.username, 
         date: nowLabel(), 
         adminReply: "" 
       });
-      setMsgTxt(""); 
-      setMsgSent(true);
-      setTimeout(() => setMsgSent(false), 3000);
-    } catch (error) {
-      alert("Erro ao enviar mensagem.");
+      setMensagemTexto(""); 
+      setMensagemEnviadaSucesso(true);
+      setTimeout(() => setMensagemEnviadaSucesso(false), 3000);
+    } catch (erro) {
+      console.error("Erro ao enviar mensagem:", erro);
     }
   }
 
-  async function toggleTodo(t) {
+  async function concluirMissaoSemanal(missao) {
+    if (missoesConcluidas.includes(missao.id)) return;
     try {
-      const todoRef = doc(db, "todos", user.username, "items", t.id);
-      await updateDoc(todoRef, { done: !t.done });
-      
-      // Se marcou como concluído, ganha XP e gera log no histórico
-      if (!t.done) {
-        const currentHistory = data.history || [];
-        const newHistoryEntry = { 
-          date: nowLabel(), 
-          action: `Concluiu a tarefa: ${t.text}`, 
-          ts: Date.now() 
-        };
-        
-        await setDoc(doc(db, "userData", user.username), { 
-          history: [...currentHistory, newHistoryEntry], 
-          weekXp: (uData.weekXp || 0) + 5 
-        }, { merge: true });
-      }
-    } catch (error) {
-      alert("Erro ao atualizar tarefa.");
-    }
-  }
-
-  async function completeMission(m) {
-    if (completedMissions.includes(m.id)) return;
-    
-    try {
-      const currentHistory = data.history || [];
-      const newHistoryEntry = { 
+      const historicoAtual = data.history || [];
+      const entradaHistorico = { 
         date: nowLabel(), 
-        action: `Cumpriu a missão: ${m.text}`, 
+        action: `Cumpriu a missão: ${missao.text}`, 
         ts: Date.now() 
       };
-      
       await setDoc(doc(db, "userData", user.username), { 
-        completedMissions: [...completedMissions, m.id], 
-        history: [...currentHistory, newHistoryEntry],
-        weekXp: (uData.weekXp || 0) + (m.xp || 10)
+        completedMissions: [...missoesConcluidas, missao.id], 
+        history: [...historicoAtual, entradaHistorico],
+        weekXp: (dadosUtilizador.weekXp || 0) + (missao.xp || 10)
       }, { merge: true });
-      
-      alert(`Excelente! Ganhaste +${m.xp || 10} XP ✨`);
-    } catch (error) {
-      alert("Erro ao registar missão.");
+      alert(`Parabéns! Ganhaste +${missao.xp || 10} XP ✨`);
+    } catch (erro) {
+      console.error("Erro ao concluir missão:", erro);
     }
   }
 
-  // ── 4. RENDERIZAÇÃO DA INTERFACE ──
   return (
-    <div style={{ padding: "18px 16px" }}>
+    <div style={{ padding: "18px 16px", paddingBottom: "100px" }}>
       
-      {/* SECÇÃO: AVISOS DA ADMIN */}
-      {myNotifs.length > 0 && (
-        <div style={{ ...CARD, background: "rgba(244, 114, 182, 0.12)", border: `1.5px solid ${PNK}` }}>
-          <div style={SL}>Mensagens Diretas</div>
-          {myNotifs.map(n => (
-            <div key={n.id} style={{ display: "flex", gap: 12, padding: "14px", background: "rgba(0,0,0,0.4)", borderRadius: 18, marginBottom: 8, alignItems: "flex-start" }}>
-              <div style={{ flex: 1, fontSize: 13, lineHeight: 1.6, color: "#fff" }}>{n.text}</div>
+      {/* ── LOGOTIPO CENTRAL ── */}
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: "30px", marginTop: "10px" }}>
+        <AppIcon size={100} />
+      </div>
+
+      {/* ── SECÇÃO: AVISOS DA TERESA ── */}
+      {notificacoesAdmin.length > 0 && (
+        <div style={{ ...CARD, background: "rgba(244, 114, 182, 0.15)", border: `1.5px solid ${PNK}` }}>
+          <div style={SL}>Mensagens da Coordenação</div>
+          {notificacoesAdmin.map(notif => (
+            <div key={notif.id} style={{ display: "flex", gap: 12, padding: "14px", background: "rgba(0,0,0,0.4)", borderRadius: 18, marginBottom: 10 }}>
+              <div style={{ flex: 1, fontSize: 13, lineHeight: 1.5, color: "#fff" }}>{notif.text}</div>
               <button 
-                onClick={() => deleteDoc(doc(db, "notifications", user.username, "items", n.id))} 
-                style={{ background: "none", border: "none", color: PNK, fontSize: 18, cursor: "pointer", padding: "0 5px" }}
+                onClick={() => deleteDoc(doc(db, "notifications", user.username, "items", notif.id))} 
+                style={{ background: "none", border: "none", color: PNK, fontSize: 18, cursor: "pointer" }}
               >
                 ✕
               </button>
@@ -165,75 +225,145 @@ export default function HomeTab({ user, data, setTab }) {
         </div>
       )}
 
-      {/* SECÇÃO: TAREFAS PRIORITÁRIAS */}
+      {/* ── SECÇÃO: TAREFAS (COM ADIÇÃO E REMOÇÃO) ── */}
       <div style={CARD}>
-        <div style={SL}>✅ As Minhas Tarefas</div>
-        {todos.filter(t => !t.done).length === 0 ? (
+        <div style={SL}>✅ A Minha To-Do List</div>
+        
+        {/* Formulário de Adição */}
+        <div style={{ marginBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "15px" }}>
+          <input 
+            value={novaTarefaTexto} 
+            onChange={e => setNovaTarefaTexto(e.target.value)} 
+            style={INP} 
+            placeholder="O que precisas de fazer hoje?" 
+          />
+          <div style={{ display: "flex", gap: 10 }}>
+            <input 
+              type="date" 
+              value={novaTarefaData} 
+              onChange={e => setNovaTarefaData(e.target.value)} 
+              style={{ ...INP, flex: 1, marginBottom: 0 }} 
+            />
+            <button 
+              onClick={criarNovaTarefa} 
+              style={{ background: CYN, border: "none", borderRadius: 18, padding: "0 25px", fontWeight: 900, cursor: "pointer", color: "#070b14" }}
+            >
+              ADICIONAR
+            </button>
+          </div>
+        </div>
+
+        {/* Listagem de Tarefas */}
+        {listaTarefas.length === 0 ? (
           <div style={{ textAlign: "center", color: "#94a3b8", fontSize: 13, padding: "15px 0" }}>
-            Não tens tarefas pendentes. Bom trabalho! 🎉
+            Não tens tarefas pendentes. Relaxa ou cria uma nova!
           </div>
         ) : (
-          todos.filter(t => !t.done).slice(0, 3).map(t => (
-            <div key={t.id} onClick={() => toggleTodo(t)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.05)", cursor: "pointer" }}>
-              <div style={{ width: 22, height: 22, borderRadius: 8, border: `2.5px solid ${CYN}`, flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{t.text}</div>
-                {t.due && (
-                  <div style={{ fontSize: 10, color: isOverdue(t.due) ? "#f43f5e" : "#94a3b8", marginTop: 2, fontWeight: 700 }}>
-                    📅 LIMITE: {fmtDate(t.due)}
+          listaTarefas.sort((a,b) => b.ts - a.ts).map(tarefa => (
+            <div key={tarefa.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              <div 
+                onClick={() => alternarEstadoTarefa(tarefa)} 
+                style={{ 
+                  width: 26, height: 26, borderRadius: 9, border: `2.5px solid ${tarefa.done ? "#4ade80" : CYN}`, 
+                  background: tarefa.done ? "#4ade80" : "transparent", cursor: "pointer", flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center"
+                }}
+              >
+                {tarefa.done && <span style={{ color: "#070b14", fontWeight: 900, fontSize: 16 }}>✓</span>}
+              </div>
+              <div style={{ flex: 1, opacity: tarefa.done ? 0.4 : 1, textDecoration: tarefa.done ? "line-through" : "none" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{tarefa.text}</div>
+                {tarefa.due && (
+                  <div style={{ fontSize: 11, color: isOverdue(tarefa.due) ? "#f43f5e" : "#94a3b8", marginTop: 2, fontWeight: 800 }}>
+                    LIMITE: {fmtDate(tarefa.due)}
                   </div>
                 )}
               </div>
+              <button 
+                onClick={() => removerTarefa(tarefa.id)} 
+                style={{ background: "none", border: "none", color: "#f43f5e", fontSize: 20, cursor: "pointer", padding: "5px" }}
+              >
+                ✕
+              </button>
             </div>
           ))
         )}
-        <div style={{ marginTop: 15 }}>
-          <Btn variant="dark" onClick={() => setTab("perfil")}>VER TODA A LISTA</Btn>
-        </div>
       </div>
 
-      {/* SECÇÃO: AGENDA */}
+      {/* ── SECÇÃO: AGENDA (COM ADIÇÃO E REMOÇÃO) ── */}
       <div style={CARD}>
-        <div style={SL}>📅 Próximos Eventos</div>
-        {events.length === 0 ? (
+        <div style={SL}>📅 A Minha Agenda</div>
+        
+        {/* Formulário de Adição de Evento */}
+        <div style={{ marginBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "15px" }}>
+          <input 
+            value={novoEventoTitulo} 
+            onChange={e => setNovoEventoTitulo(e.target.value)} 
+            style={INP} 
+            placeholder="Ex: Visita de acompanhamento..." 
+          />
+          <div style={{ display: "flex", gap: 10 }}>
+            <input 
+              type="date" 
+              value={novoEventoData} 
+              onChange={e => setNovoEventoData(e.target.value)} 
+              style={{ ...INP, flex: 1, marginBottom: 0 }} 
+            />
+            <button 
+              onClick={criarNovoEvento} 
+              style={{ background: PNK, border: "none", borderRadius: 18, padding: "0 25px", fontWeight: 900, cursor: "pointer", color: "#070b14" }}
+            >
+              CRIAR
+            </button>
+          </div>
+        </div>
+
+        {/* Listagem de Eventos */}
+        {listaEventos.filter(ev => ev.userId === user.username || ev.userId === "all").length === 0 ? (
           <div style={{ textAlign: "center", color: "#94a3b8", fontSize: 13, padding: "15px 0" }}>
-            Nenhum evento agendado para breve.
+            A tua agenda pessoal está vazia.
           </div>
         ) : (
-          events.slice(0, 2).map(e => (
-            <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 15, marginBottom: 15 }}>
-              <div style={{ 
-                width: 46, height: 46, background: `${EVT_COLORS[e.type] || CYN}25`, 
-                borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 
-              }}>
-                {EVT_ICONS[e.type] || "📌"}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>{e.title}</div>
-                <div style={{ fontSize: 11, color: CYN, fontWeight: 800, marginTop: 2 }}>
-                  {fmtDate(e.date)} {e.time && ` às ${e.time}`}
+          listaEventos.filter(ev => ev.userId === user.username || ev.userId === "all")
+            .sort((a,b) => new Date(a.date) - new Date(b.date))
+            .map(evento => (
+              <div key={evento.id} style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 12, background: "rgba(255,255,255,0.03)", padding: "14px", borderRadius: 18 }}>
+                <div style={{ 
+                  width: 44, height: 44, background: `${EVT_COLORS[evento.type] || CYN}25`, 
+                  borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 
+                }}>
+                  {EVT_ICONS[evento.type] || "📌"}
                 </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{evento.title}</div>
+                  <div style={{ fontSize: 12, color: CYN, fontWeight: 800, marginTop: 2 }}>{fmtDate(evento.date)}</div>
+                </div>
+                <button 
+                  onClick={() => removerEvento(evento.id)} 
+                  style={{ background: "none", border: "none", color: "#f43f5e", fontSize: 18, cursor: "pointer", opacity: 0.6 }}
+                >
+                  ✕
+                </button>
               </div>
-            </div>
-          ))
+            ))
         )}
       </div>
 
-      {/* SECÇÃO: PENDENTES DE RESPOSTA */}
-      {pendingItems.length > 0 && (
+      {/* ── SECÇÃO: AÇÕES PRIORITÁRIAS ── */}
+      {acoesPendentes.length > 0 && (
         <div style={CARD}>
-          <div style={SL}>Ações Necessárias</div>
-          {pendingItems.map((item, i) => (
-            <div key={i} onClick={item.go} style={{ 
-              display: "flex", alignItems: "center", gap: 14, padding: "16px", borderRadius: 20, 
-              background: PS[item.status].bg, marginBottom: 10, border: `1.5px solid ${PS[item.status].bl}`, cursor: "pointer" 
+          <div style={SL}>Ações de Acompanhamento</div>
+          {acoesPendentes.map((item, index) => (
+            <div key={index} onClick={item.go} style={{ 
+              display: "flex", alignItems: "center", gap: 14, padding: "16px", borderRadius: 22, 
+              background: PS[item.status].bg, marginBottom: 12, border: `1.5px solid ${PS[item.status].bl}`, cursor: "pointer" 
             }}>
-              <span style={{ fontSize: 22 }}>{item.icon}</span>
+              <span style={{ fontSize: 24 }}>{item.icon}</span>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>{item.title}</div>
-                <div style={{ fontSize: 11, color: "#cbd5e1", marginTop: 2 }}>{item.sub}</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{item.title}</div>
+                <div style={{ fontSize: 12, color: "#cbd5e1", marginTop: 2 }}>{item.sub}</div>
               </div>
-              <div style={{ fontSize: 10, fontWeight: 900, color: PS[item.status].bc, background: "rgba(0,0,0,0.25)", padding: "3px 10px", borderRadius: 10 }}>
+              <div style={{ fontSize: 10, fontWeight: 900, color: PS[item.status].bc, background: "rgba(0,0,0,0.25)", padding: "4px 12px", borderRadius: 12 }}>
                 {PS[item.status].badge}
               </div>
             </div>
@@ -241,68 +371,64 @@ export default function HomeTab({ user, data, setTab }) {
         </div>
       )}
 
-      {/* SECÇÃO: MISSÕES SEMANAIS */}
-      {missions.filter(m => m.week === getWeekKey()).length > 0 && (
+      {/* ── SECÇÃO: MISSÕES SEMANAIS ── */}
+      {listaMissoes.filter(mis => mis.week === getWeekKey()).length > 0 && (
         <div style={CARD}>
-          <div style={SL}>🎯 Missões da Semana</div>
-          {missions.filter(m => m.week === getWeekKey()).map(m => {
-            const isDone = completedMissions.includes(m.id);
+          <div style={SL}>🎯 Missões de Campo</div>
+          {listaMissoes.filter(mis => mis.week === getWeekKey()).map(missao => {
+            const concluida = missoesConcluidas.includes(missao.id);
             return (
-              <div 
-                key={m.id} 
-                onClick={() => !isDone && completeMission(m)} 
-                style={{ 
-                  display: "flex", alignItems: "center", gap: 12, padding: "14px", borderRadius: 18, 
-                  background: isDone ? "rgba(34, 211, 238, 0.1)" : "rgba(0,0,0,0.3)", 
-                  marginBottom: 8, opacity: isDone ? 0.6 : 1, cursor: isDone ? "default" : "pointer",
-                  border: isDone ? `1px solid ${CYN}40` : "1px solid rgba(255,255,255,0.05)"
-                }}
-              >
+              <div key={missao.id} onClick={() => !concluida && concluirMissaoSemanal(missao)} style={{ 
+                display: "flex", alignItems: "center", gap: 14, padding: "16px", borderRadius: 20, 
+                background: concluida ? "rgba(34, 211, 238, 0.12)" : "rgba(0,0,0,0.3)", marginBottom: 10, 
+                opacity: concluida ? 0.6 : 1, cursor: concluida ? "default" : "pointer",
+                border: concluida ? `1px solid ${CYN}40` : "1px solid rgba(255,255,255,0.06)"
+              }}>
                 <div style={{ 
                   width: 24, height: 24, borderRadius: 8, 
-                  background: isDone ? CYN : "rgba(255,255,255,0.1)", 
+                  background: concluida ? CYN : "rgba(255,255,255,0.1)", 
                   display: "flex", alignItems: "center", justifyContent: "center" 
                 }}>
-                  {isDone && <span style={{ color: "#070b14", fontWeight: 900, fontSize: 14 }}>✓</span>}
+                  {concluida && <span style={{ color: "#070b14", fontWeight: 900, fontSize: 14 }}>✓</span>}
                 </div>
-                <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: isDone ? "#94a3b8" : "#fff", textDecoration: isDone ? "line-through" : "none" }}>
-                  {m.text}
+                <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: concluida ? "#94a3b8" : "#fff", textDecoration: concluida ? "line-through" : "none" }}>
+                  {missao.text}
                 </div>
-                <div style={{ fontSize: 11, fontWeight: 900, color: CYN }}>+{m.xp} XP</div>
+                <div style={{ fontSize: 12, fontWeight: 900, color: CYN }}>+{missao.xp} XP</div>
               </div>
             );
           })}
         </div>
       )}
 
-      {/* SECÇÃO: MURAL JOVENS EM AÇÃO */}
+      {/* ── SECÇÃO: TOP 3 SECRETO (DESTAQUES) ── */}
       <div style={CARD}>
-        <div style={SL}>✨ Jovens Participantes</div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
-          {activeUsers.length === 0 ? (
-            <div style={{ fontSize: 12, color: "#94a3b8" }}>Aguardando primeira atividade da semana...</div>
+        <div style={SL}>⭐ Destaques da Semana</div>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: "10px" }}>
+          {destaquesXp.length === 0 ? (
+            <div style={{ fontSize: 13, color: "#94a3b8" }}>A calcular participação da equipa...</div>
           ) : (
-            activeUsers.map((item) => (
-              <div key={item.username} style={{ 
-                padding: "8px 16px", background: "rgba(255,255,255,0.08)", borderRadius: 24, 
-                border: `1px solid ${item.color}50`, fontSize: 12, fontWeight: 800, color: item.color,
-                display: "flex", alignItems: "center", gap: 8
+            destaquesXp.map((jovem) => (
+              <div key={jovem.username} style={{ 
+                padding: "12px 22px", background: "rgba(34, 211, 238, 0.1)", borderRadius: 28, 
+                border: `2px solid ${jovem.color}`, fontSize: 13, fontWeight: 900, color: jovem.color,
+                display: "flex", alignItems: "center", gap: 10, boxShadow: `0 0 20px ${jovem.color}30`
               }}>
-                <div style={{ 
-                  width: 7, height: 7, borderRadius: "50%", background: item.color, 
-                  boxShadow: `0 0 10px ${item.color}` 
-                }} />
-                {item.name}
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: jovem.color }} />
+                {jovem.name.toUpperCase()}
               </div>
             ))
           )}
         </div>
+        <div style={{ marginTop: 20, fontSize: 11, color: "#64748b", textAlign: "center", fontStyle: "italic", lineHeight: 1.4 }}>
+          Estes são os 3 jovens com maior participação esta semana.<br/>A listagem é apresentada por ordem alfabética.
+        </div>
       </div>
 
-      {/* SECÇÃO: CONTACTO E MENSAGENS */}
+      {/* ── SECÇÃO: CONTACTO COM A COORDENAÇÃO ── */}
       <div style={CARD}>
-        <div style={SL}>📱 Contactar a Teresa</div>
-        <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
+        <div style={SL}>📱 Falar com a Teresa</div>
+        <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
           <a href="https://wa.me/351916025666" target="_blank" rel="noreferrer" style={{ flex: 1, textDecoration: "none" }}>
             <Btn color="#22c55e" style={{ fontSize: 11 }}>WHATSAPP</Btn>
           </a>
@@ -311,34 +437,34 @@ export default function HomeTab({ user, data, setTab }) {
           </a>
         </div>
         
-        {msgSent ? (
-          <div style={{ textAlign: "center", padding: "18px", color: CYN, fontWeight: 900, background: "rgba(34, 211, 238, 0.1)", borderRadius: 16 }}>
-            ✓ MENSAGEM ENTREGUE!
+        {mensagemEnviadaSucesso ? (
+          <div style={{ textAlign: "center", padding: "20px", color: CYN, fontWeight: 900, background: "rgba(34, 211, 238, 0.1)", borderRadius: 18, border: `1px solid ${CYN}30` }}>
+            ✓ MENSAGEM ENTREGUE COM SUCESSO!
           </div>
         ) : (
-          <div>
+          <div style={{ background: "rgba(0,0,0,0.2)", padding: "18px", borderRadius: 22 }}>
             <textarea 
-              value={msgTxt} 
-              onChange={e => setMsgTxt(e.target.value)} 
-              style={INP} 
-              rows={2} 
-              placeholder="Escreve uma mensagem rápida..." 
+              value={mensagemTexto} 
+              onChange={e => setMensagemTexto(e.target.value)} 
+              style={{ ...INP, background: "rgba(0,0,0,0.4)" }} 
+              rows={3} 
+              placeholder="Escreve aqui a tua dúvida ou sugestão para a Teresa..." 
             />
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
                 <input 
                   type="checkbox" 
-                  checked={msgAnon} 
-                  onChange={() => setMsgAnon(!msgAnon)} 
-                  style={{ width: 18, height: 18, accentColor: PNK }} 
+                  checked={mensagemAnonima} 
+                  onChange={() => setMensagemAnonima(!mensagemAnonima)} 
+                  style={{ width: 20, height: 20, accentColor: PNK }} 
                 />
-                <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>Anónimo</span>
+                <span style={{ fontSize: 13, color: "#cbd5e1", fontWeight: 600 }}>Enviar como Anónimo</span>
               </label>
               <button 
-                onClick={sendQuickMsg} 
+                onClick={enviarMensagemTeresa} 
                 style={{ 
                   background: PNK, color: "#070b14", border: "none", 
-                  padding: "10px 24px", borderRadius: 14, fontWeight: 900, cursor: "pointer" 
+                  padding: "12px 28px", borderRadius: 16, fontWeight: 900, cursor: "pointer" 
                 }}
               >
                 ENVIAR
