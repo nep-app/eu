@@ -1545,79 +1545,84 @@ async function submitAnswer() {
           </div>
         )}
 
-{/* ── REFLEXÃO ── */}
+{/* ── SEPARADOR: REFLEXÃO ── */}
         {tab === "refl" && (
           <div style={{ padding:"18px 16px" }}>
             <div style={CARD}>
               <div style={SL}>Pergunta da Semana</div>
               <div style={{ fontSize:15, color:"#0f172a", fontWeight:700, lineHeight:1.5, marginBottom:16, padding:"12px 14px", background:C+"08", borderRadius:12, borderLeft:"3px solid "+C }}>{activeQ}</div>
+              
               {answered ? (
                 <div style={{ textAlign:"center", padding:"20px 0" }}>
                   <div style={{ fontSize:48, marginBottom:10 }}>✅</div>
                   <div style={{ fontSize:17, fontWeight:800 }}>Enviado!</div>
                   <div style={{ fontSize:13, color:"#64748b", marginTop:4 }}>A Teresa vai ler a tua resposta.</div>
                 </div>
-) : (
+              ) : (
                 <div>
-                  {activeQMode.length > 1 ? (
+                  {/* Seleção de Formato (se a Teresa permitir mais que um) */}
+                  {activeQMode.length > 1 && (
                     <div style={{ marginBottom:14 }}>
-                      <div style={{ fontSize:11, fontWeight:800, color:C, letterSpacing:1, marginBottom:8, textTransform:"uppercase" }}>
-                        Escolhe como queres responder:
-                      </div>
+                      <div style={{ fontSize:11, fontWeight:800, color:C, letterSpacing:1, marginBottom:8, textTransform:"uppercase" }}>Como queres responder?</div>
                       <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-{[["texto","✏️","Texto"],["mood","🌡️","Mood"],["3p","💡","3 Palavras"],["completar","🔤","Completar"],["semana","⭐","Semana"], ["foto", "📸", "Foto"], ["video", "🎥", "Vídeo"], ["audio", "🎙️", "Áudio"]]                          .filter(function(m){ return activeQMode.includes(m[0]); }) // Filtra as opções bloqueadas pela Teresa
-                          .map(function(m) {
-                          return (<button key={m[0]} onClick={function(){setCmode(m[0]);}} style={{ display:"flex", alignItems:"center", gap:4, padding:"7px 12px", borderRadius:20, border:cmode===m[0]?"2px solid "+C:"2px solid #e8edf2", background:cmode===m[0]?C+"15":"white", fontSize:12, fontWeight:700, cursor:"pointer", color:cmode===m[0]?C:"#64748b" }}>{m[1]} {m[2]}</button>);
-                        })}
+                        {[
+                          ["texto","✏️","Texto"], ["mood","🌡️","Mood"], ["3p","💡","3 Palavras"], 
+                          ["completar","🔤","Frase"], ["semana","⭐","Semana"],
+                          ["foto","📸","Foto"], ["video","🎥","Vídeo"], ["audio","🎙️","Áudio"]
+                        ].filter(function(m){ return activeQMode.includes(m[0]); })
+                         .map(function(m) {
+                           var isA = cmode === m[0];
+                           return (<button key={m[0]} onClick={function(){setCmode(m[0]); setMediaFile(null);}} style={{ display:"flex", alignItems:"center", gap:4, padding:"7px 12px", borderRadius:20, border:isA?"2px solid "+C:"2px solid #e8edf2", background:isA?C+"15":"white", fontSize:12, fontWeight:700, cursor:"pointer", color:isA?C:"#64748b" }}>{m[1]} {m[2]}</button>);
+                         })}
                       </div>
                     </div>
-                  ) : (
-                     <div style={{ fontSize:11, fontWeight:800, color:C, letterSpacing:1, marginBottom:12, textTransform:"uppercase" }}>
-                       Formato obrigatório: {activeQMode[0] === "texto" ? "Texto Livre" : activeQMode[0] === "mood" ? "Estado de Espírito" : activeQMode[0] === "3p" ? "3 Palavras" : activeQMode[0] === "completar" ? "Completar a Frase" : "Avaliação (1 a 5)"}
-                     </div>
                   )}
+
+                  {/* Zonas de Resposta Consoante o Modo Escolhido */}
+                  {cmode==="texto" && (<textarea value={aTxt} onChange={function(e){setATxt(e.target.value);}} placeholder="Escreve aqui..." rows={4} style={{ width:"100%", padding:"12px 14px", borderRadius:14, border:"2px solid #e8edf2", fontSize:14, outline:"none", boxSizing:"border-box" }}/>)}
                   
-                  {cmode==="texto"&&(<textarea value={aTxt} onChange={function(e){setATxt(e.target.value);}} placeholder="Escreve à vontade..." rows={4} style={{ width:"100%", padding:"12px 14px", borderRadius:14, border:"2px solid #e8edf2", fontSize:14, outline:"none", resize:"none", boxSizing:"border-box" }}/>)}
-                  {cmode==="mood"&&(
-                    <div>
-                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:10 }}>
-                        {MOODS.map(function(m,i){return(<button key={i} onClick={function(){setSelMood(i);}} style={{ fontSize:30, background:"none", border:"none", cursor:"pointer", opacity:selMood===i?1:0.3, transform:selMood===i?"scale(1.35)":"scale(1)" }}>{m}</button>);})}
-                      </div>
-                      {selMood!==null&&(<div style={{ textAlign:"center", fontSize:13, color:"#64748b", fontWeight:600 }}>{["Esgotado/a","Em baixo","Neutro","Bem","Ótimo","Em chamas!"][selMood]}</div>)}
+                  {cmode==="mood" && (
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:10 }}>
+                      {MOODS.map(function(m,i){return(<button key={i} onClick={function(){setSelMood(i);}} style={{ fontSize:30, background:"none", border:"none", cursor:"pointer", opacity:selMood===i?1:0.3, transform:selMood===i?"scale(1.3)":"" }}>{m}</button>);})}
                     </div>
                   )}
-                  {cmode==="3p"&&(
+
+                  {cmode==="3p" && (
                     <div>
-                      {[0,1,2].map(function(i){return(<input key={i} value={p3[i]||""} onChange={function(e){var n=p3.slice();n[i]=e.target.value;setP3(n);}} placeholder={"Palavra "+(i+1)} style={{ width:"100%", padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:15, outline:"none", boxSizing:"border-box", marginBottom:8 }}/>);})}
+                      {[0,1,2].map(function(i){return(<input key={i} value={p3[i]||""} onChange={function(e){var n=p3.slice();n[i]=e.target.value;setP3(n);}} placeholder={"Palavra "+(i+1)} style={{ width:"100%", padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:14, marginBottom:8, boxSizing:"border-box" }}/>);})}
                     </div>
                   )}
-                  {cmode==="completar"&&(
-                    <div>
-                      <div style={{ display:"flex", gap:4, marginBottom:10, flexWrap:"wrap" }}>
-                        {COMPL.map(function(p,i){return(<button key={i} onClick={function(){setCidx(i);}} style={{ padding:"5px 10px", borderRadius:20, border:cidx===i?"2px solid "+C:"2px solid #e8edf2", background:cidx===i?C+"15":"white", fontSize:10, fontWeight:700, cursor:"pointer", color:cidx===i?C:"#64748b" }}>{p.slice(0,14)}…</button>);})}
-                      </div>
-                      <div style={{ padding:"12px 14px", background:"#f8fafc", borderRadius:12, fontSize:14, fontWeight:700, marginBottom:10, borderLeft:"3px solid "+C }}>{COMPL[cidx]}</div>
-                      <textarea value={aTxt} onChange={function(e){setATxt(e.target.value);}} rows={3} style={{ width:"100%", padding:"12px 14px", borderRadius:14, border:"2px solid #e8edf2", fontSize:14, outline:"none", resize:"none", boxSizing:"border-box" }}/>
-                    </div>
-                  )}
-                  {cmode==="semana"&&(
-                    <div>
-                      <div style={{ display:"flex", justifyContent:"center", gap:10, marginBottom:10 }}>
-                        {[1,2,3,4,5].map(function(n){return(<button key={n} onClick={function(){setSrating(n);}} style={{ width:46, height:46, borderRadius:"50%", border:"2px solid "+(srating>=n?C:"#e8edf2"), background:srating>=n?"linear-gradient(135deg,"+C+","+C+"cc)":"white", color:srating>=n?"white":"#94a3b8", fontSize:srating>=n?20:16, cursor:"pointer", fontWeight:700 }}>{srating>=n?"⭐":n}</button>);})}
-                      </div>
-                      {srating&&(<div style={{ textAlign:"center", fontSize:13, color:"#64748b" }}>{["","Foi difícil 😔","Podia ter corrido melhor","Normal","Boa semana! 💪","Semana incrível! 🔥"][srating]}</div>)}
-                    </div>
-                  )}
-{["foto", "video", "audio"].includes(cmode) && (
+
+                  {/* ZONA MULTIMÉDIA (Foto, Vídeo, Áudio) */}
+                  {["foto", "video", "audio"].includes(cmode) && (
                     <div style={{ padding:"20px", border:"2px dashed #cbd5e1", borderRadius:14, textAlign:"center", background:"#f8fafc", marginBottom:10 }}>
-                      <div style={{ fontSize:12, fontWeight:700, color:"#64748b", marginBottom:10 }}>Seleciona o teu ficheiro:</div>
-                      <input type="file" accept={cmode==="foto"?"image/*":cmode==="video"?"video/*":"audio/*"} onChange={function(e){if(e.target.files[0]) setMediaFile(e.target.files[0]);}} style={{ maxWidth:"100%", fontSize:13 }}/>
-                      {mediaFile && <div style={{ fontSize:12, color:"#22c55e", fontWeight:700, marginTop:10 }}>✓ Prontinho para enviar!</div>}
+                      <div style={{ fontSize:12, fontWeight:700, color:"#64748b", marginBottom:10 }}>
+                        {cmode==="foto" ? "Seleciona uma Foto 📸" : cmode==="video" ? "Seleciona um Vídeo 🎥" : "Grava ou seleciona um Áudio 🎙️"}
+                      </div>
+                      <input 
+                        type="file" 
+                        accept={cmode==="foto"?"image/*":cmode==="video"?"video/*":"audio/*"} 
+                        onChange={function(e){if(e.target.files[0]) setMediaFile(e.target.files[0]);}} 
+                        style={{ maxWidth:"100%", fontSize:12 }}
+                      />
+                      {mediaFile && <div style={{ fontSize:12, color:"#22c55e", fontWeight:700, marginTop:10 }}>✓ Ficheiro pronto: {mediaFile.name.slice(0,20)}...</div>}
                     </div>
                   )}
-                  <div style={{ marginTop:16 }}><Btn color={C} onClick={submitAnswer}>{isUploading ? "A enviar para a nuvem... ⏳" : "Enviar →"}</Btn></div>                </div>
+
+                  {/* Botão de Enviar Geral */}
+                  <div style={{ marginTop:16 }}>
+                    <button 
+                      disabled={isUploading}
+                      onClick={submitAnswer} 
+                      style={{ width:"100%", background:isUploading?"#94a3b8":C, color:"white", border:"none", borderRadius:14, padding:"14px", fontSize:14, fontWeight:800, cursor:"pointer", boxShadow:"0 4px 12px "+C+"44" }}
+                    >
+                      {isUploading ? "A carregar para a nuvem... ⏳" : "Enviar Resposta →"}
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
+            
             <div style={CARD}>
               <div style={SL}>🎯 Quiz — O que farias?</div>
               <div style={{ display:"flex", gap:6, marginBottom:14 }}>
