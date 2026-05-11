@@ -234,10 +234,6 @@ var SURVEY_CATS = [
   { id:"geral",    icon:"⭐", label:"Satisfação Geral", q:"No geral, como estás a sentir o programa?",               chips:["Melhor do que esperava 🚀","Está a correr bem ✓","Estou a aprender 📚","Difícil mas vale a pena 💪","Podia ser melhor 🤔"] },
 ];
 var SEMOJIS = ["","😞","😕","😐","🙂","😄"];
-var MOCK_SURVEYS = [
-  { anon:"Resposta Anónima 1", ratings:{ ludoteca:4,teresa:5,equipa:3,geral:4 }, mudaria:"Ter mais tempo para o PIA" },
-  { anon:"Resposta Anónima 2", ratings:{ ludoteca:3,teresa:4,equipa:4,geral:3 }, mudaria:"Mais formação no início" },
-];
 var QUIZZES = [
   { id:"q1", title:"Dilema da Autonomia", badge:"D3 — Proatividade",
     scenario:"O Coordenador pediu-te para organizares os materiais de uma sala, mas teve de sair de urgência. O que fazes?",
@@ -299,16 +295,12 @@ var EVT_COLORS = { visit:"#7C3AED", group:"#2563EB", reminder:"#D97706", persona
 var EVT_ICONS  = { visit:"🏢",      group:"👥",      reminder:"🔔",      personal:"📌" };
 var GDPR_TEXT = "Os dados recolhidos nesta plataforma destinam-se exclusivamente ao acompanhamento do Programa JEEP EDUCA+ pela Câmara Municipal de Cascais. Os teus dados pessoais (nome, avaliações, PIA, Roda da Vida e reflexões) serão tratados de forma confidencial e utilizados apenas para fins de monitorização e melhoria do programa. Não serão partilhados com terceiros sem o teu consentimento. Podes solicitar o acesso, correção ou eliminação dos teus dados em qualquer momento, contactando a coordenadora do programa: teresa.castro@cm-cascais.pt. O armazenamento dos dados é feito de forma segura e o acesso é restrito à coordenadora do programa. Esta plataforma cumpre os requisitos do Regulamento Geral sobre a Proteção de Dados (RGPD) — Regulamento (UE) 2016/679.";
 
-// ── GAMIFICAÇÃO ─────────────────────────────────────────────────────────
 function getWeekKey() {
   var d = new Date(), jan1 = new Date(d.getFullYear(),0,1);
   var wk = Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7);
   return d.getFullYear()+"-W"+wk;
 }
-function getPrevWeekKey(wk) {
-  var p = wk.split("-W"); var y = parseInt(p[0]); var w = parseInt(p[1]);
-  return w === 1 ? (y-1)+"-W52" : y+"-W"+(w-1);
-}
+
 var FORUM_REACTIONS = [
   { id:"heart", icon:"❤️" },
   { id:"fire",  icon:"🔥" },
@@ -316,7 +308,6 @@ var FORUM_REACTIONS = [
   { id:"think", icon:"🤔" },
 ];
 
-// ── DEFAULTS ─────────────────────────────────────────────────────────────
 var DEF_PIA   = { oQue:"",paraQue:"",quanto:"",onde:"",recursos:"",comoSaber:"" };
 var DEF_ACTS  = [{ oQue:"",quando:"",obj:"" },{ oQue:"",quando:"",obj:"" },{ oQue:"",quando:"",obj:"" },{ oQue:"",quando:"",obj:"" }];
 var DEF_RODA  = { familia:5,amigos:5,dinheiro:5,trabalho:5,cresc:5,saude:5,lazer:5 };
@@ -393,10 +384,11 @@ export default function App() {
   var [piaActs,  setPiaActs]  = useState(DEF_ACTS);
   var [piaSaved, setPiaSaved] = useState(false);
 
-  // ── RODA DA VIDA ─────────────────────────────────────────────────
+  // ── RODA DA VIDA & HISTÓRICO ─────────────────────────────────────
   var [roda,     setRoda]     = useState(DEF_RODA);
   var [rodaExp,  setRodaExp]  = useState(null);
   var [rodaSaves,setRodaSaves]= useState([]);
+  var [history,  setHistory]  = useState([]);
 
   // ── CÁPSULA ──────────────────────────────────────────────────────
   var [cap, setCap] = useState(DEF_CAP);
@@ -438,14 +430,12 @@ export default function App() {
   var [msgs,         setMsgs]         = useState([]);
   var [sggs,         setSggs]         = useState([]);
   var [userGdpr,     setUserGdpr]     = useState({});
-  var [rulesOpen,    setRulesOpen]    = useState(false);
 
-  // ── GAMIFICAÇÃO ──────────────────────────────────────────────────
+  // ── GAMIFICAÇÃO & STREAK DIÁRIO ──────────────────────────────────
   var [weekXp,          setWeekXp]          = useState(0);
   var [weekKey,         setWeekKey]         = useState(getWeekKey());
   var [leaderboard,     setLeaderboard]     = useState({});
-  var [reflStreak,      setReflStreak]      = useState(0);
-  var [lastReflWeek,    setLastReflWeek]    = useState(null);
+  var [dailyStreak,     setDailyStreak]     = useState(0);
   var [missions,        setMissions]        = useState([]);
   var [completedMissions, setCompletedMissions] = useState([]);
   var [adminMissionTxt, setAdminMissionTxt] = useState("");
@@ -457,8 +447,8 @@ export default function App() {
   var [rodaShared,     setRodaShared]     = useState(false);
   var [autoShared,     setAutoShared]     = useState(false);
   var [swotShared,     setSwotShared]     = useState(false);
- var [activeQ,          setActiveQ]         = useState("Esta semana, qual foi o momento em que te sentiste mais capaz?");
- var [activeQMode,      setActiveQMode]     = useState(["texto"]);
+  var [activeQ,          setActiveQ]         = useState("Esta semana, qual foi o momento em que te sentiste mais capaz?");
+  var [activeQMode,      setActiveQMode]     = useState(["texto"]);
   var [activeQEdit,      setActiveQEdit]     = useState("");
   var [activeQModeEdit,  setActiveQModeEdit] = useState(["texto"]);
   var [adminMsgTarget, setAdminMsgTarget] = useState("nilton");
@@ -495,7 +485,7 @@ export default function App() {
     return unsub;
   }, []);
 
-  // ── REAL-TIME: EVENTS (shared) ───────────────────────────────────
+  // ── REAL-TIME: EVENTS & OTHERS ───────────────────────────────────
   useEffect(function() {
     if (!user) return;
     var unsub = onSnapshot(collection(db, "events"), function(snap) {
@@ -504,8 +494,6 @@ export default function App() {
     return unsub;
   }, [user]);
 
-
-  // ── VIGIAR ESTADO DE RESPOSTA DO USER ──
   useEffect(function() {
     if (!user || user.isAdmin) return;
     var unsub = onSnapshot(doc(db, "users", user.username), function(snap) {
@@ -513,9 +501,7 @@ export default function App() {
     });
     return unsub;
   }, [user]);
-  
 
-  // ── REAL-TIME: TODOS (per user) ──────────────────────────────────
   useEffect(function() {
     if (!user || user.isAdmin) return;
     var uname = user.username;
@@ -526,7 +512,7 @@ export default function App() {
     return unsub;
   }, [user]);
 
-  // ── REAL-TIME: TODOS (admin — all users) ─────────────────────────
+  // ── REAL-TIME: ADMIN ─────────────────────────────────────────────
   useEffect(function() {
     if (!user || !user.isAdmin) return;
     var unsubs = ALLOWED_USERNAMES.map(function(uname) {
@@ -535,36 +521,26 @@ export default function App() {
         setTodos(function(prev) { return upd(prev, uname, items); });
       });
     });
-    // messages + suggestions
     var unsubM = onSnapshot(collection(db, "messages"), function(snap) {
       setMsgs(snap.docs.map(function(d) { return Object.assign({ id:d.id }, d.data()); }));
     });
     var unsubS = onSnapshot(collection(db, "suggestions"), function(snap) {
       setSggs(snap.docs.map(function(d) { return Object.assign({ id:d.id }, d.data()); }));
     });
-    // GDPR info for all users
     ALLOWED_USERNAMES.forEach(function(uname) {
       getDoc(doc(db, "users", uname)).then(function(snap) {
-        if (snap.exists()) {
-          setUserGdpr(function(prev) { return upd(prev, uname, snap.data()); });
-        }
+        if (snap.exists()) setUserGdpr(function(prev) { return upd(prev, uname, snap.data()); });
       });
     });
-    // Medals for all users
     JEEP_LIST.forEach(function(j) {
       getDoc(doc(db, "medals", j.username)).then(function(snap) {
-        if (snap.exists()) {
-          setAmMedals(function(prev) { return upd(prev, j.name, snap.data().list || []); });
-        }
+        if (snap.exists()) setAmMedals(function(prev) { return upd(prev, j.name, snap.data().list || []); });
       });
     });
-    return function() {
-      unsubs.forEach(function(u) { u(); });
-      unsubM(); unsubS();
-    };
+    return function() { unsubs.forEach(function(u) { u(); }); unsubM(); unsubS(); };
   }, [user]);
 
-  // ── REAL-TIME: FORUM (current channel) ───────────────────────────
+  // ── REAL-TIME: FORUM ─────────────────────────────────────────────
   useEffect(function() {
     if (!user || screen !== "app") return;
     var unsub = onSnapshot(collection(db, "forum", channel, "posts"), function(snap) {
@@ -574,7 +550,7 @@ export default function App() {
     return unsub;
   }, [channel, user, screen]);
 
-// ── REAL-TIME: LEADERBOARD ───────────────────────────────────────
+  // ── REAL-TIME: LEADERBOARD & OTHERS ─────────────────────────────
   useEffect(function() {
     if (!user) return;
     var unsub = onSnapshot(doc(db, "config", "weeklyLeaderboard"), function(snap) {
@@ -588,7 +564,6 @@ export default function App() {
     return unsub;
   }, [user]);
 
-// ── REAL-TIME: MISSÕES ───────────────────────────────────────────
   useEffect(function() {
     if (!user) return;
     var unsub = onSnapshot(collection(db, "missions"), function(snap) {
@@ -597,7 +572,6 @@ export default function App() {
     return unsub;
   }, [user]);
 
-// ── REAL-TIME: PERGUNTA ATIVA ─────────────────────────────────────
   useEffect(function() {
     var unsub = onSnapshot(doc(db, "config", "activeQuestion"), function(snap) {
       if (snap.exists()) {
@@ -613,7 +587,6 @@ export default function App() {
     return unsub;
   }, []);
 
-  // ── REAL-TIME: NOTIFICAÇÕES DA TERESA ────────────────────────────
   useEffect(function() {
     if (!user || user.isAdmin) return;
     var unsub = onSnapshot(collection(db, "notifications", user.username, "items"), function(snap) {
@@ -622,7 +595,6 @@ export default function App() {
     return unsub;
   }, [user]);
 
-  // ── DADOS PARTILHADOS real-time (admin) ──────────────────────────
   useEffect(function() {
     if (!user || !user.isAdmin) return;
     var unsubs = ALLOWED_USERNAMES.map(function(uname) {
@@ -632,6 +604,18 @@ export default function App() {
     });
     return function() { unsubs.forEach(function(u){ u(); }); };
   }, [user]);
+
+
+  // ── FUNÇÃO DE HISTÓRICO ──────────────────────────────────────────
+  async function addHistoryLog(actionName) {
+    if (!user || user.isAdmin) return;
+    var d = new Date();
+    var dstr = d.toLocaleDateString("pt-PT") + " às " + d.toLocaleTimeString("pt-PT", {hour:'2-digit', minute:'2-digit'});
+    var newH = history.concat([{ date: dstr, action: actionName, ts: Date.now() }]);
+    setHistory(newH);
+    await saveUserField(user.username, { history: newH });
+  }
+
 
   // ── LOAD USER DATA ───────────────────────────────────────────────
   async function loadUserData(uname) {
@@ -643,6 +627,7 @@ export default function App() {
     if (d.piaSaved)  setPiaSaved(d.piaSaved);
     if (d.roda)      setRoda(d.roda);
     if (d.rodaSaves) setRodaSaves(d.rodaSaves);
+    if (d.history)   setHistory(d.history);
     if (d.dScores)   setDScores(d.dScores);
     if (d.dNotas)    setDNotas(d.dNotas);
     if (d.autoSaved) setAutoSaved(d.autoSaved);
@@ -656,38 +641,61 @@ export default function App() {
     if (d.sChips)    setSChips(d.sChips);
     if (d.sMudaria !== undefined) setSMudaria(d.sMudaria);
     if (d.sSaved)    setSSaved(d.sSaved);
-    if (d.reflStreak)             setReflStreak(d.reflStreak);
-    if (d.lastReflWeek)           setLastReflWeek(d.lastReflWeek);
-    if (d.completedMissions)      setCompletedMissions(d.completedMissions);
-    // weekly XP — reset if new week
+    if (d.completedMissions) setCompletedMissions(d.completedMissions);
+
+    // ── GESTÃO DO XP E STREAK DIÁRIO ──
     var wk = getWeekKey();
     var curWXp = (d.weekKey === wk) ? (d.weekXp || 0) : 0;
-    if (d.weekKey !== wk) {
-      setDoc(doc(db, "userData", uname), { weekXp: 0, weekKey: wk }, { merge:true });
-    }
-    // daily login XP (+2 once per day)
     var todayStr = new Date().toDateString();
+    var yest = new Date(); yest.setDate(yest.getDate()-1);
+    var newStreak = d.dailyStreak || 0;
+    var didGainXp = false;
+
+    // Se é o primeiro login de hoje, ganha XP e valida o Streak diário
     if ((d.lastXpDay || "") !== todayStr) {
       curWXp = curWXp + 2;
-      setDoc(doc(db, "userData", uname), { weekXp: curWXp, weekKey: wk, lastXpDay: todayStr }, { merge:true });
+      didGainXp = true;
+      // Streak: Se entrou ontem, soma 1. Se não, volta a 1.
+      newStreak = (d.lastXpDay === yest.toDateString()) ? newStreak + 1 : 1;
+      await setDoc(doc(db, "userData", uname), { weekXp: curWXp, weekKey: wk, lastXpDay: todayStr, dailyStreak: newStreak }, { merge:true });
     }
+
     setWeekXp(curWXp);
     setWeekKey(wk);
+    setDailyStreak(newStreak);
+
     if (d.piaShared)  setPiaShared(d.piaShared);
     if (d.rodaShared) setRodaShared(d.rodaShared);
     if (d.autoShared) setAutoShared(d.autoShared);
     if (d.swotShared) setSwotShared(d.swotShared);
-    // medals
+
+    // Medalhas
     var mSnap = await getDoc(doc(db, "medals", uname));
     if (mSnap.exists()) {
       var j = JEEP_LIST.find(function(x) { return x.username === uname; });
       if (j) setAmMedals(function(prev) { return upd(prev, j.name, mSnap.data().list || []); });
+    }
+
+    // ── CORREÇÃO DO XP: AVISA LOGO A LEADERBOARD ──
+    if (didGainXp) {
+      var userObj = JEEP_LIST.find(x => x.username === uname);
+      if(userObj) {
+        var lbRef = doc(db, "config", "weeklyLeaderboard");
+        var lbUpdate = { week: wk };
+        lbUpdate["scores."+uname] = { xp: curWXp, name: userObj.name, color: userObj.color };
+        try { await updateDoc(lbRef, lbUpdate); } catch(e) {
+          var init = { week: wk, scores: {} };
+          init.scores[uname] = { xp: curWXp, name: userObj.name, color: userObj.color };
+          await setDoc(lbRef, init);
+        }
+      }
     }
   }
 
   async function saveUserField(uname, data) {
     await setDoc(doc(db, "userData", uname), data, { merge:true });
   }
+
   async function addXp(amount) {
     var wk = getWeekKey();
     var curXp = (weekKey === wk) ? weekXp : 0;
@@ -696,7 +704,8 @@ export default function App() {
     setWeekKey(wk);
     setXpGain("+"+amount+" XP ✨");
     await saveUserField(user.username, { weekXp: nv, weekKey: wk });
-    // update weekly leaderboard (shared doc so all can see top 3)
+    
+    // Atualiza imediatamente na Tabela Central (Leaderboard)
     var lbRef = doc(db, "config", "weeklyLeaderboard");
     var lbUpdate = { week: wk };
     lbUpdate["scores."+user.username] = { xp: nv, name: user.realName, color: user.color };
@@ -708,6 +717,7 @@ export default function App() {
     }
     window.setTimeout(function(){ setXpGain(null); }, 2500);
   }
+
   async function completeMission(missionId) {
     if (completedMissions.includes(missionId)) return;
     var mission = missions.find(function(m){ return m.id === missionId; });
@@ -715,7 +725,9 @@ export default function App() {
     setCompletedMissions(newComp);
     await saveUserField(user.username, { completedMissions: newComp });
     if (mission) await addXp(mission.xp || 10);
+    await addHistoryLog("Completou a Missão: " + (mission ? mission.text : ""));
   }
+  
   async function addAdminMission() {
     if (!adminMissionTxt.trim()) return;
     await addDoc(collection(db, "missions"), {
@@ -766,13 +778,13 @@ export default function App() {
     setPia(DEF_PIA); setPiaActs(DEF_ACTS); setPiaSaved(false);
     setRoda(DEF_RODA); setRodaSaves([]); setDScores(DEF_DSCORES);
     setDNotas(DEF_DNOTAS); setAutoSaved(false); setSwotP(DEF_SWOT);
-    setSwotPia(DEF_SWOT); setSwotSaved(false); setCap(DEF_CAP);
+    setSwotPia(DEF_SWOT); setSwotSaved(false); setCap(DEF_CAP); setHistory([]);
     setAnswered(false); setQAnswers({}); setSRatings({ ludoteca:0,teresa:0,equipa:0,geral:0 });
     setSChips({ ludoteca:[],teresa:[],equipa:[],geral:[] }); setSMudaria(""); setSSaved(false);
     setTodos({}); setEvents([]); setMsgs([]); setSggs([]);
     setPosts({ csi:[], monitor:[], olx:[], orienta:[], backstage:[], coffee:[] });
     setWeekXp(0); setWeekKey(getWeekKey()); setLeaderboard({});
-    setReflStreak(0); setLastReflWeek(null);
+    setDailyStreak(0);
     setMissions([]); setCompletedMissions([]); setXpGain(null);
     setTab("home");
   }
@@ -787,7 +799,10 @@ export default function App() {
       replies:[]
     });
     setFPost("");
-    if (!user.isAdmin) await addXp(5);
+    if (!user.isAdmin) {
+      await addXp(5);
+      await addHistoryLog("Escreveu uma mensagem no Fórum ("+channel+")");
+    }
   }
   async function sendReply(pid) {
     if (!replyTxt.trim()) return;
@@ -820,6 +835,7 @@ export default function App() {
       text:newTodo.text, due:newTodo.due, done:false,
       shared:newTodo.shared, addedBy:"user", accepted:true
     });
+    await addHistoryLog("Adicionou uma nova Tarefa" + (newTodo.shared?" (Partilhada)":""));
     setNewTodo({ text:"", due:"", shared:true });
   }
   async function toggleTodoDone(id) {
@@ -827,6 +843,7 @@ export default function App() {
     var cur = (todos[user.username]||[]).find(function(t) { return t.id === id; });
     if (!cur) return;
     await updateDoc(doc(db, "todos", user.username, "items", id), { done:!cur.done });
+    if(!cur.done) await addHistoryLog("Concluiu a tarefa: " + cur.text);
   }
   async function acceptTodo(id) {
     if (!user) return;
@@ -867,6 +884,7 @@ export default function App() {
     var evtData = { title:newEvt.title, date:newEvt.date, time:newEvt.time, userId:user.username, type:"personal" };
     if (newEvt.shareWithTeresa) evtData.sharedWith = "teresa";
     await addDoc(collection(db, "events"), evtData);
+    await addHistoryLog("Adicionou um Evento Pessoal à agenda");
     setNewEvt({ title:"", date:"", time:"", userId:"all", type:"visit", shareWithTeresa:false });
   }
 
@@ -909,6 +927,7 @@ async function replyToMsg(msgId, hiddenUser, replyText) {
   async function sendSugg() {
     if (!suggTxt.trim() || !user) return;
     await addDoc(collection(db,"suggestions"),{ from:user.username, text:suggTxt, date:nowLabel() });
+    await addHistoryLog("Enviou uma sugestão para a Caixa de Sugestões");
     setSuggTxt("");
   }
 
@@ -934,19 +953,6 @@ async function replyToMsg(msgId, hiddenUser, replyText) {
     if (mediaRecorderRef) { mediaRecorderRef.stop(); setIsRecording(false); }
   }
 
-  async function addTeresaTodo() {
-    if (!teresaTodoTxt.trim()) return;
-    await addDoc(collection(db, "todos", teresaTodoTarget, "items"), {
-      text:teresaTodoTxt, due:teresaTodoDue, done:false, shared:true, addedBy:user.username, accepted:false
-    });
-    setTeresaTodoTxt(""); setTeresaTodoDue("");
-    alert("Sugestão enviada!");
-  }
-  async function addTeresaEvent() {
-    if (!teresaEvt.title.trim() || !teresaEvt.date) return;
-    await addDoc(collection(db, "events"), Object.assign({}, teresaEvt, { addedBy:user.username }));
-    setTeresaEvt({ title:"", date:"", time:"", userId:"all", type:"visit" });
-  }
   async function launchEvaluation(type) {
     var msg = type==="auto"
       ? "📊 Nova Autoavaliação disponível! Vai ao Percurso para preencher."
@@ -960,29 +966,33 @@ async function replyToMsg(msgId, hiddenUser, replyText) {
     alert("Lançado! Todos os utilizadores receberam notificação. 🎉");
   }
 
-  // ── SAVE FUNCTIONS ───────────────────────────────────────────────
+  // ── SAVE FUNCTIONS COM HISTÓRICO ────────────────────────────────
   async function savePia(share) {
     var sh = share !== undefined ? share : piaShared;
     var wasNew = !piaSaved;
     setPiaSaved(true); setPiaShared(sh);
     await saveUserField(user.username, { pia, piaActs, piaSaved:true, piaShared:sh });
+    await addHistoryLog("Atualizou o PIA" + (sh?" (Partilhado)":" (Privado)"));
     if (wasNew) await addXp(10);
   }
   async function saveAutoEval(share) {
     var sh = share !== undefined ? share : autoShared;
     setAutoSaved(true); setAutoShared(sh);
     await saveUserField(user.username, { dScores, dNotas, autoSaved:true, autoShared:sh });
+    await addHistoryLog("Preencheu a Autoavaliação" + (sh?" (Partilhada)":" (Privada)"));
   }
   async function saveSwot(share) {
     var sh = share !== undefined ? share : swotShared;
     setSwotSaved(true); setSwotShared(sh);
     await saveUserField(user.username, { swotP, swotPia, swotSaved:true, swotShared:sh });
+    await addHistoryLog("Atualizou o Raio-X Pessoal" + (sh?" (Partilhado)":" (Privado)"));
   }
   async function saveRoda(share) {
     var sh = share !== undefined ? share : rodaShared;
     var newSaves = rodaSaves.concat([{ label:nowLabel(), scores:Object.assign({},roda) }]);
     setRodaSaves(newSaves); setRodaShared(sh);
     await saveUserField(user.username, { roda, rodaSaves:newSaves, rodaShared:sh });
+    await addHistoryLog("Guardou a Roda da Vida" + (sh?" (Partilhada)":" (Privada)"));
     await addXp(15);
   }
 async function updateActiveQ() {
@@ -1021,6 +1031,7 @@ async function updateActiveQ() {
   async function saveSatisf() {
     setSSaved(true);
     await saveUserField(user.username, { sRatings, sChips, sMudaria, sSaved:true });
+    await addHistoryLog("Submeteu a Avaliação de Satisfação (Anónima)");
   }
 async function submitAnswer() {
     if (["foto", "video", "audio"].includes(cmode)) {
@@ -1041,22 +1052,15 @@ async function submitAnswer() {
       await saveUserField(user.username, { answered:true, answerText: aTxt, answerType: cmode });
     }
     setAnswered(true);
-    // streak + XP for reflexão semanal
-    var wk = getWeekKey();
-    if (lastReflWeek !== wk) {
-      var isConsec = lastReflWeek === getPrevWeekKey(wk);
-      var newStreak = isConsec ? reflStreak + 1 : 1;
-      setReflStreak(newStreak);
-      setLastReflWeek(wk);
-      await saveUserField(user.username, { reflStreak: newStreak, lastReflWeek: wk });
-      await addXp(20);
-    }
+    await addHistoryLog("Respondeu à Pergunta da Semana");
+    await addXp(20);
   }
   async function answerQuiz(qId, optId) {
     if (qAnswers[qId]) return;
     var newA = upd(qAnswers, qId, optId);
     setQAnswers(newA);
     await saveUserField(user.username, { qAnswers:newA });
+    await addHistoryLog("Respondeu a um Quiz (" + optId + ")");
     await addXp(15);
   }
   async function sealCapsule() {
@@ -1065,11 +1069,13 @@ async function submitAnswer() {
     var newCap = { text:cap.text, locked:true, revealed:false, lockedDate:MTHS[d.getMonth()]+" "+d.getFullYear() };
     setCap(newCap);
     await saveUserField(user.username, { cap:newCap });
+    await addHistoryLog("Selou a Cápsula do Tempo");
   }
   async function openCapsule() {
     var newCap = Object.assign({}, cap, { revealed:true });
     setCap(newCap);
     await saveUserField(user.username, { cap:newCap });
+    await addHistoryLog("Abriu a Cápsula do Tempo");
   }
   async function resetCapsule() {
     setCap(DEF_CAP);
@@ -1088,7 +1094,7 @@ async function submitAnswer() {
   // ── EXPORT ───────────────────────────────────────────────────────
   function doExport() {
     if (!user) return;
-    var data = { utilizador:user.realName, exportacao:new Date().toISOString(), pia, piaAtividades:piaActs, rodaDaVida:roda, historicoRoda:rodaSaves, autoavaliacao:dScores, tarefas:todos[user.username]||[], swot:{ pessoal:swotP, pia:swotPia } };
+    var data = { utilizador:user.realName, exportacao:new Date().toISOString(), pia, piaAtividades:piaActs, rodaDaVida:roda, historicoRoda:rodaSaves, historicoAcoes:history, autoavaliacao:dScores, tarefas:todos[user.username]||[], swot:{ pessoal:swotP, pia:swotPia } };
     try {
       var blob = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
       var url = URL.createObjectURL(blob); var a = document.createElement("a");
@@ -1285,6 +1291,21 @@ async function submitAnswer() {
           
        {adminTab === "geral" && (
             <div>
+              <div style={CARD}>
+                <div style={SL}>Tabela de XP da Semana</div>
+                <div style={{ fontSize:12, color:"#64748b", marginBottom:14 }}>Apenas tu (Admin) vês esta tabela completa e ordenada.</div>
+                {Object.entries(leaderboard).sort(function(a,b){return b[1].xp-a[1].xp;}).map(function(e, i) {
+                  return (
+                    <div key={e[0]} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 0", borderBottom:"1px solid #f1f5f9" }}>
+                      <span style={{ fontSize:14, fontWeight:800, color:"#94a3b8", width:20 }}>#{i+1}</span>
+                      <div style={{ width:22, height:22, borderRadius:"50%", background:"linear-gradient(135deg,"+e[1].color+","+e[1].color+"cc)", display:"flex", alignItems:"center", justifyContent:"center", color:"white", fontSize:10, fontWeight:800 }}>{e[1].name[0]}</div>
+                      <div style={{ flex:1, fontSize:13, fontWeight:700 }}>{e[1].name}</div>
+                      <div style={{ fontSize:13, fontWeight:800, color:"#22c55e" }}>{e[1].xp} XP</div>
+                    </div>
+                  );
+                })}
+                {Object.keys(leaderboard).length === 0 && <div style={{ fontSize:13, color:"#94a3b8", textAlign:"center", padding:"10px 0" }}>Nenhum XP ganho esta semana.</div>}
+              </div>
               <div style={CARD}>
                 <div style={SL}>Pergunta Ativa</div>
                 <div style={{ fontSize:13, color:"#374151", fontWeight:600, marginBottom:12, padding:"10px 12px", background:"#f8fafc", borderRadius:10, borderLeft:"3px solid #7C3AED" }}>{activeQ}</div>
@@ -1789,7 +1810,7 @@ async function submitAnswer() {
               <div style={{ fontSize:11, opacity:0.75 }}>Olá,</div>
               <div style={{ fontSize:18, fontWeight:800 }}>{dispName}</div>
               <div style={{ display:"flex", gap:6, marginTop:3 }}>
-                {reflStreak > 0 && (<div style={{ fontSize:10, background:"rgba(255,255,255,0.18)", borderRadius:20, padding:"2px 8px", fontWeight:700 }}>🔥 {reflStreak} sem.</div>)}
+                {dailyStreak > 0 && (<div style={{ fontSize:10, background:"rgba(255,255,255,0.18)", borderRadius:20, padding:"2px 8px", fontWeight:700 }}>🔥 {dailyStreak} dias</div>)}
                 <div style={{ fontSize:10, background:"rgba(255,255,255,0.18)", borderRadius:20, padding:"2px 8px", fontWeight:700 }}>⚡ {weekXp} XP esta semana</div>
               </div>
             </div>
@@ -1892,7 +1913,7 @@ async function submitAnswer() {
               var top3 = Object.entries(leaderboard)
                 .sort(function(a,b){ return b[1].xp - a[1].xp; })
                 .slice(0,3);
-              var medals = ["🥇","🥈","🥉"];
+              
               var myRank = Object.entries(leaderboard).sort(function(a,b){return b[1].xp-a[1].xp;}).findIndex(function(e){return e[0]===user.username;});
               var inTop3 = myRank >= 0 && myRank < 3;
               return (
@@ -1904,11 +1925,11 @@ async function submitAnswer() {
                   {top3.length === 0 ? (
                     <div style={{ textAlign:"center", padding:"12px 0", color:"#94a3b8", fontSize:13 }}>Ainda ninguém tem XP esta semana.</div>
                   ) : (
-                    top3.map(function(e, i) {
+                    top3.map(function(e) {
                       var isMe = e[0] === user.username;
                       return (
                         <div key={e[0]} style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 12px", borderRadius:12, background:isMe?C+"12":"#f8fafc", marginBottom:6, border:isMe?"1.5px solid "+C+"30":"1.5px solid #f1f5f9" }}>
-                          <span style={{ fontSize:20 }}>{medals[i]}</span>
+                          <span style={{ fontSize:20 }}>⭐</span>
                           <div style={{ width:28, height:28, borderRadius:"50%", background:"linear-gradient(135deg,"+e[1].color+","+e[1].color+"cc)", display:"flex", alignItems:"center", justifyContent:"center", color:"white", fontSize:12, fontWeight:800, flexShrink:0 }}>{e[1].name[0]}</div>
                           <div style={{ flex:1, fontSize:13, fontWeight:isMe?800:600, color:isMe?C:"#0f172a" }}>{isMe ? "Tu ("+e[1].name+")" : e[1].name}</div>
                           <div style={{ fontSize:14, fontWeight:800, color:isMe?C:"#64748b" }}>{e[1].xp} XP</div>
@@ -1920,10 +1941,10 @@ async function submitAnswer() {
                     <span style={{ fontSize:12, color:inTop3?C:"#64748b", fontWeight:inTop3?700:400 }}>{inTop3 ? "Estás no TOP 3! 🎉" : "A tua pontuação"}</span>
                     <span style={{ fontSize:14, fontWeight:800, color:inTop3?C:"#374151" }}>{weekXp} XP</span>
                   </div>
-                  {reflStreak > 0 && (
+                  {dailyStreak > 0 && (
                     <div style={{ marginTop:8, display:"flex", alignItems:"center", gap:6, padding:"6px 12px", background:"#fff7ed", borderRadius:10 }}>
                       <span style={{ fontSize:14 }}>🔥</span>
-                      <span style={{ fontSize:12, fontWeight:700, color:"#ea580c" }}>{reflStreak} semana{reflStreak>1?"s":""} seguida{reflStreak>1?"s":""} de reflexão</span>
+                      <span style={{ fontSize:12, fontWeight:700, color:"#ea580c" }}>{dailyStreak} dia{dailyStreak>1?"s":""} seguido{dailyStreak>1?"s":""} a usar a app</span>
                     </div>
                   )}
                 </div>
@@ -2511,21 +2532,41 @@ async function submitAnswer() {
 
             {perfilTab === "hist" && (
               <div>
-                {rodaSaves.length===0 ? (
-                  <div style={{ textAlign:"center", padding:"40px 20px", color:"#94a3b8" }}><div style={{ fontSize:40 }}>📭</div><div style={{ marginTop:10, fontSize:13 }}>Ainda não guardaste nenhuma roda.</div></div>
-                ) : (
-                  rodaSaves.slice().reverse().map(function(sv,i) {
-                    return (
-                      <div key={i} style={CARD}>
-                        <div style={SL}>{sv.label}</div>
-                        <RadarChart scores={sv.scores} color={C} prev={null}/>
-                        <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginTop:10 }}>
-                          {RODA_DIMS.map(function(dim){return(<div key={dim.id} style={{ display:"flex", alignItems:"center", gap:4, background:"#f8fafc", borderRadius:8, padding:"4px 10px" }}><span style={{ fontSize:12 }}>{dim.icon}</span><span style={{ fontSize:12, fontWeight:700, color:C }}>{sv.scores[dim.id]}</span></div>);})}
+                <div style={CARD}>
+                  <div style={SL}>📋 Registo de Atividades</div>
+                  <div style={{ fontSize:12, color:"#64748b", marginBottom:14 }}>Tudo o que fazes, guardas ou envias na App fica registado aqui.</div>
+                  {history.length === 0 ? (
+                    <div style={{ textAlign:"center", padding:"20px", color:"#94a3b8", fontSize:13 }}>Ainda não há atividades registadas.</div>
+                  ) : (
+                    history.slice().reverse().map(function(h, i) {
+                      return (
+                        <div key={i} style={{ padding:"10px 0", borderBottom:"1px solid #f1f5f9", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                          <div style={{ fontSize:13, color:"#374151", fontWeight:600 }}>{h.action}</div>
+                          <div style={{ fontSize:11, color:"#94a3b8", whiteSpace:"nowrap", marginLeft:10 }}>{h.date}</div>
                         </div>
-                      </div>
-                    );
-                  })
-                )}
+                      );
+                    })
+                  )}
+                </div>
+
+                <div style={CARD}>
+                  <div style={SL}>🌸 Histórico da Roda da Vida</div>
+                  {rodaSaves.length===0 ? (
+                    <div style={{ textAlign:"center", padding:"10px", color:"#94a3b8", fontSize:13 }}>Ainda não guardaste nenhuma roda.</div>
+                  ) : (
+                    rodaSaves.slice().reverse().map(function(sv,i) {
+                      return (
+                        <div key={i} style={{ marginBottom:20 }}>
+                          <div style={{ fontSize:12, fontWeight:800, color:C, marginBottom:10 }}>{sv.label}</div>
+                          <RadarChart scores={sv.scores} color={C} prev={null}/>
+                          <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginTop:10 }}>
+                            {RODA_DIMS.map(function(dim){return(<div key={dim.id} style={{ display:"flex", alignItems:"center", gap:4, background:"#f8fafc", borderRadius:8, padding:"4px 10px" }}><span style={{ fontSize:12 }}>{dim.icon}</span><span style={{ fontSize:12, fontWeight:700, color:C }}>{sv.scores[dim.id]}</span></div>);})}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
               </div>
             )}
 
@@ -2566,7 +2607,7 @@ async function submitAnswer() {
                 </div>
                 <div style={CARD}>
                   <div style={{ fontSize:13, fontWeight:700, marginBottom:10 }}>O que está incluído:</div>
-                  {["PIA e atividades","Roda da Vida (histórico completo)","Autoavaliação das 6 dimensões","Tarefas (pessoais e partilhadas)","Análise SWOT pessoal e PIA"].map(function(item) {
+                  {["PIA e atividades","Roda da Vida (histórico completo)","Histórico de Atividades","Autoavaliação das 6 dimensões","Tarefas (pessoais e partilhadas)","Análise SWOT pessoal e PIA"].map(function(item) {
                     return (<div key={item} style={{ display:"flex", gap:8, padding:"7px 0", borderBottom:"1px solid #f1f5f9", fontSize:13, color:"#374151" }}><span style={{ color:"#22c55e", fontWeight:700 }}>✓</span>{item}</div>);
                   })}
                   <div style={{ marginTop:16 }}><Btn color={C} onClick={doExport}>⬇️ Descarregar os Meus Dados</Btn></div>
