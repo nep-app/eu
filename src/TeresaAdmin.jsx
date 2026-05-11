@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { collection, onSnapshot, doc, getDoc, updateDoc, deleteDoc, addDoc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "./firebase.js";
-import { BG, CARD, SL, AppIcon, Btn, CYN } from "./theme.jsx";
+import { BG, CARD, SL, AppIcon, Btn, CYN, PNK } from "./theme.jsx";
 import { upd, nowLabel, fmtDate, getWeekKey, ALLOWED_USERNAMES, JEEP_LIST, CHANNELS, SURVEY_CATS, SEMOJIS, QUIZZES, ALL_MEDALS, FORUM_REACTIONS, EVT_COLORS, EVT_ICONS, EC } from "./data.js";
 
 export default function TeresaAdmin({ user, onLogout }) {
@@ -245,7 +245,7 @@ export default function TeresaAdmin({ user, onLogout }) {
                     {p.replies.map((rp,ri) => (
                       <div key={ri} style={{ display:"flex", gap:8, marginBottom:8 }}>
                         <div style={{ width:28, height:28, borderRadius:"50%", background:`linear-gradient(135deg, ${rp.color}, #000)`, display:"flex", alignItems:"center", justifyContent:"center", color:"white", fontSize:11, fontWeight:800, flexShrink:0 }}>{rp.user[0]}</div>
-                        <div><div style={{ fontSize:12, fontWeight:700 }}>{rp.user} <span style={{ color:"#94a3b8", fontWeight:400 }}>· {rp.time}</span></div><div style={{ fontSize:12, color:"#cbd5e1", marginTop:2 }}>{rp.text}</div></div>
+                        <div><div style={{ fontSize:12, fontWeight:700 }}>{rp.user} {rp.user==="Teresa (GO)"&&<span style={{fontSize:8, background:CYN, color:"#0f172a", padding:"1px 4px", borderRadius:4, marginLeft:4}}>ADMIN</span>} <span style={{ color:"#94a3b8", fontWeight:400 }}>· {rp.time}</span></div><div style={{ fontSize:12, color:"#cbd5e1", marginTop:2 }}>{rp.text}</div></div>
                       </div>
                     ))}
                   </div>
@@ -447,4 +447,17 @@ export default function TeresaAdmin({ user, onLogout }) {
               <div style={SL}>Caixa de Mensagens & Sugestões</div>
               {msgs.map(m => (
                 <div key={m.id} style={{ padding:"12px 14px", background:"rgba(0,0,0,0.3)", borderRadius:14, marginBottom:10, border:"1px solid rgba(255,255,255,0.05)" }}>
-                  <div style={{ fontSize:12, fontWeight:700, color:m.anon?PNK:CYN }}>{m.anon?"🔒 Anónimo":m.from} <span style={{ fontWeight:400, color:"#94a3b8" }}>
+                  <div style={{ fontSize:12, fontWeight:700, color:m.anon?PNK:CYN }}>{m.anon?"🔒 Anónimo":m.from} <span style={{ fontWeight:400, color:"#94a3b8" }}>· {m.date}</span></div>
+                  <div style={{ fontSize:13, color:"#cbd5e1", marginTop:6 }}>{m.text}</div>
+                  {!m.adminReply ? (
+                    <div style={{ marginTop:8 }}><input value={adminReplyTxt} onChange={e=>setAdminReplyTxt(e.target.value)} placeholder="Responder..." style={{ width:"100%", padding:"8px", borderRadius:8, background:"rgba(255,255,255,0.05)", color:"white", border:"none" }}/><button onClick={()=>replyToMsg(m.id, m.hiddenUser, adminReplyTxt)} style={{ marginTop:6, background:CYN, color:"#0f172a", padding:"6px 12px", borderRadius:8, border:"none", fontWeight:800, cursor:"pointer" }}>Enviar</button></div>
+                  ) : ( <div style={{ marginTop:8, fontSize:12, color:CYN }}><strong>Tu respondeste:</strong> {m.adminReply}</div> )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
