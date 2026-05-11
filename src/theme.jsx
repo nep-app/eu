@@ -5,7 +5,7 @@ export const PNK = "#f472b6";
 export const CYN = "#22d3ee"; 
 
 export const CARD = { 
-  background: "rgba(15, 23, 42, 0.7)", 
+  background: "rgba(15, 23, 42, 0.75)", 
   borderRadius: 24, 
   padding: "20px", 
   marginBottom: 16, 
@@ -13,7 +13,8 @@ export const CARD = {
   border: "1px solid rgba(255, 255, 255, 0.08)",
   boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
   color: "white",
-  overflow: "hidden" // Garante que nada sai para fora
+  width: "100%",
+  boxSizing: "border-box" // Fundamental para nada fugir
 };
 
 export const SL = { 
@@ -26,18 +27,20 @@ export const SL = {
   textShadow: "0 0 10px rgba(34, 211, 238, 0.3)"
 };
 
-// Estilo para Inputs e Textareas para não ficarem tortos
+// Design das caixas de texto (Inputs e Textareas)
 export const INP = {
   width: "100%",
-  padding: "12px 16px",
+  padding: "14px",
   borderRadius: 14,
   background: "rgba(0, 0, 0, 0.3)",
-  border: "1px solid rgba(255, 255, 255, 0.1)",
+  border: "1.5px solid rgba(255, 255, 255, 0.1)",
   color: "white",
   fontSize: "14px",
   outline: "none",
-  boxSizing: "border-box", // Vital para não fugir da caixa
-  fontFamily: "inherit"
+  boxSizing: "border-box",
+  fontFamily: "inherit",
+  transition: "border-color 0.2s",
+  marginBottom: "10px"
 };
 
 export const PS = {
@@ -61,35 +64,34 @@ export function AppIcon({ size = 64 }) {
   );
 }
 
-// SubTabs melhoradas (sem aquela barra de scroll feia no fórum)
+// Menu de abas que não faz scroll (Grelha organizada)
 export function SubTabs({ options, active, onChange, color = CYN }) {
   return (
     <div style={{ 
-      display:"flex", 
+      display:"grid", 
+      gridTemplateColumns: "repeat(auto-fit, minmax(80px, 1fr))",
       gap:6, 
       marginBottom:18, 
       padding:4, 
       background:"rgba(0,0,0,0.4)", 
       borderRadius:18, 
-      border:"1px solid rgba(255,255,255,0.05)",
-      flexWrap: "wrap" // Deixa os botões irem para baixo se não couberem, em vez de scroll feio
+      border:"1px solid rgba(255,255,255,0.05)"
     }}>
       {options.map(opt => {
         let isA = active === opt[0];
         return (
           <button key={opt[0]} onClick={() => onChange(opt[0])}
             style={{ 
-              flex: "1 1 auto",
-              padding:"10px 14px", 
+              padding:"10px 8px", 
               borderRadius:14, 
               border:"none", 
               background:isA ? color : "transparent",
-              fontSize:11, 
-              fontWeight:800, 
+              fontSize:10, 
+              fontWeight:900, 
               cursor:"pointer", 
               color:isA ? "#0f172a" : "#94a3b8",
-              transition: "all 0.2s",
-              whiteSpace:"nowrap"
+              textTransform: "uppercase",
+              whiteSpace: "nowrap"
             }}>
             {opt[1]}
           </button>
@@ -100,10 +102,10 @@ export function SubTabs({ options, active, onChange, color = CYN }) {
 }
 
 export function Btn({ children, onClick, variant, color = CYN, disabled }) {
-  let base = { width:"100%", padding:"14px", fontSize:13, fontWeight:900, cursor:"pointer", border:"none", borderRadius:16, textTransform:"uppercase", letterSpacing:1, transition:"all 0.2s", opacity: disabled ? 0.5 : 1 };
+  let base = { width:"100%", padding:"15px", fontSize:13, fontWeight:900, cursor:"pointer", border:"none", borderRadius:18, textTransform:"uppercase", letterSpacing:1.5, transition:"all 0.2s", opacity: disabled ? 0.5 : 1 };
   if (variant === "success") return <button disabled={disabled} onClick={onClick} style={{ ...base, background:`linear-gradient(135deg, ${CYN}, #0ea5e9)`, color:"#0f172a" }}>{children}</button>;
-  if (variant === "dark")    return <button disabled={disabled} onClick={onClick} style={{ ...base, background:"rgba(255,255,255,0.05)", color:"white", border:"1px solid rgba(255,255,255,0.1)" }}>{children}</button>;
-  return <button disabled={disabled} onClick={onClick} style={{ ...base, background:color, color:"#0f172a" }}>{children}</button>;
+  if (variant === "dark")    return <button disabled={disabled} onClick={onClick} style={{ ...base, background:"rgba(255,255,255,0.06)", color:"white", border:"1px solid rgba(255,255,255,0.1)" }}>{children}</button>;
+  return <button disabled={disabled} onClick={onClick} style={{ ...base, background:color, color:"#0f172a", boxShadow: `0 4px 15px ${color}30` }}>{children}</button>;
 }
 
 export function RadarChart({ scores, color, prev }) {
