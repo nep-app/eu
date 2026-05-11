@@ -116,7 +116,8 @@ function RadarChart(props) {
 }
 
 // ── DATA ────────────────────────────────────────────────────────────────
-var ALLOWED_USERNAMES = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","teresa"];
+var ALLOWED_USERNAMES = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","teresa","ricardo"];
+var SPECIAL_USERS = ["teresa","ricardo"];
 var USERS = [
   { username:"nilton",   realName:"Nilton",   color:"#7C3AED" },
   { username:"erick",    realName:"Erick",    color:"#2563EB" },
@@ -126,6 +127,7 @@ var USERS = [
   { username:"bruno",    realName:"Bruno",    color:"#0891B2" },
   { username:"salimo",   realName:"Salimo",   color:"#DC2626" },
   { username:"teresa",   realName:"Teresa",   color:"#1e293b" },
+  { username:"ricardo",  realName:"Ricardo",  color:"#0F766E" },
 ];
 
 var DIMS = [
@@ -278,6 +280,7 @@ var JEEP_LIST = [
   { name:"Bruno",    username:"bruno",    color:"#0891B2", entidade:"", estado:"verde" },
   { name:"Salimo",   username:"salimo",   color:"#DC2626", entidade:"", estado:"verde" },
   { name:"Teresa",   username:"teresa",   color:"#1e293b", entidade:"(teste)", estado:"verde" },
+  { name:"Ricardo",  username:"ricardo",  color:"#0F766E", entidade:"(teste)", estado:"verde" },
 ];
 var EC = { verde:"#22c55e", amarelo:"#f59e0b", vermelho:"#ef4444" };
 var PIA_FIELDS = [
@@ -595,6 +598,7 @@ export default function App() {
     if (d.cap)       setCap(d.cap);
     if (d.answered)  setAnswered(d.answered);
     if (d.qAnswers)  setQAnswers(d.qAnswers);
+    if (d.qAnswers)  setQAnswers(d.qAnswers);
     if (d.sRatings)  setSRatings(d.sRatings);
     if (d.sChips)    setSChips(d.sChips);
     if (d.sMudaria !== undefined) setSMudaria(d.sMudaria);
@@ -807,14 +811,14 @@ async function replyToMsg(msgId, hiddenUser, replyText) {
   async function addTeresaTodo() {
     if (!teresaTodoTxt.trim()) return;
     await addDoc(collection(db, "todos", teresaTodoTarget, "items"), {
-      text:teresaTodoTxt, due:teresaTodoDue, done:false, shared:true, addedBy:"teresa", accepted:false
+      text:teresaTodoTxt, due:teresaTodoDue, done:false, shared:true, addedBy:user.username, accepted:false
     });
     setTeresaTodoTxt(""); setTeresaTodoDue("");
     alert("Sugestão enviada!");
   }
   async function addTeresaEvent() {
     if (!teresaEvt.title.trim() || !teresaEvt.date) return;
-    await addDoc(collection(db, "events"), Object.assign({}, teresaEvt, { addedBy:"teresa" }));
+    await addDoc(collection(db, "events"), Object.assign({}, teresaEvt, { addedBy:user.username }));
     setTeresaEvt({ title:"", date:"", time:"", userId:"all", type:"visit" });
   }
   async function launchEvaluation(type) {
@@ -972,14 +976,14 @@ async function submitAnswer() {
     if (!user || user.isAdmin) return [];
     var prog = piaProgress();
     var ut = todos[user.username]||[];
-    var pendingTeresa = ut.filter(function(t){return t.addedBy==="teresa"&&!t.accepted;}).length;
+    var pendingTeresa = ut.filter(function(t){return SPECIAL_USERS.includes(t.addedBy)&&!t.accepted;}).length;
     var items = [];
     if (!answered)  items.push({ status:"urgent",  icon:"💬", title:"Pergunta da semana", sub:"Ainda não respondeste", go:function(){setTab("refl");} });
     if (!autoSaved) items.push({ status:"pending", icon:"📊", title:"Autoavaliação — "+nowLabel(), sub:"Avaliação mensal em falta", go:function(){setTab("perc");setPercTab("aval");setAvalSub("auto");} });
     if (!sSaved)    items.push({ status:"new",     icon:"😊", title:"Avaliação de Satisfação", sub:"Nova! Disponível em Percurso", go:function(){setTab("perc");setPercTab("aval");setAvalSub("satisf");} });
     if (!piaSaved)  items.push({ status:"pending", icon:"📋", title:"PIA — "+prog+"% completo", sub:prog===0?"Ainda não começaste":"Continua a preencher", go:function(){setTab("perc");setPercTab("pia");} });
     if (!swotSaved) items.push({ status:"new",     icon:"🔍", title:"Raio-X Pessoal", sub:"Por preencher — faz-o no 1º mês", go:function(){setTab("perc");setPercTab("swot");} });
-    if (pendingTeresa) items.push({ status:"new", icon:"✅", title:pendingTeresa+" sugestão(ões) da Teresa", sub:"Aceitar ou rejeitar nas Tarefas", go:function(){setTab("perc");setPercTab("tasks");} });
+    if (pendingTeresa) items.push({ status:"new", icon:"✅", title:pendingTeresa+" sugestão(ões) de colega", sub:"Aceitar ou rejeitar nas Tarefas", go:function(){setTab("perc");setPercTab("tasks");} });
     var uq = null;
     for (var i=0;i<QUIZZES.length;i++){if(!qAnswers[QUIZZES[i].id]){uq=QUIZZES[i];break;}}
     if (uq) items.push({ status:"new", icon:"🎯", title:"Quiz: "+uq.title, sub:"Novo cenário disponível", go:function(){setTab("refl");} });
@@ -1193,8 +1197,7 @@ async function submitAnswer() {
                 </div>
               </div>
               <div style={CARD}>
-                <div style={SL}>Acompanhamento</div>
-                {JEEP_LIST.map(function(j,i) {
+                <div style={SL}>Acompanhamento</div>              {JEEP_LIST.map(function(j,i) {
                   return (
                     <div key={i} style={{ display:"flex", alignItems:"center", padding:"10px 0", borderBottom:i<4?"1px solid #f1f5f9":"none", gap:10 }}>
                       <div style={{ width:10, height:10, borderRadius:"50%", background:EC[j.estado], flexShrink:0 }}/>
@@ -1302,7 +1305,7 @@ async function submitAnswer() {
                             <div style={{ fontSize:13, fontWeight:t.done?400:600, color:t.done?"#94a3b8":"#0f172a", textDecoration:t.done?"line-through":"none" }}>{t.text}</div>
                             <div style={{ display:"flex", gap:8, marginTop:3 }}>
                               {t.due&&(<span style={{ fontSize:10, color:isOverdue(t.due)&&!t.done?"#ef4444":"#94a3b8" }}>📅 {fmtDate(t.due)}</span>)}
-                              {t.addedBy==="teresa"&&(<span style={{ fontSize:10, background:"#7C3AED18", color:"#7C3AED", padding:"1px 6px", borderRadius:4, fontWeight:700 }}>sugestão tua</span>)}
+                              {SPECIAL_USERS.includes(t.addedBy)&&(<span style={{ fontSize:10, background:"#7C3AED18", color:"#7C3AED", padding:"1px 6px", borderRadius:4, fontWeight:700 }}>sugestão tua</span>)}
                               {!t.accepted&&(<span style={{ fontSize:10, background:"#f59e0b20", color:"#d97706", padding:"1px 6px", borderRadius:4 }}>pendente</span>)}
                             </div>
                           </div>
@@ -1549,7 +1552,7 @@ async function submitAnswer() {
   var doneTodos = acceptedTodos.filter(function(t){return t.done;});
   var pendingTeresaTodos = userTodos.filter(function(t){return t.addedBy==="teresa"&&!t.accepted;});
   var todoPercent = acceptedTodos.length>0 ? Math.round((doneTodos.length/acceptedTodos.length)*100) : 0;
-  var userEvents = events.filter(function(e){return e.userId===user.username||e.userId==="all"||(user.username==="teresa"&&e.sharedWith==="teresa");});
+  var userEvents = events.filter(function(e){return e.userId===user.username||e.userId==="all"||(SPECIAL_USERS.includes(user.username)&&e.sharedWith===user.username);});
   userEvents.sort(function(a,b){return a.date.localeCompare(b.date);});
   var userMedals = (function(){var j=JEEP_LIST.find(function(x){return x.username===user.username;});return j?(amMedals[j.name]||[]):[];})();
 
@@ -1793,8 +1796,7 @@ async function submitAnswer() {
                   var hasAns=qAnswers[q.id];
                   return (<button key={q.id} onClick={function(){setQIdx(i);}} style={{ flex:1, padding:"7px 4px", borderRadius:10, border:qIdx===i?"2px solid "+C:"2px solid #e8edf2", background:qIdx===i?C+"12":"white", fontSize:9, fontWeight:700, cursor:"pointer", color:qIdx===i?C:"#64748b", position:"relative" }}>{q.title.slice(0,12)}{hasAns&&(<span style={{ position:"absolute", top:-3, right:-3, width:8, height:8, borderRadius:"50%", background:"#22c55e", border:"1.5px solid white" }}/>)}</button>);
                 })}
-              </div>
-              <div style={{ display:"inline-flex", background:C+"12", borderRadius:20, padding:"4px 12px", fontSize:10, color:C, fontWeight:800, marginBottom:10 }}>{currentQuiz.badge}</div>
+              </div>              <div style={{ display:"inline-flex", background:C+"12", borderRadius:20, padding:"4px 12px", fontSize:10, color:C, fontWeight:800, marginBottom:10 }}>{currentQuiz.badge}</div>
               <div style={{ fontSize:13, color:"#374151", lineHeight:1.65, marginBottom:14, padding:"13px 15px", background:"#f8fafc", borderRadius:14, borderLeft:"3px solid "+C }}>{currentQuiz.scenario}</div>
               {!currentQuizAns ? (
                 <div>
@@ -2116,8 +2118,8 @@ async function submitAnswer() {
                   </div>
                   <Btn color={C} onClick={addTodoForUser}>Adicionar Tarefa</Btn>
                 </div>
-                {user.username === "teresa" && (
-                  <div style={Object.assign({},CARD,{border:"2px solid #1e293b20"})}>
+                {SPECIAL_USERS.includes(user.username) && (
+                  <div style={Object.assign({},CARD,{border:"2px solid "+C+"20"})}>
                     <div style={SL}>📤 Propor Tarefa a Colega</div>
                     <div style={{ display:"flex", gap:5, flexWrap:"wrap", marginBottom:10 }}>
                       {JEEP_LIST.map(function(j){return(<button key={j.name} onClick={function(){setTeresaTodoTarget(j.username);}} style={{ padding:"5px 12px", borderRadius:20, border:teresaTodoTarget===j.username?"2px solid "+j.color:"2px solid #e8edf2", background:teresaTodoTarget===j.username?j.color+"15":"white", fontSize:11, fontWeight:700, cursor:"pointer", color:teresaTodoTarget===j.username?j.color:"#64748b" }}>{j.name}</button>);})}
@@ -2174,7 +2176,7 @@ async function submitAnswer() {
 
             {perfilTab === "agenda" && (
               <div>
-                {user.username === "teresa" ? (
+                {SPECIAL_USERS.includes(user.username) ? (
                   <div style={CARD}>
                     <div style={SL}>➕ Adicionar Evento</div>
                     <input value={teresaEvt.title} onChange={function(e){setTeresaEvt(upd(teresaEvt,"title",e.target.value));}} placeholder="Título do evento..." style={{ width:"100%", padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none", boxSizing:"border-box", marginBottom:8 }}/>
