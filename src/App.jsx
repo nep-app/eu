@@ -598,7 +598,6 @@ export default function App() {
     if (d.cap)       setCap(d.cap);
     if (d.answered)  setAnswered(d.answered);
     if (d.qAnswers)  setQAnswers(d.qAnswers);
-    if (d.qAnswers)  setQAnswers(d.qAnswers);
     if (d.sRatings)  setSRatings(d.sRatings);
     if (d.sChips)    setSChips(d.sChips);
     if (d.sMudaria !== undefined) setSMudaria(d.sMudaria);
@@ -1197,7 +1196,8 @@ async function submitAnswer() {
                 </div>
               </div>
               <div style={CARD}>
-                <div style={SL}>Acompanhamento</div>              {JEEP_LIST.map(function(j,i) {
+                <div style={SL}>Acompanhamento</div>
+                {JEEP_LIST.map(function(j,i) {
                   return (
                     <div key={i} style={{ display:"flex", alignItems:"center", padding:"10px 0", borderBottom:i<4?"1px solid #f1f5f9":"none", gap:10 }}>
                       <div style={{ width:10, height:10, borderRadius:"50%", background:EC[j.estado], flexShrink:0 }}/>
@@ -1690,8 +1690,8 @@ async function submitAnswer() {
                     <div style={{ marginBottom:14 }}>
                       <div style={{ fontSize:11, fontWeight:800, color:C, letterSpacing:1, marginBottom:8, textTransform:"uppercase" }}>Como queres responder?</div>
                       <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-                        {[
-                          ["texto","✏️","Texto"], ["mood","🌡️","Mood"], ["3p","💡","3 Palavras"], 
+                        {
+                          [["texto","✏️","Texto"], ["mood","🌡️","Mood"], ["3p","💡","3 Palavras"], 
                           ["completar","🔤","Frase"], ["semana","⭐","Semana"],
                           ["foto","📸","Foto"], ["video","🎥","Vídeo"], ["audio","🎙️","Áudio"]
                         ].filter(function(m){ return activeQMode.includes(m[0]); })
@@ -1796,7 +1796,8 @@ async function submitAnswer() {
                   var hasAns=qAnswers[q.id];
                   return (<button key={q.id} onClick={function(){setQIdx(i);}} style={{ flex:1, padding:"7px 4px", borderRadius:10, border:qIdx===i?"2px solid "+C:"2px solid #e8edf2", background:qIdx===i?C+"12":"white", fontSize:9, fontWeight:700, cursor:"pointer", color:qIdx===i?C:"#64748b", position:"relative" }}>{q.title.slice(0,12)}{hasAns&&(<span style={{ position:"absolute", top:-3, right:-3, width:8, height:8, borderRadius:"50%", background:"#22c55e", border:"1.5px solid white" }}/>)}</button>);
                 })}
-              </div>              <div style={{ display:"inline-flex", background:C+"12", borderRadius:20, padding:"4px 12px", fontSize:10, color:C, fontWeight:800, marginBottom:10 }}>{currentQuiz.badge}</div>
+              </div>
+              <div style={{ display:"inline-flex", background:C+"12", borderRadius:20, padding:"4px 12px", fontSize:10, color:C, fontWeight:800, marginBottom:10 }}>{currentQuiz.badge}</div>
               <div style={{ fontSize:13, color:"#374151", lineHeight:1.65, marginBottom:14, padding:"13px 15px", background:"#f8fafc", borderRadius:14, borderLeft:"3px solid "+C }}>{currentQuiz.scenario}</div>
               {!currentQuizAns ? (
                 <div>
