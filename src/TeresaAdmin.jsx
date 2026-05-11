@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { collection, onSnapshot, doc, getDoc, updateDoc, deleteDoc, addDoc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "./firebase";
-import { BG, CARD, SL, AppIcon, Btn, CYN } from "./theme";
-import { upd, nowLabel, fmtDate, getWeekKey, ALLOWED_USERNAMES, JEEP_LIST, CHANNELS, SURVEY_CATS, SEMOJIS, QUIZZES, ALL_MEDALS, FORUM_REACTIONS, EVT_COLORS, EVT_ICONS, EC } from "./data";
+import { db, storage } from "./firebase.js";
+import { BG, CARD, SL, AppIcon, Btn, CYN } from "./theme.jsx";
+import { upd, nowLabel, fmtDate, getWeekKey, ALLOWED_USERNAMES, JEEP_LIST, CHANNELS, SURVEY_CATS, SEMOJIS, QUIZZES, ALL_MEDALS, FORUM_REACTIONS, EVT_COLORS, EVT_ICONS, EC } from "./data.js";
 
 export default function TeresaAdmin({ user, onLogout }) {
   const [adminTab, setAdminTab] = useState("geral");
