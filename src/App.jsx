@@ -5,7 +5,8 @@ import {
 import {
   doc, getDoc, setDoc, collection, addDoc, onSnapshot, updateDoc, deleteDoc,
 } from "firebase/firestore";
-import { auth, db } from "./firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { auth, db, storage } from "./firebase";
 
 var BG = "#eef1f6";
 var CARD = { background:"white", borderRadius:20, padding:"18px 20px", marginBottom:14, boxShadow:"0 2px 12px rgba(15,23,42,0.07),0 0 0 1px rgba(15,23,42,0.04)" };
@@ -338,6 +339,8 @@ export default function App() {
   var [srating,  setSrating]  = useState(null);
   var [qIdx,     setQIdx]     = useState(0);
   var [qAnswers, setQAnswers] = useState({});
+  var [mediaFile, setMediaFile] = useState(null);
+  var [isUploading, setIsUploading] = useState(false);
 
   // ── AUTOAVALIAÇÃO ───────────────────────────────────────────────
   var [dScores,   setDScores]   = useState(DEF_DSCORES);
@@ -799,9 +802,25 @@ async function updateActiveQ() {
     setSSaved(true);
     await saveUserField(user.username, { sRatings, sChips, sMudaria, sSaved:true });
   }
-  async function submitAnswer() {
+async function submitAnswer() {
+    if (["foto", "video", "audio"].includes(cmode)) {
+      if (!mediaFile) { alert("Por favor, escolhe um ficheiro primeiro!"); return; }
+      setIsUploading(true);
+      try {
+        var fileRef = ref(storage, "respostas/" + user.username + "_" + Date.now() + "_" + mediaFile.name);
+        await uploadBytes(fileRef, mediaFile);
+        var url = await getDownloadURL(fileRef);
+        await saveUserField(user.username, { answered:true, answerMedia: url, answerType: cmode });
+      } catch(e) {
+        alert("Erro ao enviar: " + e.message);
+        setIsUploading(false);
+        return;
+      }
+      setIsUploading(false);
+    } else {
+      await saveUserField(user.username, { answered:true, answerText: aTxt, answerType: cmode });
+    }
     setAnswered(true);
-    await saveUserField(user.username, { answered:true });
   }
   async function answerQuiz(qId, optId) {
     var newA = upd(qAnswers, qId, optId);
@@ -1040,8 +1059,7 @@ async function updateActiveQ() {
                 </div>
                 <div style={{ fontSize:10, fontWeight:800, color:"#94a3b8", letterSpacing:1, marginBottom:6 }}>PERMITIR RESPOSTAS EM:</div>
                 <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                  {[["texto","✏️ Texto"],["mood","🌡️ Mood"],["3p","💡 3 Palav."],["completar","🔤 Completar"],["semana","⭐ Avaliação"]].map(function(opt) {
-                    var isSel = activeQModeEdit.includes(opt[0]);
+{[["texto","✏️ Texto"],["mood","🌡️ Mood"],["3p","💡 3 Palav."],["completar","🔤 Completar"],["semana","⭐ Avaliação"], ["foto", "📸 Foto"], ["video", "🎥 Vídeo"], ["audio", "🎙️ Áudio"]].map(function(opt) {                    var isSel = activeQModeEdit.includes(opt[0]);
                     return (
                       <button key={opt[0]} onClick={function(){
                         if(isSel && activeQModeEdit.length===1) return; // Não deixa desmarcar o último
@@ -1522,8 +1540,7 @@ async function updateActiveQ() {
                         Escolhe como queres responder:
                       </div>
                       <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-                        {[["texto","✏️","Texto"],["mood","🌡️","Mood"],["3p","💡","3 Palavras"],["completar","🔤","Completar"],["semana","⭐","Semana"]]
-                          .filter(function(m){ return activeQMode.includes(m[0]); }) // Filtra as opções bloqueadas pela Teresa
+{[["texto","✏️","Texto"],["mood","🌡️","Mood"],["3p","💡","3 Palavras"],["completar","🔤","Completar"],["semana","⭐","Semana"], ["foto", "📸", "Foto"], ["video", "🎥", "Vídeo"], ["audio", "🎙️", "Áudio"]]                          .filter(function(m){ return activeQMode.includes(m[0]); }) // Filtra as opções bloqueadas pela Teresa
                           .map(function(m) {
                           return (<button key={m[0]} onClick={function(){setCmode(m[0]);}} style={{ display:"flex", alignItems:"center", gap:4, padding:"7px 12px", borderRadius:20, border:cmode===m[0]?"2px solid "+C:"2px solid #e8edf2", background:cmode===m[0]?C+"15":"white", fontSize:12, fontWeight:700, cursor:"pointer", color:cmode===m[0]?C:"#64748b" }}>{m[1]} {m[2]}</button>);
                         })}
@@ -1566,8 +1583,14 @@ async function updateActiveQ() {
                       {srating&&(<div style={{ textAlign:"center", fontSize:13, color:"#64748b" }}>{["","Foi difícil 😔","Podia ter corrido melhor","Normal","Boa semana! 💪","Semana incrível! 🔥"][srating]}</div>)}
                     </div>
                   )}
-                  <div style={{ marginTop:16 }}><Btn color={C} onClick={submitAnswer}>Enviar →</Btn></div>
-                </div>
+{["foto", "video", "audio"].includes(cmode) && (
+                    <div style={{ padding:"20px", border:"2px dashed #cbd5e1", borderRadius:14, textAlign:"center", background:"#f8fafc", marginBottom:10 }}>
+                      <div style={{ fontSize:12, fontWeight:700, color:"#64748b", marginBottom:10 }}>Seleciona o teu ficheiro:</div>
+                      <input type="file" accept={cmode==="foto"?"image/*":cmode==="video"?"video/*":"audio/*"} onChange={function(e){if(e.target.files[0]) setMediaFile(e.target.files[0]);}} style={{ maxWidth:"100%", fontSize:13 }}/>
+                      {mediaFile && <div style={{ fontSize:12, color:"#22c55e", fontWeight:700, marginTop:10 }}>✓ Prontinho para enviar!</div>}
+                    </div>
+                  )}
+                  <div style={{ marginTop:16 }}><Btn color={C} onClick={submitAnswer}>{isUploading ? "A enviar para a nuvem... ⏳" : "Enviar →"}</Btn></div>                </div>
               )}
             </div>
             <div style={CARD}>
