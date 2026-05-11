@@ -791,18 +791,17 @@ async function updateActiveQ() {
       await setDoc(doc(db, "config", "activeQuestion"), { 
         text: activeQEdit.trim(), 
         mode: activeQModeEdit, 
-        date: Date.now() // Usamos números para ser mais fácil comparar datas depois
+        date: Date.now() 
       });
 
-      // 2. Limpa o teu estado de "Respondido" para poderes testar logo
-      await updateDoc(doc(db, "users", user.username), { answered: false });
+      // 2. Limpa o teu estado com a técnica do MERGE (se não existir, ele cria)
+      await setDoc(doc(db, "users", user.username), { answered: false }, { merge: true });
       setAnswered(false);
 
       // 3. Envia uma notificação de teste para ti (Admin)
-      // Nota: No futuro, faremos um código para enviar a todos os jovens de uma vez
       await addDoc(collection(db, "notifications", user.username, "items"), {
         from: "sistema",
-        text: "📢 Nova Pergunta da Semana: " + activeQEdit.trim().slice(0, 30) + "...",
+        text: "📢 Nova Pergunta: " + activeQEdit.trim().slice(0, 30) + "...",
         date: nowLabel(),
         read: false
       });
