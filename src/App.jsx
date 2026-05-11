@@ -784,25 +784,33 @@ async function replyToMsg(msgId, hiddenUser, replyText) {
   }
 async function updateActiveQ() {
     try {
-      if (!activeQEdit.trim()) {
-        alert("Escreve primeiro a pergunta!");
-        return;
-      }
-      if (activeQModeEdit.length === 0) {
-        alert("Escolhe pelo menos um formato de resposta (Texto, Foto, etc.)!");
-        return;
-      }
+      if (!activeQEdit.trim()) return alert("Escreve a pergunta!");
+      if (activeQModeEdit.length === 0) return alert("Escolhe um formato!");
 
+      // 1. Guarda a Pergunta
       await setDoc(doc(db, "config", "activeQuestion"), { 
         text: activeQEdit.trim(), 
         mode: activeQModeEdit, 
-        date: nowLabel() 
+        date: Date.now() // Usamos números para ser mais fácil comparar datas depois
       });
 
-      alert("Pergunta publicada com sucesso! 🎉");
+      // 2. Limpa o teu estado de "Respondido" para poderes testar logo
+      await updateDoc(doc(db, "users", user.username), { answered: false });
+      setAnswered(false);
+
+      // 3. Envia uma notificação de teste para ti (Admin)
+      // Nota: No futuro, faremos um código para enviar a todos os jovens de uma vez
+      await addDoc(collection(db, "notifications", user.username, "items"), {
+        from: "sistema",
+        text: "📢 Nova Pergunta da Semana: " + activeQEdit.trim().slice(0, 30) + "...",
+        date: nowLabel(),
+        read: false
+      });
+
+      alert("Pergunta publicada e notificação enviada! 🎉");
       setActiveQEdit("");
     } catch (erro) {
-      alert("Erro ao publicar: " + erro.message);
+      alert("Erro: " + erro.message);
     }
   }
   async function sendAdminMsg() {
