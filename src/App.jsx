@@ -1489,7 +1489,7 @@ async function updateActiveQ() {
           </div>
         )}
 
-        {/* ── REFLEXÃO ── */}
+{/* ── REFLEXÃO ── */}
         {tab === "refl" && (
           <div style={{ padding:"18px 16px" }}>
             <div style={CARD}>
@@ -1502,7 +1502,7 @@ async function updateActiveQ() {
                   <div style={{ fontSize:13, color:"#64748b", marginTop:4 }}>A Teresa vai ler a tua resposta.</div>
                 </div>
               ) : (
-          <div>
+                <div>
                   <div style={{ fontSize:11, fontWeight:800, color:C, letterSpacing:1, marginBottom:12, textTransform:"uppercase" }}>
                     Formato de resposta: {activeQMode === "texto" ? "Texto Livre" : activeQMode === "mood" ? "Estado de Espírito" : activeQMode === "3p" ? "3 Palavras" : activeQMode === "completar" ? "Completar a Frase" : "Avaliação (1 a 5)"}
                   </div>
