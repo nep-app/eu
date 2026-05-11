@@ -218,10 +218,10 @@ var RODA_DIMS = [
   { id:"lazer",    label:"Lazer",               icon:"🎉", desc:"Tens tempo para ti? Fazes atividades que te dão prazer?" },
 ];
 var CHANNELS = [
-  { id:"feed",      icon:"📣", label:"O Feed",             desc:"Perguntas e vitórias da semana" },
-  { id:"pias",      icon:"🚀", label:"Os Nossos PIAs",     desc:"Fotos e ideias dos projetos" },
-  { id:"sos",       icon:"🆘", label:"SOS JEEP",           desc:"Pede ou oferece ajuda à malta" },
-  { id:"desabafos", icon:"💭", label:"Desabafos & Ideias", desc:"O espaço livre, sem filtros" },
+  { id:"feed",      icon:"✨", label:"Novidades",          desc:"O que está a acontecer no grupo esta semana" },
+  { id:"pias",      icon:"🎯", label:"Os Meus Projetos",   desc:"Partilha fotos, ideias e progressos do teu PIA" },
+  { id:"sos",       icon:"🤝", label:"Ajuda & Dúvidas",    desc:"Tens uma dificuldade? Pede ajuda à malta!" },
+  { id:"desabafos", icon:"💬", label:"Espaço Livre",       desc:"Conversa, desabafa, partilha — sem pressão" },
 ];
 var SURVEY_CATS = [
   { id:"ludoteca", icon:"🏢", label:"A tua Ludoteca",   q:"Como te sentes no teu local de trabalho?",               chips:["Boa equipa 🤝","Aprendo muito 📚","Sinto-me útil 💡","Boa energia ✨","Difícil integração 😓","Pouco apoio ⚡","Rotina chata 😐"] },
@@ -310,7 +310,6 @@ export default function App() {
   var [user,    setUser]          = useState(null);
   var [uIn,     setUIn]           = useState("");
   var [pIn,     setPIn]           = useState("");
-  var [dIn,     setDIn]           = useState("");
   var [lErr,    setLErr]          = useState("");
   var [dispName,setDispName]      = useState("");
   var [tab,     setTab]           = useState("home");
@@ -337,7 +336,6 @@ export default function App() {
   var [selMood,  setSelMood]  = useState(null);
   var [p3,       setP3]       = useState(["","",""]);
   var [cidx,     setCidx]     = useState(0);
-  var [srating,  setSrating]  = useState(null);
   var [qIdx,     setQIdx]     = useState(0);
   var [qAnswers, setQAnswers] = useState({});
   var [mediaFile, setMediaFile] = useState(null);
@@ -453,6 +451,7 @@ export default function App() {
         if (f) {
           setUser(f); setDispName(f.realName); setScreen("app");
           loadUserData(uname);
+          setDoc(doc(db, "users", uname), { lastLogin: new Date().toISOString() }, { merge:true });
         } else {
           signOut(auth);
         }
@@ -548,12 +547,10 @@ export default function App() {
         var d = snap.data();
         setActiveQ(d.text);
         var m = d.mode;
-        // Isto garante que a memória é sempre uma lista, mesmo que tenhas guardado só 1 opção antes
         if (!m) m = ["texto"];
         else if (!Array.isArray(m)) m = [m]; 
-        
         setActiveQMode(m);
-        setCmode(m[0]); // Seleciona automaticamente a 1ª opção permitida para os jovens
+        setCmode(m[0]);
       }
     });
     return unsub;
@@ -568,14 +565,15 @@ export default function App() {
     return unsub;
   }, [user]);
 
-  // ── CARREGAR DADOS PARTILHADOS (admin) ────────────────────────────
+  // ── DADOS PARTILHADOS real-time (admin) ──────────────────────────
   useEffect(function() {
     if (!user || !user.isAdmin) return;
-    ALLOWED_USERNAMES.forEach(function(uname) {
-      getDoc(doc(db, "userData", uname)).then(function(snap) {
+    var unsubs = ALLOWED_USERNAMES.map(function(uname) {
+      return onSnapshot(doc(db, "userData", uname), function(snap) {
         if (snap.exists()) setAllShared(function(prev) { return upd(prev, uname, snap.data()); });
       });
     });
+    return function() { unsubs.forEach(function(u){ u(); }); };
   }, [user]);
 
   // ── LOAD USER DATA ───────────────────────────────────────────────
@@ -651,7 +649,7 @@ export default function App() {
   async function doLogout() {
     await signOut(auth);
     setUser(null); setScreen("login");
-    setUIn(""); setPIn(""); setDIn("");
+    setUIn(""); setPIn("");
     setPia(DEF_PIA); setPiaActs(DEF_ACTS); setPiaSaved(false);
     setRoda(DEF_RODA); setRodaSaves([]); setDScores(DEF_DSCORES);
     setDNotas(DEF_DNOTAS); setAutoSaved(false); setSwotP(DEF_SWOT);
@@ -718,6 +716,16 @@ export default function App() {
   }
 
   // ── EVENTOS ──────────────────────────────────────────────────────
+  async function deleteEvent(id) {
+    if (!window.confirm("Apagar este evento?")) return;
+    await deleteDoc(doc(db, "events", id));
+  }
+
+  async function deleteForumPost(pid) {
+    if (!window.confirm("Apagar este post?")) return;
+    await deleteDoc(doc(db, "forum", channel, "posts", pid));
+  }
+
   async function addAdminEvent() {
     if (!newEvt.title.trim() || !newEvt.date) return;
     var { shareWithTeresa:_, ...evtData } = newEvt;
@@ -755,17 +763,12 @@ async function replyToMsg(msgId, hiddenUser, replyText) {
     try {
       if (!replyText.trim()) return;
       var targetUser = hiddenUser || "desconhecido";
-      
-      // Tenta atualizar a mensagem original
       await updateDoc(doc(db, "messages", msgId), { adminReply: replyText });
-      
-      // Tenta enviar a notificação secreta para o utilizador
       if (targetUser !== "desconhecido") {
         await addDoc(collection(db, "notifications", targetUser, "items"), {
           from:"teresa", text:"Resposta à tua mensagem: " + replyText, date:nowLabel(), read:false
         });
       }
-      
       setAdminReplyId(null);
       setAdminReplyTxt("");
       alert("Resposta enviada com sucesso!");
@@ -853,23 +856,17 @@ async function updateActiveQ() {
     try {
       if (!activeQEdit.trim()) return alert("Escreve a pergunta!");
       if (activeQModeEdit.length === 0) return alert("Escolhe um formato!");
-
-      // 1. Guarda a Pergunta
       await setDoc(doc(db, "config", "activeQuestion"), { 
         text: activeQEdit.trim(), 
         mode: activeQModeEdit, 
         date: Date.now() 
       });
-
-      // 2. Limpa o estado da Teresa (Admin) e do Nilton (Teste) para poderes ver logo
-      // Vamos usar uma lista de users que queremos resetar para teste
       for (var u of ALLOWED_USERNAMES) {
         await setDoc(doc(db, "users", u), { answered: false }, { merge: true });
         await addDoc(collection(db, "notifications", u, "items"), {
           from:"teresa", text:"💬 Nova pergunta da semana! Vai à Reflexão para responder.", date:nowLabel(), read:false
         });
       }
-
       setAnswered(false);
       alert("Pergunta publicada! Todos os utilizadores foram notificados. 🎉");
       setActiveQEdit("");
@@ -1050,8 +1047,6 @@ async function submitAnswer() {
           <input value={uIn} onChange={function(e){setUIn(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doLogin();}} placeholder="ex: nilton" style={{ width:"100%", padding:"12px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:14, outline:"none", boxSizing:"border-box", marginBottom:10 }}/>
           <div style={{ fontSize:10, color:"#94a3b8", fontWeight:800, marginBottom:4, letterSpacing:1 }}>PASSWORD</div>
           <input value={pIn} type="password" onChange={function(e){setPIn(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")doLogin();}} placeholder="••••••••" style={{ width:"100%", padding:"12px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:14, outline:"none", boxSizing:"border-box", marginBottom:10 }}/>
-          <div style={{ fontSize:10, color:"#94a3b8", fontWeight:800, marginBottom:4, letterSpacing:1 }}>NOME QUE APARECE (opcional)</div>
-          <input value={dIn} onChange={function(e){setDIn(e.target.value);}} placeholder="Como queres ser chamado/a?" style={{ width:"100%", padding:"12px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:14, outline:"none", boxSizing:"border-box", marginBottom:10 }}/>
           {lErr&&(<div style={{ color:"#ef4444", fontSize:12, marginBottom:8, padding:"8px 12px", background:"#fef2f2", borderRadius:8 }}>{lErr}</div>)}
           <button onClick={doLogin} style={{ width:"100%", padding:"14px", background:"linear-gradient(135deg,#1e293b,#0f172a)", color:"white", border:"none", borderRadius:14, fontSize:15, fontWeight:700, cursor:"pointer" }}>Entrar →</button>
           <div style={{ marginTop:14, padding:"12px 14px", background:"#f8fafc", borderRadius:12, fontSize:11, color:"#94a3b8", lineHeight:1.7 }}>
@@ -1109,10 +1104,11 @@ async function submitAnswer() {
                       <div style={{ flex:1 }}>
                         <div style={{ display:"flex", justifyContent:"space-between" }}><span style={{ fontSize:13, fontWeight:700 }}>{p.user} {p.user==="Teresa (GO)"&&<span style={{fontSize:9, background:"#7C3AED", color:"white", padding:"2px 6px", borderRadius:6, marginLeft:4}}>ADMIN</span>}</span><span style={{ fontSize:11, color:"#94a3b8" }}>{p.time}</span></div>
                         <div style={{ fontSize:14, color:"#374151", marginTop:4, lineHeight:1.55 }}>{p.text}</div>
-                        <div style={{ marginTop:9, display:"flex", gap:12 }}>
+                        <div style={{ marginTop:9, display:"flex", gap:12, alignItems:"center" }}>
                           <span onClick={function(){likePost(p.id);}} style={{ fontSize:12, color:"#94a3b8", cursor:"pointer" }}>❤️ {p.likes}</span>
                           <span onClick={function(){setReplyTo(replyTo===p.id?null:p.id);setExpanded(p.id);}} style={{ fontSize:12, color:"#94a3b8", cursor:"pointer", fontWeight:600 }}>💬 Responder</span>
                           {p.replies.length>0&&(<span onClick={function(){setExpanded(expanded===p.id?null:p.id);}} style={{ fontSize:12, color:"#1e293b", fontWeight:700, cursor:"pointer" }}>{expanded===p.id?"▲":"▼"} {p.replies.length}</span>)}
+                          <span onClick={function(){deleteForumPost(p.id);}} style={{ fontSize:12, color:"#ef4444", cursor:"pointer", marginLeft:"auto" }}>🗑️ Apagar</span>
                         </div>
                       </div>
                     </div>
@@ -1152,7 +1148,7 @@ async function submitAnswer() {
 {[["texto","✏️ Texto"],["mood","🌡️ Mood"],["3p","💡 3 Palav."],["completar","🔤 Completar"],["semana","⭐ Avaliação"], ["foto", "📸 Foto"], ["video", "🎥 Vídeo"], ["audio", "🎙️ Áudio"]].map(function(opt) {                    var isSel = activeQModeEdit.includes(opt[0]);
                     return (
                       <button key={opt[0]} onClick={function(){
-                        if(isSel && activeQModeEdit.length===1) return; // Não deixa desmarcar o último
+                        if(isSel && activeQModeEdit.length===1) return;
                         setActiveQModeEdit(isSel ? activeQModeEdit.filter(function(x){return x!==opt[0];}) : activeQModeEdit.concat([opt[0]]));
                       }} style={{ padding:"6px 12px", borderRadius:20, border:isSel?"2px solid #7C3AED":"2px solid #e8edf2", background:isSel?"#7C3AED15":"white", fontSize:11, fontWeight:700, cursor:"pointer", color:isSel?"#7C3AED":"#64748b" }}>
                         {opt[1]}
@@ -1233,6 +1229,26 @@ async function submitAnswer() {
                     );
                   })
                 )}
+              </div>
+              <div style={CARD}>
+                <div style={SL}>Respostas ao Quiz</div>
+                {JEEP_LIST.map(function(j) {
+                  var d = allShared[j.username] || {};
+                  var qa = d.qAnswers || {};
+                  var count = Object.keys(qa).length;
+                  return (
+                    <div key={j.username} style={{ padding:"8px 0", borderBottom:"1px solid #f1f5f9" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                        <div style={{ width:8, height:8, borderRadius:"50%", background:count>0?"#22c55e":"#e2e8f0", flexShrink:0 }}/>
+                        <div style={{ flex:1, fontSize:13, fontWeight:700 }}>{j.name}</div>
+                        <span style={{ fontSize:11, color:"#94a3b8" }}>{count}/{QUIZZES.length} resp.</span>
+                      </div>
+                      {count>0&&(<div style={{ marginLeft:16, marginTop:4, display:"flex", gap:6, flexWrap:"wrap" }}>
+                        {QUIZZES.map(function(q){var ans=qa[q.id]; return ans?(<span key={q.id} style={{ fontSize:10, background:"#f1f5f9", borderRadius:8, padding:"2px 8px" }}>{q.title.slice(0,10)}: <strong>{ans}</strong></span>):null;})}
+                      </div>)}
+                    </div>
+                  );
+                })}
               </div>
               <div style={CARD}>
                 <div style={SL}>Atribuir Medalhas</div>
@@ -1333,6 +1349,7 @@ async function submitAnswer() {
                         <div style={{ fontSize:11, color:"#94a3b8" }}>{fmtDate(e.date)}{e.time?" · "+e.time:""} · {e.userId==="all"?"Todos":e.userId}</div>
                       </div>
                       <div style={{ width:8, height:8, borderRadius:"50%", background:col, flexShrink:0 }}/>
+                      <button onClick={function(){deleteEvent(e.id);}} style={{ background:"none", border:"none", fontSize:14, cursor:"pointer", color:"#ef4444", padding:"2px 6px" }}>✕</button>
                     </div>
                   );
                 })}
@@ -1421,7 +1438,7 @@ async function submitAnswer() {
                       <div style={{ width:10, height:10, borderRadius:"50%", background:gdpr?(jInfo?jInfo.color:"#1e293b"):"#e8edf2", flexShrink:0 }}/>
                       <div style={{ flex:1 }}>
                         <div style={{ fontSize:14, fontWeight:700 }}>{u}</div>
-                        <div style={{ fontSize:11, color:"#94a3b8" }}>{gdpr?"Registado · RGPD: "+gdpr.gdprDate:"Ainda não se registou"}</div>
+                        <div style={{ fontSize:11, color:"#94a3b8" }}>{gdpr?"Registado · RGPD: "+gdpr.gdprDate+(gdpr.lastLogin?" · Login: "+new Date(gdpr.lastLogin).toLocaleDateString("pt-PT"):"":"Ainda não se registou"}</div>
                       </div>
                       <div style={{ fontSize:11, fontWeight:700, color:gdpr?"#22c55e":"#f59e0b" }}>{gdpr?"✓ Ativo":"Pendente"}</div>
                     </div>
@@ -1612,7 +1629,7 @@ async function submitAnswer() {
               </div>
               {msgSent ? (
                 <div style={{ textAlign:"center", padding:"12px", background:"rgba(34,197,94,0.15)", borderRadius:12 }}>
-                  <span style={{ color:"#22c55e", fontWeight:700, fontSize:13 }}>✓ Mensagem enviada{msgAnon?" anonimamente":""}!</span>
+                  <span style={{ color:"#22c55e", fontWeight:700, fontSize:13 }}>✓ Mensagem enviada{msgAnon?" anonimamente":"!"}!</span>
                 </div>
               ) : (
                 <div>
@@ -1666,7 +1683,6 @@ async function submitAnswer() {
                 </div>
               ) : (
                 <div>
-                  {/* Seleção de Formato (se a Teresa permitir mais que um) */}
                   {activeQMode.length > 1 && (
                     <div style={{ marginBottom:14 }}>
                       <div style={{ fontSize:11, fontWeight:800, color:C, letterSpacing:1, marginBottom:8, textTransform:"uppercase" }}>Como queres responder?</div>
@@ -1684,7 +1700,6 @@ async function submitAnswer() {
                     </div>
                   )}
 
-                  {/* Zonas de Resposta Consoante o Modo Escolhido */}
                   {cmode==="texto" && (<textarea value={aTxt} onChange={function(e){setATxt(e.target.value);}} placeholder="Escreve aqui..." rows={4} style={{ width:"100%", padding:"12px 14px", borderRadius:14, border:"2px solid #e8edf2", fontSize:14, outline:"none", boxSizing:"border-box" }}/>)}
                   
                   {cmode==="mood" && (
@@ -1699,7 +1714,28 @@ async function submitAnswer() {
                     </div>
                   )}
 
-                  {/* ZONA MULTIMÉDIA (Foto, Vídeo) */}
+                  {cmode==="completar" && (
+                    <div>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+                        <div style={{ flex:1, padding:"11px 14px", background:C+"10", borderRadius:12, fontSize:14, fontWeight:700, color:C, borderLeft:"3px solid "+C }}>{COMPL[cidx]}</div>
+                        <button onClick={function(){setCidx(function(i){return (i+1)%COMPL.length;});}} style={{ padding:"8px 12px", background:C, color:"white", border:"none", borderRadius:10, fontSize:18, cursor:"pointer" }}>↻</button>
+                      </div>
+                      <textarea value={aTxt} onChange={function(e){setATxt(e.target.value);}} placeholder={"Continua: «"+COMPL[cidx]+"»"} rows={3} style={{ width:"100%", padding:"12px 14px", borderRadius:14, border:"2px solid #e8edf2", fontSize:14, outline:"none", boxSizing:"border-box" }}/>
+                    </div>
+                  )}
+
+                  {cmode==="semana" && (
+                    <div>
+                      <div style={{ fontSize:12, color:"#64748b", marginBottom:10 }}>Como foi a tua semana? (1 = muito mal, 10 = excelente)</div>
+                      <div style={{ display:"flex", gap:4, flexWrap:"wrap", marginBottom:10 }}>
+                        {[1,2,3,4,5,6,7,8,9,10].map(function(n){
+                          var isA = selMood===n;
+                          return (<button key={n} onClick={function(){setSelMood(n);}} style={{ flex:1, minWidth:28, padding:"10px 4px", borderRadius:10, border:isA?"2px solid "+C:"2px solid #e8edf2", background:isA?C:"white", color:isA?"white":"#374151", fontSize:13, fontWeight:700, cursor:"pointer" }}>{n}</button>);
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {["foto", "video"].includes(cmode) && (
                     <div style={{ padding:"20px", border:"2px dashed #cbd5e1", borderRadius:14, textAlign:"center", background:"#f8fafc", marginBottom:10 }}>
                       <div style={{ fontSize:12, fontWeight:700, color:"#64748b", marginBottom:10 }}>
@@ -1714,7 +1750,6 @@ async function submitAnswer() {
                       {mediaFile && <div style={{ fontSize:12, color:"#22c55e", fontWeight:700, marginTop:10 }}>✓ {mediaFile.name.slice(0,24)}…</div>}
                     </div>
                   )}
-                  {/* ÁUDIO — gravar no momento ou escolher ficheiro */}
                   {cmode === "audio" && (
                     <div style={{ padding:"20px", border:"2px dashed #cbd5e1", borderRadius:14, textAlign:"center", background:"#f8fafc", marginBottom:10 }}>
                       <div style={{ fontSize:12, fontWeight:700, color:"#64748b", marginBottom:12 }}>🎙️ Gravar Áudio</div>
@@ -1738,7 +1773,6 @@ async function submitAnswer() {
                     </div>
                   )}
 
-                  {/* Botão de Enviar Geral */}
                   <div style={{ marginTop:16 }}>
                     <button 
                       disabled={isUploading}
