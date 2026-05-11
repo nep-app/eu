@@ -70,22 +70,29 @@ export const PS = {
 };
 
 // ── COMPONENTE DO LOGOTIPO ──
+// Substitui APENAS o componente AppIcon no teu theme.jsx por este:
 export function AppIcon({ size = 70 }) {
   return (
     <div style={{ display: "flex", justifyContent: "center", padding: "10px 0", width: "100%" }}>
       <img 
-        src="/logo.png" 
+        src="logo.png" 
         alt="JEEP EDUCA+" 
-        style={{ width: size, height: "auto", objectFit: "contain" }}
+        style={{ 
+          width: size, 
+          height: "auto", 
+          objectFit: "contain",
+          display: "block" 
+        }}
+        // Se falhar, mostra o texto roxo bonito que tinhas antes, sem mensagens de erro feias
         onError={(e) => {
-          // Retirei a mensagem vermelha. Se falhar, fica o título limpo em texto.
           e.target.style.display = 'none';
-          e.target.parentElement.innerHTML = `<span style="color:${PRP}; font-size:24px; font-weight:900; letter-spacing:2px;">JEEP EDUCA+</span>`;
+          e.target.parentElement.innerHTML = `<span style="color:#a855f7; font-size:22px; font-weight:900; letter-spacing:2px;">JEEP EDUCA+</span>`;
         }}
       />
     </div>
   );
 }
+
 
 // ── MENU DE ABAS (SUBTABS) ──
 export function SubTabs({ options, active, onChange, color = CYN }) {
