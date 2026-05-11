@@ -463,6 +463,20 @@ export default function App() {
     return unsub;
   }, [user]);
 
+
+  // ── VIGIAR ESTADO DE RESPOSTA DO USER ──
+  useEffect(function() {
+    if (!user) return;
+    // Este código fica a "ouvir" a ficha do utilizador no Firebase
+    var unsub = onSnapshot(doc(db, "users", user.username), function(snap) {
+      if (snap.exists()) {
+        setAnswered(snap.data().answered || false);
+      }
+    });
+    return unsub;
+  }, [user]);
+  
+
   // ── REAL-TIME: TODOS (per user) ──────────────────────────────────
   useEffect(function() {
     if (!user || user.isAdmin) return;
@@ -794,22 +808,19 @@ async function updateActiveQ() {
         date: Date.now() 
       });
 
-      // 2. Limpa o teu estado com a técnica do MERGE (se não existir, ele cria)
-      await setDoc(doc(db, "users", user.username), { answered: false }, { merge: true });
-      setAnswered(false);
+      // 2. Limpa o estado da Teresa (Admin) e do Nilton (Teste) para poderes ver logo
+      // Vamos usar uma lista de users que queremos resetar para teste
+      var usersToReset = [user.username, "nilton", "teresa"]; 
+      
+      for (var u of usersToReset) {
+        await setDoc(doc(db, "users", u), { answered: false }, { merge: true });
+      }
 
-      // 3. Envia uma notificação de teste para ti (Admin)
-      await addDoc(collection(db, "notifications", user.username, "items"), {
-        from: "sistema",
-        text: "📢 Nova Pergunta: " + activeQEdit.trim().slice(0, 30) + "...",
-        date: nowLabel(),
-        read: false
-      });
-
-      alert("Pergunta publicada e notificação enviada! 🎉");
+      setAnswered(false); // Atualiza o teu ecrã na hora
+      alert("Pergunta publicada! As contas de teste (Nilton/Teresa/Admin) foram limpas. 🎉");
       setActiveQEdit("");
     } catch (erro) {
-      alert("Erro: " + erro.message);
+      alert("Erro ao publicar: " + erro.message);
     }
   }
   async function sendAdminMsg() {
