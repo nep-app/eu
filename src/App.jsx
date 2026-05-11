@@ -783,9 +783,27 @@ async function replyToMsg(msgId, hiddenUser, replyText) {
     await saveUserField(user.username, { roda, rodaSaves:newSaves, rodaShared:sh });
   }
 async function updateActiveQ() {
-    if (!activeQEdit.trim()) return;
-    await setDoc(doc(db, "config", "activeQuestion"), { text:activeQEdit.trim(), mode:activeQModeEdit, date:nowLabel() });
-    setActiveQEdit("");
+    try {
+      if (!activeQEdit.trim()) {
+        alert("Escreve primeiro a pergunta!");
+        return;
+      }
+      if (activeQModeEdit.length === 0) {
+        alert("Escolhe pelo menos um formato de resposta (Texto, Foto, etc.)!");
+        return;
+      }
+
+      await setDoc(doc(db, "config", "activeQuestion"), { 
+        text: activeQEdit.trim(), 
+        mode: activeQModeEdit, 
+        date: nowLabel() 
+      });
+
+      alert("Pergunta publicada com sucesso! 🎉");
+      setActiveQEdit("");
+    } catch (erro) {
+      alert("Erro ao publicar: " + erro.message);
+    }
   }
   async function sendAdminMsg() {
     if (!adminMsgTxt.trim()) return;
