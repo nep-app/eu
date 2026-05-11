@@ -1022,8 +1022,8 @@ async function updateActiveQ() {
             </div>
           )}
           
-          {adminTab === "geral" && (
-          <div>
+       {adminTab === "geral" && (
+            <div>
               <div style={CARD}>
                 <div style={SL}>Pergunta Ativa</div>
                 <div style={{ fontSize:13, color:"#374151", fontWeight:600, marginBottom:12, padding:"10px 12px", background:"#f8fafc", borderRadius:10, borderLeft:"3px solid #7C3AED" }}>{activeQ}</div>
@@ -1038,7 +1038,6 @@ async function updateActiveQ() {
                   </select>
                   <button onClick={updateActiveQ} style={{ background:"#7C3AED", color:"white", border:"none", borderRadius:12, padding:"11px 18px", fontSize:13, fontWeight:700, cursor:"pointer" }}>Publicar</button>
                 </div>
-              </div>
               </div>
               <div style={CARD}>
                 <div style={SL}>Acompanhamento</div>
