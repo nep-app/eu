@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from "./firebase";
-import { AppIcon, BG, CYN } from "./theme";
-import { ALLOWED_USERNAMES, USERS, nowLabel, GDPR_TEXT } from "./data";
-import TeresaAdmin from "./TeresaAdmin";
-import JovensApp from "./JovensApp";
+import { auth, db } from "./firebase.js";
+import { AppIcon, BG, CYN } from "./theme.jsx";
+import { ALLOWED_USERNAMES, USERS, nowLabel, GDPR_TEXT } from "./data.js";
+import TeresaAdmin from "./TeresaAdmin.jsx";
+import JovensApp from "./JovensApp.jsx";
 
 export default function App() {
   const [loading, setLoading] = useState(true);
