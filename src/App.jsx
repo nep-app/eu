@@ -5,8 +5,7 @@ import {
 import {
   doc, getDoc, setDoc, collection, addDoc, onSnapshot, updateDoc, deleteDoc,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { auth, db, storage } from "./firebase";
+import { auth, db } from "./firebase";
 
 var BG = "#eef1f6";
 var CARD = { background:"white", borderRadius:20, padding:"18px 20px", marginBottom:14, boxShadow:"0 2px 12px rgba(15,23,42,0.07),0 0 0 1px rgba(15,23,42,0.04)" };
@@ -129,84 +128,12 @@ var USERS = [
 ];
 
 var DIMS = [
-  { 
-    id:"D1", 
-    label:"Comunicação, Assertividade e Relação em Equipa", 
-    desc:"Comunica de forma clara, adequada e adaptada às diferentes pessoas (crianças, colegas, coordenadores), ouve o outro e mantem ambiente de respeito e entreajuda. Capacidade de pedir apoio quando necessário e de lidar com críticas e opiniões diversas de forma construtiva. Colabora com a equipa e partilha responsabilidades.", 
-    s:{ 
-      a:"Tenho muita dificuldade em comunicar com a equipa e com as crianças. Evito pedir ajuda e não me sinto à vontade para receber observações sobre o meu trabalho.", 
-      b:"Às vezes comunico mal, uso o tom errado ou evito conversas difíceis. Prefiro trabalhar sozinho/a e tenho dificuldade em aceitar críticas sem me defender.", 
-      c:"Consigo comunicar nas situações do dia a dia sem grandes problemas. Sou respeitoso/a com a equipa e as crianças. Aceito feedback, embora me custe um pouco. Só peço ajuda quando mesmo preciso.", 
-      d:"Consigo adaptar a forma como comunico consoante com quem estou. Trabalho bem em equipa, partilho responsabilidades e peço ajuda quando preciso. Recebo feedback de forma tranquila.", 
-      e:"Comunico bem mesmo quando as situações são difíceis. Apoio os colegas, peço feedback regularmente e uso-o para melhorar. Contribuo para um ambiente de equipa positivo.", 
-      f:"Sinto que sou uma referência na comunicação dentro da equipa. Ajudo a resolver situações de tensão, apoio os colegas e contribuo para que o espaço seja melhor para todos." 
-    } 
-  },
-  { 
-    id:"D2", 
-    label:"Resiliência, Gestão da Frustração e Adaptação", 
-    desc:"Enfrenta dificuldades e o stress do dia a dia com maturidade, sem desistir à primeira tentativa ou ter reações desproporcionais. Controla a frustração quando as situações não correm como planeado e tem facilidade em aceitar imprevistos, manter a calma em momentos de tensão e adaptar as suas ações para encontrar soluções e alternativas", 
-    s:{ 
-      a:"Quando as coisas não correm bem, bloqueio, desisto ou fico muito agitado/a. Tenho muita dificuldade em lidar com imprevistos ou situações de stress.", 
-      b:"Às vezes as dificuldades afetam demasiado o meu estado de espírito e isso nota-se no trabalho. Tenho dificuldade em manter a calma quando as coisas não correm como esperava.", 
-      c:"Consigo manter-me estável na maior parte das situações do dia a dia. Quando há imprevistos, fico desconfortável, mas consigo continuar.", 
-      d:"Quando surgem dificuldades ou imprevistos, consigo manter-me calmo/a e encontrar formas de continuar. Não desisto à primeira e consigo adaptar-me quando o plano muda.", 
-      e:"Lido bem com situações difíceis, pois mantenho-me focado/a e encontro alternativas. A minha estabilidade ajuda os que estão à minha volta.", 
-      f:"Sinto que sou uma referência de calma para a equipa. Mesmo nas situações mais difíceis, mantenho equilíbrio, apoio os colegas e transformo os problemas em oportunidades de crescimento." 
-    } 
-  },
-  { 
-    id:"D3", 
-    label:"Autonomia, Proatividade e Cumprimento de Tarefas", 
-    desc:"Trabalha de forma independente e antecipa as necessidades do local. Identifica tarefas que precisam de ser feitas e age por iniciativa própria sem esperar por ordens externas. Cumpre os compromissos a que se propõe até ao fim.", 
-    s:{ 
-      a:"Preciso que me digam sempre o que fazer. Não tenho iniciativa própria e nem sempre consigo cumprir o que me comprometo a fazer.", 
-      b:"Faço o que me pedem, mas não costumo agir por iniciativa própria. Preciso de orientação frequente e nem sempre consigo cumprir os compromissos até ao fim.", 
-      c:"Consigo trabalhar de forma autónoma nas tarefas habituais. Não preciso que me estejam sempre a orientar e cumpro o que me comprometo a fazer.", 
-      d:"Trabalho de forma autónoma e às vezes antecipo o que precisa de ser feito sem que me peçam. Cumpro o que me comprometo e termino o que começo.", 
-      e:"Costumo identificar o que precisa de ser feito antes que me digam. Proponho, tomo iniciativa e cumpro os compromissos que assumo com rigor.", 
-      f:"Sinto que a minha iniciativa faz diferença no espaço. A equipa conta comigo sem precisar de me acompanhar. Proponho, executo e cumpro, e isso nota-se no dia a dia." 
-    } 
-  },
-  { 
-    id:"D4", 
-    label:"Autoconhecimento, Autocrítica e Clareza de Objetivos", 
-    desc:"Autorreflexão e maturidade para reconhecer de forma realista as suas competências e limitações. Honestidade com que assume as falhas e procura melhoria contínua. Esforço em definir metas concretas e exequíveis para o futuro e identificar e levar a cabo os passos que precisa de dar para lá chegar.", 
-    s:{ 
-      a:"Não penso muito sobre o que faço bem ou mal. Não tenho objetivos claros para o futuro nem sei o que fazer para lá chegar.", 
-      b:"Tenho alguma noção das minhas limitações, mas custa-me admiti-las. Tenho ideias para o futuro, mas são vagas e não sei como concretizá-las.", 
-      c:"Sei, de forma geral, o que faço bem e o que preciso de melhorar. Tenho alguns objetivos para o futuro, mas ainda não tenho um plano claro.", 
-      d:"Conheço bem as minhas competências e limitações. Defino objetivos concretos e sei o que preciso de fazer para os atingir. Quando falho, assumo e procuro melhorar.", 
-      e:"Reflito regularmente sobre o meu desempenho e os meus padrões. Tenho um projeto de vida concreto, sei os passos que preciso de dar e estou a trabalhar nisso ativamente.", 
-      f:"Conheço-me a um nível profundo. Esse autoconhecimento guia as minhas decisões, o meu projeto de vida e a forma como me relaciono com os outros e com o trabalho." 
-    } 
-  },
-  { 
-    id:"D5", 
-    label:"Competências Digitais e Autonomia Administrativa", 
-    desc:"Domínio de ferramentas digitais e gestão das exigências práticas do quotidiano adulto. Capacidade de recorrer à tecnologia de forma útil e orientada para o trabalho ou responsabilidades pessoais e cívicas. e de navegar processos administrativos e burocráticos. Literacia burocrática e digital.", 
-    s:{ 
-      a:"Tenho muita dificuldade com tecnologia e com processos burocráticos. Não consigo usar ferramentas digitais básicas nem tratar dos meus assuntos de forma autónoma.", 
-      b:"Consigo usar algumas ferramentas digitais, mas com dificuldade. Preciso frequentemente de ajuda para tratar de assuntos burocráticos ou usar ferramentas de trabalho online.", 
-      c:"Consigo usar as ferramentas digitais básicas no dia a dia. Trato dos meus assuntos administrativos simples de forma autónoma.", 
-      d:"Uso bem as ferramentas digitais no trabalho. Consigo tratar de processos burocráticos de forma autónoma e sei onde procurar informação quando preciso.", 
-      e:"Uso a tecnologia de forma proativa para melhorar o meu trabalho. Tenho facilidade com processos burocráticos, mesmo os mais complexos, e às vezes ajudo outros a navegá-los.", 
-      f:"Tenho uma literacia digital e burocrática que faz diferença no espaço. Resolvo situações que outros não sabem tratar e sou um recurso para a equipa nesta área." 
-    } 
-  },
-  { 
-    id:"D6", 
-    label:"Qualidade da Intervenção e Conhecimentos Profissionais", 
-    desc:"Capacidade de conceção e dinamização de atividades relevantes e ajustadas à população-alvo e às necessidades identificadas. Adequação da postura profissional, respeito pelas regras e rotinas e alinhamento com a missão e objetivos da entidade. Compreende o seu papel na equipa e corresponde às expectativas do local.", 
-    s:{ 
-      a:"Tenho muita dificuldade em fazer atividades adequadas para o grupo. Não me identifico com as regras e rotinas do espaço e não tenho clareza sobre o meu papel aqui.", 
-      b:"As atividades que faço ainda não estão bem ajustadas ao grupo. A minha postura profissional é inconsistente e tenho dificuldade em corresponder regularmente ao que é esperado.", 
-      c:"Consigo fazer atividades básicas adaptadas ao grupo. Cumpro as regras e rotinas e percebo o que é esperado de mim.", 
-      d:"Faço atividades adaptadas ao grupo e às suas necessidades. Tenho uma postura profissional adequada e identifico-me com os objetivos do espaço.", 
-      e:"As atividades que faço têm impacto real no grupo e reflito sobre como melhorá-las. Tenho uma postura profissional que me orgulha e vou além do que é apenas esperado.", 
-      f:"A qualidade do meu trabalho tem impacto real e duradouro no grupo. Sou uma referência para a equipa na conceção de atividades e a minha presença faz diferença no espaço." 
-    } 
-  }
+  { id:"D1", label:"Comunicação, Assertividade e Relação em Equipa", desc:"Comunica de forma clara e adaptada às diferentes pessoas, ouve o outro e mantém ambiente de respeito.", s:{ a:"Tenho muita dificuldade em comunicar. Evito pedir ajuda.", b:"Às vezes comunico mal ou evito conversas difíceis.", c:"Consigo comunicar nas situações do dia a dia.", d:"Adapto a forma como comunico consoante com quem estou.", e:"Comunico bem em situações difíceis. Apoio os colegas.", f:"Sou referência na comunicação. Ajudo a resolver tensões." } },
+  { id:"D2", label:"Resiliência, Gestão da Frustração e Adaptação", desc:"Enfrenta dificuldades com maturidade, sem desistir à primeira.", s:{ a:"Quando as coisas não correm bem, bloqueio ou desisto.", b:"As dificuldades afetam demasiado o meu estado de espírito.", c:"Consigo manter-me estável na maior parte das situações.", d:"Mantenho-me calmo/a e encontro formas de continuar.", e:"Lido bem com situações difíceis. Estabilizo os outros.", f:"Sou referência de calma. Transformo problemas em oportunidades." } },
+  { id:"D3", label:"Autonomia, Proatividade e Cumprimento de Tarefas", desc:"Trabalha de forma independente e antecipa necessidades.", s:{ a:"Preciso que me digam sempre o que fazer.", b:"Faço o que me pedem, mas raramente ajo por iniciativa.", c:"Trabalho de forma autónoma nas tarefas habituais.", d:"Às vezes antecipo o que precisa de ser feito.", e:"Identifico o que é preciso antes que me digam.", f:"A minha iniciativa faz diferença. A equipa conta comigo." } },
+  { id:"D4", label:"Autoconhecimento, Autocrítica e Clareza de Objetivos", desc:"Autorreflexão para reconhecer competências e limitações de forma realista.", s:{ a:"Não penso muito sobre o que faço bem ou mal.", b:"Tenho alguma noção das minhas limitações, mas custa-me admiti-las.", c:"Sei, de forma geral, o que faço bem e o que preciso de melhorar.", d:"Conheço bem as minhas competências e limitações.", e:"Reflito regularmente. Tenho um projeto de vida concreto.", f:"Conheço-me profundamente. Isso guia as minhas decisões." } },
+  { id:"D5", label:"Competências Digitais e Autonomia Administrativa", desc:"Domínio de ferramentas digitais e gestão das exigências do quotidiano adulto.", s:{ a:"Tenho muita dificuldade com tecnologia e burocracia.", b:"Consigo usar algumas ferramentas digitais, mas com dificuldade.", c:"Uso ferramentas digitais básicas de forma autónoma.", d:"Uso bem as ferramentas digitais e os processos burocráticos.", e:"Uso a tecnologia de forma proativa. Às vezes ajudo outros.", f:"A minha literacia digital faz diferença." } },
+  { id:"D6", label:"Qualidade da Intervenção e Conhecimentos Profissionais", desc:"Concebe e dinamiza atividades relevantes ajustadas à população-alvo.", s:{ a:"Tenho dificuldade em fazer atividades adequadas para o grupo.", b:"As atividades ainda não estão bem ajustadas.", c:"Faço atividades básicas adaptadas. Cumpro as regras.", d:"Faço atividades adaptadas. Tenho postura profissional adequada.", e:"As atividades têm impacto real. Reflito sobre como melhorá-las.", f:"A qualidade do meu trabalho tem impacto duradouro." } },
 ];
 var RODA_DIMS = [
   { id:"familia",  label:"Família",            icon:"🏠", desc:"Como te sentes nas relações com a tua família?" },
@@ -339,8 +266,6 @@ export default function App() {
   var [srating,  setSrating]  = useState(null);
   var [qIdx,     setQIdx]     = useState(0);
   var [qAnswers, setQAnswers] = useState({});
-  var [mediaFile, setMediaFile] = useState(null);
-  var [isUploading, setIsUploading] = useState(false);
 
   // ── AUTOAVALIAÇÃO ───────────────────────────────────────────────
   var [dScores,   setDScores]   = useState(DEF_DSCORES);
@@ -417,14 +342,10 @@ export default function App() {
   var [rodaShared,     setRodaShared]     = useState(false);
   var [autoShared,     setAutoShared]     = useState(false);
   var [swotShared,     setSwotShared]     = useState(false);
- var [activeQ,          setActiveQ]         = useState("Esta semana, qual foi o momento em que te sentiste mais capaz?");
- var [activeQMode,      setActiveQMode]     = useState(["texto"]);
-  var [activeQEdit,      setActiveQEdit]     = useState("");
-  var [activeQModeEdit,  setActiveQModeEdit] = useState(["texto"]);
+  var [activeQ,        setActiveQ]        = useState("Esta semana, qual foi o momento em que te sentiste mais capaz?");
+  var [activeQEdit,    setActiveQEdit]    = useState("");
   var [adminMsgTarget, setAdminMsgTarget] = useState("nilton");
   var [adminMsgTxt,    setAdminMsgTxt]    = useState("");
-  var [adminReplyId,   setAdminReplyId]   = useState(null);
-  var [adminReplyTxt,  setAdminReplyTxt]  = useState("");
   var [myNotifs,       setMyNotifs]       = useState([]);
   var [allShared,      setAllShared]      = useState({});
   var [adminSharedSel, setAdminSharedSel] = useState(null);
@@ -462,20 +383,6 @@ export default function App() {
     });
     return unsub;
   }, [user]);
-
-
-  // ── VIGIAR ESTADO DE RESPOSTA DO USER ──
-  useEffect(function() {
-    if (!user) return;
-    // Este código fica a "ouvir" a ficha do utilizador no Firebase
-    var unsub = onSnapshot(doc(db, "users", user.username), function(snap) {
-      if (snap.exists()) {
-        setAnswered(snap.data().answered || false);
-      }
-    });
-    return unsub;
-  }, [user]);
-  
 
   // ── REAL-TIME: TODOS (per user) ──────────────────────────────────
   useEffect(function() {
@@ -536,20 +443,10 @@ export default function App() {
     return unsub;
   }, [channel, user, screen]);
 
-// ── REAL-TIME: PERGUNTA ATIVA ─────────────────────────────────────
+  // ── REAL-TIME: PERGUNTA ATIVA ─────────────────────────────────────
   useEffect(function() {
     var unsub = onSnapshot(doc(db, "config", "activeQuestion"), function(snap) {
-      if (snap.exists()) {
-        var d = snap.data();
-        setActiveQ(d.text);
-        var m = d.mode;
-        // Isto garante que a memória é sempre uma lista, mesmo que tenhas guardado só 1 opção antes
-        if (!m) m = ["texto"];
-        else if (!Array.isArray(m)) m = [m]; 
-        
-        setActiveQMode(m);
-        setCmode(m[0]); // Seleciona automaticamente a 1ª opção permitida para os jovens
-      }
+      if (snap.exists()) setActiveQ(snap.data().text);
     });
     return unsub;
   }, []);
@@ -738,35 +635,12 @@ export default function App() {
   }
 
   // ── MENSAGENS & SUGESTÕES ────────────────────────────────────────
- async function sendMsg() {
+  async function sendMsg() {
     if (!msgTxt.trim() || !user) return;
     await addDoc(collection(db,"messages"),{
-      text:msgTxt, anon:msgAnon, from:msgAnon?"Anónimo":user.username, hiddenUser:user.username, date:nowLabel(), adminReply:""
+      text:msgTxt, anon:msgAnon, from:msgAnon?"Anónimo":user.username, date:nowLabel()
     });
     setMsgTxt(""); setMsgSent(true);
-  }
-
-async function replyToMsg(msgId, hiddenUser, replyText) {
-    try {
-      if (!replyText.trim()) return;
-      var targetUser = hiddenUser || "desconhecido";
-      
-      // Tenta atualizar a mensagem original
-      await updateDoc(doc(db, "messages", msgId), { adminReply: replyText });
-      
-      // Tenta enviar a notificação secreta para o utilizador
-      if (targetUser !== "desconhecido") {
-        await addDoc(collection(db, "notifications", targetUser, "items"), {
-          from:"teresa", text:"Resposta à tua mensagem: " + replyText, date:nowLabel(), read:false
-        });
-      }
-      
-      setAdminReplyId(null);
-      setAdminReplyTxt("");
-      alert("Resposta enviada com sucesso!");
-    } catch (erro) {
-      alert("Oops, deu este erro: " + erro.message);
-    }
   }
   async function sendSugg() {
     if (!suggTxt.trim() || !user) return;
@@ -796,32 +670,10 @@ async function replyToMsg(msgId, hiddenUser, replyText) {
     setRodaSaves(newSaves); setRodaShared(sh);
     await saveUserField(user.username, { roda, rodaSaves:newSaves, rodaShared:sh });
   }
-async function updateActiveQ() {
-    try {
-      if (!activeQEdit.trim()) return alert("Escreve a pergunta!");
-      if (activeQModeEdit.length === 0) return alert("Escolhe um formato!");
-
-      // 1. Guarda a Pergunta
-      await setDoc(doc(db, "config", "activeQuestion"), { 
-        text: activeQEdit.trim(), 
-        mode: activeQModeEdit, 
-        date: Date.now() 
-      });
-
-      // 2. Limpa o estado da Teresa (Admin) e do Nilton (Teste) para poderes ver logo
-      // Vamos usar uma lista de users que queremos resetar para teste
-      var usersToReset = [user.username, "nilton", "teresa"]; 
-      
-      for (var u of usersToReset) {
-        await setDoc(doc(db, "users", u), { answered: false }, { merge: true });
-      }
-
-      setAnswered(false); // Atualiza o teu ecrã na hora
-      alert("Pergunta publicada! As contas de teste (Nilton/Teresa/Admin) foram limpas. 🎉");
-      setActiveQEdit("");
-    } catch (erro) {
-      alert("Erro ao publicar: " + erro.message);
-    }
+  async function updateActiveQ() {
+    if (!activeQEdit.trim()) return;
+    await setDoc(doc(db, "config", "activeQuestion"), { text:activeQEdit.trim(), date:nowLabel() });
+    setActiveQEdit("");
   }
   async function sendAdminMsg() {
     if (!adminMsgTxt.trim()) return;
@@ -838,25 +690,9 @@ async function updateActiveQ() {
     setSSaved(true);
     await saveUserField(user.username, { sRatings, sChips, sMudaria, sSaved:true });
   }
-async function submitAnswer() {
-    if (["foto", "video", "audio"].includes(cmode)) {
-      if (!mediaFile) { alert("Por favor, escolhe um ficheiro primeiro!"); return; }
-      setIsUploading(true);
-      try {
-        var fileRef = ref(storage, "respostas/" + user.username + "_" + Date.now() + "_" + mediaFile.name);
-        await uploadBytes(fileRef, mediaFile);
-        var url = await getDownloadURL(fileRef);
-        await saveUserField(user.username, { answered:true, answerMedia: url, answerType: cmode });
-      } catch(e) {
-        alert("Erro ao enviar: " + e.message);
-        setIsUploading(false);
-        return;
-      }
-      setIsUploading(false);
-    } else {
-      await saveUserField(user.username, { answered:true, answerText: aTxt, answerType: cmode });
-    }
+  async function submitAnswer() {
     setAnswered(true);
+    await saveUserField(user.username, { answered:true });
   }
   async function answerQuiz(qId, optId) {
     var newA = upd(qAnswers, qId, optId);
@@ -1011,7 +847,7 @@ async function submitAnswer() {
 
   // ── ADMIN ────────────────────────────────────────────────────────
   if (user && user.isAdmin) {
-  var ADMIN_TABS = [["geral","📊 Geral"],["mural","🌐 Fórum"],["partilhas","📂 Partilhas"],["tasks","✅ Tarefas"],["agenda","📅 Agenda"],["msgs","💬 Msgs"],["users","👥 Utilizadores"]];
+    var ADMIN_TABS = [["geral","📊 Geral"],["partilhas","📂 Partilhas"],["tasks","✅ Tarefas"],["agenda","📅 Agenda"],["msgs","💬 Msgs"],["users","👥 Utilizadores"]];
     return (
       <div style={{ minHeight:"100vh", background:BG, fontFamily:"system-ui,sans-serif" }}>
         <div style={{ background:"linear-gradient(135deg,#1e293b,#0f172a)", color:"white", padding:"16px 20px 20px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
@@ -1029,82 +865,14 @@ async function submitAnswer() {
         </div>
         <div style={{ maxWidth:720, margin:"0 auto", padding:"20px 16px" }}>
 
-{adminTab === "mural" && (
-            <div>
-              <div style={{ background:"linear-gradient(135deg,#1e293b,#0f172a)", borderRadius:20, padding:22, marginBottom:14 }}>
-                <div style={{ fontSize:17, fontWeight:900, color:"white", marginBottom:8 }}>🌐 O Nosso Fórum</div>
-                <div style={{ fontSize:13, color:"#94a3b8", lineHeight:1.7 }}>Participa e responde aos jovens diretamente no mural.</div>
-              </div>
-              <div style={{ display:"flex", gap:6, marginBottom:12, overflowX:"auto", paddingBottom:2 }}>
-                {CHANNELS.map(function(ch) {
-                  var isA=channel===ch.id;
-                  return (<button key={ch.id} onClick={function(){setChannel(ch.id);}} style={{ display:"flex", alignItems:"center", gap:5, padding:"9px 14px", borderRadius:20, border:"none", background:isA?"#1e293b":"white", fontSize:12, fontWeight:700, cursor:"pointer", color:isA?"white":"#64748b", whiteSpace:"nowrap", flexShrink:0, boxShadow:isA?"0 4px 12px rgba(15,23,42,0.4)":"0 1px 4px rgba(0,0,0,0.06)" }}>{ch.icon} {ch.label}</button>);
-                })}
-              </div>
-              <div style={CARD}>
-                <div style={{ display:"flex", gap:8 }}>
-                  <input value={fPost} onChange={function(e){setFPost(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")postForum();}} placeholder="Escreve no mural como Admin..." style={{ flex:1, padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none" }}/>
-                  <button onClick={postForum} style={{ background:"#1e293b", color:"white", border:"none", borderRadius:12, padding:"11px 16px", fontSize:16, cursor:"pointer" }}>↑</button>
-                </div>
-              </div>
-              {(posts[channel]||[]).slice().reverse().map(function(p) {
-                return (
-                  <div key={p.id} style={Object.assign({},CARD,{marginBottom:10,padding:"14px 16px"})}>
-                    <div style={{ display:"flex", gap:10 }}>
-                      <div style={{ width:38, height:38, borderRadius:"50%", background:p.user==="Teresa (GO)"?"#1e293b":"linear-gradient(135deg,"+p.color+","+p.color+"cc)", display:"flex", alignItems:"center", justifyContent:"center", color:"white", fontSize:14, fontWeight:800, flexShrink:0 }}>{p.user[0]}</div>
-                      <div style={{ flex:1 }}>
-                        <div style={{ display:"flex", justifyContent:"space-between" }}><span style={{ fontSize:13, fontWeight:700 }}>{p.user} {p.user==="Teresa (GO)"&&<span style={{fontSize:9, background:"#7C3AED", color:"white", padding:"2px 6px", borderRadius:6, marginLeft:4}}>ADMIN</span>}</span><span style={{ fontSize:11, color:"#94a3b8" }}>{p.time}</span></div>
-                        <div style={{ fontSize:14, color:"#374151", marginTop:4, lineHeight:1.55 }}>{p.text}</div>
-                        <div style={{ marginTop:9, display:"flex", gap:12 }}>
-                          <span onClick={function(){likePost(p.id);}} style={{ fontSize:12, color:"#94a3b8", cursor:"pointer" }}>❤️ {p.likes}</span>
-                          <span onClick={function(){setReplyTo(replyTo===p.id?null:p.id);setExpanded(p.id);}} style={{ fontSize:12, color:"#94a3b8", cursor:"pointer", fontWeight:600 }}>💬 Responder</span>
-                          {p.replies.length>0&&(<span onClick={function(){setExpanded(expanded===p.id?null:p.id);}} style={{ fontSize:12, color:"#1e293b", fontWeight:700, cursor:"pointer" }}>{expanded===p.id?"▲":"▼"} {p.replies.length}</span>)}
-                        </div>
-                      </div>
-                    </div>
-                    {expanded===p.id&&p.replies.length>0&&(
-                      <div style={{ marginTop:10, marginLeft:48, borderLeft:"2px solid #e8edf2", paddingLeft:12 }}>
-                        {p.replies.map(function(rp,ri) {
-                          return (<div key={ri} style={{ display:"flex", gap:8, marginBottom:8 }}>
-                            <div style={{ width:28, height:28, borderRadius:"50%", background:rp.user==="Teresa (GO)"?"#1e293b":"linear-gradient(135deg,"+rp.color+","+rp.color+"cc)", display:"flex", alignItems:"center", justifyContent:"center", color:"white", fontSize:11, fontWeight:800, flexShrink:0 }}>{rp.user[0]}</div>
-                            <div><div style={{ fontSize:12, fontWeight:700 }}>{rp.user} {rp.user==="Teresa (GO)"&&<span style={{fontSize:8, background:"#7C3AED", color:"white", padding:"1px 4px", borderRadius:4, marginLeft:4}}>ADMIN</span>} <span style={{ color:"#94a3b8", fontWeight:400 }}>· {rp.time}</span></div><div style={{ fontSize:12, color:"#374151", marginTop:2 }}>{rp.text}</div></div>
-                          </div>);
-                        })}
-                      </div>
-                    )}
-                    {replyTo===p.id&&(
-                      <div style={{ marginTop:10, marginLeft:48, display:"flex", gap:8 }}>
-                        <input value={replyTxt} onChange={function(e){setReplyTxt(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")sendReply(p.id);}} placeholder={"Responder a "+p.user+"..."} style={{ flex:1, padding:"9px 14px", borderRadius:20, border:"2px solid #1e293b", fontSize:12, outline:"none" }} autoFocus/>
-                        <button onClick={function(){sendReply(p.id);}} style={{ background:"#1e293b", color:"white", border:"none", borderRadius:20, padding:"9px 16px", fontSize:12, cursor:"pointer" }}>↑</button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          
-       {adminTab === "geral" && (
+          {adminTab === "geral" && (
             <div>
               <div style={CARD}>
                 <div style={SL}>Pergunta Ativa</div>
                 <div style={{ fontSize:13, color:"#374151", fontWeight:600, marginBottom:12, padding:"10px 12px", background:"#f8fafc", borderRadius:10, borderLeft:"3px solid #7C3AED" }}>{activeQ}</div>
-             <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:10 }}>
-                  <input value={activeQEdit} onChange={function(e){setActiveQEdit(e.target.value);}} placeholder="Escreve nova pergunta para todos..." style={{ flex:1, minWidth:200, padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none" }}/>
+                <div style={{ display:"flex", gap:8 }}>
+                  <input value={activeQEdit} onChange={function(e){setActiveQEdit(e.target.value);}} placeholder="Escreve nova pergunta para todos..." style={{ flex:1, padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none" }}/>
                   <button onClick={updateActiveQ} style={{ background:"#7C3AED", color:"white", border:"none", borderRadius:12, padding:"11px 18px", fontSize:13, fontWeight:700, cursor:"pointer" }}>Publicar</button>
-                </div>
-                <div style={{ fontSize:10, fontWeight:800, color:"#94a3b8", letterSpacing:1, marginBottom:6 }}>PERMITIR RESPOSTAS EM:</div>
-                <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-{[["texto","✏️ Texto"],["mood","🌡️ Mood"],["3p","💡 3 Palav."],["completar","🔤 Completar"],["semana","⭐ Avaliação"], ["foto", "📸 Foto"], ["video", "🎥 Vídeo"], ["audio", "🎙️ Áudio"]].map(function(opt) {                    var isSel = activeQModeEdit.includes(opt[0]);
-                    return (
-                      <button key={opt[0]} onClick={function(){
-                        if(isSel && activeQModeEdit.length===1) return; // Não deixa desmarcar o último
-                        setActiveQModeEdit(isSel ? activeQModeEdit.filter(function(x){return x!==opt[0];}) : activeQModeEdit.concat([opt[0]]));
-                      }} style={{ padding:"6px 12px", borderRadius:20, border:isSel?"2px solid #7C3AED":"2px solid #e8edf2", background:isSel?"#7C3AED15":"white", fontSize:11, fontWeight:700, cursor:"pointer", color:isSel?"#7C3AED":"#64748b" }}>
-                        {opt[1]}
-                      </button>
-                    );
-                  })}
                 </div>
               </div>
               <div style={CARD}>
@@ -1255,7 +1023,7 @@ async function submitAnswer() {
                 <textarea value={adminMsgTxt} onChange={function(e){setAdminMsgTxt(e.target.value);}} placeholder="Mensagem para o/a utilizador/a..." rows={2} style={{ width:"100%", padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none", resize:"none", boxSizing:"border-box", marginBottom:8 }}/>
                 <button onClick={sendAdminMsg} style={{ background:"#7C3AED", color:"white", border:"none", borderRadius:12, padding:"10px 18px", fontSize:13, fontWeight:700, cursor:"pointer" }}>Enviar Mensagem →</button>
               </div>
-<div style={CARD}>
+              <div style={CARD}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
                   <div style={SL}>Mensagens Recebidas</div>
                   <div style={{ background:"#fef9f0", border:"1px solid #fde68a", borderRadius:20, padding:"3px 10px", fontSize:9, fontWeight:800, color:"#92400e" }}>inclui anónimas</div>
@@ -1269,23 +1037,7 @@ async function submitAnswer() {
                         <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
                           <div style={{ fontSize:12, fontWeight:700, color:m.anon?"#92400e":"#374151" }}>{m.anon?"🔒 Anónimo":m.from} <span style={{ fontWeight:400, color:"#94a3b8" }}>· {m.date}</span></div>
                         </div>
-                        <div style={{ fontSize:13, color:"#374151", lineHeight:1.6, marginBottom:8 }}>{m.text}</div>
-                        
-                        {m.adminReply ? (
-                          <div style={{ padding:"8px 10px", background:"rgba(124, 58, 237, 0.1)", borderRadius:8, borderLeft:"3px solid #7C3AED", fontSize:12, color:"#4c1d95" }}>
-                            <strong>Teresa respondeu:</strong> {m.adminReply}
-                          </div>
-                        ) : (
-                          adminReplyId === m.id ? (
-                            <div style={{ display:"flex", gap:8, marginTop:8 }}>
-                              <input value={adminReplyTxt} onChange={function(e){setAdminReplyTxt(e.target.value);}} placeholder="Escreve a resposta..." style={{ flex:1, padding:"8px 10px", borderRadius:8, border:"1px solid #cbd5e1", fontSize:12 }} />
-                              <button onClick={function(){replyToMsg(m.id, m.hiddenUser, adminReplyTxt);}} style={{ background:"#7C3AED", color:"white", border:"none", borderRadius:8, padding:"8px 12px", fontSize:12, fontWeight:700, cursor:"pointer" }}>Enviar</button>
-                              <button onClick={function(){setAdminReplyId(null);}} style={{ background:"transparent", color:"#94a3b8", border:"none", fontSize:12, cursor:"pointer" }}>Cancelar</button>
-                            </div>
-                          ) : (
-                            <button onClick={function(){setAdminReplyId(m.id); setAdminReplyTxt("");}} style={{ background:"white", border:"1px solid #cbd5e1", borderRadius:8, padding:"6px 10px", fontSize:11, fontWeight:700, color:"#475569", cursor:"pointer" }}>💬 Responder</button>
-                          )
-                        )}
+                        <div style={{ fontSize:13, color:"#374151", lineHeight:1.6 }}>{m.text}</div>
                       </div>
                     );
                   })
@@ -1323,7 +1075,7 @@ async function submitAnswer() {
                   var jInfo=null; for(var j=0;j<JEEP_LIST.length;j++){if(JEEP_LIST[j].username===u){jInfo=JEEP_LIST[j];break;}}
                   return (
                     <div key={u} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 0", borderBottom:i<4?"1px solid #f1f5f9":"none" }}>
-                      <div style={{ width:10, height:10, borderRadius:"50%", background:gdpr?jInfo.color:"#e8edf2", flexShrink:0 }}/>
+                      <div style={{ width:10, height:10, borderRadius:"50%", background:gdpr&&jInfo?jInfo.color:"#e8edf2", flexShrink:0 }}/>
                       <div style={{ flex:1 }}>
                         <div style={{ fontSize:14, fontWeight:700 }}>{u}</div>
                         <div style={{ fontSize:11, color:"#94a3b8" }}>{gdpr?"Registado · RGPD: "+gdpr.gdprDate:"Ainda não se registou"}</div>
@@ -1556,13 +1308,12 @@ async function submitAnswer() {
           </div>
         )}
 
-{/* ── SEPARADOR: REFLEXÃO ── */}
+        {/* ── REFLEXÃO ── */}
         {tab === "refl" && (
           <div style={{ padding:"18px 16px" }}>
             <div style={CARD}>
               <div style={SL}>Pergunta da Semana</div>
               <div style={{ fontSize:15, color:"#0f172a", fontWeight:700, lineHeight:1.5, marginBottom:16, padding:"12px 14px", background:C+"08", borderRadius:12, borderLeft:"3px solid "+C }}>{activeQ}</div>
-              
               {answered ? (
                 <div style={{ textAlign:"center", padding:"20px 0" }}>
                   <div style={{ fontSize:48, marginBottom:10 }}>✅</div>
@@ -1571,69 +1322,46 @@ async function submitAnswer() {
                 </div>
               ) : (
                 <div>
-                  {/* Seleção de Formato (se a Teresa permitir mais que um) */}
-                  {activeQMode.length > 1 && (
-                    <div style={{ marginBottom:14 }}>
-                      <div style={{ fontSize:11, fontWeight:800, color:C, letterSpacing:1, marginBottom:8, textTransform:"uppercase" }}>Como queres responder?</div>
-                      <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-                        {[
-                          ["texto","✏️","Texto"], ["mood","🌡️","Mood"], ["3p","💡","3 Palavras"], 
-                          ["completar","🔤","Frase"], ["semana","⭐","Semana"],
-                          ["foto","📸","Foto"], ["video","🎥","Vídeo"], ["audio","🎙️","Áudio"]
-                        ].filter(function(m){ return activeQMode.includes(m[0]); })
-                         .map(function(m) {
-                           var isA = cmode === m[0];
-                           return (<button key={m[0]} onClick={function(){setCmode(m[0]); setMediaFile(null);}} style={{ display:"flex", alignItems:"center", gap:4, padding:"7px 12px", borderRadius:20, border:isA?"2px solid "+C:"2px solid #e8edf2", background:isA?C+"15":"white", fontSize:12, fontWeight:700, cursor:"pointer", color:isA?C:"#64748b" }}>{m[1]} {m[2]}</button>);
-                         })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Zonas de Resposta Consoante o Modo Escolhido */}
-                  {cmode==="texto" && (<textarea value={aTxt} onChange={function(e){setATxt(e.target.value);}} placeholder="Escreve aqui..." rows={4} style={{ width:"100%", padding:"12px 14px", borderRadius:14, border:"2px solid #e8edf2", fontSize:14, outline:"none", boxSizing:"border-box" }}/>)}
-                  
-                  {cmode==="mood" && (
-                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:10 }}>
-                      {MOODS.map(function(m,i){return(<button key={i} onClick={function(){setSelMood(i);}} style={{ fontSize:30, background:"none", border:"none", cursor:"pointer", opacity:selMood===i?1:0.3, transform:selMood===i?"scale(1.3)":"" }}>{m}</button>);})}
-                    </div>
-                  )}
-
-                  {cmode==="3p" && (
-                    <div>
-                      {[0,1,2].map(function(i){return(<input key={i} value={p3[i]||""} onChange={function(e){var n=p3.slice();n[i]=e.target.value;setP3(n);}} placeholder={"Palavra "+(i+1)} style={{ width:"100%", padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:14, marginBottom:8, boxSizing:"border-box" }}/>);})}
-                    </div>
-                  )}
-
-                  {/* ZONA MULTIMÉDIA (Foto, Vídeo, Áudio) */}
-                  {["foto", "video", "audio"].includes(cmode) && (
-                    <div style={{ padding:"20px", border:"2px dashed #cbd5e1", borderRadius:14, textAlign:"center", background:"#f8fafc", marginBottom:10 }}>
-                      <div style={{ fontSize:12, fontWeight:700, color:"#64748b", marginBottom:10 }}>
-                        {cmode==="foto" ? "Seleciona uma Foto 📸" : cmode==="video" ? "Seleciona um Vídeo 🎥" : "Grava ou seleciona um Áudio 🎙️"}
-                      </div>
-                      <input 
-                        type="file" 
-                        accept={cmode==="foto"?"image/*":cmode==="video"?"video/*":"audio/*"} 
-                        onChange={function(e){if(e.target.files[0]) setMediaFile(e.target.files[0]);}} 
-                        style={{ maxWidth:"100%", fontSize:12 }}
-                      />
-                      {mediaFile && <div style={{ fontSize:12, color:"#22c55e", fontWeight:700, marginTop:10 }}>✓ Ficheiro pronto: {mediaFile.name.slice(0,20)}...</div>}
-                    </div>
-                  )}
-
-                  {/* Botão de Enviar Geral */}
-                  <div style={{ marginTop:16 }}>
-                    <button 
-                      disabled={isUploading}
-                      onClick={submitAnswer} 
-                      style={{ width:"100%", background:isUploading?"#94a3b8":C, color:"white", border:"none", borderRadius:14, padding:"14px", fontSize:14, fontWeight:800, cursor:"pointer", boxShadow:"0 4px 12px "+C+"44" }}
-                    >
-                      {isUploading ? "A carregar para a nuvem... ⏳" : "Enviar Resposta →"}
-                    </button>
+                  <div style={{ display:"flex", gap:5, flexWrap:"wrap", marginBottom:16 }}>
+                    {[["texto","✏️","Texto"],["mood","🌡️","Mood"],["3p","💡","3 Palavras"],["completar","🔤","Completar"],["semana","⭐","Semana"]].map(function(m) {
+                      return (<button key={m[0]} onClick={function(){setCmode(m[0]);}} style={{ display:"flex", alignItems:"center", gap:4, padding:"7px 12px", borderRadius:20, border:cmode===m[0]?"2px solid "+C:"2px solid #e8edf2", background:cmode===m[0]?C+"15":"white", fontSize:12, fontWeight:700, cursor:"pointer", color:cmode===m[0]?C:"#64748b" }}>{m[1]} {m[2]}</button>);
+                    })}
                   </div>
+                  {cmode==="texto"&&(<textarea value={aTxt} onChange={function(e){setATxt(e.target.value);}} placeholder="Escreve à vontade..." rows={4} style={{ width:"100%", padding:"12px 14px", borderRadius:14, border:"2px solid #e8edf2", fontSize:14, outline:"none", resize:"none", boxSizing:"border-box" }}/>)}
+                  {cmode==="mood"&&(
+                    <div>
+                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:10 }}>
+                        {MOODS.map(function(m,i){return(<button key={i} onClick={function(){setSelMood(i);}} style={{ fontSize:30, background:"none", border:"none", cursor:"pointer", opacity:selMood===i?1:0.3, transform:selMood===i?"scale(1.35)":"scale(1)" }}>{m}</button>);})}
+                      </div>
+                      {selMood!==null&&(<div style={{ textAlign:"center", fontSize:13, color:"#64748b", fontWeight:600 }}>{["Esgotado/a","Em baixo","Neutro","Bem","Ótimo","Em chamas!"][selMood]}</div>)}
+                    </div>
+                  )}
+                  {cmode==="3p"&&(
+                    <div>
+                      {[0,1,2].map(function(i){return(<input key={i} value={p3[i]||""} onChange={function(e){var n=p3.slice();n[i]=e.target.value;setP3(n);}} placeholder={"Palavra "+(i+1)} style={{ width:"100%", padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:15, outline:"none", boxSizing:"border-box", marginBottom:8 }}/>) ;})}
+                    </div>
+                  )}
+                  {cmode==="completar"&&(
+                    <div>
+                      <div style={{ display:"flex", gap:4, marginBottom:10, flexWrap:"wrap" }}>
+                        {COMPL.map(function(p,i){return(<button key={i} onClick={function(){setCidx(i);}} style={{ padding:"5px 10px", borderRadius:20, border:cidx===i?"2px solid "+C:"2px solid #e8edf2", background:cidx===i?C+"15":"white", fontSize:10, fontWeight:700, cursor:"pointer", color:cidx===i?C:"#64748b" }}>{p.slice(0,14)}…</button>);})}
+                      </div>
+                      <div style={{ padding:"12px 14px", background:"#f8fafc", borderRadius:12, fontSize:14, fontWeight:700, marginBottom:10, borderLeft:"3px solid "+C }}>{COMPL[cidx]}</div>
+                      <textarea value={aTxt} onChange={function(e){setATxt(e.target.value);}} rows={3} style={{ width:"100%", padding:"12px 14px", borderRadius:14, border:"2px solid #e8edf2", fontSize:14, outline:"none", resize:"none", boxSizing:"border-box" }}/>
+                    </div>
+                  )}
+                  {cmode==="semana"&&(
+                    <div>
+                      <div style={{ display:"flex", justifyContent:"center", gap:10, marginBottom:10 }}>
+                        {[1,2,3,4,5].map(function(n){return(<button key={n} onClick={function(){setSrating(n);}} style={{ width:46, height:46, borderRadius:"50%", border:"2px solid "+(srating>=n?C:"#e8edf2"), background:srating>=n?"linear-gradient(135deg,"+C+","+C+"cc)":"white", color:srating>=n?"white":"#94a3b8", fontSize:srating>=n?20:16, cursor:"pointer", fontWeight:700 }}>{srating>=n?"⭐":n}</button>);})}
+                      </div>
+                      {srating&&(<div style={{ textAlign:"center", fontSize:13, color:"#64748b" }}>{["","Foi difícil 😔","Podia ter corrido melhor","Normal","Boa semana! 💪","Semana incrível! 🔥"][srating]}</div>)}
+                    </div>
+                  )}
+                  <div style={{ marginTop:16 }}><Btn color={C} onClick={submitAnswer}>Enviar →</Btn></div>
                 </div>
               )}
             </div>
-            
             <div style={CARD}>
               <div style={SL}>🎯 Quiz — O que farias?</div>
               <div style={{ display:"flex", gap:6, marginBottom:14 }}>
@@ -1764,7 +1492,7 @@ async function submitAnswer() {
                       <div key={i} style={{ marginBottom:10, padding:12, background:"#f8fafc", borderRadius:14, border:a.oQue.trim()?"1.5px solid "+C+"50":"1.5px solid #e8edf2" }}>
                         <div style={{ fontSize:10, fontWeight:800, color:"#94a3b8", letterSpacing:1, marginBottom:8 }}>ATIVIDADE {i+1}</div>
                         {[["oQue","Descrição"],["quando","Quando?"],["obj","Objetivo específico"]].map(function(pair) {
-                          return (<input key={pair[0]} value={a[pair[0]]} onChange={function(e){var n=piaActs.slice();n[i]=upd(n[i],pair[0],e.target.value);setPiaActs(n);}} placeholder={pair[1]} style={{ width:"100%", padding:"9px 11px", borderRadius:10, border:"1.5px solid #e8edf2", fontSize:12, outline:"none", boxSizing:"border-box", marginBottom:6, background:"white" }}/>);
+                          return (<input key={pair[0]} value={a[pair[0]]} onChange={function(e){var n=piaActs.slice();n[i]=upd(n[i],pair[0],e.target.value);setPiaActs(n);}} placeholder={pair[1]} style={{ width:"100%", padding:"9px 11px", borderRadius:10, border:"1.5px solid #e8edf2", fontSize:12, outline:"none", boxSizing:"border-box", marginBottom:6, background:"white" }}/>) ;
                         })}
                       </div>
                     );
