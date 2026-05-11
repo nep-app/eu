@@ -74,12 +74,12 @@ export function AppIcon({ size = 64 }) {
   return (
     <div style={{ display: "flex", justifyContent: "center", padding: "10px 0", width: "100%" }}>
       <img 
-        src="/logo.png.png" 
+        src="/logo.png" 
         alt="JEEP EDUCA+" 
         style={{ width: size, height: "auto", objectFit: "contain" }}
         onError={(e) => {
           // Fallback caso o nome seja apenas logo.png
-          if (!e.target.src.includes("logo.png.png")) e.target.src = "/logo.png";
+          if (!e.target.src.includes("logo.png")) e.target.src = "/logo.png";
         }}
       />
     </div>
