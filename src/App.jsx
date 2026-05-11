@@ -341,6 +341,13 @@ export default function App() {
   var [qAnswers, setQAnswers] = useState({});
   var [mediaFile, setMediaFile] = useState(null);
   var [isUploading, setIsUploading] = useState(false);
+  var [isRecording, setIsRecording] = useState(false);
+  var [mediaRecorderRef, setMediaRecorderRef] = useState(null);
+  var [recordedBlob, setRecordedBlob] = useState(null);
+  var [teresaTodoTarget, setTeresaTodoTarget] = useState("nilton");
+  var [teresaTodoTxt, setTeresaTodoTxt] = useState("");
+  var [teresaTodoDue, setTeresaTodoDue] = useState("");
+  var [teresaEvt, setTeresaEvt] = useState({ title:"", date:"", time:"", userId:"all", type:"visit" });
 
   // ── AUTOAVALIAÇÃO ───────────────────────────────────────────────
   var [dScores,   setDScores]   = useState(DEF_DSCORES);
@@ -391,7 +398,7 @@ export default function App() {
 
   // ── AGENDA ───────────────────────────────────────────────────────
   var [events,  setEvents]  = useState([]);
-  var [newEvt,  setNewEvt]  = useState({ title:"", date:"", time:"", userId:"all", type:"visit" });
+  var [newEvt,  setNewEvt]  = useState({ title:"", date:"", time:"", userId:"all", type:"visit", shareWithTeresa:false });
 
   // ── TAREFAS ──────────────────────────────────────────────────────
   var [todos,   setTodos]   = useState({});
@@ -720,11 +727,10 @@ export default function App() {
   }
   async function addPersonalEvent() {
     if (!newEvt.title.trim() || !newEvt.date || !user) return;
-    await addDoc(collection(db, "events"), {
-      title:newEvt.title, date:newEvt.date, time:newEvt.time,
-      userId:user.username, type:"personal"
-    });
-    setNewEvt({ title:"", date:"", time:"", userId:"all", type:"visit" });
+    var evtData = { title:newEvt.title, date:newEvt.date, time:newEvt.time, userId:user.username, type:"personal" };
+    if (newEvt.shareWithTeresa) evtData.sharedWith = "teresa";
+    await addDoc(collection(db, "events"), evtData);
+    setNewEvt({ title:"", date:"", time:"", userId:"all", type:"visit", shareWithTeresa:false });
   }
 
   // ── MEDALHAS ─────────────────────────────────────────────────────
@@ -774,6 +780,54 @@ async function replyToMsg(msgId, hiddenUser, replyText) {
     setSuggTxt("");
   }
 
+  async function startRecording() {
+    try {
+      var stream = await navigator.mediaDevices.getUserMedia({ audio:true });
+      var mr = new MediaRecorder(stream);
+      var chunks = [];
+      mr.ondataavailable = function(e) { if(e.data.size>0) chunks.push(e.data); };
+      mr.onstop = function() {
+        var blob = new Blob(chunks, { type:"audio/webm" });
+        var f = new File([blob], "gravacao_"+Date.now()+".webm", { type:"audio/webm" });
+        setRecordedBlob(blob);
+        setMediaFile(f);
+        stream.getTracks().forEach(function(t){ t.stop(); });
+      };
+      mr.start();
+      setMediaRecorderRef(mr);
+      setIsRecording(true);
+    } catch(e) { alert("Microfone não disponível: " + e.message); }
+  }
+  function stopRecording() {
+    if (mediaRecorderRef) { mediaRecorderRef.stop(); setIsRecording(false); }
+  }
+
+  async function addTeresaTodo() {
+    if (!teresaTodoTxt.trim()) return;
+    await addDoc(collection(db, "todos", teresaTodoTarget, "items"), {
+      text:teresaTodoTxt, due:teresaTodoDue, done:false, shared:true, addedBy:"teresa", accepted:false
+    });
+    setTeresaTodoTxt(""); setTeresaTodoDue("");
+    alert("Sugestão enviada!");
+  }
+  async function addTeresaEvent() {
+    if (!teresaEvt.title.trim() || !teresaEvt.date) return;
+    await addDoc(collection(db, "events"), Object.assign({}, teresaEvt, { addedBy:"teresa" }));
+    setTeresaEvt({ title:"", date:"", time:"", userId:"all", type:"visit" });
+  }
+  async function launchEvaluation(type) {
+    var msg = type==="auto"
+      ? "📊 Nova Autoavaliação disponível! Vai ao Percurso para preencher."
+      : "😊 Nova Avaliação de Satisfação disponível! Vai ao Percurso para preencher.";
+    for (var u of ALLOWED_USERNAMES) {
+      await saveUserField(u, type==="auto" ? { autoSaved:false } : { sSaved:false });
+      await addDoc(collection(db, "notifications", u, "items"), {
+        from:"teresa", text:msg, date:nowLabel(), read:false
+      });
+    }
+    alert("Lançado! Todos os utilizadores receberam notificação. 🎉");
+  }
+
   // ── SAVE FUNCTIONS ───────────────────────────────────────────────
   async function savePia(share) {
     var sh = share !== undefined ? share : piaShared;
@@ -810,14 +864,15 @@ async function updateActiveQ() {
 
       // 2. Limpa o estado da Teresa (Admin) e do Nilton (Teste) para poderes ver logo
       // Vamos usar uma lista de users que queremos resetar para teste
-      var usersToReset = [user.username, "nilton", "teresa"]; 
-      
-      for (var u of usersToReset) {
+      for (var u of ALLOWED_USERNAMES) {
         await setDoc(doc(db, "users", u), { answered: false }, { merge: true });
+        await addDoc(collection(db, "notifications", u, "items"), {
+          from:"teresa", text:"💬 Nova pergunta da semana! Vai à Reflexão para responder.", date:nowLabel(), read:false
+        });
       }
 
-      setAnswered(false); // Atualiza o teu ecrã na hora
-      alert("Pergunta publicada! As contas de teste (Nilton/Teresa/Admin) foram limpas. 🎉");
+      setAnswered(false);
+      alert("Pergunta publicada! Todos os utilizadores foram notificados. 🎉");
       setActiveQEdit("");
     } catch (erro) {
       alert("Erro ao publicar: " + erro.message);
@@ -1108,6 +1163,41 @@ async function submitAnswer() {
                 </div>
               </div>
               <div style={CARD}>
+                <div style={SL}>Respostas à Pergunta Atual</div>
+                {JEEP_LIST.map(function(j) {
+                  var d = allShared[j.username] || {};
+                  var atype = d.answerType || "texto";
+                  return (
+                    <div key={j.username} style={{ padding:"10px 0", borderBottom:"1px solid #f1f5f9" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom: d.answered ? 6 : 0 }}>
+                        <div style={{ width:8, height:8, borderRadius:"50%", background:d.answered?"#22c55e":"#e2e8f0", flexShrink:0 }}/>
+                        <div style={{ fontSize:13, fontWeight:700 }}>{j.name}</div>
+                        {d.answered
+                          ? <span style={{ fontSize:10, background:"#22c55e15", color:"#15803d", padding:"1px 8px", borderRadius:8, fontWeight:700 }}>✓ respondeu</span>
+                          : <span style={{ fontSize:11, color:"#94a3b8" }}>— ainda não respondeu</span>}
+                      </div>
+                      {d.answered && (
+                        <div style={{ marginLeft:16, fontSize:12, color:"#374151", background:"#f8fafc", borderRadius:8, padding:"6px 10px" }}>
+                          {["foto","video","audio"].includes(atype) ? (
+                            <a href={d.answerMedia} target="_blank" rel="noreferrer" style={{ color:"#7C3AED", fontWeight:700 }}>
+                              {atype==="foto"?"📸 Ver foto":atype==="video"?"🎥 Ver vídeo":"🎙️ Ouvir áudio"}
+                            </a>
+                          ) : (d.answerText || "Resposta sem texto")}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={CARD}>
+                <div style={SL}>Lançar Avaliações</div>
+                <div style={{ fontSize:12, color:"#64748b", marginBottom:10 }}>Reativa a avaliação para todos os utilizadores e envia notificação.</div>
+                <div style={{ display:"flex", gap:8 }}>
+                  <button onClick={function(){launchEvaluation("auto");}} style={{ flex:1, padding:"12px 8px", background:"#2563EB", color:"white", border:"none", borderRadius:12, fontSize:12, fontWeight:700, cursor:"pointer" }}>📊 Autoavaliação</button>
+                  <button onClick={function(){launchEvaluation("satisf");}} style={{ flex:1, padding:"12px 8px", background:"#DB2777", color:"white", border:"none", borderRadius:12, fontSize:12, fontWeight:700, cursor:"pointer" }}>😊 Satisfação</button>
+                </div>
+              </div>
+              <div style={CARD}>
                 <div style={SL}>Acompanhamento</div>
                 {JEEP_LIST.map(function(j,i) {
                   return (
@@ -1323,7 +1413,7 @@ async function submitAnswer() {
                   var jInfo=null; for(var j=0;j<JEEP_LIST.length;j++){if(JEEP_LIST[j].username===u){jInfo=JEEP_LIST[j];break;}}
                   return (
                     <div key={u} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 0", borderBottom:i<4?"1px solid #f1f5f9":"none" }}>
-                      <div style={{ width:10, height:10, borderRadius:"50%", background:gdpr?jInfo.color:"#e8edf2", flexShrink:0 }}/>
+                      <div style={{ width:10, height:10, borderRadius:"50%", background:gdpr?(jInfo?jInfo.color:"#1e293b"):"#e8edf2", flexShrink:0 }}/>
                       <div style={{ flex:1 }}>
                         <div style={{ fontSize:14, fontWeight:700 }}>{u}</div>
                         <div style={{ fontSize:11, color:"#94a3b8" }}>{gdpr?"Registado · RGPD: "+gdpr.gdprDate:"Ainda não se registou"}</div>
@@ -1437,7 +1527,7 @@ async function submitAnswer() {
   var doneTodos = acceptedTodos.filter(function(t){return t.done;});
   var pendingTeresaTodos = userTodos.filter(function(t){return t.addedBy==="teresa"&&!t.accepted;});
   var todoPercent = acceptedTodos.length>0 ? Math.round((doneTodos.length/acceptedTodos.length)*100) : 0;
-  var userEvents = events.filter(function(e){return e.userId===user.username||e.userId==="all";});
+  var userEvents = events.filter(function(e){return e.userId===user.username||e.userId==="all"||(user.username==="teresa"&&e.sharedWith==="teresa");});
   userEvents.sort(function(a,b){return a.date.localeCompare(b.date);});
   var userMedals = (function(){var j=JEEP_LIST.find(function(x){return x.username===user.username;});return j?(amMedals[j.name]||[]):[];})();
 
@@ -1604,19 +1694,42 @@ async function submitAnswer() {
                     </div>
                   )}
 
-                  {/* ZONA MULTIMÉDIA (Foto, Vídeo, Áudio) */}
-                  {["foto", "video", "audio"].includes(cmode) && (
+                  {/* ZONA MULTIMÉDIA (Foto, Vídeo) */}
+                  {["foto", "video"].includes(cmode) && (
                     <div style={{ padding:"20px", border:"2px dashed #cbd5e1", borderRadius:14, textAlign:"center", background:"#f8fafc", marginBottom:10 }}>
                       <div style={{ fontSize:12, fontWeight:700, color:"#64748b", marginBottom:10 }}>
-                        {cmode==="foto" ? "Seleciona uma Foto 📸" : cmode==="video" ? "Seleciona um Vídeo 🎥" : "Grava ou seleciona um Áudio 🎙️"}
+                        {cmode==="foto" ? "Seleciona uma Foto 📸" : "Seleciona um Vídeo 🎥"}
                       </div>
-                      <input 
-                        type="file" 
-                        accept={cmode==="foto"?"image/*":cmode==="video"?"video/*":"audio/*"} 
-                        onChange={function(e){if(e.target.files[0]) setMediaFile(e.target.files[0]);}} 
+                      <input
+                        type="file"
+                        accept={cmode==="foto"?"image/*":"video/*"}
+                        onChange={function(e){if(e.target.files[0]) setMediaFile(e.target.files[0]);}}
                         style={{ maxWidth:"100%", fontSize:12 }}
                       />
-                      {mediaFile && <div style={{ fontSize:12, color:"#22c55e", fontWeight:700, marginTop:10 }}>✓ Ficheiro pronto: {mediaFile.name.slice(0,20)}...</div>}
+                      {mediaFile && <div style={{ fontSize:12, color:"#22c55e", fontWeight:700, marginTop:10 }}>✓ {mediaFile.name.slice(0,24)}…</div>}
+                    </div>
+                  )}
+                  {/* ÁUDIO — gravar no momento ou escolher ficheiro */}
+                  {cmode === "audio" && (
+                    <div style={{ padding:"20px", border:"2px dashed #cbd5e1", borderRadius:14, textAlign:"center", background:"#f8fafc", marginBottom:10 }}>
+                      <div style={{ fontSize:12, fontWeight:700, color:"#64748b", marginBottom:12 }}>🎙️ Gravar Áudio</div>
+                      <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:12 }}>
+                        {!isRecording ? (
+                          <button onClick={startRecording} style={{ padding:"11px 22px", background:"#ef4444", color:"white", border:"none", borderRadius:12, fontWeight:700, fontSize:13, cursor:"pointer" }}>🔴 Gravar</button>
+                        ) : (
+                          <button onClick={stopRecording} style={{ padding:"11px 22px", background:"#1e293b", color:"white", border:"none", borderRadius:12, fontWeight:700, fontSize:13, cursor:"pointer" }}>⏹️ Parar</button>
+                        )}
+                      </div>
+                      {isRecording && <div style={{ fontSize:12, color:"#ef4444", fontWeight:700, marginBottom:10 }}>● A gravar…</div>}
+                      {recordedBlob && !isRecording && <div style={{ fontSize:12, color:"#22c55e", fontWeight:700, marginBottom:10 }}>✓ Áudio gravado!</div>}
+                      <div style={{ fontSize:11, color:"#94a3b8", marginBottom:6 }}>ou escolhe um ficheiro:</div>
+                      <input
+                        type="file"
+                        accept="audio/*"
+                        onChange={function(e){if(e.target.files[0]){setMediaFile(e.target.files[0]);setRecordedBlob(null);}}}
+                        style={{ maxWidth:"100%", fontSize:12 }}
+                      />
+                      {mediaFile && !recordedBlob && <div style={{ fontSize:12, color:"#22c55e", fontWeight:700, marginTop:8 }}>✓ {mediaFile.name.slice(0,24)}…</div>}
                     </div>
                   )}
 
@@ -1964,6 +2077,17 @@ async function submitAnswer() {
                   </div>
                   <Btn color={C} onClick={addTodoForUser}>Adicionar Tarefa</Btn>
                 </div>
+                {user.username === "teresa" && (
+                  <div style={Object.assign({},CARD,{border:"2px solid #1e293b20"})}>
+                    <div style={SL}>📤 Propor Tarefa a Colega</div>
+                    <div style={{ display:"flex", gap:5, flexWrap:"wrap", marginBottom:10 }}>
+                      {JEEP_LIST.map(function(j){return(<button key={j.name} onClick={function(){setTeresaTodoTarget(j.username);}} style={{ padding:"5px 12px", borderRadius:20, border:teresaTodoTarget===j.username?"2px solid "+j.color:"2px solid #e8edf2", background:teresaTodoTarget===j.username?j.color+"15":"white", fontSize:11, fontWeight:700, cursor:"pointer", color:teresaTodoTarget===j.username?j.color:"#64748b" }}>{j.name}</button>);})}
+                    </div>
+                    <input value={teresaTodoTxt} onChange={function(e){setTeresaTodoTxt(e.target.value);}} placeholder="Descrição da tarefa..." style={{ width:"100%", padding:"10px 12px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none", boxSizing:"border-box", marginBottom:8 }}/>
+                    <input type="date" value={teresaTodoDue} onChange={function(e){setTeresaTodoDue(e.target.value);}} style={{ width:"100%", padding:"9px 12px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none", boxSizing:"border-box", marginBottom:10 }}/>
+                    <Btn color="#1e293b" onClick={addTeresaTodo}>Enviar Sugestão →</Btn>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -2011,15 +2135,35 @@ async function submitAnswer() {
 
             {perfilTab === "agenda" && (
               <div>
-                <div style={CARD}>
-                  <div style={SL}>➕ Adicionar Lembrete Pessoal</div>
-                  <input value={newEvt.title} onChange={function(e){setNewEvt(upd(newEvt,"title",e.target.value));}} placeholder="Título..." style={{ width:"100%", padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none", boxSizing:"border-box", marginBottom:8 }}/>
-                  <div style={{ display:"flex", gap:8, marginBottom:10 }}>
-                    <input type="date" value={newEvt.date} onChange={function(e){setNewEvt(upd(newEvt,"date",e.target.value));}} style={{ flex:1, padding:"10px 12px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none" }}/>
-                    <input type="time" value={newEvt.time} onChange={function(e){setNewEvt(upd(newEvt,"time",e.target.value));}} style={{ width:90, padding:"10px 12px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none" }}/>
+                {user.username === "teresa" ? (
+                  <div style={CARD}>
+                    <div style={SL}>➕ Adicionar Evento</div>
+                    <input value={teresaEvt.title} onChange={function(e){setTeresaEvt(upd(teresaEvt,"title",e.target.value));}} placeholder="Título do evento..." style={{ width:"100%", padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none", boxSizing:"border-box", marginBottom:8 }}/>
+                    <div style={{ display:"flex", gap:8, marginBottom:8 }}>
+                      <input type="date" value={teresaEvt.date} onChange={function(e){setTeresaEvt(upd(teresaEvt,"date",e.target.value));}} style={{ flex:1, padding:"10px 12px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none" }}/>
+                      <input type="time" value={teresaEvt.time} onChange={function(e){setTeresaEvt(upd(teresaEvt,"time",e.target.value));}} style={{ width:90, padding:"10px 12px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none" }}/>
+                    </div>
+                    <select value={teresaEvt.userId} onChange={function(e){setTeresaEvt(upd(teresaEvt,"userId",e.target.value));}} style={{ width:"100%", padding:"10px 12px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none", marginBottom:8 }}>
+                      <option value="all">Todos</option>
+                      {JEEP_LIST.map(function(j){return(<option key={j.username} value={j.username}>{j.name}</option>);})}
+                    </select>
+                    <Btn color={C} onClick={addTeresaEvent}>Adicionar Evento</Btn>
                   </div>
-                  <Btn color={C} onClick={addPersonalEvent}>Adicionar</Btn>
-                </div>
+                ) : (
+                  <div style={CARD}>
+                    <div style={SL}>➕ Adicionar Evento Pessoal</div>
+                    <input value={newEvt.title} onChange={function(e){setNewEvt(upd(newEvt,"title",e.target.value));}} placeholder="Título..." style={{ width:"100%", padding:"11px 14px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none", boxSizing:"border-box", marginBottom:8 }}/>
+                    <div style={{ display:"flex", gap:8, marginBottom:10 }}>
+                      <input type="date" value={newEvt.date} onChange={function(e){setNewEvt(upd(newEvt,"date",e.target.value));}} style={{ flex:1, padding:"10px 12px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none" }}/>
+                      <input type="time" value={newEvt.time} onChange={function(e){setNewEvt(upd(newEvt,"time",e.target.value));}} style={{ width:90, padding:"10px 12px", borderRadius:12, border:"2px solid #e8edf2", fontSize:13, outline:"none" }}/>
+                    </div>
+                    <div onClick={function(){setNewEvt(upd(newEvt,"shareWithTeresa",!newEvt.shareWithTeresa));}} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12, cursor:"pointer" }}>
+                      <div style={{ width:20, height:20, borderRadius:6, background:newEvt.shareWithTeresa?"#7C3AED":"#e8edf2", display:"flex", alignItems:"center", justifyContent:"center" }}>{newEvt.shareWithTeresa&&<span style={{ color:"white", fontWeight:900, fontSize:11 }}>✓</span>}</div>
+                      <span style={{ fontSize:12, color:"#374151" }}>Partilhar com a Teresa</span>
+                    </div>
+                    <Btn color={C} onClick={addPersonalEvent}>Adicionar</Btn>
+                  </div>
+                )}
                 {userEvents.length===0 ? (
                   <div style={{ textAlign:"center", padding:"40px 20px", color:"#94a3b8" }}><div style={{ fontSize:40 }}>📭</div><div style={{ marginTop:10, fontSize:13 }}>Sem eventos agendados.</div></div>
                 ) : (
