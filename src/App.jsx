@@ -277,6 +277,7 @@ var JEEP_LIST = [
   { name:"Rudmilo",  username:"rudmilo",  color:"#D97706", entidade:"", estado:"verde" },
   { name:"Bruno",    username:"bruno",    color:"#0891B2", entidade:"", estado:"verde" },
   { name:"Salimo",   username:"salimo",   color:"#DC2626", entidade:"", estado:"verde" },
+  { name:"Teresa",   username:"teresa",   color:"#1e293b", entidade:"(teste)", estado:"verde" },
 ];
 var EC = { verde:"#22c55e", amarelo:"#f59e0b", vermelho:"#ef4444" };
 var PIA_FIELDS = [
@@ -334,7 +335,7 @@ export default function App() {
   var [aTxt,     setATxt]     = useState("");
   var [cmode,    setCmode]    = useState("texto");
   var [selMood,  setSelMood]  = useState(null);
-  var [p3,       setP3]       = useState(["",""]);
+  var [p3,       setP3]       = useState(["","",""]);
   var [cidx,     setCidx]     = useState(0);
   var [srating,  setSrating]  = useState(null);
   var [qIdx,     setQIdx]     = useState(0);
@@ -473,12 +474,9 @@ export default function App() {
 
   // ── VIGIAR ESTADO DE RESPOSTA DO USER ──
   useEffect(function() {
-    if (!user) return;
-    // Este código fica a "ouvir" a ficha do utilizador no Firebase
+    if (!user || user.isAdmin) return;
     var unsub = onSnapshot(doc(db, "users", user.username), function(snap) {
-      if (snap.exists()) {
-        setAnswered(snap.data().answered || false);
-      }
+      if (snap.exists()) setAnswered(snap.data().answered || false);
     });
     return unsub;
   }, [user]);
@@ -669,7 +667,7 @@ export default function App() {
   async function postForum() {
     if (!fPost.trim() || !user) return;
     await addDoc(collection(db, "forum", channel, "posts"), {
-      user:dispName, color:user.color, text:fPost, time:"Agora", likes:0, replies:[]
+      user:dispName, color:user.color, text:fPost, time:nowLabel(), likes:0, replies:[]
     });
     setFPost("");
   }
@@ -677,7 +675,7 @@ export default function App() {
     if (!replyTxt.trim()) return;
     var cur = (posts[channel]||[]).find(function(p) { return p.id === pid; });
     if (!cur) return;
-    var newReplies = cur.replies.concat([{ user:dispName, color:user.color, text:replyTxt, time:"Agora" }]);
+    var newReplies = cur.replies.concat([{ user:dispName, color:user.color, text:replyTxt, time:nowLabel() }]);
     await updateDoc(doc(db, "forum", channel, "posts", pid), { replies:newReplies });
     setReplyTxt(""); setReplyTo(null);
   }
@@ -722,8 +720,9 @@ export default function App() {
   // ── EVENTOS ──────────────────────────────────────────────────────
   async function addAdminEvent() {
     if (!newEvt.title.trim() || !newEvt.date) return;
-    await addDoc(collection(db, "events"), Object.assign({}, newEvt));
-    setNewEvt({ title:"", date:"", time:"", userId:"all", type:"visit" });
+    var { shareWithTeresa:_, ...evtData } = newEvt;
+    await addDoc(collection(db, "events"), evtData);
+    setNewEvt({ title:"", date:"", time:"", userId:"all", type:"visit", shareWithTeresa:false });
   }
   async function addPersonalEvent() {
     if (!newEvt.title.trim() || !newEvt.date || !user) return;
@@ -1217,17 +1216,23 @@ async function submitAnswer() {
               </div>
               <div style={CARD}>
                 <div style={SL}>Avaliações de Satisfação</div>
-                {MOCK_SURVEYS.map(function(s,si) {
-                  return (
-                    <div key={si} style={{ padding:14, background:"#f8fafc", borderRadius:14, marginBottom:10, border:"1px solid #e8edf2" }}>
-                      <div style={{ fontSize:11, fontWeight:700, color:"#64748b", marginBottom:8 }}>{s.anon}</div>
-                      <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:8 }}>
-                        {SURVEY_CATS.map(function(c){return(<div key={c.id} style={{ display:"flex", alignItems:"center", gap:4, background:"white", borderRadius:8, padding:"4px 10px", border:"1px solid #e8edf2" }}>{c.icon}<span style={{ fontSize:13 }}>{SEMOJIS[s.ratings[c.id]]}</span><span style={{ fontSize:11, color:"#94a3b8" }}>{s.ratings[c.id]}/5</span></div>);})}
+                {JEEP_LIST.filter(function(j){ var d=allShared[j.username]||{}; return d.sSaved; }).length === 0 ? (
+                  <div style={{ textAlign:"center", padding:"20px 0", color:"#94a3b8", fontSize:13 }}>Nenhuma avaliação submetida ainda.</div>
+                ) : (
+                  JEEP_LIST.map(function(j) {
+                    var d = allShared[j.username] || {};
+                    if (!d.sSaved) return null;
+                    return (
+                      <div key={j.username} style={{ padding:14, background:"#f8fafc", borderRadius:14, marginBottom:10, border:"1px solid #e8edf2" }}>
+                        <div style={{ fontSize:11, fontWeight:700, color:j.color, marginBottom:8 }}>{j.name} <span style={{ color:"#94a3b8", fontWeight:400 }}>— anónima</span></div>
+                        <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:8 }}>
+                          {SURVEY_CATS.map(function(c){ var r=(d.sRatings||{})[c.id]||0; return(<div key={c.id} style={{ display:"flex", alignItems:"center", gap:4, background:"white", borderRadius:8, padding:"4px 10px", border:"1px solid #e8edf2" }}>{c.icon}<span style={{ fontSize:13 }}>{SEMOJIS[r]}</span><span style={{ fontSize:11, color:"#94a3b8" }}>{r}/5</span></div>);})}
+                        </div>
+                        {d.sMudaria&&(<div style={{ fontSize:12, color:"#374151", fontStyle:"italic", padding:"8px 12px", background:"white", borderRadius:8 }}>"  {d.sMudaria}"</div>)}
                       </div>
-                      {s.mudaria&&(<div style={{ fontSize:12, color:"#374151", fontStyle:"italic", padding:"8px 12px", background:"white", borderRadius:8 }}>"  {s.mudaria}"</div>)}
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
               <div style={CARD}>
                 <div style={SL}>Atribuir Medalhas</div>
