@@ -1,202 +1,291 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { doc, setDoc, addDoc, collection } from "firebase/firestore";
+import React, { useState, useRef } from 'react';
+import { doc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../firebase.js";
-import { CARD, SL, CYN, PNK, INP, Btn, SubTabs, RadarChart } from "../theme.jsx";
+import { CARD, SL, CYN, PNK, INP, Btn, SubTabs } from "../theme.jsx";
 import { 
   upd, scoreLabel, getDimDesc, nowLabel, 
-  DIMS, RODA_DIMS, SURVEY_CATS, QUIZZES, SEMOJIS, MOODS, COMPL 
+  DIMS, SURVEY_CATS, QUIZZES, SEMOJIS, MOODS 
 } from "../data.js";
 
 export default function DesafiosTab({ user, data }) {
   const [subTab, setSubTab] = useState("pergunta");
   
-  // Estados Locais para inputs
+  // Estados para a Pergunta da Semana
   const [aTxt, setATxt] = useState("");
   const [cmode, setCmode] = useState("texto");
-  const [selMood, setSelMood] = useState(null);
-  const [p3, setP3] = useState(["", "", ""]);
-  const [cidx, setCidx] = useState(0);
   const [mediaFile, setMediaFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
-
-  // Estados para Áudio
+  
+  // Estados específicos para Áudio
   const [isRecording, setIsRecording] = useState(false);
   const [audioURL, setAudioURL] = useState(null);
-  const mediaRecorder = useRef(null);
-  const audioChunks = useRef([]);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
-  // ── LÓGICA DE ÁUDIO REAL ──
-  const startRecording = async () => {
+  // Dados do utilizador vindos do estado global
+  const uData = data.userData || {};
+
+  // ── LÓGICA DE GRAVAÇÃO DE ÁUDIO ──
+  async function startRecording() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder.current = new MediaRecorder(stream);
-      audioChunks.current = [];
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
 
-      mediaRecorder.current.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunks.current.push(e.data);
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
       };
 
-      mediaRecorder.current.onstop = () => {
-        const blob = new Blob(audioChunks.current, { type: 'audio/webm' });
-        setAudioURL(URL.createObjectURL(blob));
-        setMediaFile(new File([blob], `audio_${Date.now()}.webm`, { type: 'audio/webm' }));
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const url = URL.createObjectURL(audioBlob);
+        setAudioURL(url);
+        // Prepara o ficheiro para upload
+        setMediaFile(new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' }));
       };
 
-      mediaRecorder.current.start();
+      mediaRecorder.start();
       setIsRecording(true);
     } catch (err) {
-      alert("Erro ao aceder ao microfone: " + err.message);
+      alert("Não foi possível aceder ao microfone. Verifica as permissões.");
     }
-  };
+  }
 
-  const stopRecording = () => {
-    if (mediaRecorder.current) {
-      mediaRecorder.current.stop();
+  function stopRecording() {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
       setIsRecording(false);
-      mediaRecorder.current.stream.getTracks().forEach(t => t.stop());
+      // Desliga o microfone
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
     }
-  };
+  }
 
-  // ── SUBMETER RESPOSTA À PERGUNTA ──
+  // ── SUBMISSÃO DA RESPOSTA ──
   async function submitAnswer() {
-    setIsUploading(true);
-    let finalMedia = null;
-    let answerType = cmode;
+    if (!aTxt && !mediaFile && cmode !== "mood") {
+      return alert("Por favor, escreve algo ou grava um áudio antes de enviar.");
+    }
 
+    setIsUploading(true);
     try {
+      let downloadURL = null;
       if (mediaFile) {
-        const r = ref(storage, `respostas/${user.username}/${Date.now()}_${mediaFile.name}`);
-        await uploadBytes(r, mediaFile);
-        finalMedia = await getDownloadURL(r);
+        const fileRef = ref(storage, `respostas/${user.username}/${Date.now()}_${mediaFile.name}`);
+        await uploadBytes(fileRef, mediaFile);
+        downloadURL = await getDownloadURL(fileRef);
       }
 
       const payload = {
         answered: true,
-        answerType: answerType,
-        answerDate: nowLabel(),
-        answerText: cmode === "3p" ? p3.join(", ") : (cmode === "mood" ? MOODS[selMood] : aTxt),
-        answerMedia: finalMedia
+        answerType: cmode,
+        answerText: aTxt,
+        answerMedia: downloadURL,
+        answerDate: nowLabel()
       };
 
       await setDoc(doc(db, "userData", user.username), payload, { merge: true });
-      await addHistory("Respondeu à Pergunta da Semana (" + answerType + ")");
-      alert("Enviado com sucesso! Ganhaste 20 XP!");
+      
+      // Adicionar log ao histórico e dar XP
+      const newHistory = [...(data.history || []), { 
+        date: nowLabel(), 
+        action: `Respondeu à pergunta (${cmode})`, 
+        ts: Date.now() 
+      }];
+      
+      await setDoc(doc(db, "userData", user.username), { 
+        history: newHistory,
+        weekXp: (uData.weekXp || 0) + 20 
+      }, { merge: true });
+
+      alert("Resposta enviada com sucesso! +20 XP ✨");
     } catch (e) {
-      alert("Erro ao enviar: " + e.message);
+      alert("Erro ao enviar resposta. Tenta novamente.");
     }
     setIsUploading(false);
   }
 
-  // ── AJUDANTES ──
-  async function addHistory(action) {
-    const newH = [...(data.history || []), { date: nowLabel(), action, ts: Date.now() }];
-    await setDoc(doc(db, "userData", user.username), { history: newH, weekXp: (data.userData?.weekXp || 0) + 20 }, { merge: true });
-  }
-
-  const uData = data.userData || {};
-
   return (
     <div style={{ padding: "18px 16px" }}>
       <SubTabs 
-        options={[["pergunta","💬 Pergunta"],["auto","📊 Auto"],["satisf","😊 Satis."],["roda","🌸 Roda"],["quiz","🎯 Quiz"]]} 
+        options={[["pergunta","💬 Pergunta"],["auto","📊 Auto"],["satisf","😊 Satis."],["quiz","🎯 Quiz"]]} 
         active={subTab} onChange={setSubTab} color={CYN}
       />
 
-      {/* ── SECCÃO PERGUNTA ── */}
+      {/* ── 1. PERGUNTA DA SEMANA ── */}
       {subTab === "pergunta" && (
         <div style={CARD}>
-          <div style={SL}>Pergunta da Semana</div>
-          <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 20, lineHeight: 1.5, color: "#fff", padding: "15px", background: "rgba(34, 211, 238, 0.1)", borderRadius: 16, borderLeft: `4px solid ${CYN}` }}>
-            {data.activeQuestion || "A carregar pergunta..."}
+          <div style={SL}>Desafio Semanal</div>
+          <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 20, padding: "15px", background: "rgba(0,0,0,0.3)", borderRadius: 16, borderLeft: `4px solid ${CYN}`, lineHeight: 1.5 }}>
+            {data.activeQuestion || "O que mais te marcou no teu local de trabalho esta semana?"}
           </div>
 
           {uData.answered ? (
             <div style={{ textAlign: "center", padding: "20px" }}>
-              <div style={{ fontSize: 40, marginBottom: 10 }}>✅</div>
-              <div style={{ fontWeight: 900, color: CYN }}>RESPOSTA ENTREGUE</div>
-              <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 5 }}>A Teresa já pode ver a tua reflexão.</div>
+              <div style={{ fontSize: 40, marginBottom: 10 }}>🚀</div>
+              <div style={{ fontWeight: 900, color: CYN, fontSize: 16 }}>RESPOSTA ENTREGUE!</div>
+              <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 5 }}>Obrigado pela tua partilha.</div>
             </div>
           ) : (
             <div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 15 }}>
-                {["texto", "audio", "foto", "video", "mood", "3p", "completar"].map(m => (
-                  <button key={m} onClick={() => setCmode(m)} style={{ padding: "8px 12px", borderRadius: 20, border: cmode === m ? `1px solid ${CYN}` : "1px solid rgba(255,255,255,0.1)", background: cmode === m ? `${CYN}20` : "transparent", color: cmode === m ? CYN : "#94a3b8", fontSize: 10, fontWeight: 900 }}>{m.toUpperCase()}</button>
+                {["texto", "audio", "foto"].map(m => (
+                  <button key={m} onClick={() => { setCmode(m); setAudioURL(null); }} style={{ padding: "8px 12px", borderRadius: 20, border: cmode === m ? `1.5px solid ${CYN}` : "1px solid rgba(255,255,255,0.1)", background: cmode === m ? `${CYN}20` : "transparent", color: cmode === m ? CYN : "#94a3b8", fontSize: 10, fontWeight: 900 }}>
+                    {m.toUpperCase()}
+                  </button>
                 ))}
               </div>
 
-              {cmode === "texto" && <textarea value={aTxt} onChange={e => setATxt(e.target.value)} style={INP} rows={4} placeholder="Escreve aqui..." />}
-              
+              {cmode === "texto" && (
+                <textarea value={aTxt} onChange={e => setATxt(e.target.value)} style={INP} rows={4} placeholder="Escreve a tua reflexão..." />
+              )}
+
               {cmode === "audio" && (
-                <div style={{ textAlign: "center", padding: "20px", border: "2px dashed rgba(255,255,255,0.1)", borderRadius: 20, marginBottom: 15 }}>
+                <div style={{ textAlign: "center", padding: "20px", border: "2px dashed rgba(255,255,255,0.1)", borderRadius: 24, marginBottom: 15, background: "rgba(0,0,0,0.2)" }}>
                   {!isRecording ? (
-                    <button onClick={startRecording} style={{ width: 60, height: 60, borderRadius: 30, background: "#ef4444", border: "none", color: "white", fontSize: 24, cursor: "pointer" }}>🎤</button>
+                    <button onClick={startRecording} style={{ width: 64, height: 64, borderRadius: 32, background: "#ef4444", border: "none", color: "white", fontSize: 24, cursor: "pointer", boxShadow: "0 0 15px rgba(239, 68, 68, 0.4)" }}>🎤</button>
                   ) : (
-                    <button onClick={stopRecording} style={{ width: 60, height: 60, borderRadius: 30, background: CYN, border: "none", color: "#070b14", fontSize: 24, cursor: "pointer" }}>⏹️</button>
+                    <button onClick={stopRecording} style={{ width: 64, height: 64, borderRadius: 32, background: CYN, border: "none", color: "#070b14", fontSize: 24, cursor: "pointer" }}>⏹️</button>
                   )}
-                  <div style={{ marginTop: 10, fontSize: 12, fontWeight: 800, color: isRecording ? "#ef4444" : CYN }}>
-                    {isRecording ? "A GRAVAR..." : audioURL ? "ÁUDIO PRONTO ✓" : "CLICA PARA GRAVAR"}
+                  
+                  <div style={{ marginTop: 12, fontSize: 12, fontWeight: 800, color: isRecording ? "#ef4444" : CYN }}>
+                    {isRecording ? "A GRAVAR ÁUDIO..." : "CLICA PARA GRAVAR"}
                   </div>
+
+                  {audioURL && (
+                    <div style={{ marginTop: 20, padding: "10px", background: "rgba(255,255,255,0.05)", borderRadius: 16 }}>
+                      <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 8, fontWeight: 800 }}>OUVE A TUA GRAVAÇÃO:</div>
+                      <audio src={audioURL} controls style={{ width: "100%", height: 36 }} />
+                      <div style={{ fontSize: 10, color: CYN, marginTop: 8 }}>Podes gravar novamente se não gostares.</div>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {["foto", "video"].includes(cmode) && (
+              {cmode === "foto" && (
                 <div style={{ marginBottom: 15 }}>
-                  <input type="file" accept={cmode === "foto" ? "image/*" : "video/*"} onChange={e => setMediaFile(e.target.files[0])} style={{ color: "white", fontSize: 12 }} />
+                  <input type="file" accept="image/*" onChange={e => setMediaFile(e.target.files[0])} style={{ color: "white", fontSize: 12 }} />
                 </div>
               )}
 
-              {cmode === "mood" && (
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
-                  {MOODS.map((m, i) => (
-                    <button key={i} onClick={() => setSelMood(i)} style={{ fontSize: 32, background: "none", border: "none", opacity: selMood === i ? 1 : 0.2, cursor: "pointer", transition: "0.2s" }}>{m}</button>
-                  ))}
-                </div>
-              )}
-
-              <Btn onClick={submitAnswer} disabled={isUploading}>{isUploading ? "A ENVIAR..." : "SUBMETER RESPOSTA"}</Btn>
+              <Btn onClick={submitAnswer} disabled={isUploading}>
+                {isUploading ? "A ENVIAR..." : "SUBMETER DESAFIO"}
+              </Btn>
             </div>
           )}
         </div>
       )}
 
-      {/* ── SECÇÃO AUTOAVALIAÇÃO ── */}
+      {/* ── 2. AUTOAVALIAÇÃO ── */}
       {subTab === "auto" && (
         <div>
+          <div style={{ ...CARD, background: "rgba(34, 211, 238, 0.05)", border: `1px solid ${CYN}30` }}>
+            <div style={{ fontSize: 14, fontWeight: 900, color: CYN }}>Autoavaliação de Competências</div>
+            <div style={{ fontSize: 11, color: "#cbd5e1", marginTop: 4 }}>Escolhe o nível que melhor descreve o teu desempenho este mês.</div>
+          </div>
+
           {DIMS.map(dim => {
             const val = uData.dScores?.[dim.id] || 5;
+            const status = scoreLabel(val);
             return (
               <div key={dim.id} style={CARD}>
-                <div style={{ fontWeight: 900, fontSize: 14, color: CYN }}>{dim.label}</div>
-                <div style={{ fontSize: 11, color: "#94a3b8", margin: "8px 0 15px", lineHeight: 1.4 }}>{dim.desc}</div>
+                <div style={{ fontWeight: 900, fontSize: 14, color: "#fff", marginBottom: 6 }}>{dim.label}</div>
+                <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 15, lineHeight: 1.4 }}>{dim.desc}</div>
+                
                 <input type="range" min="1" max="10" value={val} 
                   onChange={async (e) => {
                     const nS = { ...(uData.dScores || {}), [dim.id]: Number(e.target.value) };
                     await setDoc(doc(db, "userData", user.username), { dScores: nS }, { merge: true });
                   }} 
-                  style={{ width: "100%", accentColor: scoreLabel(val)[1] }} 
+                  style={{ width: "100%", accentColor: status[1], height: 6, borderRadius: 3 }} 
                 />
-                <div style={{ textAlign: "center", margin: "10px 0", padding: "8px", background: "rgba(0,0,0,0.2)", borderRadius: 10 }}>
-                  <span style={{ fontWeight: 900, color: scoreLabel(val)[1] }}>{val} - {scoreLabel(val)[0]}</span>
+
+                <div style={{ display: "flex", justifyContent: "center", margin: "15px 0" }}>
+                  <div style={{ background: `${status[1]}20`, padding: "8px 16px", borderRadius: 12, border: `1px solid ${status[1]}50` }}>
+                    <span style={{ fontWeight: 900, color: status[1], fontSize: 18 }}>{val} — {status[0]}</span>
+                  </div>
                 </div>
-                <div style={{ fontSize: 11, fontStyle: "italic", color: "#cbd5e1" }}>{getDimDesc(dim, val)}</div>
+
+                <div style={{ background: "rgba(0,0,0,0.2)", padding: "12px", borderRadius: 12, fontSize: 12, color: "#e2e8f0", fontStyle: "italic", borderLeft: `3px solid ${status[1]}` }}>
+                  {getDimDesc(dim, val)}
+                </div>
+
+                <textarea 
+                  value={uData.dNotas?.[dim.id] || ""} 
+                  onChange={async (e) => {
+                    const nN = { ...(uData.dNotas || {}), [dim.id]: e.target.value };
+                    await setDoc(doc(db, "userData", user.username), { dNotas: nN }, { merge: true });
+                  }}
+                  style={{ ...INP, marginTop: 15, fontSize: 12 }} 
+                  placeholder="Queres acrescentar alguma observação sobre esta competência?" 
+                  rows={2}
+                />
               </div>
             );
           })}
-          <Btn onClick={() => alert("Guardado automaticamente!")}>FINALIZAR AUTOAVALIAÇÃO</Btn>
+
+          <Btn onClick={async () => {
+            await setDoc(doc(db, "userData", user.username), { autoSaved: true, autoDate: nowLabel() }, { merge: true });
+            alert("Autoavaliação finalizada! Bom trabalho.");
+          }}>FINALIZAR E ENVIAR</Btn>
         </div>
       )}
 
-      {/* ── SECÇÃO QUIZ ── */}
+      {/* ── 3. SATISFAÇÃO ── */}
+      {subTab === "satisf" && (
+        <div>
+          {SURVEY_CATS.map(cat => (
+            <div key={cat.id} style={CARD}>
+              <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 12 }}>{cat.q}</div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
+                {[1, 2, 3, 4, 5].map(n => {
+                  const isSel = uData.sRatings?.[cat.id] === n;
+                  return (
+                    <button key={n} 
+                      onClick={async () => {
+                        const nR = { ...(uData.sRatings || {}), [cat.id]: n };
+                        await setDoc(doc(db, "userData", user.username), { sRatings: nR }, { merge: true });
+                      }}
+                      style={{ fontSize: 30, opacity: isSel ? 1 : 0.2, background: "none", border: "none", cursor: "pointer", transform: isSel ? "scale(1.2)" : "scale(1)", transition: "0.2s" }}
+                    >
+                      {SEMOJIS[n]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+          <div style={CARD}>
+            <div style={SL}>Mensagem Anónima</div>
+            <textarea 
+              value={uData.sMudaria || ""} 
+              onChange={async (e) => {
+                await setDoc(doc(db, "userData", user.username), { sMudaria: e.target.value }, { merge: true });
+              }}
+              style={INP} rows={3} placeholder="O que melhorarias no programa JEEP?" 
+            />
+            <Btn color={PNK} onClick={async () => {
+              await setDoc(doc(db, "userData", user.username), { sSaved: true }, { merge: true });
+              alert("Obrigado pelo teu feedback anónimo!");
+            }}>SUBMETER AVALIAÇÃO</Btn>
+          </div>
+        </div>
+      )}
+
+      {/* ── 4. QUIZ DE CENÁRIOS ── */}
       {subTab === "quiz" && (
         <div style={CARD}>
-          <div style={SL}>Dilemas do Dia a Dia</div>
-          {QUIZZES.map((q, idx) => {
+          <div style={SL}>Cenários JEEP</div>
+          {QUIZZES.map((q) => {
             const hasAns = uData.qAnswers?.[q.id];
             return (
-              <div key={q.id} style={{ marginBottom: 30, borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: 20 }}>
-                <div style={{ background: CYN, color: "#070b14", display: "inline-block", padding: "2px 8px", borderRadius: 6, fontSize: 9, fontWeight: 900, marginBottom: 8 }}>{q.badge}</div>
-                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 15 }}>{q.scenario}</div>
+              <div key={q.id} style={{ marginBottom: 32, borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: 24 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <div style={{ background: CYN, color: "#070b14", padding: "2px 8px", borderRadius: 6, fontSize: 9, fontWeight: 900 }}>{q.badge}</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: CYN }}>{q.title}</div>
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.6, marginBottom: 18, color: "#cbd5e1" }}>{q.scenario}</div>
                 
                 {!hasAns ? (
                   q.opts.map(opt => (
@@ -204,16 +293,18 @@ export default function DesafiosTab({ user, data }) {
                       onClick={async () => {
                         const nA = { ...(uData.qAnswers || {}), [q.id]: opt.id };
                         await setDoc(doc(db, "userData", user.username), { qAnswers: nA }, { merge: true });
+                        // Dá XP apenas no primeiro quiz
+                        await setDoc(doc(db, "userData", user.username), { weekXp: (uData.weekXp || 0) + 15 }, { merge: true });
                       }}
-                      style={{ width: "100%", textAlign: "left", padding: "12px", borderRadius: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", marginBottom: 8, cursor: "pointer" }}
+                      style={{ width: "100%", textAlign: "left", padding: "16px", borderRadius: 16, background: "rgba(255,255,255,0.05)", border: "1.5px solid rgba(255,255,255,0.1)", color: "#fff", marginBottom: 10, cursor: "pointer", fontSize: 13, display: "flex", gap: 12 }}
                     >
-                      <strong style={{ color: CYN, marginRight: 10 }}>{opt.id}</strong> {opt.text}
+                      <strong style={{ color: CYN }}>{opt.id}</strong> {opt.text}
                     </button>
                   ))
                 ) : (
-                  <div style={{ background: "rgba(34, 211, 238, 0.1)", padding: "15px", borderRadius: 12, borderLeft: `4px solid ${CYN}` }}>
-                    <div style={{ fontSize: 12, fontWeight: 900, color: CYN, marginBottom: 5 }}>A TUA ESCOLHA: {hasAns}</div>
-                    <div style={{ fontSize: 13 }}>{q.opts.find(o => o.id === hasAns)?.reveal}</div>
+                  <div style={{ background: "rgba(34, 211, 238, 0.1)", padding: "18px", borderRadius: 20, borderLeft: `4px solid ${CYN}` }}>
+                    <div style={{ fontSize: 11, fontWeight: 900, color: CYN, marginBottom: 6, letterSpacing: 1 }}>A TUA ESCOLHA: {hasAns}</div>
+                    <div style={{ fontSize: 14, lineHeight: 1.5, color: "#fff" }}>{q.opts.find(o => o.id === hasAns)?.reveal}</div>
                   </div>
                 )}
               </div>
@@ -221,8 +312,6 @@ export default function DesafiosTab({ user, data }) {
           })}
         </div>
       )}
-      
-      {/* Rodas e Satisfação seguem a mesma lógica de ligação ao 'data' e 'userData' */}
     </div>
   );
 }
