@@ -507,8 +507,12 @@ export default function TeresaAdmin({ user, onLogout }) {
             </div>
 
             <div style={CARD}>
-              <div style={SL}>Tabela de XP Semanal</div>
-              {Object.entries(leaderboard).sort((a,b)=>b[1].xp-a[1].xp).map((e, i) => (
+<div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:15 }}>
+    <div style={SL}>Tabela de XP Semanal</div>
+    <button onClick={refreshLeaderboard} style={{ background:CYN, color:"#0f172a", border:"none", padding:"6px 12px", borderRadius:10, fontSize:11, fontWeight:900, cursor:"pointer" }}>
+      ATUALIZAR RANKING 🔄
+    </button>
+  </div>              {Object.entries(leaderboard).sort((a,b)=>b[1].xp-a[1].xp).map((e, i) => (
                 <div key={e[0]} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
                   <span style={{ fontSize:14, fontWeight:800, color:"#94a3b8", width:25 }}>#{i+1}</span>
                   <div style={{ flex:1, fontSize:14, fontWeight:700 }}>{e[1].name}</div>
