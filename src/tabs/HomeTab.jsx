@@ -77,7 +77,7 @@ export default function HomeTab({ user, data, setTab }) {
     acoesPendentes.push({ status: "pending", icon: "🚀", title: "Plano Individual (PIA)", sub: "Desenha o teu projeto", go: () => setTab("pia") });
   }
 
-  // ── FUNÇÕES: GESTÃO DE TAREFAS (TO-DO) ──
+// ── FUNÇÕES: GESTÃO DE TAREFAS (TO-DO) ──
   async function criarNovaTarefa() {
     if (!novaTarefaTexto.trim()) return;
     try {
@@ -86,6 +86,7 @@ export default function HomeTab({ user, data, setTab }) {
         text: novaTarefaTexto,
         due: novaTarefaData,
         done: false,
+        shared: false, // <-- AQUI! Garante que as tarefas começam privadas (🙈)
         ts: Date.now()
       });
       setNovaTarefaTexto(""); 
@@ -105,7 +106,8 @@ export default function HomeTab({ user, data, setTab }) {
         const entradaHistorico = { 
           date: nowLabel(), 
           action: `Concluiu a tarefa: ${tarefa.text}`, 
-          ts: Date.now() 
+          ts: Date.now(),
+          xp: 5 // <-- Adicionado para o cabeçalho não dar aquele bug dos XP!
         };
         await setDoc(doc(db, "userData", user.username), { 
           history: [...historicoAtual, entradaHistorico], 
@@ -126,6 +128,30 @@ export default function HomeTab({ user, data, setTab }) {
         console.error("Erro ao remover tarefa:", erro);
       }
     }
+  }
+
+  // ── AS 4 FUNÇÕES NOVAS DE PARTILHA E ACEITAÇÃO ENTRAM AQUI ──
+
+  async function aceitarTarefa(id) {
+    const ref = doc(db, "todos", user.username, "items", id);
+    await updateDoc(ref, { accepted: true, shared: true });
+    alert("Tarefa aceite e adicionada à tua lista! 💪");
+  }
+
+  async function recusarTarefa(id) {
+    if (window.confirm("Queres mesmo recusar esta sugestão?")) {
+      await deleteDoc(doc(db, "todos", user.username, "items", id));
+    }
+  }
+
+  async function partilharTarefa(id, estadoAtual) {
+    const ref = doc(db, "todos", user.username, "items", id);
+    await updateDoc(ref, { shared: !estadoAtual });
+  }
+
+  async function partilharEvento(id, estadoAtual) {
+    const ref = doc(db, "events", id);
+    await updateDoc(ref, { shared: !estadoAtual });
   }
 
   // ── FUNÇÕES: GESTÃO DE AGENDA (EVENTOS) ──
