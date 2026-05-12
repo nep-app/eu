@@ -6,7 +6,9 @@ import {
   query, 
   orderBy, 
   updateDoc, 
-  doc 
+  doc,
+  increment,
+  arrayUnion
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../firebase.js";
@@ -35,7 +37,6 @@ export default function ForumTab({ user, data }) {
   const [estaAEnviar, setEstaAEnviar] = useState(false);
   
   // Estados para interação
-  const [postExpandido, setPostExpandido] = useState(null);
   const [responderA, setResponderA] = useState(null);
   const [textoResposta, setTextoResposta] = useState("");
 
@@ -56,6 +57,25 @@ export default function ForumTab({ user, data }) {
 
     return () => unsubscribe();
   }, [canalAtivo]);
+
+  // ── LÓGICA DE XP FANTASMA (SECRETO) ──
+  // Dá 5 XP ao jovem sem mostrar nenhum pop-up na cara dele
+  async function darXPFantasma(acaoTexto) {
+    try {
+      const userRef = doc(db, "userData", user.username);
+      await updateDoc(userRef, {
+        weekXp: increment(5),
+        history: arrayUnion({
+          date: nowLabel(),
+          action: acaoTexto,
+          ts: Date.now(),
+          xp: 5
+        })
+      });
+    } catch (e) {
+      console.error("Erro no XP Fantasma:", e);
+    }
+  }
 
   // ── FUNÇÃO: PUBLICAR NO FÓRUM ──
   async function publicarPost() {
@@ -97,6 +117,9 @@ export default function ForumTab({ user, data }) {
         });
       }
 
+      // 4. Dá os 5 XP fantasma por ter publicado!
+      darXPFantasma("Publicou uma partilha no Fórum");
+
       setTextoPost("");
       setFicheiroMedia(null);
     } catch (e) {
@@ -122,6 +145,9 @@ export default function ForumTab({ user, data }) {
       // Adicionar reação
       novasReacoes[tipoReacao] = (novasReacoes[tipoReacao] || 0) + 1;
       quemReagiu[tipoReacao] = [...listaUtilizadores, user.username];
+      
+      // Dá os 5 XP fantasma se for uma reação nova!
+      darXPFantasma("Interagiu com uma partilha no Fórum");
     }
 
     await updateDoc(doc(db, "forum", canalAtivo, "posts", postId), {
@@ -146,9 +172,11 @@ export default function ForumTab({ user, data }) {
       replies: [...(post.replies || []), novaResposta]
     });
 
+    // Dá os 5 XP fantasma por ter respondido a um colega!
+    darXPFantasma("Respondeu a uma conversa no Fórum");
+
     setTextoResposta("");
     setResponderA(null);
-    setPostExpandido(postId);
   }
 
   // Identifica a informação completa do canal selecionado
@@ -325,21 +353,12 @@ export default function ForumTab({ user, data }) {
                     >
                       💬 RESPONDER
                     </div>
-
-                    {post.replies?.length > 0 && (
-                      <div 
-                        onClick={() => setPostExpandido(postExpandido === post.id ? null : post.id)}
-                        style={{ fontSize: "12px", color: CYN, fontWeight: "900", cursor: "pointer" }}
-                      >
-                        {postExpandido === post.id ? "FECHAR" : `VER ${post.replies.length} RESPOSTAS`}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
 
-              {/* ÁREA DE RESPOSTAS (THREADS) */}
-              {postExpandido === post.id && post.replies?.length > 0 && (
+              {/* ÁREA DE RESPOSTAS (THREADS) - AGORA SEMPRE VISÍVEL! */}
+              {post.replies?.length > 0 && (
                 <div style={{ marginTop: "20px", marginLeft: "40px", borderLeft: "2px solid rgba(255,255,255,0.05)", paddingLeft: "15px" }}>
                   {post.replies.map((reply, idx) => (
                     <div key={idx} style={{ marginBottom: "12px" }}>
