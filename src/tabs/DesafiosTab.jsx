@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { doc, setDoc, collection, addDoc } from "firebase/firestore";
+import { doc, setDoc, collection, addDoc, increment } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../firebase.js";
 import { CARD, SL, CYN, PNK, INP, Btn, SubTabs } from "../theme.jsx";
@@ -110,40 +110,43 @@ export default function DesafiosTab({ user, data }) {
   }
 
   // ── SUBMISSÃO DA AUTOAVALIAÇÃO ──
-  async function submitAutoAvaliacao() {
-    // Se o Firebase diz que já fez, ou se acabou de clicar agora mesmo, bloqueia logo!
+async function submitAutoAvaliacao() {
+    // 1. TRINCO DE SEGURANÇA: Se já enviou ou está a enviar, pára tudo!
     if (uData.autoSaved || localAutoSaved || isSubmittingAuto) return; 
     
     setIsSubmittingAuto(true);
-    try {
-      // Bloqueia a interface instantaneamente localmente!
-      setLocalAutoSaved(true); 
+    setLocalAutoSaved(true); // Bloqueio visual instantâneo
 
-      const newHistory = [...(data.history || []), { 
-        date: nowLabel(), 
-        action: `Concluiu a Autoavaliação de Competências`, 
-        ts: Date.now() 
-      }];
+    try {
+      const date = nowLabel();
+      const newAction = { date, action: `Concluiu a Autoavaliação de Competências`, ts: Date.now() };
+      const newHistory = [...(data.history || []), newAction];
       
+      // 2. ATUALIZAÇÃO SEGURA: Usamos "increment" para nunca falhar o XP
       await setDoc(doc(db, "userData", user.username), { 
         autoSaved: true, 
-        autoDate: nowLabel(),
+        autoDate: date,
         history: newHistory,
-        weekXp: (uData.weekXp || 0) + 30 
+        weekXp: increment(30) // 💥 O TRUQUE MÁGICO: Soma 30 ao que quer que lá esteja
       }, { merge: true });
 
-      await addDoc(collection(db, "adminNotificacoes"), {
-        tipo: "AUTOAVALIACAO",
-        jovem: user.username,
-        data: nowLabel(),
-        ts: Date.now(),
-        lida: false
-      });
+      // 3. NOTIFICAÇÃO ADMIN
+      // Nota: Se isto der erro de permissão, o XP já foi gravado acima!
+      try {
+        await addDoc(collection(db, "adminNotificacoes"), {
+          tipo: "AUTOAVALIACAO",
+          jovem: user.username,
+          data: date,
+          ts: Date.now(),
+          lida: false
+        });
+      } catch (e) { console.warn("Notificação não enviada, mas XP gravado."); }
+
+      alert("✅ Autoavaliação enviada! +30 XP ganhos.");
 
     } catch (e) {
-      console.error("Erro na submissão:", e);
-      // Se der erro a valer, destranca para ele poder tentar de novo
-      setLocalAutoSaved(false); 
+      alert("Erro ao gravar: " + e.message);
+      setLocalAutoSaved(false); // Se falhou a sério, deixa tentar de novo
     }
     setIsSubmittingAuto(false);
   }
