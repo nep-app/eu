@@ -1,4 +1,5 @@
 import React from 'react';
+import logoImg from './logo.png'; // 💥 A ARMA NUCLEAR: Importar o logo diretamente!
 
 // ── CORES BASE (SOFT DARK MODE) ──
 export const BG  = "#1e293b"; 
@@ -70,15 +71,12 @@ export const PS = {
   new:     { dot: PRP,       bg: "rgba(168, 85, 247, 0.15)", badge: "NOVO",     bc: PRP,       bl: "rgba(168, 85, 247, 0.3)" },
 };
 
-// ── LOGO (TRUQUE VITE PARA GITHUB PAGES) ──
+// ── LOGO (TRUQUE NUCLEAR - NUNCA MAIS FALHA) ──
 export function AppIcon({ size = 70 }) {
-  // O import.meta.env.BASE_URL descobre o caminho correto no GitHub Pages sozinho!
-  const logoPath = `${import.meta.env.BASE_URL}logo.png`;
-  
   return (
     <div style={{ display: "flex", justifyContent: "center", padding: "10px 0", width: "100%" }}>
       <img 
-        src={logoPath} 
+        src={logoImg} // <-- Em vez de um caminho adivinhado, usa a imagem injetada
         alt="JEEP EDUCA+" 
         style={{ width: size, height: "auto", objectFit: "contain", display: "block", margin: "0 auto" }}
       />
