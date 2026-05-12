@@ -73,28 +73,12 @@ export const PS = {
 
 // ── COMPONENTE DO LOGOTIPO ──
 export function AppIcon({ size = 70 }) {
-  // Tenta carregar logo.png primeiro, depois logo.png.jpg
   return (
     <div style={{ display: "flex", justifyContent: "center", padding: "10px 0", width: "100%" }}>
       <img 
-        src="logo.png" 
+        src="./logo.png" 
         alt="JEEP EDUCA+" 
         style={{ width: size, height: "auto", objectFit: "contain", display: "block" }}
-        onError={(e) => {
-          // Se falhar o .png, tenta o .png.jpg que eu vi nos teus uploads
-          if (!e.target.src.includes("logo.png.jpg")) {
-            e.target.src = "logo.png.jpg";
-          } else {
-            // Se ambos falharem, mostra o texto roxo original
-            e.target.style.display = 'none';
-            const fallback = document.createElement('span');
-            fallback.style.color = "#a855f7";
-            fallback.style.fontSize = "22px";
-            fallback.style.fontWeight = "900";
-            fallback.innerText = "JEEP EDUCA+";
-            e.target.parentElement.appendChild(fallback);
-          }
-        }}
       />
     </div>
   );
