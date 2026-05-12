@@ -91,11 +91,12 @@ export default function DesafiosTab({ user, data }) {
 
       await setDoc(doc(db, "userData", user.username), payload, { merge: true });
       
-      const newHistory = [...(data.history || []), { 
-        date: nowLabel(), 
-        action: `Respondeu à pergunta (${cmode})`, 
-        ts: Date.now() 
-      }];
+     const newHistory = [...(data.history || []), { 
+  date: nowLabel(), 
+  action: `Respondeu à pergunta (${cmode})`, 
+  ts: Date.now(),
+  xp: 20 // FALTA ISTO AQUI!
+}];
       
       await setDoc(doc(db, "userData", user.username), { 
         history: newHistory,
@@ -120,7 +121,12 @@ async function submitAutoAvaliacao() {
     try {
       const date = nowLabel();
       const newAction = { date, action: `Concluiu a Autoavaliação de Competências`, ts: Date.now() };
-      const newHistory = [...(data.history || []), newAction];
+     const newHistory = [...(data.history || []), { 
+  date: nowLabel(), 
+  action: `Concluiu a Autoavaliação de Competências`, 
+  ts: Date.now(),
+  xp: 30 // FALTA ISTO AQUI!
+}];
       
       // 2. ATUALIZAÇÃO SEGURA: Usamos "increment" para nunca falhar o XP
       await setDoc(doc(db, "userData", user.username), { 
