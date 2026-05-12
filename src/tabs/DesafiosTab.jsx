@@ -103,7 +103,13 @@ export default function DesafiosTab({ user, data }) {
         weekXp: (uData.weekXp || 0) + 20 
       }, { merge: true });
 
-      alert("Resposta enviada com sucesso! +20 XP ✨");
+     const mensagensMisticas = [
+  "Boa partilha! O teu XP acabou de subir. ✨",
+  "Missão cumprida! O sistema registou a tua evolução. 🚀",
+  "Excelente reflexão! Continua a somar pontos no ranking. 🔥",
+  "Formulário recebido! Ganhaste um belo boost de XP. 🏆"
+];
+alert(mensagensMisticas[Math.floor(Math.random() * mensagensMisticas.length)]);
     } catch (e) {
       alert("Erro ao enviar resposta. Tenta novamente.");
     }
@@ -148,8 +154,13 @@ async function submitAutoAvaliacao() {
         });
       } catch (e) { console.warn("Notificação não enviada, mas XP gravado."); }
 
-      alert("✅ Autoavaliação enviada! +30 XP ganhos.");
-
+const mensagensMisticas = [
+  "Boa partilha! O teu XP acabou de subir. ✨",
+  "Missão cumprida! O sistema registou a tua evolução. 🚀",
+  "Excelente reflexão! Continua a somar pontos no ranking. 🔥",
+  "Formulário recebido! Ganhaste um belo boost de XP. 🏆"
+];
+alert(mensagensMisticas[Math.floor(Math.random() * mensagensMisticas.length)]);
     } catch (e) {
       alert("Erro ao gravar: " + e.message);
       setLocalAutoSaved(false); // Se falhou a sério, deixa tentar de novo
@@ -264,7 +275,7 @@ async function submitAutoAvaliacao() {
               <div style={{ fontSize: 40, marginBottom: 10 }}>✅</div>
               <div style={{ fontWeight: 900, color: CYN, fontSize: 18 }}>AVALIAÇÃO ENTREGUE!</div>
               <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 10, lineHeight: 1.5 }}>
-                Obrigado pelo teu preenchimento.<br/>Recebeste +30 XP. Só poderás voltar a preencher no próximo ciclo.
+                Obrigado pelo teu preenchimento.<br/>Recebeste XP. Só poderás voltar a preencher no próximo ciclo.
               </div>
             </div>
           ) : (
