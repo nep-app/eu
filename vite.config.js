@@ -8,7 +8,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['logo.png'], // Garante que a imagem vai para cache offline
+      injectRegister: 'auto', // Força o telemóvel a reconhecer o PWA
+      includeAssets: ['logo.png'],
       manifest: {
         name: 'JEEP EDUCA+',
         short_name: 'JEEP',
@@ -18,13 +19,12 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
-            // O segredo está aqui: Forçar a pasta /eu/ para o GitHub Pages não se perder
-            src: '/eu/logo.png', 
+            src: 'logo.png', // Sem o /eu/ extra! O Vite trata disso sozinho.
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/eu/logo.png',
+            src: 'logo.png',
             sizes: '512x512',
             type: 'image/png'
           }
