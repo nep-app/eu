@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../firebase.js";
-import { 
-  CARD, SL, INP, Btn, CYN, PNK, SubTabs 
-} from "../theme.jsx";
+import { CARD, SL, INP, Btn, CYN, PNK, SubTabs } from "../theme.jsx";
 import { nowLabel, PIA_FIELDS } from "../data.js";
 
 export default function PiaTab({ user, data }) {
@@ -23,7 +21,6 @@ export default function PiaTab({ user, data }) {
   });
 
   // ── CÁLCULO DO TERMÓMETRO DO PIA ──
-  // Verifica quantos campos de texto principais do PIA estão preenchidos
   const fields = PIA_FIELDS || []; 
   const totalPia = fields.length + (piaActs.length * 3);
   
@@ -40,7 +37,6 @@ export default function PiaTab({ user, data }) {
   const updatePia = (key, val) => {
     const newPia = { ...pia, [key]: val };
     setPia(newPia);
-    // Guarda silenciosamente (draft)
     setDoc(doc(db, "userData", user.username), { pia: newPia }, { merge: true });
   };
 
@@ -48,14 +44,12 @@ export default function PiaTab({ user, data }) {
     const newActs = [...piaActs];
     newActs[idx] = { ...newActs[idx], [field]: val };
     setPiaActs(newActs);
-    // Guarda silenciosamente (draft)
     setDoc(doc(db, "userData", user.username), { piaActs: newActs }, { merge: true });
   };
 
   const updateSwot = (id, val) => {
     const newSwot = { ...swotPia, [id]: val };
     setSwotPia(newSwot);
-    // Guarda silenciosamente (draft)
     setDoc(doc(db, "userData", user.username), { swotPia: newSwot }, { merge: true });
   };
 
@@ -73,11 +67,13 @@ export default function PiaTab({ user, data }) {
         piaSaved: true, 
         piaShared: share,
         history: newH,
-        weekXp: (uData.weekXp || 0) + (uData.piaSaved ? 0 : 10) // Ganha 10 XP só na primeira vez
+        weekXp: (uData.weekXp || 0) + (uData.piaSaved ? 0 : 10) 
       }, { merge: true });
       
       alert(share ? "Enviado com sucesso para a Teresa! 🚀" : "Guardado em modo privado. ✨");
-    } catch (e) { alert("Erro ao guardar o PIA."); }
+    } catch (e) { 
+      alert("Erro ao guardar o PIA."); 
+    }
   }
 
   async function saveSwot(share) {
@@ -93,8 +89,11 @@ export default function PiaTab({ user, data }) {
         swotShared: share,
         history: newH
       }, { merge: true });
+      
       alert(share ? "Raio-X enviado para a Coordenação! 🔍" : "Raio-X guardado em modo privado.");
-    } catch (e) { alert("Erro ao guardar o SWOT."); }
+    } catch (e) { 
+      alert("Erro ao guardar o SWOT."); 
+    }
   }
 
   return (
@@ -113,7 +112,6 @@ export default function PiaTab({ user, data }) {
       ========================================= */}
       {subTab === "planeamento" && (
         <div>
-          {/* TERMÓMETRO */}
           <div style={CARD}>
             <div style={SL}>Termómetro do Projeto</div>
             <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 99, height: 14, marginBottom: 8, overflow: "hidden" }}>
@@ -132,7 +130,6 @@ export default function PiaTab({ user, data }) {
             </div>
           </div>
 
-          {/* CAMPOS ESTRUTURAIS (VEM DO DATA.JS) */}
           {fields.map(f => (
             <div key={f.key} style={CARD}>
               <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 12 }}>
@@ -150,7 +147,6 @@ export default function PiaTab({ user, data }) {
             </div>
           ))}
 
-          {/* ATIVIDADES DETALHADAS */}
           <div style={SL}>📅 Atividades Específicas</div>
           {piaActs.map((act, i) => (
             <div key={i} style={{ ...CARD, borderLeft: `4px solid ${CYN}` }}>
@@ -173,7 +169,6 @@ export default function PiaTab({ user, data }) {
             </div>
           ))}
 
-          {/* BOTÕES DUPLOS DO PIA */}
           <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
             <Btn variant="dark" onClick={() => savePia(false)}>💾 Guardar Privado</Btn>
             <Btn variant="success" onClick={() => savePia(true)}>🚀 Enviar à Teresa</Btn>
@@ -193,10 +188,8 @@ export default function PiaTab({ user, data }) {
             </div>
           </div>
 
-          {/* GRELHA DO SWOT (2X2) */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "20px" }}>
             
-            {/* FORÇAS (Verde) */}
             <div style={{ ...CARD, marginBottom: 0, padding: "12px", borderLeft: "4px solid #4ade80" }}>
               <div style={{ fontSize: 11, fontWeight: 900, color: "#4ade80", marginBottom: 4 }}>💪 FORÇAS</div>
               <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 8 }}>O que corre bem?</div>
@@ -204,11 +197,10 @@ export default function PiaTab({ user, data }) {
                 value={swotPia.f || ""} 
                 onChange={(e) => updateSwot("f", e.target.value)}
                 style={{ ...INP, background: "rgba(0,0,0,0.15)", border: "none", fontSize: "12px", minHeight: "80px", marginBottom: 0 }} 
-                placeholder="Ex: Sou criativo, tenho boa comunicação..." 
+                placeholder="Ex: Sou criativo..." 
               />
             </div>
 
-            {/* FRAQUEZAS (Amarelo) */}
             <div style={{ ...CARD, marginBottom: 0, padding: "12px", borderLeft: "4px solid #fbbf24" }}>
               <div style={{ fontSize: 11, fontWeight: 900, color: "#fbbf24", marginBottom: 4 }}>⚠️ FRAQUEZAS</div>
               <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 8 }}>Onde preciso ajuda?</div>
@@ -216,11 +208,10 @@ export default function PiaTab({ user, data }) {
                 value={swotPia.a || ""} 
                 onChange={(e) => updateSwot("a", e.target.value)}
                 style={{ ...INP, background: "rgba(0,0,0,0.15)", border: "none", fontSize: "12px", minHeight: "80px", marginBottom: 0 }} 
-                placeholder="Ex: Falta de material, pouca paciência..." 
+                placeholder="Ex: Falta material..." 
               />
             </div>
 
-            {/* OPORTUNIDADES (Ciano) */}
             <div style={{ ...CARD, marginBottom: 0, padding: "12px", borderLeft: `4px solid ${CYN}` }}>
               <div style={{ fontSize: 11, fontWeight: 900, color: CYN, marginBottom: 4 }}>🌟 OPORTUN.</div>
               <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 8 }}>O que há lá fora?</div>
@@ -228,11 +219,10 @@ export default function PiaTab({ user, data }) {
                 value={swotPia.o || ""} 
                 onChange={(e) => updateSwot("o", e.target.value)}
                 style={{ ...INP, background: "rgba(0,0,0,0.15)", border: "none", fontSize: "12px", minHeight: "80px", marginBottom: 0 }} 
-                placeholder="Ex: Espaço exterior grande, jovens gostam de desporto..." 
+                placeholder="Ex: Espaço grande..." 
               />
             </div>
 
-            {/* RISCOS (Rosa/Vermelho) */}
             <div style={{ ...CARD, marginBottom: 0, padding: "12px", borderLeft: "4px solid #f43f5e" }}>
               <div style={{ fontSize: 11, fontWeight: 900, color: "#f43f5e", marginBottom: 4 }}>🚨 RISCOS</div>
               <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 8 }}>O que pode falhar?</div>
@@ -240,13 +230,12 @@ export default function PiaTab({ user, data }) {
                 value={swotPia.r || ""} 
                 onChange={(e) => updateSwot("r", e.target.value)}
                 style={{ ...INP, background: "rgba(0,0,0,0.15)", border: "none", fontSize: "12px", minHeight: "80px", marginBottom: 0 }} 
-                placeholder="Ex: Mau tempo, falta de adesão das crianças..." 
+                placeholder="Ex: Mau tempo..." 
               />
             </div>
 
           </div>
 
-          {/* BOTÕES DUPLOS DO SWOT */}
           <div style={{ display: "flex", gap: 10 }}>
             <Btn variant="dark" onClick={() => saveSwot(false)}>💾 Guardar Privado</Btn>
             <Btn variant="success" onClick={() => saveSwot(true)}>🔗 Enviar à Teresa</Btn>
