@@ -141,6 +141,29 @@ export default function TeresaAdmin({ user, onLogout }) {
     alert("Pedido lançado com sucesso!");
   }
 
+// ── FUNÇÃO MÁGICA: ATUALIZAR LEADERBOARD ──
+  async function refreshLeaderboard() {
+    const scores = {};
+    JEEP_LIST.forEach(j => {
+      const d = allShared[j.username] || {};
+      scores[j.username] = {
+        name: j.name,
+        xp: d.weekXp || 0
+      };
+    });
+
+    try {
+      await setDoc(doc(db, "config", "weeklyLeaderboard"), {
+        week: getWeekKey(),
+        scores: scores,
+        lastUpdate: nowLabel()
+      });
+      alert("Tabela de XP atualizada com sucesso! 🏆");
+    } catch (e) {
+      alert("Erro ao atualizar: " + e.message);
+    }
+  }
+  
   // ── FUNÇÃO: MARCAR NOTIFICAÇÃO ADMIN COMO LIDA ──
   async function markAdminNotifAsRead(notifId) {
     await updateDoc(doc(db, "adminNotificacoes", notifId), { lida: true });
