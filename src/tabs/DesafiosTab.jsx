@@ -17,9 +17,11 @@ export default function DesafiosTab({ user, data }) {
   const [mediaFile, setMediaFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   
-  // Estados para submissões da Autoavaliação e Satisfação
+  // Estados para submissões e Trincos de Segurança contra Spam de XP
   const [isSubmittingAuto, setIsSubmittingAuto] = useState(false);
   const [isSubmittingSatisf, setIsSubmittingSatisf] = useState(false);
+  const [localAutoSaved, setLocalAutoSaved] = useState(false);
+  const [localSatisfSaved, setLocalSatisfSaved] = useState(false);
   
   // Estados específicos para Áudio
   const [isRecording, setIsRecording] = useState(false);
@@ -109,9 +111,14 @@ export default function DesafiosTab({ user, data }) {
 
   // ── SUBMISSÃO DA AUTOAVALIAÇÃO ──
   async function submitAutoAvaliacao() {
-    if (uData.autoSaved) return; // Segurança extra contra spam
+    // Se o Firebase diz que já fez, ou se acabou de clicar agora mesmo, bloqueia logo!
+    if (uData.autoSaved || localAutoSaved || isSubmittingAuto) return; 
+    
     setIsSubmittingAuto(true);
     try {
+      // Bloqueia a interface instantaneamente localmente!
+      setLocalAutoSaved(true); 
+
       const newHistory = [...(data.history || []), { 
         date: nowLabel(), 
         action: `Concluiu a Autoavaliação de Competências`, 
@@ -132,17 +139,23 @@ export default function DesafiosTab({ user, data }) {
         ts: Date.now(),
         lida: false
       });
+
     } catch (e) {
-      console.error(e); // Omitimos o alert de erro do Firebase. A UI vai atualizar na mesma.
+      console.error("Erro na submissão:", e);
+      // Se der erro a valer, destranca para ele poder tentar de novo
+      setLocalAutoSaved(false); 
     }
     setIsSubmittingAuto(false);
   }
 
   // ── SUBMISSÃO DA SATISFAÇÃO ──
   async function submitSatisfacao() {
-    if (uData.sSaved) return; // Segurança extra contra spam
+    if (uData.sSaved || localSatisfSaved || isSubmittingSatisf) return;
+    
     setIsSubmittingSatisf(true);
     try {
+      setLocalSatisfSaved(true); // Bloqueio instantâneo
+
       await setDoc(doc(db, "userData", user.username), { 
         sSaved: true,
         sDate: nowLabel()
@@ -157,6 +170,7 @@ export default function DesafiosTab({ user, data }) {
       });
     } catch (e) {
       console.error(e);
+      setLocalSatisfSaved(false);
     }
     setIsSubmittingSatisf(false);
   }
@@ -236,7 +250,7 @@ export default function DesafiosTab({ user, data }) {
       {/* ── 2. AUTOAVALIAÇÃO ── */}
       {subTab === "auto" && (
         <div>
-          {uData.autoSaved ? (
+          {uData.autoSaved || localAutoSaved ? (
             <div style={{ ...CARD, textAlign: "center", padding: "40px 20px" }}>
               <div style={{ fontSize: 40, marginBottom: 10 }}>✅</div>
               <div style={{ fontWeight: 900, color: CYN, fontSize: 18 }}>AVALIAÇÃO ENTREGUE!</div>
@@ -291,7 +305,7 @@ export default function DesafiosTab({ user, data }) {
                 );
               })}
 
-              <Btn onClick={submitAutoAvaliacao} disabled={isSubmittingAuto} variant="success">
+              <Btn onClick={submitAutoAvaliacao} disabled={isSubmittingAuto || localAutoSaved} variant="success">
                 {isSubmittingAuto ? "A GRAVAR..." : "FINALIZAR E ENVIAR"}
               </Btn>
             </>
@@ -302,7 +316,7 @@ export default function DesafiosTab({ user, data }) {
       {/* ── 3. SATISFAÇÃO ── */}
       {subTab === "satisf" && (
         <div>
-          {uData.sSaved ? (
+          {uData.sSaved || localSatisfSaved ? (
             <div style={{ ...CARD, textAlign: "center", padding: "40px 20px" }}>
               <div style={{ fontSize: 40, marginBottom: 10 }}>💖</div>
               <div style={{ fontWeight: 900, color: PNK, fontSize: 18 }}>FEEDBACK ENVIADO!</div>
@@ -340,7 +354,7 @@ export default function DesafiosTab({ user, data }) {
                   }}
                   style={INP} rows={3} placeholder="O que melhorarias no programa JEEP?" 
                 />
-                <Btn color={PNK} onClick={submitSatisfacao} disabled={isSubmittingSatisf}>
+                <Btn color={PNK} onClick={submitSatisfacao} disabled={isSubmittingSatisf || localSatisfSaved}>
                   {isSubmittingSatisf ? "A ENVIAR..." : "SUBMETER AVALIAÇÃO"}
                 </Btn>
               </div>
