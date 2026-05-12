@@ -49,6 +49,9 @@ export default function HomeTab({ user, data, setTab }) {
   const rankingDados = data.leaderboard || {};
   const listaMissoes = data.missions || [];
   const missoesConcluidas = data.completedMissions || [];
+  // ── FILTRAGEM DE TAREFAS (O SEGREDO) ──
+  const tarefasSugestao = listaTarefas.filter(t => t.addedBy === "teresa" && t.accepted === false);
+  const minhasTarefas = listaTarefas.filter(t => t.addedBy !== "teresa" || t.accepted === true);
 
   // ── LÓGICA DO TOP 3 SECRETO (MOTIVAÇÃO SEM PRESSÃO) ──
   // 1. Filtramos os 3 com mais XP
@@ -224,7 +227,23 @@ export default function HomeTab({ user, data, setTab }) {
           ))}
         </div>
       )}
-
+{/* ── TAREFAS SUGERIDAS PELA TERESA ── */}
+      {tarefasSugestao.length > 0 && (
+        <div style={{ ...CARD, background: "rgba(34, 211, 238, 0.1)", border: `1.5px solid ${CYN}` }}>
+          <div style={SL}>📩 Sugestões da Coordenação</div>
+          {tarefasSugestao.map(t => (
+            <div key={t.id} style={{ background: "rgba(0,0,0,0.3)", padding: 15, borderRadius: 18, marginBottom: 10 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 5 }}>{t.text}</div>
+              <div style={{ fontSize: 11, color: CYN, fontWeight: 800, marginBottom: 12 }}>Prazo sugerido: {fmtDate(t.due)}</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={() => aceitarTarefa(t.id)} style={{ flex: 1, background: CYN, color: "#070b14", border: "none", padding: "8px", borderRadius: 10, fontWeight: 900, fontSize: 11, cursor: "pointer" }}>ACEITAR</button>
+                <button onClick={() => recusarTarefa(t.id)} style={{ flex: 1, background: "rgba(244, 63, 94, 0.2)", color: "#f43f5e", border: "none", padding: "8px", borderRadius: 10, fontWeight: 900, fontSize: 11, cursor: "pointer" }}>RECUSAR</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      
       {/* ── SECÇÃO: TAREFAS (COM ADIÇÃO E REMOÇÃO) ── */}
       <div style={CARD}>
         <div style={SL}>✅ A Minha To-Do List</div>
@@ -259,7 +278,7 @@ export default function HomeTab({ user, data, setTab }) {
             Não tens tarefas pendentes. Relaxa ou cria uma nova!
           </div>
         ) : (
-          listaTarefas.sort((a,b) => b.ts - a.ts).map(tarefa => (
+         minhasTarefas.sort((a,b) => b.ts - a.ts).map(tarefa => (
             <div key={tarefa.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
               <div 
                 onClick={() => alternarEstadoTarefa(tarefa)} 
@@ -283,6 +302,9 @@ export default function HomeTab({ user, data, setTab }) {
                 onClick={() => removerTarefa(tarefa.id)} 
                 style={{ background: "none", border: "none", color: "#f43f5e", fontSize: 20, cursor: "pointer", padding: "5px" }}
               >
+                <button onClick={() => partilharTarefa(tarefa.id, tarefa.shared)} style={{ background: "none", border: "none", color: tarefa.shared ? CYN : "#475569", fontSize: 18, cursor: "pointer" }}>
+              {tarefa.shared ? "👁️" : "🙈"}
+            </button>
                 ✕
               </button>
             </div>
@@ -342,6 +364,11 @@ export default function HomeTab({ user, data, setTab }) {
                   onClick={() => removerEvento(evento.id)} 
                   style={{ background: "none", border: "none", color: "#f43f5e", fontSize: 18, cursor: "pointer", opacity: 0.6 }}
                 >
+                  {evento.userId === user.username && (
+              <button onClick={() => partilharEvento(evento.id, evento.shared)} style={{ background: "none", border: "none", color: evento.shared ? CYN : "#475569", fontSize: 18, cursor: "pointer" }}>
+                {evento.shared ? "👁️" : "🙈"}
+              </button>
+            )}
                   ✕
                 </button>
               </div>
