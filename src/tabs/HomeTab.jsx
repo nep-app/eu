@@ -31,10 +31,14 @@ export default function HomeTab({ user, data, setTab }) {
   // ── ESTADOS PARA GESTÃO DE TAREFAS (TO-DO) ──
   const [novaTarefaTexto, setNovaTarefaTexto] = useState("");
   const [novaTarefaData, setNovaTarefaData] = useState("");
+  // Estado da checkbox de partilha da Tarefa
+  const [partilharTarefaCheck, setPartilharTarefaCheck] = useState(false);
 
   // ── ESTADOS PARA GESTÃO DE EVENTOS (AGENDA) ──
   const [novoEventoTitulo, setNovoEventoTitulo] = useState("");
   const [novoEventoData, setNovoEventoData] = useState("");
+  // Estado da checkbox de partilha do Evento
+  const [partilharEventoCheck, setPartilharEventoCheck] = useState(false);
 
   // ── ESTADOS PARA COMUNICAÇÃO COM A TERESA ──
   const [mensagemTexto, setMensagemTexto] = useState("");
@@ -49,13 +53,14 @@ export default function HomeTab({ user, data, setTab }) {
   const rankingDados = data.leaderboard || {};
   const listaMissoes = data.missions || [];
   const missoesConcluidas = data.completedMissions || [];
-  // ── FILTRAGEM DE TAREFAS (O SEGREDO) ──
+
+  // ── FILTRAGEM DE TAREFAS ──
+  // 1. Sugestões da Teresa que ainda não foram aceites nem recusadas
   const tarefasSugestao = listaTarefas.filter(t => t.addedBy === "teresa" && t.accepted === false);
+  // 2. Tarefas do próprio jovem + sugestões da Teresa que já foram aceites
   const minhasTarefas = listaTarefas.filter(t => t.addedBy !== "teresa" || t.accepted === true);
 
   // ── LÓGICA DO TOP 3 SECRETO (MOTIVAÇÃO SEM PRESSÃO) ──
-  // 1. Filtramos os 3 com mais XP
-  // 2. Ordenamos esses 3 por ordem alfabética para esconder quem é o 1º
   const destaquesXp = Object.entries(rankingDados)
     .map(([username, detalhes]) => ({ username, ...detalhes }))
     .sort((a, b) => (b.xp || 0) - (a.xp || 0))
@@ -77,7 +82,7 @@ export default function HomeTab({ user, data, setTab }) {
     acoesPendentes.push({ status: "pending", icon: "🚀", title: "Plano Individual (PIA)", sub: "Desenha o teu projeto", go: () => setTab("pia") });
   }
 
-// ── FUNÇÕES: GESTÃO DE TAREFAS (TO-DO) ──
+  // ── FUNÇÕES: GESTÃO DE TAREFAS (TO-DO) ──
   async function criarNovaTarefa() {
     if (!novaTarefaTexto.trim()) return;
     try {
@@ -86,11 +91,12 @@ export default function HomeTab({ user, data, setTab }) {
         text: novaTarefaTexto,
         due: novaTarefaData,
         done: false,
-        shared: false, // <-- AQUI! Garante que as tarefas começam privadas (🙈)
+        shared: partilharTarefaCheck, // Usa a escolha da checkbox
         ts: Date.now()
       });
       setNovaTarefaTexto(""); 
       setNovaTarefaData("");
+      setPartilharTarefaCheck(false); // Limpa a checkbox depois de criar
     } catch (erro) {
       console.error("Erro ao criar tarefa:", erro);
     }
@@ -107,7 +113,7 @@ export default function HomeTab({ user, data, setTab }) {
           date: nowLabel(), 
           action: `Concluiu a tarefa: ${tarefa.text}`, 
           ts: Date.now(),
-          xp: 5 // <-- Adicionado para o cabeçalho não dar aquele bug dos XP!
+          xp: 5
         };
         await setDoc(doc(db, "userData", user.username), { 
           history: [...historicoAtual, entradaHistorico], 
@@ -130,10 +136,10 @@ export default function HomeTab({ user, data, setTab }) {
     }
   }
 
-  // ── AS 4 FUNÇÕES NOVAS DE PARTILHA E ACEITAÇÃO ENTRAM AQUI ──
-
+  // ── FUNÇÕES: SUGESTÕES DA TERESA ──
   async function aceitarTarefa(id) {
     const ref = doc(db, "todos", user.username, "items", id);
+    // Quando ele aceita, a tarefa passa a ser oficial e fica partilhada
     await updateDoc(ref, { accepted: true, shared: true });
     alert("Tarefa aceite e adicionada à tua lista! 💪");
   }
@@ -142,16 +148,6 @@ export default function HomeTab({ user, data, setTab }) {
     if (window.confirm("Queres mesmo recusar esta sugestão?")) {
       await deleteDoc(doc(db, "todos", user.username, "items", id));
     }
-  }
-
-  async function partilharTarefa(id, estadoAtual) {
-    const ref = doc(db, "todos", user.username, "items", id);
-    await updateDoc(ref, { shared: !estadoAtual });
-  }
-
-  async function partilharEvento(id, estadoAtual) {
-    const ref = doc(db, "events", id);
-    await updateDoc(ref, { shared: !estadoAtual });
   }
 
   // ── FUNÇÕES: GESTÃO DE AGENDA (EVENTOS) ──
@@ -167,10 +163,12 @@ export default function HomeTab({ user, data, setTab }) {
         date: novoEventoData,
         userId: user.username,
         type: "visit",
+        shared: partilharEventoCheck, // Usa a escolha da checkbox
         ts: Date.now()
       });
       setNovoEventoTitulo(""); 
       setNovoEventoData("");
+      setPartilharEventoCheck(false); // Limpa a checkbox depois de criar
     } catch (erro) {
       console.error("Erro ao criar evento:", erro);
     }
@@ -215,7 +213,8 @@ export default function HomeTab({ user, data, setTab }) {
       const entradaHistorico = { 
         date: nowLabel(), 
         action: `Cumpriu a missão: ${missao.text}`, 
-        ts: Date.now() 
+        ts: Date.now(),
+        xp: missao.xp || 10
       };
       await setDoc(doc(db, "userData", user.username), { 
         completedMissions: [...missoesConcluidas, missao.id], 
@@ -253,7 +252,8 @@ export default function HomeTab({ user, data, setTab }) {
           ))}
         </div>
       )}
-{/* ── TAREFAS SUGERIDAS PELA TERESA ── */}
+
+      {/* ── TAREFAS SUGERIDAS PELA TERESA (POR ACEITAR) ── */}
       {tarefasSugestao.length > 0 && (
         <div style={{ ...CARD, background: "rgba(34, 211, 238, 0.1)", border: `1.5px solid ${CYN}` }}>
           <div style={SL}>📩 Sugestões da Coordenação</div>
@@ -269,8 +269,8 @@ export default function HomeTab({ user, data, setTab }) {
           ))}
         </div>
       )}
-      
-      {/* ── SECÇÃO: TAREFAS (COM ADIÇÃO E REMOÇÃO) ── */}
+
+      {/* ── SECÇÃO: TAREFAS (COM ADIÇÃO, REMOÇÃO E CHECKBOX DE PARTILHA) ── */}
       <div style={CARD}>
         <div style={SL}>✅ A Minha To-Do List</div>
         
@@ -289,22 +289,35 @@ export default function HomeTab({ user, data, setTab }) {
               onChange={e => setNovaTarefaData(e.target.value)} 
               style={{ ...INP, flex: 1, marginBottom: 0 }} 
             />
+          </div>
+          
+          {/* CHECKBOX E BOTÃO DE CRIAR TAREFA */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#94a3b8", cursor: "pointer" }}>
+              <input 
+                type="checkbox" 
+                checked={partilharTarefaCheck} 
+                onChange={e => setPartilharTarefaCheck(e.target.checked)}
+                style={{ accentColor: CYN, width: 16, height: 16 }}
+              />
+              Partilhar com Coordenação
+            </label>
             <button 
               onClick={criarNovaTarefa} 
-              style={{ background: CYN, border: "none", borderRadius: 18, padding: "0 25px", fontWeight: 900, cursor: "pointer", color: "#070b14" }}
+              style={{ background: CYN, border: "none", borderRadius: 18, padding: "8px 20px", fontWeight: 900, cursor: "pointer", color: "#070b14", marginLeft: "auto" }}
             >
               ADICIONAR
             </button>
           </div>
         </div>
 
-        {/* Listagem de Tarefas */}
-        {listaTarefas.length === 0 ? (
+        {/* Listagem de Tarefas (Mostra as do Jovem + Sugestões da Teresa que ele Aceitou) */}
+        {minhasTarefas.length === 0 ? (
           <div style={{ textAlign: "center", color: "#94a3b8", fontSize: 13, padding: "15px 0" }}>
             Não tens tarefas pendentes. Relaxa ou cria uma nova!
           </div>
         ) : (
-         minhasTarefas.sort((a,b) => b.ts - a.ts).map(tarefa => (
+          minhasTarefas.sort((a,b) => b.ts - a.ts).map(tarefa => (
             <div key={tarefa.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
               <div 
                 onClick={() => alternarEstadoTarefa(tarefa)} 
@@ -317,7 +330,10 @@ export default function HomeTab({ user, data, setTab }) {
                 {tarefa.done && <span style={{ color: "#070b14", fontWeight: 900, fontSize: 16 }}>✓</span>}
               </div>
               <div style={{ flex: 1, opacity: tarefa.done ? 0.4 : 1, textDecoration: tarefa.done ? "line-through" : "none" }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{tarefa.text}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
+                  {tarefa.text}
+                  {tarefa.shared && <span style={{ fontSize: 9, background: CYN, color: "#000", padding: "2px 5px", borderRadius: 4, marginLeft: 8, verticalAlign: "middle" }}>PARTILHADO</span>}
+                </div>
                 {tarefa.due && (
                   <div style={{ fontSize: 11, color: isOverdue(tarefa.due) ? "#f43f5e" : "#94a3b8", marginTop: 2, fontWeight: 800 }}>
                     LIMITE: {fmtDate(tarefa.due)}
@@ -328,9 +344,6 @@ export default function HomeTab({ user, data, setTab }) {
                 onClick={() => removerTarefa(tarefa.id)} 
                 style={{ background: "none", border: "none", color: "#f43f5e", fontSize: 20, cursor: "pointer", padding: "5px" }}
               >
-                <button onClick={() => partilharTarefa(tarefa.id, tarefa.shared)} style={{ background: "none", border: "none", color: tarefa.shared ? CYN : "#475569", fontSize: 18, cursor: "pointer" }}>
-              {tarefa.shared ? "👁️" : "🙈"}
-            </button>
                 ✕
               </button>
             </div>
@@ -338,7 +351,7 @@ export default function HomeTab({ user, data, setTab }) {
         )}
       </div>
 
-      {/* ── SECÇÃO: AGENDA (COM ADIÇÃO E REMOÇÃO) ── */}
+      {/* ── SECÇÃO: AGENDA (COM ADIÇÃO, REMOÇÃO E CHECKBOX DE PARTILHA) ── */}
       <div style={CARD}>
         <div style={SL}>📅 A Minha Agenda</div>
         
@@ -357,9 +370,22 @@ export default function HomeTab({ user, data, setTab }) {
               onChange={e => setNovoEventoData(e.target.value)} 
               style={{ ...INP, flex: 1, marginBottom: 0 }} 
             />
+          </div>
+
+          {/* CHECKBOX E BOTÃO DE CRIAR EVENTO */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#94a3b8", cursor: "pointer" }}>
+              <input 
+                type="checkbox" 
+                checked={partilharEventoCheck} 
+                onChange={e => setPartilharEventoCheck(e.target.checked)}
+                style={{ accentColor: PNK, width: 16, height: 16 }}
+              />
+              Partilhar com Coordenação
+            </label>
             <button 
               onClick={criarNovoEvento} 
-              style={{ background: PNK, border: "none", borderRadius: 18, padding: "0 25px", fontWeight: 900, cursor: "pointer", color: "#070b14" }}
+              style={{ background: PNK, border: "none", borderRadius: 18, padding: "8px 20px", fontWeight: 900, cursor: "pointer", color: "#070b14", marginLeft: "auto" }}
             >
               CRIAR
             </button>
@@ -383,18 +409,16 @@ export default function HomeTab({ user, data, setTab }) {
                   {EVT_ICONS[evento.type] || "📌"}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{evento.title}</div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>
+                    {evento.title}
+                    {evento.shared && <span style={{ fontSize: 9, background: PNK, color: "#fff", padding: "2px 5px", borderRadius: 4, marginLeft: 8, verticalAlign: "middle" }}>PARTILHADO</span>}
+                  </div>
                   <div style={{ fontSize: 12, color: CYN, fontWeight: 800, marginTop: 2 }}>{fmtDate(evento.date)}</div>
                 </div>
                 <button 
                   onClick={() => removerEvento(evento.id)} 
                   style={{ background: "none", border: "none", color: "#f43f5e", fontSize: 18, cursor: "pointer", opacity: 0.6 }}
                 >
-                  {evento.userId === user.username && (
-              <button onClick={() => partilharEvento(evento.id, evento.shared)} style={{ background: "none", border: "none", color: evento.shared ? CYN : "#475569", fontSize: 18, cursor: "pointer" }}>
-                {evento.shared ? "👁️" : "🙈"}
-              </button>
-            )}
                   ✕
                 </button>
               </div>
