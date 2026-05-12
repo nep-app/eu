@@ -1,58 +1,57 @@
 import React from 'react';
 
-// ── CORES BASE (DEEP SPACE NÉON) ──
-export const BG  = "#070b14"; 
-export const PNK = "#f472b6"; // Rosa (O que estava a faltar e a dar erro!)
-export const PRP = "#a855f7"; // Roxo (Garantia extra caso algum ficheiro peça)
-export const CYN = "#22d3ee"; 
-export const DRK = "#0f172a";
+// ── CORES BASE (LIGHT THEME - BASEADO NOS TEUS PRINTS) ──
+export const BG = "#f8fafc"; // Fundo cinza super claro
+export const PRP = "#a855f7"; // Roxo do cabeçalho
+export const CYN = "#0ea5e9"; // Azul claro/Ciano
+export const PNK = "#f43f5e"; // Rosa/Vermelho para alertas
+export const TXT_MAIN = "#1e293b"; // Texto principal escuro (legível no branco)
+export const TXT_MUT = "#64748b"; // Texto secundário (cinzento)
 
-// ── CORREÇÃO GLOBAL DO BROWSER ──
+// ── CORREÇÃO GLOBAL DO BROWSER (LIGHT MODE) ──
 if (typeof document !== 'undefined') {
   document.body.style.backgroundColor = BG;
   document.body.style.margin = "0";
   document.body.style.padding = "0";
-  document.body.style.fontFamily = "sans-serif";
-  document.body.style.color = "white";
+  document.body.style.fontFamily = "system-ui, -apple-system, sans-serif";
+  document.body.style.color = TXT_MAIN;
   document.documentElement.style.backgroundColor = BG;
 }
 
-// ── O VISUAL GLASSMORPHISM (CLEAN) ──
+// ── O TEU VISUAL CLEAN (CARTÕES BRANCOS) ──
 export const CARD = {
-  background: "rgba(15, 23, 42, 0.6)", 
+  background: "#ffffff", // Cartões totalmente brancos
   borderRadius: 24,
   padding: "20px",
   marginBottom: 16,
-  backdropFilter: "blur(12px)",
-  border: "1px solid rgba(34, 211, 238, 0.15)", 
-  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
-  color: "white",
+  border: "1px solid rgba(0, 0, 0, 0.05)", // Borda super subtil
+  boxShadow: "0 8px 24px rgba(0, 0, 0, 0.04)", // Sombra leve
+  color: TXT_MAIN,
   width: "100%",
   boxSizing: "border-box",
   position: "relative",
   overflow: "hidden"
 };
 
-// ── TÍTULOS DE SECÇÃO (SECTION LABELS) ──
+// ── TÍTULOS DE SECÇÃO ──
 export const SL = {
   fontSize: 11,
   fontWeight: 900,
-  letterSpacing: 2,
+  letterSpacing: 1.5,
   textTransform: "uppercase",
-  color: CYN,
+  color: PRP, // Os títulos voltam ao Roxo
   marginBottom: 12,
-  textShadow: "0 0 10px rgba(34, 211, 238, 0.4)",
   display: "block"
 };
 
-// ── INPUTS (CLEAN & SPACE) ──
+// ── CAMPOS DE TEXTO (INPUTS CLAROS) ──
 export const INP = {
   width: "100%",
   padding: "14px",
   borderRadius: 14,
-  background: "rgba(0, 0, 0, 0.3)",
-  border: "1px solid rgba(255, 255, 255, 0.1)",
-  color: "white",
+  background: "#f1f5f9", // Cinza muito clarinho para diferenciar do fundo branco
+  border: "1px solid #e2e8f0",
+  color: TXT_MAIN,
   fontSize: "14px",
   outline: "none",
   boxSizing: "border-box",
@@ -62,14 +61,14 @@ export const INP = {
   display: "block"
 };
 
-// ── CONFIGURAÇÃO DE PRIORIDADES E STATUS ──
+// ── CONFIGURAÇÃO DE STATUS (NOVO, URGENTE, POR FAZER) ──
 export const PS = {
-  urgent:  { dot: "#f43f5e", bg: "rgba(244, 63, 94, 0.1)", badge: "URGENTE",   bc: "#fb7185", bl: "rgba(244, 63, 94, 0.3)" },
-  pending: { dot: "#fbbf24", bg: "rgba(251, 191, 36, 0.1)", badge: "PENDENTE",  bc: "#fcd34d", bl: "rgba(251, 191, 36, 0.3)" },
-  new:     { dot: CYN,       bg: "rgba(34, 211, 238, 0.1)", badge: "NOVO",      bc: CYN,       bl: "rgba(34, 211, 238, 0.3)" },
+  urgent:  { dot: "#f43f5e", bg: "rgba(244, 63, 94, 0.06)", badge: "URGENTE",   bc: "#f43f5e", bl: "rgba(244, 63, 94, 0.2)" },
+  pending: { dot: "#fbbf24", bg: "rgba(251, 191, 36, 0.06)", badge: "POR FAZER", bc: "#d97706", bl: "rgba(251, 191, 36, 0.3)" },
+  new:     { dot: "#8b5cf6", bg: "rgba(139, 92, 246, 0.06)", badge: "NOVO",      bc: "#8b5cf6", bl: "rgba(139, 92, 246, 0.2)" },
 };
 
-// ── COMPONENTE DO LOGOTIPO ──
+// ── COMPONENTE DO LOGOTIPO (SEM AVISOS VERMELHOS) ──
 export function AppIcon({ size = 64 }) {
   return (
     <div style={{ display: "flex", justifyContent: "center", padding: "10px 0", width: "100%" }}>
@@ -78,32 +77,33 @@ export function AppIcon({ size = 64 }) {
         alt="JEEP EDUCA+" 
         style={{ width: size, height: "auto", objectFit: "contain", display: "block" }}
         onError={(e) => {
+          // Se a imagem falhar, simplesmente desaparece, sem mensagens chatas
           e.target.style.display = 'none';
-          e.target.parentElement.innerHTML = `<div style="color:${CYN}; font-size:10px; border:1px dashed ${CYN}; padding:5px; border-radius:8px">LOGO.PNG EM FALTA</div>`;
         }}
       />
     </div>
   );
 }
 
-// ── MENU DE ABAS (SUBTABS) ──
-export function SubTabs({ options, active, onChange, color = CYN }) {
+// ── MENU DE ABAS (SUBTABS CLAROS) ──
+export function SubTabs({ options, active, onChange, color = PRP }) {
   return (
     <div style={{ 
       display:"flex", gap:4, marginBottom:16, padding:4, 
-      background:"rgba(0,0,0,0.3)", borderRadius:16, 
-      overflowX:"auto", border:"1px solid rgba(255,255,255,0.05)" 
+      background:"#f1f5f9", borderRadius:16, // Fundo cinza claro
+      overflowX:"auto", border:"1px solid #e2e8f0" 
     }}>
       {options.map(opt => {
         let isA = active === opt[0];
         return (
           <button key={opt[0]} onClick={() => onChange(opt[0])}
             style={{ 
-              flex:1, padding:"8px 4px", borderRadius:12, border:"none", 
-              background:isA ? "rgba(255,255,255,0.1)" : "transparent",
-              fontSize:10, fontWeight:700, cursor:"pointer", color:isA ? color : "#64748b",
-              boxShadow:isA ? "0 2px 8px rgba(0,0,0,0.2)" : "none", whiteSpace:"nowrap", minWidth:50,
-              transition: "0.2s"
+              flex:1, padding:"10px 4px", borderRadius:12, border:"none", 
+              background:isA ? "#ffffff" : "transparent", // Ativo fica branco
+              fontSize:11, fontWeight:800, cursor:"pointer", 
+              color:isA ? color : TXT_MUT,
+              boxShadow:isA ? "0 2px 8px rgba(0,0,0,0.05)" : "none", 
+              whiteSpace:"nowrap", minWidth:50, transition: "0.2s"
             }}>
             {opt[1]}
           </button>
@@ -113,8 +113,8 @@ export function SubTabs({ options, active, onChange, color = CYN }) {
   );
 }
 
-// ── BOTÕES NÉON (ENVIO E GUARDAR) ──
-export function Btn({ children, onClick, variant, color = CYN, disabled }) {
+// ── BOTÕES GERAIS (COM VARIANTES PARA O THEME CLARO) ──
+export function Btn({ children, onClick, variant, color = PRP, disabled }) {
   const base = { 
     width: "100%", 
     padding: "14px", 
@@ -133,33 +133,36 @@ export function Btn({ children, onClick, variant, color = CYN, disabled }) {
     gap: "8px"
   };
   
+  // Botão Sucesso (Roxo/Azul)
   if (variant === "success") return (
     <button disabled={disabled} onClick={onClick} style={{ 
       ...base, 
-      background:`linear-gradient(135deg, ${CYN}, #0ea5e9)`, 
-      color:"#0f172a", 
-      boxShadow:`0 4px 14px rgba(34,211,238,0.4)` 
+      background:`linear-gradient(135deg, ${PRP}, ${CYN})`, 
+      color:"#ffffff", 
+      boxShadow:`0 4px 14px rgba(168, 85, 247, 0.3)` 
     }}>
       {children}
     </button>
   );
   
+  // Botão Dark/Privado (Cinza no theme claro)
   if (variant === "dark") return (
     <button disabled={disabled} onClick={onClick} style={{ 
       ...base, 
-      background:"rgba(255,255,255,0.05)", 
-      color:"white", 
-      border:"1px solid rgba(255,255,255,0.1)" 
+      background:"#f1f5f9", 
+      color:TXT_MAIN, 
+      border:"1px solid #e2e8f0" 
     }}>
       {children}
     </button>
   );
   
+  // Botão Padrão
   return (
     <button disabled={disabled} onClick={onClick} style={{ 
       ...base, 
-      background:`linear-gradient(135deg, ${color}, ${color}cc)`, 
-      color:"#0f172a", 
+      background: color, 
+      color:"#ffffff", 
       boxShadow:`0 4px 14px ${color}40` 
     }}>
       {children}
@@ -168,15 +171,15 @@ export function Btn({ children, onClick, variant, color = CYN, disabled }) {
 }
 
 // ── COMPONENTE DE BARRA DE PROGRESSO ──
-export function ProgressBar({ progress, color = CYN }) {
+export function ProgressBar({ progress, color = PRP }) {
   return (
-    <div style={{ width: "100%", height: 8, background: "rgba(0,0,0,0.3)", borderRadius: 10, marginTop: 8, overflow: "hidden" }}>
-      <div style={{ width: `${progress}%`, height: "100%", background: color, boxShadow: `0 0 10px ${color}`, transition: "width 0.5s ease-out" }} />
+    <div style={{ width: "100%", height: 8, background: "#f1f5f9", borderRadius: 10, marginTop: 8, overflow: "hidden" }}>
+      <div style={{ width: `${progress}%`, height: "100%", background: color, transition: "width 0.5s ease-out" }} />
     </div>
   );
 }
 
-// ── RODA DA VIDA (RADAR CHART INTEGRAL) ──
+// ── RODA DA VIDA (ADAPTADA PARA FUNDO BRANCO) ──
 export function RadarChart({ scores, color, prev }) {
   const NR = 7; 
   const CX = 150; 
@@ -199,24 +202,23 @@ export function RadarChart({ scores, color, prev }) {
   return (
     <svg viewBox="0 0 300 300" style={{ width: "100%", maxWidth: 270, display: "block", margin: "0 auto" }}>
       {[0.2, 0.4, 0.6, 0.8, 1.0].map(f => (
-        <polygon key={f} points={polyStr(Array(NR).fill(f))} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1"/>
+        <polygon key={f} points={polyStr(Array(NR).fill(f))} fill="none" stroke="#e2e8f0" strokeWidth="1"/>
       ))}
       {IDS.map((_,i) => { 
         const c = pt(i, 1); 
-        return <line key={i} x1={CX} y1={CY} x2={c[0]} y2={c[1]} stroke="rgba(255,255,255,0.1)" strokeWidth="1"/>; 
+        return <line key={i} x1={CX} y1={CY} x2={c[0]} y2={c[1]} stroke="#e2e8f0" strokeWidth="1"/>; 
       })}
-      {pF && <polygon points={polyStr(pF)} fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeDasharray="4,3"/>}
+      {pF && <polygon points={polyStr(pF)} fill="none" stroke="rgba(168, 85, 247, 0.3)" strokeWidth="1.5" strokeDasharray="4,3"/>}
       <polygon 
         points={polyStr(fracs)} 
         fill={color+"30"} 
         stroke={color} 
         strokeWidth="2.5" 
         strokeLinejoin="round" 
-        filter="drop-shadow(0 0 4px rgba(34, 211, 238, 0.5))"
       />
       {IDS.map((_,i) => { 
         const c = pt(i, fracs[i]); 
-        return <circle key={i} cx={c[0]} cy={c[1]} r="5" fill={color} stroke="#0f172a" strokeWidth="2"/>; 
+        return <circle key={i} cx={c[0]} cy={c[1]} r="5" fill={color} stroke="#ffffff" strokeWidth="2"/>; 
       })}
       {LBL.map((lb,i) => {
         const a = ang(i);
@@ -225,7 +227,7 @@ export function RadarChart({ scores, color, prev }) {
         const anchor = Math.cos(a) > 0.2 ? "start" : Math.cos(a) < -0.2 ? "end" : "middle";
         const baseline = Math.sin(a) > 0.3 ? "hanging" : Math.sin(a) < -0.3 ? "auto" : "middle";
         return (
-          <text key={i} x={lx} y={ly} textAnchor={anchor} dominantBaseline={baseline} fontSize="10" fill="#cbd5e1" fontWeight="700">
+          <text key={i} x={lx} y={ly} textAnchor={anchor} dominantBaseline={baseline} fontSize="10" fill={TXT_MAIN} fontWeight="800">
             {lb}
           </text>
         );
