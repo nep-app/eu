@@ -238,7 +238,7 @@ export default function HomeTab({ user, data, setTab }) {
       {/* ── SECÇÃO: AVISOS DA TERESA ── */}
       {notificacoesAdmin.length > 0 && (
         <div style={{ ...CARD, background: "rgba(244, 114, 182, 0.15)", border: `1.5px solid ${PNK}` }}>
-          <div style={SL}>Mensagens da Coordenação</div>
+          <div style={SL}>Mensagens da Teresa</div>
           {notificacoesAdmin.map(notif => (
             <div key={notif.id} style={{ display: "flex", gap: 12, padding: "14px", background: "rgba(0,0,0,0.4)", borderRadius: 18, marginBottom: 10 }}>
               <div style={{ flex: 1, fontSize: 13, lineHeight: 1.5, color: "#fff" }}>{notif.text}</div>
@@ -256,7 +256,7 @@ export default function HomeTab({ user, data, setTab }) {
       {/* ── TAREFAS SUGERIDAS PELA TERESA (POR ACEITAR) ── */}
       {tarefasSugestao.length > 0 && (
         <div style={{ ...CARD, background: "rgba(34, 211, 238, 0.1)", border: `1.5px solid ${CYN}` }}>
-          <div style={SL}>📩 Sugestões da Coordenação</div>
+          <div style={SL}>📩 Sugestões da Teresa</div>
           {tarefasSugestao.map(t => (
             <div key={t.id} style={{ background: "rgba(0,0,0,0.3)", padding: 15, borderRadius: 18, marginBottom: 10 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 5 }}>{t.text}</div>
@@ -300,7 +300,7 @@ export default function HomeTab({ user, data, setTab }) {
                 onChange={e => setPartilharTarefaCheck(e.target.checked)}
                 style={{ accentColor: CYN, width: 16, height: 16 }}
               />
-              Partilhar com Coordenação
+              Partilhar com a Teresa
             </label>
             <button 
               onClick={criarNovaTarefa} 
@@ -381,7 +381,7 @@ export default function HomeTab({ user, data, setTab }) {
                 onChange={e => setPartilharEventoCheck(e.target.checked)}
                 style={{ accentColor: PNK, width: 16, height: 16 }}
               />
-              Partilhar com Coordenação
+              Partilhar com a Teresa
             </label>
             <button 
               onClick={criarNovoEvento} 
@@ -502,7 +502,7 @@ export default function HomeTab({ user, data, setTab }) {
         </div>
       </div>
 
-      {/* ── SECÇÃO: CONTACTO COM A COORDENAÇÃO ── */}
+      {/* ── SECÇÃO: CONTACTO COM A TERESA ── */}
       <div style={CARD}>
         <div style={SL}>📱 Falar com a Teresa</div>
         <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
