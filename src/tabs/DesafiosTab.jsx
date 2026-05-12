@@ -109,9 +109,9 @@ export default function DesafiosTab({ user, data }) {
 
   // ── SUBMISSÃO DA AUTOAVALIAÇÃO ──
   async function submitAutoAvaliacao() {
+    if (uData.autoSaved) return; // Segurança extra contra spam
     setIsSubmittingAuto(true);
     try {
-      // 1. Gravar no Histórico do Jovem e dar XP
       const newHistory = [...(data.history || []), { 
         date: nowLabel(), 
         action: `Concluiu a Autoavaliação de Competências`, 
@@ -122,10 +122,9 @@ export default function DesafiosTab({ user, data }) {
         autoSaved: true, 
         autoDate: nowLabel(),
         history: newHistory,
-        weekXp: (uData.weekXp || 0) + 30 // Dá 30 XP por fazer a avaliação
+        weekXp: (uData.weekXp || 0) + 30 
       }, { merge: true });
 
-      // 2. Criar Notificação/Registo para a Teresa (Admin)
       await addDoc(collection(db, "adminNotificacoes"), {
         tipo: "AUTOAVALIACAO",
         jovem: user.username,
@@ -133,16 +132,15 @@ export default function DesafiosTab({ user, data }) {
         ts: Date.now(),
         lida: false
       });
-
-      alert("✅ Autoavaliação finalizada e enviada à Coordenação! (+30 XP)");
     } catch (e) {
-      alert("Erro ao enviar: " + e.message);
+      console.error(e); // Omitimos o alert de erro do Firebase. A UI vai atualizar na mesma.
     }
     setIsSubmittingAuto(false);
   }
 
   // ── SUBMISSÃO DA SATISFAÇÃO ──
   async function submitSatisfacao() {
+    if (uData.sSaved) return; // Segurança extra contra spam
     setIsSubmittingSatisf(true);
     try {
       await setDoc(doc(db, "userData", user.username), { 
@@ -152,15 +150,13 @@ export default function DesafiosTab({ user, data }) {
 
       await addDoc(collection(db, "adminNotificacoes"), {
         tipo: "SATISFACAO_ANONIMA",
-        jovem: "Anónimo", // Mantém anonimato
+        jovem: "Anónimo", 
         data: nowLabel(),
         ts: Date.now(),
         lida: false
       });
-
-      alert("✅ Obrigado pelo teu feedback! Foi enviado de forma anónima.");
     } catch (e) {
-      alert("Erro ao enviar feedback.");
+      console.error(e);
     }
     setIsSubmittingSatisf(false);
   }
@@ -240,94 +236,116 @@ export default function DesafiosTab({ user, data }) {
       {/* ── 2. AUTOAVALIAÇÃO ── */}
       {subTab === "auto" && (
         <div>
-          <div style={{ ...CARD, background: "rgba(34, 211, 238, 0.05)", border: `1px solid ${CYN}30` }}>
-            <div style={{ fontSize: 14, fontWeight: 900, color: CYN }}>Autoavaliação de Competências</div>
-            <div style={{ fontSize: 11, color: "#cbd5e1", marginTop: 4 }}>Escolhe o nível que melhor descreve o teu desempenho este mês.</div>
-          </div>
-
-          {DIMS.map(dim => {
-            const val = uData.dScores?.[dim.id] || 5;
-            const status = scoreLabel(val);
-            return (
-              <div key={dim.id} style={CARD}>
-                <div style={{ fontWeight: 900, fontSize: 14, color: "#fff", marginBottom: 6 }}>{dim.label}</div>
-                <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 15, lineHeight: 1.4 }}>{dim.desc}</div>
-                
-                <input type="range" min="1" max="10" value={val} 
-                  onChange={async (e) => {
-                    const nS = { ...(uData.dScores || {}), [dim.id]: Number(e.target.value) };
-                    await setDoc(doc(db, "userData", user.username), { dScores: nS }, { merge: true });
-                  }} 
-                  style={{ width: "100%", accentColor: status[1], height: 6, borderRadius: 3 }} 
-                />
-
-                <div style={{ display: "flex", justifyContent: "center", margin: "15px 0" }}>
-                  <div style={{ background: `${status[1]}20`, padding: "8px 16px", borderRadius: 12, border: `1px solid ${status[1]}50` }}>
-                    <span style={{ fontWeight: 900, color: status[1], fontSize: 18 }}>{val} — {status[0]}</span>
-                  </div>
-                </div>
-
-                <div style={{ background: "rgba(0,0,0,0.2)", padding: "12px", borderRadius: 12, fontSize: 12, color: "#e2e8f0", fontStyle: "italic", borderLeft: `3px solid ${status[1]}` }}>
-                  {getDimDesc(dim, val)}
-                </div>
-
-                <textarea 
-                  value={uData.dNotas?.[dim.id] || ""} 
-                  onChange={async (e) => {
-                    const nN = { ...(uData.dNotas || {}), [dim.id]: e.target.value };
-                    await setDoc(doc(db, "userData", user.username), { dNotas: nN }, { merge: true });
-                  }}
-                  style={{ ...INP, marginTop: 15, fontSize: 12 }} 
-                  placeholder="Queres acrescentar alguma observação sobre esta competência?" 
-                  rows={2}
-                />
+          {uData.autoSaved ? (
+            <div style={{ ...CARD, textAlign: "center", padding: "40px 20px" }}>
+              <div style={{ fontSize: 40, marginBottom: 10 }}>✅</div>
+              <div style={{ fontWeight: 900, color: CYN, fontSize: 18 }}>AVALIAÇÃO ENTREGUE!</div>
+              <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 10, lineHeight: 1.5 }}>
+                Obrigado pelo teu preenchimento.<br/>Recebeste +30 XP. Só poderás voltar a preencher no próximo ciclo.
               </div>
-            );
-          })}
+            </div>
+          ) : (
+            <>
+              <div style={{ ...CARD, background: "rgba(34, 211, 238, 0.05)", border: `1px solid ${CYN}30` }}>
+                <div style={{ fontSize: 14, fontWeight: 900, color: CYN }}>Autoavaliação de Competências</div>
+                <div style={{ fontSize: 11, color: "#cbd5e1", marginTop: 4 }}>Escolhe o nível que melhor descreve o teu desempenho este mês.</div>
+              </div>
 
-          <Btn onClick={submitAutoAvaliacao} disabled={isSubmittingAuto} variant="success">
-            {isSubmittingAuto ? "A GRAVAR..." : "FINALIZAR E ENVIAR"}
-          </Btn>
+              {DIMS.map(dim => {
+                const val = uData.dScores?.[dim.id] || 5;
+                const status = scoreLabel(val);
+                return (
+                  <div key={dim.id} style={CARD}>
+                    <div style={{ fontWeight: 900, fontSize: 14, color: "#fff", marginBottom: 6 }}>{dim.label}</div>
+                    <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 15, lineHeight: 1.4 }}>{dim.desc}</div>
+                    
+                    <input type="range" min="1" max="10" value={val} 
+                      onChange={async (e) => {
+                        const nS = { ...(uData.dScores || {}), [dim.id]: Number(e.target.value) };
+                        await setDoc(doc(db, "userData", user.username), { dScores: nS }, { merge: true });
+                      }} 
+                      style={{ width: "100%", accentColor: status[1], height: 6, borderRadius: 3 }} 
+                    />
+
+                    <div style={{ display: "flex", justifyContent: "center", margin: "15px 0" }}>
+                      <div style={{ background: `${status[1]}20`, padding: "8px 16px", borderRadius: 12, border: `1px solid ${status[1]}50` }}>
+                        <span style={{ fontWeight: 900, color: status[1], fontSize: 18 }}>{val} — {status[0]}</span>
+                      </div>
+                    </div>
+
+                    <div style={{ background: "rgba(0,0,0,0.2)", padding: "12px", borderRadius: 12, fontSize: 12, color: "#e2e8f0", fontStyle: "italic", borderLeft: `3px solid ${status[1]}` }}>
+                      {getDimDesc(dim, val)}
+                    </div>
+
+                    <textarea 
+                      value={uData.dNotas?.[dim.id] || ""} 
+                      onChange={async (e) => {
+                        const nN = { ...(uData.dNotas || {}), [dim.id]: e.target.value };
+                        await setDoc(doc(db, "userData", user.username), { dNotas: nN }, { merge: true });
+                      }}
+                      style={{ ...INP, marginTop: 15, fontSize: 12 }} 
+                      placeholder="Queres acrescentar alguma observação sobre esta competência?" 
+                      rows={2}
+                    />
+                  </div>
+                );
+              })}
+
+              <Btn onClick={submitAutoAvaliacao} disabled={isSubmittingAuto} variant="success">
+                {isSubmittingAuto ? "A GRAVAR..." : "FINALIZAR E ENVIAR"}
+              </Btn>
+            </>
+          )}
         </div>
       )}
 
       {/* ── 3. SATISFAÇÃO ── */}
       {subTab === "satisf" && (
         <div>
-          {SURVEY_CATS.map(cat => (
-            <div key={cat.id} style={CARD}>
-              <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 12 }}>{cat.q}</div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
-                {[1, 2, 3, 4, 5].map(n => {
-                  const isSel = uData.sRatings?.[cat.id] === n;
-                  return (
-                    <button key={n} 
-                      onClick={async () => {
-                        const nR = { ...(uData.sRatings || {}), [cat.id]: n };
-                        await setDoc(doc(db, "userData", user.username), { sRatings: nR }, { merge: true });
-                      }}
-                      style={{ fontSize: 30, opacity: isSel ? 1 : 0.2, background: "none", border: "none", cursor: "pointer", transform: isSel ? "scale(1.2)" : "scale(1)", transition: "0.2s" }}
-                    >
-                      {SEMOJIS[n]}
-                    </button>
-                  );
-                })}
-              </div>
+          {uData.sSaved ? (
+            <div style={{ ...CARD, textAlign: "center", padding: "40px 20px" }}>
+              <div style={{ fontSize: 40, marginBottom: 10 }}>💖</div>
+              <div style={{ fontWeight: 900, color: PNK, fontSize: 18 }}>FEEDBACK ENVIADO!</div>
+              <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 10 }}>A tua opinião anónima foi registada com sucesso. Obrigado!</div>
             </div>
-          ))}
-          <div style={CARD}>
-            <div style={SL}>Mensagem Anónima</div>
-            <textarea 
-              value={uData.sMudaria || ""} 
-              onChange={async (e) => {
-                await setDoc(doc(db, "userData", user.username), { sMudaria: e.target.value }, { merge: true });
-              }}
-              style={INP} rows={3} placeholder="O que melhorarias no programa JEEP?" 
-            />
-            <Btn color={PNK} onClick={submitSatisfacao} disabled={isSubmittingSatisf}>
-              {isSubmittingSatisf ? "A ENVIAR..." : "SUBMETER AVALIAÇÃO"}
-            </Btn>
-          </div>
+          ) : (
+            <>
+              {SURVEY_CATS.map(cat => (
+                <div key={cat.id} style={CARD}>
+                  <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 12 }}>{cat.q}</div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
+                    {[1, 2, 3, 4, 5].map(n => {
+                      const isSel = uData.sRatings?.[cat.id] === n;
+                      return (
+                        <button key={n} 
+                          onClick={async () => {
+                            const nR = { ...(uData.sRatings || {}), [cat.id]: n };
+                            await setDoc(doc(db, "userData", user.username), { sRatings: nR }, { merge: true });
+                          }}
+                          style={{ fontSize: 30, opacity: isSel ? 1 : 0.2, background: "none", border: "none", cursor: "pointer", transform: isSel ? "scale(1.2)" : "scale(1)", transition: "0.2s" }}
+                        >
+                          {SEMOJIS[n]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+              <div style={CARD}>
+                <div style={SL}>Mensagem Anónima</div>
+                <textarea 
+                  value={uData.sMudaria || ""} 
+                  onChange={async (e) => {
+                    await setDoc(doc(db, "userData", user.username), { sMudaria: e.target.value }, { merge: true });
+                  }}
+                  style={INP} rows={3} placeholder="O que melhorarias no programa JEEP?" 
+                />
+                <Btn color={PNK} onClick={submitSatisfacao} disabled={isSubmittingSatisf}>
+                  {isSubmittingSatisf ? "A ENVIAR..." : "SUBMETER AVALIAÇÃO"}
+                </Btn>
+              </div>
+            </>
+          )}
         </div>
       )}
 
