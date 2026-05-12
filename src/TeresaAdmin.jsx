@@ -203,19 +203,35 @@ export default function TeresaAdmin({ user, onLogout }) {
     setReplyTxt(""); setReplyTo(null);
   }
 
-  async function reactPost(pid, reaction) {
+async function reactPost(pid, reaction) {
     const cur = (posts[channel]||[]).find(p => p.id === pid);
     if (!cur) return;
     let rcts = { ...cur.reactions }; let rBy = { ...cur.reactedBy };
     let who = rBy[reaction] || [];
+    let isAdding = false;
+
     if (who.includes("admin")) { 
       rcts[reaction] = Math.max(0, (rcts[reaction]||1)-1); 
       rBy[reaction] = who.filter(u=>u!=="admin"); 
     } else { 
       rcts[reaction] = (rcts[reaction]||0)+1; 
       rBy[reaction] = [...who, "admin"]; 
+      isAdding = true; // A Teresa acabou de reagir!
     }
     await updateDoc(doc(db, "forum", channel, "posts", pid), { reactions:rcts, reactedBy:rBy });
+
+    // SE A TERESA REAGIU A UM JOVEM (e não a ela própria), DÁ-LHE 10 XP!
+    if (isAdding && cur.user !== "Teresa (GO)") {
+       const author = JEEP_LIST.find(x => x.name === cur.user);
+       if (author) {
+           const userRef = doc(db, "userData", author.username);
+           const userSnap = await getDoc(userRef);
+           const uData = userSnap.exists() ? userSnap.data() : {};
+           
+           const newHistory = [...(uData.history || []), { date: nowLabel(), action: `A Teresa reagiu ao teu post! ❤️`, ts: Date.now(), xp: 10 }];
+           await setDoc(userRef, { history: newHistory, weekXp: (uData.weekXp || 0) + 10 }, { merge: true });
+       }
+    }
   }
 
   // ── FUNÇÕES ADMIN GERAIS ──
@@ -262,12 +278,24 @@ export default function TeresaAdmin({ user, onLogout }) {
     if(window.confirm("Apagar?")) await deleteDoc(doc(db, "missions", id)); 
   }
 
-  async function toggleAMedal(jn, mid) {
+async function toggleAMedal(jn, mid) {
     const j = JEEP_LIST.find(x=>x.name===jn); if(!j) return;
     const cur = amMedals[jn]||[];
-    const next = cur.includes(mid) ? cur.filter(m=>m!==mid) : [...cur, mid];
+    const isAdding = !cur.includes(mid); // Descobre se a Teresa está a dar ou a tirar a medalha
+    
+    const next = isAdding ? [...cur, mid] : cur.filter(m=>m!==mid);
     setAmMedals(p=>upd(p,jn,next)); 
     await setDoc(doc(db,"medals",j.username),{list:next});
+
+    // SE A TERESA DEU A MEDALHA, CHUVA DE XP! (ex: 50 XP)
+    if (isAdding) {
+      const userRef = doc(db, "userData", j.username);
+      const userSnap = await getDoc(userRef);
+      const uData = userSnap.exists() ? userSnap.data() : {};
+      
+      const newHistory = [...(uData.history || []), { date: nowLabel(), action: `Conquistaste uma nova Medalha! 🏅`, ts: Date.now(), xp: 50 }];
+      await setDoc(userRef, { history: newHistory, weekXp: (uData.weekXp || 0) + 50 }, { merge: true });
+    }
   }
 
   // ── CONSTANTES DE UI ──
