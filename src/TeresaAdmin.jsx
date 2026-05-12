@@ -78,6 +78,9 @@ export default function TeresaAdmin({ user, onLogout }) {
   const [adminMissionXp, setAdminMissionXp] = useState(10);
   const [leaderboard, setLeaderboard] = useState({});
 
+  // ── NOVO ESTADO: NOTIFICAÇÕES ADMIN ──
+  const [adminNotifs, setAdminNotifs] = useState([]);
+
   // ── EFFECT: MONITORIZAÇÃO GLOBAL ──
   useEffect(() => {
     const unsubs = ALLOWED_USERNAMES.map(uname => {
@@ -101,10 +104,15 @@ export default function TeresaAdmin({ user, onLogout }) {
       } 
     });
     
+    // NOVO LISTENER: NOTIFICAÇÕES ADMIN
+    const uNotifs = onSnapshot(query(collection(db, "adminNotificacoes"), orderBy("ts", "desc")), snap => {
+      setAdminNotifs(snap.docs.map(d => ({id:d.id, ...d.data()})));
+    });
+
     ALLOWED_USERNAMES.forEach(u => getDoc(doc(db, "users", u)).then(s => { if(s.exists()) setUserGdpr(p => upd(p, u, s.data())); }));
     JEEP_LIST.forEach(j => getDoc(doc(db, "medals", j.username)).then(s => { if(s.exists()) setAmMedals(p => upd(p, j.name, s.data().list||[])); }));
     
-    return () => { unsubs.forEach(u=>u()); uM(); uS(); uE(); uL(); uMi(); uQ(); };
+    return () => { unsubs.forEach(u=>u()); uM(); uS(); uE(); uL(); uMi(); uQ(); uNotifs(); };
   }, []);
 
   // ── EFFECT: FÓRUM POR CANAL ──
@@ -131,6 +139,11 @@ export default function TeresaAdmin({ user, onLogout }) {
       });
     }
     alert("Pedido lançado com sucesso!");
+  }
+
+  // ── FUNÇÃO: MARCAR NOTIFICAÇÃO ADMIN COMO LIDA ──
+  async function markAdminNotifAsRead(notifId) {
+    await updateDoc(doc(db, "adminNotificacoes", notifId), { lida: true });
   }
 
   // ── FUNÇÕES DO FÓRUM ──
@@ -235,8 +248,11 @@ export default function TeresaAdmin({ user, onLogout }) {
   }
 
   // ── CONSTANTES DE UI ──
+  const unreadNotifsCount = adminNotifs.filter(n => !n.lida).length;
+
   const ADMIN_TABS = [
-    ["geral","📊 Geral"],["mural","🌐 Fórum"],["partilhas","📂 Partilhas"],
+    ["geral", unreadNotifsCount > 0 ? `📊 Geral (${unreadNotifsCount})` : "📊 Geral"],
+    ["mural","🌐 Fórum"],["partilhas","📂 Partilhas"],
     ["tasks","✅ Tarefas"],["agenda","📅 Agenda"],["missoes","🎯 Missões"],
     ["msgs","💬 Msgs"],["users","👥 Utilizadores"]
   ];
@@ -303,7 +319,6 @@ export default function TeresaAdmin({ user, onLogout }) {
               })}
             </div>
 
-            {/* CORREÇÃO: Descritivo do Canal como Legenda */}
             <div style={{ 
               ...CARD, background:"rgba(34, 211, 238, 0.05)", 
               borderLeft:`4px solid ${CYN}`, padding:"15px", marginBottom:20 
@@ -417,9 +432,39 @@ export default function TeresaAdmin({ user, onLogout }) {
           </div>
         )}
 
-        {/* ── TAB: GERAL (XP, PERGUNTA, PEDIDOS) ── */}
+        {/* ── TAB: GERAL (NOTIFICAÇÕES, XP, PERGUNTA, PEDIDOS) ── */}
         {adminTab === "geral" && (
           <div>
+            
+            {/* NOVO: BLOCO DE NOTIFICAÇÕES */}
+            {adminNotifs.length > 0 && (
+              <div style={{ ...CARD, background:"rgba(239, 68, 68, 0.05)", border:`1px solid rgba(239, 68, 68, 0.2)` }}>
+                <div style={{ ...SL, color:"#ef4444" }}>🔔 Alertas Recentes</div>
+                <div style={{ maxHeight:200, overflowY:"auto", paddingRight:5 }}>
+                  {adminNotifs.slice(0, 10).map(n => (
+                    <div key={n.id} style={{ 
+                      display:"flex", justifyContent:"space-between", alignItems:"center", 
+                      padding:"10px", background:"rgba(0,0,0,0.2)", borderRadius:12, 
+                      marginBottom:8, borderLeft:n.lida ? "none" : `3px solid #ef4444` 
+                    }}>
+                      <div>
+                        <div style={{ fontSize:11, color:"#94a3b8" }}>{n.data}</div>
+                        <div style={{ fontSize:13, fontWeight:700, color:n.lida?"#cbd5e1":"white" }}>
+                          {n.tipo === "AUTOAVALIACAO" ? `📊 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} entregou a Autoavaliação.` : `😊 Recebeste uma nova Avaliação de Satisfação Anónima.`}
+                        </div>
+                      </div>
+                      {!n.lida && (
+                        <button onClick={() => markAdminNotifAsRead(n.id)} style={{ 
+                          background:"none", border:"1px solid #ef4444", color:"#ef4444", 
+                          borderRadius:8, padding:"4px 8px", fontSize:11, cursor:"pointer", fontWeight:800 
+                        }}>Lido</button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div style={CARD}>
               <div style={SL}>Lançar Pedidos aos Jovens</div>
               <div style={{ display:"flex", gap:8, marginBottom:10 }}>
@@ -494,6 +539,7 @@ export default function TeresaAdmin({ user, onLogout }) {
                     <div style={{ width:12, height:12, borderRadius:"50%", background:jInfo?jInfo.color:"#94a3b8" }}/>
                     <div style={{ flex:1, fontSize:15, fontWeight:800 }}>{jInfo?jInfo.name:uname}</div>
                     <div style={{ display:"flex", gap:5 }}>
+                      {d.autoSaved && <span style={{ fontSize:9, background:"#ef4444", color:"#fff", padding:"2px 6px", borderRadius:6 }}>AUTO</span>}
                       {d.piaShared && <span style={{ fontSize:9, background:PNK, color:"#fff", padding:"2px 6px", borderRadius:6 }}>PIA</span>}
                       {d.swotShared && <span style={{ fontSize:9, background:CYN, color:"#0f172a", padding:"2px 6px", borderRadius:6 }}>SWOT</span>}
                     </div>
@@ -501,6 +547,25 @@ export default function TeresaAdmin({ user, onLogout }) {
                   </div>
                   {isOpen && (
                     <div style={{ marginTop:15, borderTop:"1px solid rgba(255,255,255,0.05)", paddingTop:15 }}>
+                      
+                      {/* NOVO: VISUALIZAR A AUTOAVALIAÇÃO DO JOVEM */}
+                      {d.autoSaved && d.dScores && (
+                        <div style={{ marginBottom:20, background:"rgba(0,0,0,0.2)", padding:15, borderRadius:12 }}>
+                           <div style={{ ...SL, color:"#ef4444", fontSize:11 }}>📊 Autoavaliação Mensal</div>
+                           {Object.keys(d.dScores).map(dimId => (
+                             <div key={dimId} style={{ marginBottom:10, borderBottom:"1px solid rgba(255,255,255,0.05)", paddingBottom:5 }}>
+                               <div style={{ fontSize:12, fontWeight:800, color:CYN }}>{dimId.toUpperCase()}</div>
+                               <div style={{ display:"flex", justifyContent:"space-between", fontSize:13 }}>
+                                 <span>Nota: <strong style={{ color:"white" }}>{d.dScores[dimId]}</strong></span>
+                               </div>
+                               {d.dNotas && d.dNotas[dimId] && (
+                                 <div style={{ fontSize:11, color:"#94a3b8", marginTop:4, fontStyle:"italic" }}>"{d.dNotas[dimId]}"</div>
+                               )}
+                             </div>
+                           ))}
+                        </div>
+                      )}
+
                       {d.piaShared && d.pia && (
                         <div style={{ marginBottom:15 }}>
                           <div style={{ ...SL, color:PNK, fontSize:10 }}>Plano Individual (PIA)</div>
