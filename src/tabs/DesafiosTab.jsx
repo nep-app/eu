@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, collection, addDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../firebase.js";
 import { CARD, SL, CYN, PNK, INP, Btn, SubTabs } from "../theme.jsx";
@@ -16,6 +16,10 @@ export default function DesafiosTab({ user, data }) {
   const [cmode, setCmode] = useState("texto");
   const [mediaFile, setMediaFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  
+  // Estados para submissões da Autoavaliação e Satisfação
+  const [isSubmittingAuto, setIsSubmittingAuto] = useState(false);
+  const [isSubmittingSatisf, setIsSubmittingSatisf] = useState(false);
   
   // Estados específicos para Áudio
   const [isRecording, setIsRecording] = useState(false);
@@ -42,7 +46,6 @@ export default function DesafiosTab({ user, data }) {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         const url = URL.createObjectURL(audioBlob);
         setAudioURL(url);
-        // Prepara o ficheiro para upload
         setMediaFile(new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' }));
       };
 
@@ -57,12 +60,11 @@ export default function DesafiosTab({ user, data }) {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      // Desliga o microfone
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
     }
   }
 
-  // ── SUBMISSÃO DA RESPOSTA ──
+  // ── SUBMISSÃO DA PERGUNTA SEMANAL ──
   async function submitAnswer() {
     if (!aTxt && !mediaFile && cmode !== "mood") {
       return alert("Por favor, escreve algo ou grava um áudio antes de enviar.");
@@ -87,7 +89,6 @@ export default function DesafiosTab({ user, data }) {
 
       await setDoc(doc(db, "userData", user.username), payload, { merge: true });
       
-      // Adicionar log ao histórico e dar XP
       const newHistory = [...(data.history || []), { 
         date: nowLabel(), 
         action: `Respondeu à pergunta (${cmode})`, 
@@ -105,6 +106,65 @@ export default function DesafiosTab({ user, data }) {
     }
     setIsUploading(false);
   }
+
+  // ── SUBMISSÃO DA AUTOAVALIAÇÃO ──
+  async function submitAutoAvaliacao() {
+    setIsSubmittingAuto(true);
+    try {
+      // 1. Gravar no Histórico do Jovem e dar XP
+      const newHistory = [...(data.history || []), { 
+        date: nowLabel(), 
+        action: `Concluiu a Autoavaliação de Competências`, 
+        ts: Date.now() 
+      }];
+      
+      await setDoc(doc(db, "userData", user.username), { 
+        autoSaved: true, 
+        autoDate: nowLabel(),
+        history: newHistory,
+        weekXp: (uData.weekXp || 0) + 30 // Dá 30 XP por fazer a avaliação
+      }, { merge: true });
+
+      // 2. Criar Notificação/Registo para a Teresa (Admin)
+      await addDoc(collection(db, "adminNotificacoes"), {
+        tipo: "AUTOAVALIACAO",
+        jovem: user.username,
+        data: nowLabel(),
+        ts: Date.now(),
+        lida: false
+      });
+
+      alert("✅ Autoavaliação finalizada e enviada à Coordenação! (+30 XP)");
+    } catch (e) {
+      alert("Erro ao enviar: " + e.message);
+    }
+    setIsSubmittingAuto(false);
+  }
+
+  // ── SUBMISSÃO DA SATISFAÇÃO ──
+  async function submitSatisfacao() {
+    setIsSubmittingSatisf(true);
+    try {
+      await setDoc(doc(db, "userData", user.username), { 
+        sSaved: true,
+        sDate: nowLabel()
+      }, { merge: true });
+
+      await addDoc(collection(db, "adminNotificacoes"), {
+        tipo: "SATISFACAO_ANONIMA",
+        jovem: "Anónimo", // Mantém anonimato
+        data: nowLabel(),
+        ts: Date.now(),
+        lida: false
+      });
+
+      alert("✅ Obrigado pelo teu feedback! Foi enviado de forma anónima.");
+    } catch (e) {
+      alert("Erro ao enviar feedback.");
+    }
+    setIsSubmittingSatisf(false);
+  }
+
 
   return (
     <div style={{ padding: "18px 16px" }}>
@@ -225,10 +285,9 @@ export default function DesafiosTab({ user, data }) {
             );
           })}
 
-          <Btn onClick={async () => {
-            await setDoc(doc(db, "userData", user.username), { autoSaved: true, autoDate: nowLabel() }, { merge: true });
-            alert("Autoavaliação finalizada! Bom trabalho.");
-          }}>FINALIZAR E ENVIAR</Btn>
+          <Btn onClick={submitAutoAvaliacao} disabled={isSubmittingAuto} variant="success">
+            {isSubmittingAuto ? "A GRAVAR..." : "FINALIZAR E ENVIAR"}
+          </Btn>
         </div>
       )}
 
@@ -265,10 +324,9 @@ export default function DesafiosTab({ user, data }) {
               }}
               style={INP} rows={3} placeholder="O que melhorarias no programa JEEP?" 
             />
-            <Btn color={PNK} onClick={async () => {
-              await setDoc(doc(db, "userData", user.username), { sSaved: true }, { merge: true });
-              alert("Obrigado pelo teu feedback anónimo!");
-            }}>SUBMETER AVALIAÇÃO</Btn>
+            <Btn color={PNK} onClick={submitSatisfacao} disabled={isSubmittingSatisf}>
+              {isSubmittingSatisf ? "A ENVIAR..." : "SUBMETER AVALIAÇÃO"}
+            </Btn>
           </div>
         </div>
       )}
