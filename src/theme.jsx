@@ -1,11 +1,10 @@
 import React from 'react';
 
 // ── CORES BASE (SOFT DARK MODE) ──
-// Em vez de preto absoluto, usamos um azul-acinzentado escuro e macio.
 export const BG  = "#1e293b"; 
-export const PRP = "#a855f7"; // Roxo do teu logo (para títulos e botões principais)
-export const CYN = "#38bdf8"; // Azul/Ciano (para destaques)
-export const PNK = "#f472b6"; // Rosa (mantido aqui para não crashar a Teresa)
+export const PRP = "#a855f7"; 
+export const CYN = "#38bdf8"; 
+export const PNK = "#f472b6"; 
 export const TXT_MAIN = "#f8fafc"; 
 export const TXT_MUT = "#94a3b8"; 
 
@@ -19,18 +18,18 @@ if (typeof document !== 'undefined') {
   document.documentElement.style.backgroundColor = BG;
 }
 
-// ── O VISUAL GLASSMORPHISM (ELEGANT & SOFT) ──
+// ── CARTÕES (CORRIGIDO ALINHAMENTO) ──
 export const CARD = {
-  background: "rgba(30, 41, 59, 0.7)", // Transparência suave no mesmo tom do fundo
+  background: "rgba(30, 41, 59, 0.7)", 
   borderRadius: 24,
   padding: "20px",
-  marginBottom: 16,
+  margin: "0 0 16px 0", // Margem fixa para não entortar
   backdropFilter: "blur(12px)",
-  border: "1px solid rgba(255, 255, 255, 0.08)", // Borda fina e clara
-  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)", // Sombra reduzida, menos pesada
+  border: "1px solid rgba(255, 255, 255, 0.08)", 
+  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)", 
   color: TXT_MAIN,
   width: "100%",
-  boxSizing: "border-box",
+  boxSizing: "border-box", // Obriga a respeitar a largura
   position: "relative",
   overflow: "hidden"
 };
@@ -41,26 +40,26 @@ export const SL = {
   fontWeight: 900,
   letterSpacing: 2,
   textTransform: "uppercase",
-  color: PRP, // Roxo elegante
+  color: PRP, 
   marginBottom: 12,
-  textShadow: "0 0 10px rgba(168, 85, 247, 0.2)", // Brilho muito reduzido
+  textShadow: "0 0 10px rgba(168, 85, 247, 0.2)", 
   display: "block"
 };
 
-// ── CAMPOS DE TEXTO (INPUTS) ──
+// ── CAMPOS DE TEXTO E LOGIN (CORRIGIDO CAIXAS TORTAS) ──
 export const INP = {
   width: "100%",
   padding: "14px",
   borderRadius: 14,
-  background: "rgba(15, 23, 42, 0.4)", // Fundo do input ligeiramente mais escuro que o cartão
+  background: "rgba(15, 23, 42, 0.4)", 
   border: "1px solid rgba(255, 255, 255, 0.1)",
   color: TXT_MAIN,
   fontSize: "14px",
   outline: "none",
-  boxSizing: "border-box",
+  boxSizing: "border-box", // É ISTO QUE IMPEDE AS CAIXAS DE FICAREM TORTAS
   fontFamily: "inherit",
   transition: "all 0.2s ease",
-  marginBottom: "12px",
+  margin: "0 0 12px 0", // Margem inferior fixa
   display: "block"
 };
 
@@ -71,26 +70,30 @@ export const PS = {
   new:     { dot: PRP,       bg: "rgba(168, 85, 247, 0.15)", badge: "NOVO",     bc: PRP,       bl: "rgba(168, 85, 247, 0.3)" },
 };
 
-// ── COMPONENTE DO LOGOTIPO ──
+// ── LOGO (TRUQUE VITE PARA GITHUB PAGES) ──
 export function AppIcon({ size = 70 }) {
+  // O import.meta.env.BASE_URL descobre o caminho correto no GitHub Pages sozinho!
+  const logoPath = `${import.meta.env.BASE_URL}logo.png`;
+  
   return (
     <div style={{ display: "flex", justifyContent: "center", padding: "10px 0", width: "100%" }}>
       <img 
-        src="./logo.png" 
+        src={logoPath} 
         alt="JEEP EDUCA+" 
-        style={{ width: size, height: "auto", objectFit: "contain", display: "block" }}
+        style={{ width: size, height: "auto", objectFit: "contain", display: "block", margin: "0 auto" }}
       />
     </div>
   );
 }
 
-// ── MENU DE ABAS (SUBTABS) ──
+// ── MENU DE ABAS ──
 export function SubTabs({ options, active, onChange, color = PRP }) {
   return (
     <div style={{ 
       display:"flex", gap:4, marginBottom:16, padding:4, 
       background:"rgba(15, 23, 42, 0.4)", borderRadius:16, 
-      overflowX:"auto", border:"1px solid rgba(255,255,255,0.05)" 
+      overflowX:"auto", border:"1px solid rgba(255,255,255,0.05)",
+      boxSizing: "border-box"
     }}>
       {options.map(opt => {
         let isA = active === opt[0];
@@ -112,7 +115,7 @@ export function SubTabs({ options, active, onChange, color = PRP }) {
   );
 }
 
-// ── BOTÕES GERAIS COM VARIANTES ──
+// ── BOTÕES ──
 export function Btn({ children, onClick, variant, color = PRP, disabled }) {
   const base = { 
     width: "100%", 
@@ -129,62 +132,39 @@ export function Btn({ children, onClick, variant, color = PRP, disabled }) {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "8px"
+    gap: "8px",
+    boxSizing: "border-box", // Previne botões tortos e a saírem do ecrã
+    margin: "0"
   };
 
-  // Botão Sucesso (Enviar à Teresa)
   if (variant === "success") return (
-    <button disabled={disabled} onClick={onClick} style={{ 
-      ...base, 
-      background:`linear-gradient(135deg, ${PRP}, ${CYN})`, 
-      color:"#ffffff", 
-      boxShadow:`0 4px 15px rgba(168, 85, 247, 0.3)` 
-    }}>
+    <button disabled={disabled} onClick={onClick} style={{ ...base, background:`linear-gradient(135deg, ${PRP}, ${CYN})`, color:"#ffffff", boxShadow:`0 4px 15px rgba(168, 85, 247, 0.3)` }}>
       {children}
     </button>
   );
 
-  // Botão Dark (Guardar Privado) -> Discreto mas visível
   if (variant === "dark") return (
-    <button disabled={disabled} onClick={onClick} style={{ 
-      ...base, 
-      background:"rgba(255,255,255,0.05)", 
-      color:TXT_MAIN, 
-      border:"1px solid rgba(255,255,255,0.15)" 
-    }}>
+    <button disabled={disabled} onClick={onClick} style={{ ...base, background:"rgba(255,255,255,0.05)", color:TXT_MAIN, border:"1px solid rgba(255,255,255,0.15)" }}>
       {children}
     </button>
   );
 
-  // Botão Padrão
   return (
-    <button disabled={disabled} onClick={onClick} style={{ 
-      ...base, 
-      background: color, 
-      color:"#ffffff", 
-      boxShadow:`0 4px 14px ${color}40` 
-    }}>
+    <button disabled={disabled} onClick={onClick} style={{ ...base, background: color, color:"#ffffff", boxShadow:`0 4px 14px ${color}40` }}>
       {children}
     </button>
   );
 }
 
-// ── TERMÓMETRO (BARRA DE PROGRESSO) ──
+// ── TERMÓMETRO E RADAR (MANTIDOS IGUAIS) ──
 export function ProgressBar({ progress, color = PRP }) {
   return (
-    <div style={{ 
-      width: "100%", height: 8, background: "rgba(0,0,0,0.3)", 
-      borderRadius: 10, marginTop: 8, overflow: "hidden" 
-    }}>
-      <div style={{ 
-        width: `${progress}%`, height: "100%", background: color, 
-        transition: "width 0.5s ease-out" 
-      }} />
+    <div style={{ width: "100%", height: 8, background: "rgba(0,0,0,0.3)", borderRadius: 10, marginTop: 8, overflow: "hidden" }}>
+      <div style={{ width: `${progress}%`, height: "100%", background: color, transition: "width 0.5s ease-out" }} />
     </div>
   );
 }
 
-// ── RODA DA VIDA (RADAR CHART) ──
 export function RadarChart({ scores, color, prev }) {
   const NR = 7; 
   const CX = 150; 
@@ -192,14 +172,9 @@ export function RadarChart({ scores, color, prev }) {
   const RR = 100;
   const IDS = ["familia","amigos","dinheiro","trabalho","cresc","saude","lazer"];
   const LBL = ["🏠 Família","👥 Amigos","💰 Dinheiro","💼 Trabalho","🌱 Crescimento","❤️ Saúde","🎉 Lazer"];
-  
   const ang = i => (i/NR)*2*Math.PI - Math.PI/2;
   const pt = (i,f) => [CX+f*RR*Math.cos(ang(i)), CY+f*RR*Math.sin(ang(i))];
-  
-  const polyStr = fracs => fracs.map((f,i) => { 
-    let c = pt(i,f); return c[0].toFixed(1)+","+c[1].toFixed(1); 
-  }).join(" ");
-  
+  const polyStr = fracs => fracs.map((f,i) => { let c = pt(i,f); return c[0].toFixed(1)+","+c[1].toFixed(1); }).join(" ");
   const fracs = IDS.map(id => (scores[id]||0)/10);
   const pF = prev ? IDS.map(id => (prev[id]||0)/10) : null;
 
@@ -208,38 +183,15 @@ export function RadarChart({ scores, color, prev }) {
       {[0.2, 0.4, 0.6, 0.8, 1.0].map(f => (
         <polygon key={f} points={polyStr(Array(NR).fill(f))} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
       ))}
-      
-      {IDS.map((_,i) => { 
-        const c = pt(i, 1); 
-        return <line key={i} x1={CX} y1={CY} x2={c[0]} y2={c[1]} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>; 
-      })}
-
+      {IDS.map((_,i) => { const c = pt(i, 1); return <line key={i} x1={CX} y1={CY} x2={c[0]} y2={c[1]} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>; })}
       {pF && <polygon points={polyStr(pF)} fill="none" stroke="rgba(168, 85, 247, 0.3)" strokeWidth="1.5" strokeDasharray="4,3"/>}
-      
-      <polygon 
-        points={polyStr(fracs)} 
-        fill={color+"30"} 
-        stroke={color} 
-        strokeWidth="2.5" 
-        strokeLinejoin="round" 
-      />
-      
-      {IDS.map((_,i) => { 
-        const c = pt(i, fracs[i]); 
-        return <circle key={i} cx={c[0]} cy={c[1]} r="5" fill={color} stroke={BG} strokeWidth="2"/>; 
-      })}
-      
+      <polygon points={polyStr(fracs)} fill={color+"30"} stroke={color} strokeWidth="2.5" strokeLinejoin="round" />
+      {IDS.map((_,i) => { const c = pt(i, fracs[i]); return <circle key={i} cx={c[0]} cy={c[1]} r="5" fill={color} stroke={BG} strokeWidth="2"/>; })}
       {LBL.map((lb,i) => {
-        const a = ang(i);
-        const lx = CX + (RR + 26) * Math.cos(a);
-        const ly = CY + (RR + 26) * Math.sin(a);
+        const a = ang(i); const lx = CX + (RR + 26) * Math.cos(a); const ly = CY + (RR + 26) * Math.sin(a);
         const anchor = Math.cos(a) > 0.2 ? "start" : Math.cos(a) < -0.2 ? "end" : "middle";
         const baseline = Math.sin(a) > 0.3 ? "hanging" : Math.sin(a) < -0.3 ? "auto" : "middle";
-        return (
-          <text key={i} x={lx} y={ly} textAnchor={anchor} dominantBaseline={baseline} fontSize="10" fill={TXT_MUT} fontWeight="800">
-            {lb}
-          </text>
-        );
+        return <text key={i} x={lx} y={ly} textAnchor={anchor} dominantBaseline={baseline} fontSize="10" fill={TXT_MUT} fontWeight="800">{lb}</text>;
       })}
     </svg>
   );
