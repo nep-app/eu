@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { doc, setDoc, addDoc, collection, deleteDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, SL, CYN, PNK, INP, Btn, PS } from "../../theme.jsx";
+import { CARD, SL, CYN, PNK, INP, Btn } from "../../theme.jsx";
 import { nowLabel, getWeekKey } from "../../data.js";
 
 export default function HomeExtras({ user, data, setTab }) {
@@ -19,12 +19,6 @@ export default function HomeExtras({ user, data, setTab }) {
     .map(([username, detalhes]) => ({ username, ...detalhes }))
     .sort((a, b) => (b.xp || 0) - (a.xp || 0)).slice(0, 3).sort((a, b) => a.name.localeCompare(b.name));
 
-  let acoesPendentes = [];
-  if (!uData.answered) acoesPendentes.push({ status: "urgent", icon: "💬", title: "Pergunta da semana", sub: "A Teresa aguarda a tua reflexão", go: () => setTab("desafios") });
-  if (!uData.autoSaved) acoesPendentes.push({ status: "pending", icon: "📊", title: "Autoavaliação mensal", sub: "Avalia as tuas competências", go: () => setTab("desafios") });
-  if (!uData.sSaved) acoesPendentes.push({ status: "new", icon: "😊", title: "Satisfação", sub: "Diz-nos como corre o programa", go: () => setTab("desafios") });
-  if (!uData.piaSaved) acoesPendentes.push({ status: "pending", icon: "🚀", title: "Plano Individual (PIA)", sub: "Desenha o teu projeto", go: () => setTab("pia") });
-
   async function concluirMissaoSemanal(missao) {
     if (missoesConcluidas.includes(missao.id)) return;
     const newHistory = [...(data.history || []), { date: nowLabel(), action: `Cumpriu a missão: ${missao.text}`, ts: Date.now(), xp: missao.xp || 10 }];
@@ -39,38 +33,8 @@ export default function HomeExtras({ user, data, setTab }) {
     setTimeout(() => setMensagemEnviadaSucesso(false), 3000);
   }
 
-  // ── FUNÇÃO MÁGICA DE RESET (SÓ PARA A TERESA) ──
-  async function limparTudoDev() {
-    if (window.confirm("🚨 MODO DEV: Queres apagar as tuas entregas (Autoavaliação, Satisfação, PIA, Missões e Respostas) para voltares a testar a app do zero?")) {
-      await setDoc(doc(db, "userData", user.username), {
-        autoSaved: false,
-        sSaved: false,
-        answered: false,
-        piaSaved: false,
-        completedMissions: [] // Limpa as missões que concluiste
-      }, { merge: true });
-      window.location.reload();
-    }
-  }
-
   return (
     <>
-      {/* ⚠️ PAINEL DE TESTES (SÓ APARECE À TERESA) ⚠️ */}
-      {user.username === "teresa" && (
-        <div style={{ ...CARD, background: "rgba(244, 63, 94, 0.1)", border: "2px dashed #f43f5e" }}>
-          <div style={{ ...SL, color: "#f43f5e" }}>🔧 Ferramentas de Teste</div>
-          <p style={{ fontSize: "12px", color: "#cbd5e1", marginTop: 0, marginBottom: "15px" }}>
-            Como és a conta de testes, podes limpar o teu progresso para veres as "Ações Pendentes" novamente.
-          </p>
-          <button 
-            onClick={limparTudoDev}
-            style={{ width: "100%", padding: "12px", background: "#f43f5e", color: "white", fontWeight: "900", border: "none", borderRadius: "12px", cursor: "pointer", fontSize: "13px" }}
-          >
-            ↻ REINICIAR AS MINHAS ENTREGAS
-          </button>
-        </div>
-      )}
-
       {/* MENSAGENS DA COORDENAÇÃO */}
       {notificacoesAdmin.length > 0 && (
         <div style={{ ...CARD, background: "rgba(244, 114, 182, 0.15)", border: `1.5px solid ${PNK}` }}>
@@ -79,22 +43,6 @@ export default function HomeExtras({ user, data, setTab }) {
             <div key={notif.id} style={{ display: "flex", gap: 12, padding: "14px", background: "rgba(0,0,0,0.4)", borderRadius: 18, marginBottom: 10 }}>
               <div style={{ flex: 1, fontSize: 13, lineHeight: 1.5, color: "#fff" }}>{notif.text}</div>
               <button onClick={() => deleteDoc(doc(db, "notifications", user.username, "items", notif.id))} style={{ background: "none", border: "none", color: PNK, fontSize: 18, cursor: "pointer" }}>✕</button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* AÇÕES PENDENTES */}
-      {acoesPendentes.length > 0 && (
-        <div style={CARD}>
-          <div style={SL}>Ações de Acompanhamento</div>
-          {acoesPendentes.map((item, idx) => (
-            <div key={idx} onClick={item.go} style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px", borderRadius: 22, background: PS[item.status].bg, marginBottom: 12, border: `1.5px solid ${PS[item.status].bl}`, cursor: "pointer" }}>
-              <span style={{ fontSize: 24 }}>{item.icon}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{item.title}</div>
-                <div style={{ fontSize: 12, color: "#cbd5e1", marginTop: 2 }}>{item.sub}</div>
-              </div>
             </div>
           ))}
         </div>
@@ -134,8 +82,6 @@ export default function HomeExtras({ user, data, setTab }) {
       {/* FALAR COM A TERESA */}
       <div style={CARD}>
         <div style={SL}>📱 Falar com a Teresa</div>
-        
-        {/* BOTÕES DE CONTACTO DIRETO */}
         <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
           <a href="https://wa.me/351XXXXXXXXX" target="_blank" rel="noreferrer" style={{ flex: 1, background: "#25D366", color: "#fff", textDecoration: "none", padding: "12px", borderRadius: 14, textAlign: "center", fontWeight: 900, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
             <span>💬</span> WHATSAPP
