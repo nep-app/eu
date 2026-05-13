@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { doc, setDoc, addDoc, collection, deleteDoc, updateDoc } from "firebase/firestore";
+import React, { useState, useEffect } from 'react';
+import { doc, setDoc, addDoc, collection, deleteDoc, updateDoc, getDocs } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, INP, PS } from "../../theme.jsx";
 import { nowLabel, fmtDate, isOverdue } from "../../data.js";
@@ -8,12 +8,24 @@ export default function HomeTodo({ user, data, setTab }) {
   const [novaTarefaTexto, setNovaTarefaTexto] = useState("");
   const [novaTarefaData, setNovaTarefaData] = useState("");
   const [partilharTarefaCheck, setPartilharTarefaCheck] = useState(false);
+  const [temQuizPendente, setTemQuizPendente] = useState(false);
 
   const uData = data.userData || {};
   const listaTarefas = data.todos || [];
 
+  // Verificar se há quizzes não respondidos no Firestore
+  useEffect(() => {
+    async function checkQuizzes() {
+      const snap = await getDocs(collection(db, "quizzes"));
+      const ativos = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(q => q.active !== false);
+      const feitos = uData.completedQuizzes || [];
+      const faltaFazer = ativos.some(q => !feitos.includes(q.id));
+      setTemQuizPendente(faltaFazer);
+    }
+    checkQuizzes();
+  }, [uData.completedQuizzes]);
+
   // ── 1. FILTRO PARA EVITAR DUPLICAÇÃO ──
-  // Lista de títulos que já têm cards fixos no topo.
   const NOMES_ACOES_FIXAS = [
     "Pergunta da semana", 
     "Autoavaliação mensal", 
@@ -22,14 +34,12 @@ export default function HomeTodo({ user, data, setTab }) {
     "Autoavaliação"
   ];
 
-  // Filtramos as sugestões da Teresa para ignorar o que já é ação fixa
   const tarefasSugestao = listaTarefas.filter(t => 
     t.addedBy === "teresa" && 
     t.accepted === false && 
     !NOMES_ACOES_FIXAS.includes(t.text)
   );
 
-  // Filtramos a To-Do List do jovem para ignorar o que já é ação fixa
   const minhasTarefas = listaTarefas.filter(t => 
     (t.addedBy !== "teresa" || t.accepted === true) && 
     !NOMES_ACOES_FIXAS.includes(t.text)
@@ -41,6 +51,9 @@ export default function HomeTodo({ user, data, setTab }) {
   if (!uData.autoSaved) acoesPendentes.push({ status: "pending", icon: "📊", title: "Autoavaliação mensal", sub: "Avalia as tuas competências", go: () => setTab("desafios") });
   if (!uData.sSaved) acoesPendentes.push({ status: "new", icon: "😊", title: "Satisfação", sub: "Diz-nos como corre o programa", go: () => setTab("desafios") });
   if (!uData.piaSaved) acoesPendentes.push({ status: "pending", icon: "🚀", title: "Plano Individual (PIA)", sub: "Desenha o teu projeto", go: () => setTab("pia") });
+  
+  // ADIÇÃO DO QUIZ: Aparece um card se houver um quiz novo
+  if (temQuizPendente) acoesPendentes.push({ status: "pending", icon: "🧠", title: "Dilema Pendente", sub: "Tens um novo quiz para resolver", go: () => setTab("desafios") });
 
   // ── 3. FUNÇÕES DE MANIPULAÇÃO DO FIREBASE ──
   async function criarNovaTarefa() {
@@ -103,7 +116,7 @@ export default function HomeTodo({ user, data, setTab }) {
         </div>
       )}
 
-      {/* ── SECCÃO 2: SUGESTÕES DA TERESA (LIMPAS DE DUPLICADOS) ── */}
+      {/* ── SECCÃO 2: SUGESTÕES DA TERESA ── */}
       {tarefasSugestao.length > 0 && (
         <div style={{ ...CARD, background: "rgba(34, 211, 238, 0.1)", border: `1.5px solid ${CYN}`, marginBottom: 20 }}>
           <div style={SL}>📩 Sugestões da Teresa</div>
@@ -120,7 +133,7 @@ export default function HomeTodo({ user, data, setTab }) {
         </div>
       )}
 
-      {/* ── SECCÃO 3: TO-DO LIST (LIMPA DE DUPLICADOS) ── */}
+      {/* ── SECCÃO 3: TO-DO LIST ── */}
       <div style={CARD}>
         <div style={SL}>✅ A Minha To-Do List</div>
         <div style={{ marginBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "15px" }}>
