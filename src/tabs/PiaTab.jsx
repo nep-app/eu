@@ -76,18 +76,24 @@ export default function PiaTab({ user, data }) {
     }
   }
 
-  async function saveSwot(share) {
+async function saveSwot(share) {
     try {
       const newH = [...(data.history || [])];
       if (share) {
-        newH.push({ date: nowLabel(), action: "Enviou o Raio-X do projeto à Teresa", ts: Date.now() });
+        newH.push({ 
+          date: nowLabel(), 
+          action: "Enviou o Raio-X do projeto à Teresa", 
+          ts: Date.now(),
+          xp: 15 // <-- O XP MÁGICO PARA A BARRA SUBIR!
+        });
       }
 
       await setDoc(doc(db, "userData", user.username), { 
         swotPia, 
         swotSaved: true, 
         swotShared: share,
-        history: newH
+        history: newH,
+        weekXp: (uData.weekXp || 0) + (uData.swotSaved ? 0 : 15) // Dá XP só na 1ª vez
       }, { merge: true });
       
       alert(share ? "Raio-X enviado para a Coordenação! 🔍" : "Raio-X guardado em modo privado.");
