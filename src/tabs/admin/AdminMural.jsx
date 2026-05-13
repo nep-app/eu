@@ -21,6 +21,7 @@ export default function AdminMural() {
     });
   }, [channel]);
 
+  // ── 1. PUBLICAR NOVO POST (TERESA) ──
   async function postForum() {
     if (!fPost.trim() && !mediaFile) return;
     setIsUploading(true);
@@ -40,20 +41,40 @@ export default function AdminMural() {
     setIsUploading(false);
   }
 
+  // ── 2. APAGAR POST INTEIRO ──
   async function deleteForumPost(pid) {
-    if(window.confirm("Apagar este post?")) await deleteDoc(doc(db, "forum", channel, "posts", pid));
+    if(window.confirm("Apagar este post e todos os seus comentários?")) {
+      await deleteDoc(doc(db, "forum", channel, "posts", pid));
+    }
   }
 
+  // ── 3. RESPONDER A UM POST (TERESA) ──
   async function sendReply(pid) {
     if (!replyTxt.trim()) return;
     const cur = posts.find(p => p.id === pid);
     if (!cur) return;
     await updateDoc(doc(db, "forum", channel, "posts", pid), { 
-      replies: [...cur.replies, { user:"Teresa (GO)", color:"#22d3ee", text:replyTxt, time:nowLabel() }] 
+      // Adicionamos um ID à resposta da Teresa para ser mais fácil de gerir
+      replies: [...cur.replies, { id: "R_" + Date.now(), user:"Teresa (GO)", color:"#22d3ee", text:replyTxt, time:nowLabel() }] 
     });
     setReplyTxt(""); setReplyTo(null);
   }
 
+  // ── 4. APAGAR APENAS UM COMENTÁRIO (REPLY) ──
+  async function deleteReply(pid, replyToDelete) {
+    if(!window.confirm("Apagar este comentário para sempre?")) return;
+    const cur = posts.find(p => p.id === pid);
+    if(!cur) return;
+    
+    // Filtra a resposta que queremos apagar (se tiver ID usa o ID, senão compara o objeto)
+    const novasRespostas = cur.replies.filter(r => r.id ? r.id !== replyToDelete.id : r !== replyToDelete);
+    
+    await updateDoc(doc(db, "forum", channel, "posts", pid), { 
+      replies: novasRespostas 
+    });
+  }
+
+  // ── 5. REAGIR A UM POST ──
   async function reactPost(pid, reaction) {
     const cur = posts.find(p => p.id === pid);
     if (!cur) return;
@@ -71,7 +92,7 @@ export default function AdminMural() {
     }
     await updateDoc(doc(db, "forum", channel, "posts", pid), { reactions:rcts, reactedBy:rBy });
 
-    // XP pela reação da Teresa
+    // XP e notificação pela reação da Teresa
     if (isAdding && cur.user !== "Teresa (GO)") {
        const author = JEEP_LIST.find(x => x.name === cur.user);
        if (author) {
@@ -80,6 +101,11 @@ export default function AdminMural() {
            const uData = userSnap.exists() ? userSnap.data() : {};
            const newHistory = [...(uData.history || []), { date: nowLabel(), action: `A Teresa reagiu ao teu post! ❤️`, ts: Date.now(), xp: 10 }];
            await setDoc(userRef, { history: newHistory, weekXp: (uData.weekXp || 0) + 10 }, { merge: true });
+           
+           // Enviar notificação real
+           await addDoc(collection(db, "notifications", author.username, "items"), { 
+             from: "sistema", text: `❤️ A Teresa (GO) reagiu à tua partilha!`, date: nowLabel(), read: false 
+           });
        }
     }
   }
@@ -155,7 +181,8 @@ export default function AdminMural() {
                     {expanded===p.id ? "▲" : "▼"} {p.replies.length}
                   </span>
                 )}
-                <span onClick={() => deleteForumPost(p.id)} style={{ fontSize:12, color:"#fb7185", cursor:"pointer", marginLeft:"auto" }}>🗑️ Apagar</span>
+                {/* APAGAR POST INTEIRO */}
+                <span onClick={() => deleteForumPost(p.id)} style={{ fontSize:12, color:"#fb7185", cursor:"pointer", marginLeft:"auto" }}>🗑️ Apagar Post</span>
               </div>
             </div>
           </div>
@@ -163,15 +190,23 @@ export default function AdminMural() {
           {/* RESPOSTAS EXPANDIDAS */}
           {expanded===p.id && p.replies.length > 0 && (
             <div style={{ marginTop:10, marginLeft:48, borderLeft:"2px solid rgba(255,255,255,0.1)", paddingLeft:12 }}>
-              {p.replies.map((rp,ri) => (
-                <div key={ri} style={{ display:"flex", gap:8, marginBottom:8 }}>
+              {p.replies.map((rp, ri) => (
+                <div key={rp.id || ri} style={{ display:"flex", gap:8, marginBottom:10, alignItems: "flex-start" }}>
                   <div style={{ width:28, height:28, borderRadius:"50%", background:`linear-gradient(135deg, ${rp.color}, #000)`, display:"flex", alignItems:"center", justifyContent:"center", color:"white", fontSize:11, fontWeight:800, flexShrink:0 }}>{rp.user[0]}</div>
-                  <div>
-                    <div style={{ fontSize:12, fontWeight:700 }}>
-                      {rp.user} {rp.user==="Teresa (GO)" && <span style={{fontSize:8, background:CYN, color:"#0f172a", padding:"1px 4px", borderRadius:4, marginLeft:4}}>ADMIN</span>} 
-                      <span style={{ color:"#94a3b8", fontWeight:400 }}> · {rp.time}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div style={{ fontSize:12, fontWeight:700 }}>
+                        {rp.user} {rp.user==="Teresa (GO)" && <span style={{fontSize:8, background:CYN, color:"#0f172a", padding:"1px 4px", borderRadius:4, marginLeft:4}}>ADMIN</span>} 
+                        <span style={{ color:"#94a3b8", fontWeight:400 }}> · {rp.time}</span>
+                      </div>
+                      
+                      {/* NOVO: APAGAR APENAS ESTE COMENTÁRIO */}
+                      <button onClick={() => deleteReply(p.id, rp)} style={{ background: "none", border: "none", color: "#fb7185", cursor: "pointer", fontSize: 13, opacity: 0.8 }}>
+                        🗑️
+                      </button>
+                      
                     </div>
-                    <div style={{ fontSize:12, color:"#cbd5e1", marginTop:2 }}>{rp.text}</div>
+                    <div style={{ fontSize:12, color:"#cbd5e1", marginTop:2, whiteSpace: "pre-wrap" }}>{rp.text}</div>
                   </div>
                 </div>
               ))}
