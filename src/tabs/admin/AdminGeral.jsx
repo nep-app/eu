@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { doc, setDoc, addDoc, collection, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, SL, CYN, Btn, INP } from "../../theme.jsx";
+import { CARD, SL, CYN, Btn, INP, PNK } from "../../theme.jsx";
 import { nowLabel, getWeekKey, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
 
 export default function AdminGeral({ allShared, leaderboard, adminNotifs, activeQ }) {
@@ -9,10 +9,29 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
   const [launchTarget, setLaunchTarget] = useState("all");
   const [activeQEdit, setActiveQEdit] = useState("");
   
-  // Novos estados para a Teresa criar botões personalizados
+  // Opções para botões personalizados
   const [opt1, setOpt1] = useState("");
   const [opt2, setOpt2] = useState("");
   const [opt3, setOpt3] = useState("");
+
+  // NOVO: Seleção de Modos Híbridos
+  const MODOS_DISPONIVEIS = [
+    { id: "texto", label: "Texto", icon: "📝" },
+    { id: "audio", label: "Áudio", icon: "🎤" },
+    { id: "3palavras", label: "3 Palavras", icon: "🔢" },
+    { id: "semana", label: "Rating (1-5)", icon: "⭐" },
+    { id: "imagem", label: "Imagem", icon: "📸" },
+    { id: "mood", label: "Emoji/Mood", icon: "🎭" }
+  ];
+  const [selectedModes, setSelectedModes] = useState(["texto"]);
+
+  const toggleMode = (id) => {
+    if (selectedModes.includes(id)) {
+      setSelectedModes(selectedModes.filter(m => m !== id));
+    } else {
+      setSelectedModes([...selectedModes, id]);
+    }
+  };
 
   async function launchRequest() {
     let msg = ""; let field = "";
@@ -44,6 +63,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
 
   async function updateActiveQ() {
     if (!activeQEdit.trim()) return alert("Escreve a pergunta!");
+    if (selectedModes.length === 0 && opt1 === "") return alert("Seleciona pelo menos um modo ou cria botões!");
     
     // Filtramos as opções que a Teresa escreveu
     const opcoesFinais = [opt1, opt2, opt3].filter(o => o.trim() !== "");
@@ -51,6 +71,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     await setDoc(doc(db, "config", "activeQuestion"), { 
       text: activeQEdit.trim(), 
       options: opcoesFinais, // Grava os botões
+      modes: selectedModes,  // Grava a lista de modos permitidos
       date: Date.now() 
     });
 
@@ -102,7 +123,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
         <Btn onClick={launchRequest}>Lançar Pedido 🚀</Btn>
       </div>
 
-      {/* 3. RANKING */}
+      {/* 3. RANKING (RECUPERADO!) */}
       <div style={CARD}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:15 }}>
           <div style={SL}>Tabela de XP Semanal</div>
@@ -117,24 +138,49 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
         ))}
       </div>
 
-      {/* 4. PERGUNTA DA SEMANA (COM BOTÕES PERSONALIZADOS) */}
+      {/* 4. PERGUNTA DA SEMANA (AGORA COM OS MODOS HÍBRIDOS!) */}
       <div style={CARD}>
-        <div style={SL}>Lançar Pergunta com Botões</div>
+        <div style={SL}>Lançar Pergunta da Semana</div>
         <div style={{ fontSize:13, color:"white", marginBottom:15, padding:"12px", background:"rgba(0,0,0,0.2)", borderRadius:12, borderLeft:`4px solid ${CYN}` }}>{activeQ}</div>
         
         <input value={activeQEdit} onChange={e=>setActiveQEdit(e.target.value)} placeholder="A pergunta da semana..." style={INP}/>
         
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginTop: 10 }}>
-          <input value={opt1} onChange={e=>setOpt1(e.target.value)} placeholder="Opção 1" style={{ ...INP, marginBottom: 0, fontSize: 12 }} />
-          <input value={opt2} onChange={e=>setOpt2(e.target.value)} placeholder="Opção 2" style={{ ...INP, marginBottom: 0, fontSize: 12 }} />
-          <input value={opt3} onChange={e=>setOpt3(e.target.value)} placeholder="Opção 3" style={{ ...INP, marginBottom: 0, fontSize: 12 }} />
+        {/* CHECKBOXES DE MODO DE RESPOSTA */}
+        <div style={{ marginBottom: 15 }}>
+          <div style={{ fontSize: 11, color: CYN, fontWeight: 800, marginBottom: 8 }}>MODOS DE RESPOSTA PERMITIDOS:</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+            {MODOS_DISPONIVEIS.map(m => (
+              <button 
+                key={m.id} 
+                onClick={() => toggleMode(m.id)}
+                style={{
+                  padding: "8px", borderRadius: "10px", fontSize: "11px", border: "none", cursor: "pointer",
+                  background: selectedModes.includes(m.id) ? CYN : "rgba(255,255,255,0.05)",
+                  color: selectedModes.includes(m.id) ? "#000" : "#fff",
+                  fontWeight: 800
+                }}
+              >
+                {m.icon} {m.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 5 }}>* Deixa as opções vazias para resposta livre por texto.</div>
+
+        {/* OU BOTÕES DE OPÇÃO FIXA */}
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 15 }}>
+          <div style={{ fontSize: 11, color: PNK, fontWeight: 800, marginBottom: 8 }}>OU CRIAR BOTÕES DE OPÇÃO:</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+            <input value={opt1} onChange={e=>setOpt1(e.target.value)} placeholder="Opção 1" style={{ ...INP, marginBottom: 0, fontSize: 11 }} />
+            <input value={opt2} onChange={e=>setOpt2(e.target.value)} placeholder="Opção 2" style={{ ...INP, marginBottom: 0, fontSize: 11 }} />
+            <input value={opt3} onChange={e=>setOpt3(e.target.value)} placeholder="Opção 3" style={{ ...INP, marginBottom: 0, fontSize: 11 }} />
+          </div>
+          <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 5 }}>* Preencher isto desativa os modos acima.</div>
+        </div>
         
-        <button onClick={updateActiveQ} style={{ ...Btn, marginTop: 15 }}>Publicar Pergunta 💬</button>
+        <button onClick={updateActiveQ} style={{ ...Btn, marginTop: 15, background: CYN, color: "#000" }}>Publicar Desafio Semanal 💬</button>
       </div>
 
-      {/* 5. RESPOSTAS */}
+      {/* 5. RESPOSTAS (RECUPERADO!) */}
       <div style={CARD}>
         <div style={SL}>Respostas Recebidas</div>
         {JEEP_LIST.map(j => {
