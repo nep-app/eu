@@ -20,10 +20,11 @@ export default function PerfilTab({ user, data }) {
   async function saveRoda(share) {
     try {
       const newSaves = [...rodaSaves, { label: nowLabel(), scores: { ...roda } }];
-      const newH = [...history, { 
+     const newH = [...history, { 
         date: nowLabel(), 
         action: `Atualizou Roda da Vida (${share ? "Enviado à Admin" : "Privado"})`, 
-        ts: Date.now() 
+        ts: Date.now(),
+        xp: 20 // <- Adicionar isto para a barra de XP ler!
       }];
 
       await setDoc(doc(db, "userData", user.username), { 
@@ -51,11 +52,14 @@ export default function PerfilTab({ user, data }) {
     const dateStr = lockedDate.toLocaleDateString("pt-PT");
 
     const newCap = { ...cap, locked: true, lockedDate: dateStr, sealedAt: nowLabel() };
-    const newH = [...history, { date: nowLabel(), action: "Selou uma Cápsula do Tempo 🔒", ts: Date.now() }];
+   const newH = [...history, { 
+      date: nowLabel(), 
+      action: "Selou uma Cápsula do Tempo 🔒", 
+      ts: Date.now(),
+      xp: 15 // <- Dá 15 XP como prémio por usar a cápsula!
+    }];
 
-    await setDoc(doc(db, "userData", user.username), { cap: newCap, history: newH }, { merge: true });
-    alert("Cápsula selada! Só a poderás abrir em " + dateStr);
-  }
+    await setDoc(doc(db, "userData", user.username), { cap: newCap, history: newH, weekXp: (uData.weekXp || 0) + 15 }, { merge: true });
 
   // ── EXPORTAÇÃO DE DADOS ──
   function doExport() {
