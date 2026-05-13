@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { doc, setDoc, addDoc, collection, updateDoc, increment, arrayUnion } from "firebase/firestore";
+import { doc, setDoc, addDoc, collection, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, SL, CYN, Btn, INP, PNK } from "../../theme.jsx";
+import { CARD, SL, CYN, Btn, INP } from "../../theme.jsx";
 import { nowLabel, getWeekKey, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
 
 export default function AdminGeral({ allShared, leaderboard, adminNotifs, activeQ }) {
@@ -9,20 +9,10 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
   const [launchTarget, setLaunchTarget] = useState("all");
   const [activeQEdit, setActiveQEdit] = useState("");
 
-  // ── FERRAMENTA DE TESTE (Reset para a Teresa) ──
-  async function resetUserParaTeste(username) {
-    if (window.confirm(`Limpar progresso de ${username} para testes?`)) {
-      await updateDoc(doc(db, "userData", username), {
-        answered: false,
-        autoSaved: false,
-        sSaved: false,
-        piaSaved: false,
-        weekXp: 0,
-        history: []
-      });
-      alert("Status resetado! Podes testar os cards na Home agora.");
-    }
-  }
+  // Estados para as 3 opções de resposta (Botões)
+  const [opt1, setOpt1] = useState("");
+  const [opt2, setOpt2] = useState("");
+  const [opt3, setOpt3] = useState("");
 
   async function launchRequest() {
     let msg = ""; let fieldToReset = "";
@@ -54,12 +44,22 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
 
   async function updateActiveQ() {
     if (!activeQEdit.trim()) return alert("Escreve a pergunta!");
-    await setDoc(doc(db, "config", "activeQuestion"), { text: activeQEdit.trim(), mode: ["texto"], date: Date.now() });
+    
+    // Filtra apenas as opções que não estão vazias
+    const opcoesFinais = [opt1, opt2, opt3].filter(o => o.trim() !== "");
+
+    await setDoc(doc(db, "config", "activeQuestion"), { 
+      text: activeQEdit.trim(), 
+      options: opcoesFinais, // Agora envia o array de opções
+      date: Date.now() 
+    });
+
     for (const u of ALLOWED_USERNAMES) {
       await setDoc(doc(db, "userData", u), { answered: false }, { merge: true });
       await addDoc(collection(db, "notifications", u, "items"), { from:"teresa", text:"💬 Nova pergunta da semana!", date:nowLabel(), read:false });
     }
-    alert("Pergunta publicada!"); setActiveQEdit("");
+    alert("Pergunta publicada com sucesso!");
+    setActiveQEdit(""); setOpt1(""); setOpt2(""); setOpt3("");
   }
 
   async function markAdminNotifAsRead(notifId) {
@@ -68,19 +68,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
 
   return (
     <div>
-      {/* 0. FERRAMENTAS DE TESTE (Novo) */}
-      <div style={{ ...CARD, border: `1px solid ${CYN}` }}>
-        <div style={SL}>🛠️ Modo de Teste (Reset Rápido)</div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {JEEP_LIST.map(j => (
-            <button key={j.username} onClick={() => resetUserParaTeste(j.username)} style={{ background: "rgba(255,255,255,0.05)", color: "#fff", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 10px", borderRadius: 10, fontSize: 10, cursor: "pointer" }}>
-              Reset {j.name}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* 1. NOTIFICAÇÕES */}
+      {/* 1. NOTIFICAÇÕES / ALERTAS */}
       {adminNotifs.length > 0 && (
         <div style={{ ...CARD, background:"rgba(239, 68, 68, 0.05)", border:`1px solid rgba(239, 68, 68, 0.2)` }}>
           <div style={{ ...SL, color:"#ef4444" }}>🔔 Alertas Recentes</div>
@@ -100,7 +88,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
         </div>
       )}
 
-      {/* 2. LANÇAR PEDIDOS */}
+      {/* 2. LANÇAR PEDIDOS (Ações de Acompanhamento) */}
       <div style={CARD}>
         <div style={SL}>Lançar Pedidos aos Jovens</div>
         <div style={{ display:"flex", gap:8, marginBottom:10 }}>
@@ -134,14 +122,23 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
         ))}
       </div>
 
-      {/* 4. PERGUNTA DA SEMANA */}
+      {/* 4. PERGUNTA DA SEMANA (COM OPÇÕES DE BOTÕES) */}
       <div style={CARD}>
-        <div style={SL}>Pergunta da Semana Ativa</div>
-        <div style={{ fontSize:13, color:"white", fontWeight:600, marginBottom:15, padding:"12px", background:"rgba(0,0,0,0.2)", borderRadius:12, borderLeft:`4px solid ${CYN}` }}>{activeQ}</div>
-        <div style={{ display:"flex", gap:8 }}>
-          <input value={activeQEdit} onChange={e=>setActiveQEdit(e.target.value)} placeholder="Nova pergunta..." style={{ ...INP, flex:1, marginBottom:0 }}/>
-          <button onClick={updateActiveQ} style={{ background:CYN, color:"#0f172a", border:"none", borderRadius:15, padding:"11px 20px", fontSize:13, fontWeight:800, cursor:"pointer" }}>Publicar</button>
+        <div style={SL}>Pergunta da Semana</div>
+        <div style={{ fontSize:13, color:"white", fontWeight:600, marginBottom:15, padding:"12px", background:"rgba(0,0,0,0.2)", borderRadius:12, borderLeft:`4px solid ${CYN}` }}>
+          {activeQ}
         </div>
+        
+        <input value={activeQEdit} onChange={e=>setActiveQEdit(e.target.value)} placeholder="Nova pergunta..." style={INP}/>
+        
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginTop: 10 }}>
+          <input value={opt1} onChange={e=>setOpt1(e.target.value)} placeholder="Opção 1" style={{ ...INP, marginBottom: 0, fontSize: 12 }} />
+          <input value={opt2} onChange={e=>setOpt2(e.target.value)} placeholder="Opção 2" style={{ ...INP, marginBottom: 0, fontSize: 12 }} />
+          <input value={opt3} onChange={e=>setOpt3(e.target.value)} placeholder="Opção 3" style={{ ...INP, marginBottom: 0, fontSize: 12 }} />
+        </div>
+        <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 5 }}>* Deixa as opções vazias para resposta livre por texto.</div>
+        
+        <button onClick={updateActiveQ} style={{ ...Btn, marginTop: 15 }}>Publicar Pergunta 💬</button>
       </div>
 
       {/* 5. RESPOSTAS À PERGUNTA */}
