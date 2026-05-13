@@ -3,8 +3,8 @@ import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { CYN, AppIcon } from "../theme.jsx";
 import { CHANNELS } from "../data.js";
-import ForumPost from './ForumPost.jsx';
-import ForumComposer from './ForumComposer.jsx';
+import ForumPost from './forum/ForumPost.jsx';
+import ForumComposer from './forum/ForumComposer.jsx';
 
 export default function ForumTab({ user, data }) {
   const [canalAtivo, setCanalAtivo] = useState("csi");
