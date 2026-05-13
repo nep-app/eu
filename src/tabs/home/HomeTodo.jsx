@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { doc, setDoc, addDoc, collection, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, SL, CYN, INP, PS } from "../../theme.jsx";
+import { CARD, SL, CYN, INP } from "../../theme.jsx";
 import { nowLabel, fmtDate, isOverdue } from "../../data.js";
 
 export default function HomeTodo({ user, data, setTab }) {
@@ -13,13 +13,6 @@ export default function HomeTodo({ user, data, setTab }) {
   const listaTarefas = data.todos || [];
   const tarefasSugestao = listaTarefas.filter(t => t.addedBy === "teresa" && t.accepted === false);
   const minhasTarefas = listaTarefas.filter(t => t.addedBy !== "teresa" || t.accepted === true);
-
-  // ── LÓGICA DAS AÇÕES DE ACOMPANHAMENTO ──
-  let acoesPendentes = [];
-  if (!uData.answered) acoesPendentes.push({ status: "urgent", icon: "💬", title: "Pergunta da semana", sub: "A Teresa aguarda a tua reflexão", go: () => setTab("desafios") });
-  if (!uData.autoSaved) acoesPendentes.push({ status: "pending", icon: "📊", title: "Autoavaliação mensal", sub: "Avalia as tuas competências", go: () => setTab("desafios") });
-  if (!uData.sSaved) acoesPendentes.push({ status: "new", icon: "😊", title: "Satisfação", sub: "Diz-nos como corre o programa", go: () => setTab("desafios") });
-  if (!uData.piaSaved) acoesPendentes.push({ status: "pending", icon: "🚀", title: "Plano Individual (PIA)", sub: "Desenha o teu projeto", go: () => setTab("pia") });
 
   async function criarNovaTarefa() {
     if (!novaTarefaTexto.trim()) return;
@@ -49,7 +42,7 @@ export default function HomeTodo({ user, data, setTab }) {
 
   async function aceitarTarefa(id) {
     await updateDoc(doc(db, "todos", user.username, "items", id), { accepted: true, shared: true });
-    alert("Tarefa aceite e adicionada à tua lista! 💪");
+    alert("Tarefa aceite! 💪");
   }
 
   async function recusarTarefa(id) {
@@ -60,24 +53,7 @@ export default function HomeTodo({ user, data, setTab }) {
 
   return (
     <>
-      {/* ── 1. AÇÕES DE ACOMPANHAMENTO (Destacadas no topo) ── */}
-      {acoesPendentes.length > 0 && (
-        <div style={CARD}>
-          <div style={SL}>Ações de Acompanhamento</div>
-          {acoesPendentes.map((item, idx) => (
-            <div key={idx} onClick={item.go} style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px", borderRadius: 22, background: PS[item.status].bg, marginBottom: 12, border: `1.5px solid ${PS[item.status].bl}`, cursor: "pointer", transition: "0.2s" }}>
-              <span style={{ fontSize: 24 }}>{item.icon}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{item.title}</div>
-                <div style={{ fontSize: 12, color: "#cbd5e1", marginTop: 2 }}>{item.sub}</div>
-              </div>
-              <div style={{ color: PS[item.status].bc, fontWeight: 900, fontSize: 16 }}>→</div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── 2. SUGESTÕES DA TERESA ── */}
+      {/* ── 1. SUGESTÕES DA TERESA ── */}
       {tarefasSugestao.length > 0 && (
         <div style={{ ...CARD, background: "rgba(34, 211, 238, 0.1)", border: `1.5px solid ${CYN}` }}>
           <div style={SL}>📩 Sugestões da Teresa</div>
@@ -94,7 +70,7 @@ export default function HomeTodo({ user, data, setTab }) {
         </div>
       )}
 
-      {/* ── 3. LISTA DE TAREFAS NORMAL ── */}
+      {/* ── 2. LISTA DE TAREFAS NORMAL ── */}
       <div style={CARD}>
         <div style={SL}>✅ A Minha To-Do List</div>
         <div style={{ marginBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "15px" }}>
