@@ -96,7 +96,7 @@ async function saveSwot(share) {
         weekXp: (uData.weekXp || 0) + (uData.swotSaved ? 0 : 15) // Dá XP só na 1ª vez
       }, { merge: true });
       
-      alert(share ? "Raio-X enviado para a Coordenação! 🔍" : "Raio-X guardado em modo privado.");
+      alert(share ? "Raio-X enviado para a Teresa! 🔍" : "Raio-X guardado em modo privado.");
     } catch (e) { 
       alert("Erro ao guardar o SWOT."); 
     }
