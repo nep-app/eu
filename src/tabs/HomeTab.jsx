@@ -3,6 +3,7 @@ import { AppIcon } from "../theme.jsx";
 
 // Importar as nossas novas fatias
 import HomeTodo from './home/HomeTodo.jsx';
+import HomeVotacoes from './home/HomeVotacoes.jsx'; // ADICIONA ISTO
 import HomeAgenda from './home/HomeAgenda.jsx';
 import HomeExtras from './home/HomeExtras.jsx';
 
