@@ -204,6 +204,13 @@ export const QUIZZES = [
   }
 ];
 
+export const PIA_FIELDS = [
+  { id: "diagnostico", label: "Diagnóstico Inicial", desc: "Breve caracterização da situação." },
+  { id: "objetivos", label: "Objetivos a Atingir", desc: "O que pretendes alcançar?" },
+  { id: "atividades", label: "Estratégias / Atividades", desc: "Como vais atingir os objetivos?" },
+  { id: "indicadores", label: "Indicadores de Sucesso", desc: "Como sabes que alcançaste o objetivo?" }
+];
+
 export const FORUM_REACTIONS = [{ id:"heart", icon:"❤️" }, { id:"fire", icon:"🔥" }, { id:"clap", icon:"👏" }, { id:"think", icon:"🤔" }];
 export const EC = { verde:"#4ade80", amarelo:"#fbbf24", vermelho:"#f87171" };
 export const DEF_RODA  = { familia:5,amigos:5,dinheiro:5,trabalho:5,cresc:5,saude:5,lazer:5 };
