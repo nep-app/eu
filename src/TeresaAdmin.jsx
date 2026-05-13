@@ -96,9 +96,18 @@ export default function TeresaAdmin({ user, onLogout }) {
         })}
       </div>
 
-      <div style={{ maxWidth:720, margin:"0 auto", padding:"20px 16px" }}>
-        {/* Renderiza a Fatia Correta */}
+   <div style={{ maxWidth:720, margin:"0 auto", padding:"20px 16px" }}>
         {adminTab === "geral" && <AdminGeral allShared={allShared} leaderboard={leaderboard} adminNotifs={adminNotifs} activeQ={activeQ} />}
+        {adminTab === "mural" && <AdminMural />}
+        {adminTab === "partilhas" && <AdminPartilhas allShared={allShared} />}
+        {adminTab === "tasks" && <AdminTarefas />}
+        {adminTab === "agenda" && <AdminAgenda events={events} />}
+        {adminTab === "missoes" && <AdminMissoes missions={missions} />}
+        {adminTab === "msgs" && <AdminMsgs msgs={msgs} />}
+        {adminTab === "users" && <AdminUsers amMedals={amMedals} setAmMedals={setAmMedals} />}
+      </div>
+        {/* Renderiza a Fatia Correta */}
+
         
         {/* As outras fatias vão entrar aqui assim que as criarmos: */}
         {/* {adminTab === "mural" && <AdminMural user={user} />} */}
