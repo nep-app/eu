@@ -5,7 +5,10 @@ import { BG, CYN, AppIcon } from "./theme.jsx";
 import { upd, getWeekKey, ALLOWED_USERNAMES, JEEP_LIST } from "./data.js";
 
 // ── IMPORTAÇÃO DAS FATIAS ──
-import AdminGeral from './admin/AdminGeral.jsx';
+import AdminGeral from './tabs/admin/AdminGeral.jsx';
+import AdminMural from './tabs/admin/AdminMural.jsx';
+import AdminPartilhas from './tabs/admin/AdminPartilhas.jsx';
+import AdminTarefas from './tabs/admin/AdminTarefas.jsx';
 // (As próximas fatias vêm na próxima mensagem, mas já as deixo preparadas)
 /*
 import AdminMural from './admin/AdminMural.jsx';
