@@ -1,19 +1,18 @@
-import React, { useState, useRef } from 'react';
-import { doc, setDoc } from "firebase/firestore";
+import React, { useState, useRef, useEffect } from 'react';
+import { doc, setDoc, getDoc, updateDoc, increment, arrayUnion } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
-import { CARD, SL, CYN, INP, Btn, PNK } from "../../theme.jsx";
+import { CARD, SL, CYN, INP, Btn, PNK, PS } from "../../theme.jsx";
 import { nowLabel } from "../../data.js";
 
 export default function PerguntaSemanal({ user, data }) {
+  const [perguntaDB, setPerguntaDB] = useState(null);
   const [aTxt, setATxt] = useState("");
-  const [cmode, setCmode] = useState(data.activeQuestionType || "texto");
   const [mediaFile, setMediaFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [audioURL, setAudioURL] = useState(null);
   
-  // Estados para os novos modos
   const [palavras, setPalavras] = useState(["", "", ""]);
   const [ratingSemana, setRatingSemana] = useState(0);
 
@@ -21,6 +20,16 @@ export default function PerguntaSemanal({ user, data }) {
   const audioChunksRef = useRef([]);
   const uData = data.userData || {};
 
+  // Ir buscar a pergunta e o modo em tempo real (para bater certo com o Admin)
+  useEffect(() => {
+    async function fetchQ() {
+      const snap = await getDoc(doc(db, "config", "activeQuestion"));
+      if (snap.exists()) setPerguntaDB(snap.data());
+    }
+    fetchQ();
+  }, []);
+
+  // LÓGICA DE ÁUDIO (A TUA ORIGINAL)
   async function startRecording() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -44,7 +53,8 @@ export default function PerguntaSemanal({ user, data }) {
     }
   }
 
-  async function submitAnswer() {
+  // SUBMETER (A TUA LÓGICA + XP)
+  async function submitAnswer(valorBotao = null) {
     setIsUploading(true);
     try {
       let downloadURL = null;
@@ -54,34 +64,63 @@ export default function PerguntaSemanal({ user, data }) {
         downloadURL = await getDownloadURL(fileRef);
       }
 
-      let respostaFinal = aTxt;
+      const cmode = perguntaDB?.options?.length > 0 ? "botao" : (perguntaDB?.mode?.[0] || "texto");
+      let respostaFinal = valorBotao || aTxt;
+      
       if (cmode === "3palavras") respostaFinal = palavras.join(", ");
       if (cmode === "semana") respostaFinal = `Nota da Semana: ${ratingSemana}/5`;
 
-      await setDoc(doc(db, "userData", user.username), {
+      await updateDoc(doc(db, "userData", user.username), {
         answered: true,
         answerType: cmode,
         answerText: respostaFinal,
         answerMedia: downloadURL,
         answerDate: nowLabel(),
-        weekXp: (uData.weekXp || 0) + 20
-      }, { merge: true });
+        weekXp: increment(20),
+        history: arrayUnion({ date: nowLabel(), action: "Respondeu ao desafio semanal", ts: Date.now(), xp: 20 })
+      });
 
-      alert("Resposta entregue! ✨");
-    } catch (e) { alert("Erro ao enviar."); }
+      alert("Resposta entregue! ✨ +20 XP");
+    } catch (e) { 
+      console.error(e);
+      alert("Erro ao enviar."); 
+    }
     setIsUploading(false);
   }
 
-  if (uData.answered) return <div style={CARD}>✅ Desafio Concluído!</div>;
+  if (uData.answered) return (
+    <div style={CARD}>
+      <div style={SL}>Desafio Semanal</div>
+      <div style={{ textAlign: "center", padding: "20px", color: CYN, fontWeight: 900 }}>
+        ✅ CONCLUÍDO! A Teresa já recebeu a tua reflexão.
+      </div>
+    </div>
+  );
+
+  const perguntaAtual = perguntaDB?.text || data.activeQuestion || "O que mais te marcou esta semana?";
+  const opcoes = perguntaDB?.options || [];
+  const cmode = opcoes.length > 0 ? "botao" : (perguntaDB?.mode?.[0] || "texto");
 
   return (
     <div style={CARD}>
       <div style={SL}>Pergunta da Semana</div>
       <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 20, padding: "15px", background: "rgba(0,0,0,0.3)", borderRadius: 16, borderLeft: `4px solid ${CYN}` }}>
-        {data.activeQuestion || "O que mais te marcou esta semana?"}
+        {perguntaAtual}
       </div>
 
       <div style={{ marginBottom: 20 }}>
+        
+        {/* NOVO MODO: BOTÕES (Se a Teresa definir opções no Admin) */}
+        {cmode === "botao" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {opcoes.map((opt, i) => (
+              <button key={i} onClick={() => submitAnswer(opt)} style={{ padding: "15px", borderRadius: 12, background: "rgba(255,255,255,0.05)", border: `1px solid ${CYN}40`, color: "#fff", fontWeight: 700, cursor: "pointer" }}>
+                {opt}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* TEXTO / COMPLETAR */}
         {(cmode === "texto" || cmode === "completar") && (
           <textarea value={aTxt} onChange={e => setATxt(e.target.value)} style={INP} rows={4} placeholder="Escreve aqui..." />
@@ -111,11 +150,11 @@ export default function PerguntaSemanal({ user, data }) {
           </div>
         )}
 
-        {/* ÁUDIO */}
+        {/* ÁUDIO (A TUA ORIGINAL) */}
         {cmode === "audio" && (
           <div style={{ textAlign: "center" }}>
-            <button onClick={isRecording ? stopRecording : startRecording} style={{ padding: 20, borderRadius: "50%", background: isRecording ? "#f43f5e" : PNK, border: "none", color: "#fff" }}>
-              {isRecording ? "⏹️ PARAR" : "🎤 GRAVAR"}
+            <button onClick={isRecording ? stopRecording : startRecording} style={{ padding: 20, borderRadius: "50%", background: isRecording ? "#f43f5e" : PNK, border: "none", color: "#fff", cursor: "pointer" }}>
+              {isRecording ? "⏹️" : "🎤"}
             </button>
             {audioURL && <audio src={audioURL} controls style={{ marginTop: 15, width: "100%" }} />}
           </div>
@@ -136,7 +175,11 @@ export default function PerguntaSemanal({ user, data }) {
         )}
       </div>
 
-      <Btn onClick={submitAnswer} disabled={isUploading}>{isUploading ? "A ENVIAR..." : "SUBMETER"}</Btn>
+      {cmode !== "botao" && (
+        <Btn onClick={() => submitAnswer()} disabled={isUploading}>
+          {isUploading ? "A ENVIAR..." : "SUBMETER RESPOSTA"}
+        </Btn>
+      )}
     </div>
   );
 }
