@@ -36,7 +36,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
   async function launchRequest() {
     let msg = ""; let field = null;
     
-    // PEDIDOS OBRIGATÓRIOS (Bloqueiam os cards na Home do jovem)
+    // PEDIDOS OBRIGATÓRIOS
     if (launchType === "auto") { msg = "📊 Nova Autoavaliação pedida!"; field = "autoSaved"; }
     if (launchType === "satisf") { msg = "😊 Nova Avaliação de Satisfação pedida!"; field = "sSaved"; }
     if (launchType === "pia") { msg = "📋 Atualização do PIA pedida!"; field = "piaSaved"; }
@@ -44,17 +44,15 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     if (launchType === "swot") { msg = "🔍 Raio-X do Projeto pedido!"; field = "swotSaved"; }
     if (launchType === "pergunta") { msg = "💬 Lembrete: Responde à Pergunta da Semana!"; field = "answered"; }
     
-    // LEMBRETES PUROS (Apenas enviam notificação, não bloqueiam cards)
+    // LEMBRETES PUROS
     if (launchType === "lembreteQuiz") { msg = "🧠 Lembrete: Tens um novo Dilema (Quiz) à tua espera nos Desafios!"; }
     if (launchType === "lembreteGeral") { msg = "📢 A Teresa tem um aviso para ti. Vai ver as novidades!"; }
     
     const targets = launchTarget === "all" ? ALLOWED_USERNAMES : [launchTarget];
     for (const u of targets) {
-      // Só altera o estado se for um pedido obrigatório (field não é nulo)
       if (field) {
         await setDoc(doc(db, "userData", u), { [field]: false }, { merge: true });
       }
-      // Todos enviam notificação
       await addDoc(collection(db, "notifications", u, "items"), { from: "teresa", text: msg, date: nowLabel(), read: false });
     }
     alert("Pedidos/Lembretes lançados com sucesso!");
@@ -97,19 +95,22 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     await updateDoc(doc(db, "adminNotificacoes", notifId), { lida: true });
   }
 
+  // Filtramos as notificações não lidas
+  const alertasNaoLidos = adminNotifs.filter(n => !n.lida);
+
   return (
     <div>
-      {/* 1. NOTIFICAÇÕES */}
-      {adminNotifs.length > 0 && (
+      {/* 1. NOTIFICAÇÕES (AGORA DESAPARECEM AO CLICAR EM LIDO) */}
+      {alertasNaoLidos.length > 0 && (
         <div style={{ ...CARD, background:"rgba(239, 68, 68, 0.05)", border:`1px solid rgba(239, 68, 68, 0.2)` }}>
           <div style={{ ...SL, color:"#ef4444" }}>🔔 Alertas Recentes</div>
           <div style={{ maxHeight:200, overflowY:"auto" }}>
-            {adminNotifs.slice(0, 10).map(n => (
-              <div key={n.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px", background:"rgba(0,0,0,0.2)", borderRadius:12, marginBottom:8, borderLeft:n.lida ? "none" : `3px solid #ef4444` }}>
-                <div style={{ fontSize:13, color: n.lida ? "#94a3b8" : "white" }}>
-                  {n.tipo === "AUTOAVALIACAO" ? `📊 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} entregou.` : `😊 Nova Satisfação Anónima.`}
+            {alertasNaoLidos.slice(0, 10).map(n => (
+              <div key={n.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px", background:"rgba(0,0,0,0.2)", borderRadius:12, marginBottom:8 }}>
+                <div style={{ fontSize:13, color: "white" }}>
+                  {n.tipo === "AUTOAVALIACAO" ? `📊 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} entregou a autoavaliação.` : `😊 Nova Satisfação Anónima submetida.`}
                 </div>
-                {!n.lida && <button onClick={() => markAdminNotifAsRead(n.id)} style={{ background:"none", border:"1px solid #ef4444", color:"#ef4444", borderRadius:8, padding:"4px 8px", fontSize:11 }}>Lido</button>}
+                <button onClick={() => markAdminNotifAsRead(n.id)} style={{ background:"none", border:"1px solid #ef4444", color:"#ef4444", borderRadius:8, padding:"4px 8px", fontSize:11, cursor:"pointer" }}>Lido ✓</button>
               </div>
             ))}
           </div>
