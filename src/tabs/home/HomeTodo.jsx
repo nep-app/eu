@@ -16,7 +16,7 @@ export default function HomeTodo({ user, data, setTab }) {
 
   // ── LÓGICA DAS AÇÕES DE ACOMPANHAMENTO ──
   let acoesPendentes = [];
-  if (!uData.answered) acoesPendentes.push({ status: "urgent", icon: "💬", title: "Pergunta da semana", sub: "A Coordenação aguarda a tua reflexão", go: () => setTab("desafios") });
+  if (!uData.answered) acoesPendentes.push({ status: "urgent", icon: "💬", title: "Pergunta da semana", sub: "A Teresa aguarda a tua reflexão", go: () => setTab("desafios") });
   if (!uData.autoSaved) acoesPendentes.push({ status: "pending", icon: "📊", title: "Autoavaliação mensal", sub: "Avalia as tuas competências", go: () => setTab("desafios") });
   if (!uData.sSaved) acoesPendentes.push({ status: "new", icon: "😊", title: "Satisfação", sub: "Diz-nos como corre o programa", go: () => setTab("desafios") });
   if (!uData.piaSaved) acoesPendentes.push({ status: "pending", icon: "🚀", title: "Plano Individual (PIA)", sub: "Desenha o teu projeto", go: () => setTab("pia") });
@@ -80,7 +80,7 @@ export default function HomeTodo({ user, data, setTab }) {
       {/* ── 2. SUGESTÕES DA TERESA ── */}
       {tarefasSugestao.length > 0 && (
         <div style={{ ...CARD, background: "rgba(34, 211, 238, 0.1)", border: `1.5px solid ${CYN}` }}>
-          <div style={SL}>📩 Sugestões da Coordenação</div>
+          <div style={SL}>📩 Sugestões da Teresa</div>
           {tarefasSugestao.map(t => (
             <div key={t.id} style={{ background: "rgba(0,0,0,0.3)", padding: 15, borderRadius: 18, marginBottom: 10 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 5 }}>{t.text}</div>
@@ -103,7 +103,7 @@ export default function HomeTodo({ user, data, setTab }) {
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
             <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#94a3b8", cursor: "pointer" }}>
               <input type="checkbox" checked={partilharTarefaCheck} onChange={e => setPartilharTarefaCheck(e.target.checked)} style={{ accentColor: CYN }} />
-              Partilhar com Coordenação
+              Partilhar com a Teresa
             </label>
             <button onClick={criarNovaTarefa} style={{ background: CYN, border: "none", borderRadius: 18, padding: "8px 20px", fontWeight: 900, cursor: "pointer", color: "#070b14", marginLeft: "auto" }}>ADICIONAR</button>
           </div>
