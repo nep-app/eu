@@ -3,7 +3,7 @@ import { AppIcon } from "../theme.jsx";
 
 // Importar as nossas novas fatias
 import HomeTodo from './home/HomeTodo.jsx';
-import HomeVotacoes from './home/HomeVotacoes.jsx'; // ADICIONA ISTO
+import HomeVotacoes from './home/HomeVotacoes.jsx';
 import HomeAgenda from './home/HomeAgenda.jsx';
 import HomeExtras from './home/HomeExtras.jsx';
 
@@ -16,8 +16,8 @@ export default function HomeTab({ user, data, setTab }) {
         <AppIcon size={100} />
       </div>
 
-{/* 1. GESTÃO DE TAREFAS (To-Do & Sugestões da Teresa) */}
-      <HomeTodo user={user} data={data} />
+      {/* 1. GESTÃO DE TAREFAS (Ações Pendentes, To-Do & Sugestões da Teresa) */}
+      <HomeTodo user={user} data={data} setTab={setTab} />
 
       {/* 1.5 VOTAÇÕES ATIVAS (Aparece automaticamente se houver) */}
       <HomeVotacoes user={user} />
