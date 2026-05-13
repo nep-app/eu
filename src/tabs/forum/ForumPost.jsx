@@ -1,9 +1,4 @@
-import React, { useState } from 'react';
-import { collection, addDoc, doc, updateDoc, increment, arrayUnion } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "../../firebase.js";
-import { CARD, SL, CYN, INP } from "../../theme.jsx";
-import { nowLabel } from "../../data.js";
+import React, { useState } from 'react';import { doc, updateDoc, deleteDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";import { db } from "../../firebase.js";import { CARD, CYN, INP } from "../../theme.jsx";import { nowLabel, FORUM_REACTIONS } from "../../data.js";
 
 export default function ForumPost({ post, user, canalAtivo }) {
   const [responderA, setResponderA] = useState(false);
