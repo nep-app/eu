@@ -2,17 +2,18 @@ import React, { useState, useRef, useEffect } from 'react';
 import { doc, setDoc, getDoc, updateDoc, increment, arrayUnion } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
-import { CARD, SL, CYN, INP, Btn, PNK, PS } from "../../theme.jsx";
+import { CARD, SL, CYN, INP, Btn, PNK } from "../../theme.jsx";
 import { nowLabel } from "../../data.js";
 
 export default function PerguntaSemanal({ user, data }) {
   const [perguntaDB, setPerguntaDB] = useState(null);
+  const [activeTab, setActiveTab] = useState(""); // Qual o modo que o jovem escolheu agora
+  
   const [aTxt, setATxt] = useState("");
   const [mediaFile, setMediaFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [audioURL, setAudioURL] = useState(null);
-  
   const [palavras, setPalavras] = useState(["", "", ""]);
   const [ratingSemana, setRatingSemana] = useState(0);
 
@@ -20,16 +21,19 @@ export default function PerguntaSemanal({ user, data }) {
   const audioChunksRef = useRef([]);
   const uData = data.userData || {};
 
-  // Ir buscar a pergunta e o modo em tempo real (para bater certo com o Admin)
   useEffect(() => {
     async function fetchQ() {
       const snap = await getDoc(doc(db, "config", "activeQuestion"));
-      if (snap.exists()) setPerguntaDB(snap.data());
+      if (snap.exists()) {
+        const d = snap.data();
+        setPerguntaDB(d);
+        if (d.modes && d.modes.length > 0) setActiveTab(d.modes[0]);
+      }
     }
     fetchQ();
   }, []);
 
-  // LÓGICA DE ÁUDIO (A TUA ORIGINAL)
+  // LÓGICA DE ÁUDIO
   async function startRecording() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -53,7 +57,6 @@ export default function PerguntaSemanal({ user, data }) {
     }
   }
 
-  // SUBMETER (A TUA LÓGICA + XP)
   async function submitAnswer(valorBotao = null) {
     setIsUploading(true);
     try {
@@ -64,121 +67,112 @@ export default function PerguntaSemanal({ user, data }) {
         downloadURL = await getDownloadURL(fileRef);
       }
 
-      const cmode = perguntaDB?.options?.length > 0 ? "botao" : (perguntaDB?.mode?.[0] || "texto");
       let respostaFinal = valorBotao || aTxt;
-      
-      if (cmode === "3palavras") respostaFinal = palavras.join(", ");
-      if (cmode === "semana") respostaFinal = `Nota da Semana: ${ratingSemana}/5`;
+      if (activeTab === "3palavras") respostaFinal = palavras.join(", ");
+      if (activeTab === "semana") respostaFinal = `Rating: ${ratingSemana}/5`;
 
       await updateDoc(doc(db, "userData", user.username), {
         answered: true,
-        answerType: cmode,
+        answerType: valorBotao ? "botao" : activeTab,
         answerText: respostaFinal,
         answerMedia: downloadURL,
         answerDate: nowLabel(),
         weekXp: increment(20),
         history: arrayUnion({ date: nowLabel(), action: "Respondeu ao desafio semanal", ts: Date.now(), xp: 20 })
       });
-
-      alert("Resposta entregue! ✨ +20 XP");
-    } catch (e) { 
-      console.error(e);
-      alert("Erro ao enviar."); 
-    }
+      alert("Resposta entregue! ✨");
+    } catch (e) { alert("Erro ao enviar."); }
     setIsUploading(false);
   }
 
   if (uData.answered) return (
     <div style={CARD}>
-      <div style={SL}>Desafio Semanal</div>
-      <div style={{ textAlign: "center", padding: "20px", color: CYN, fontWeight: 900 }}>
-        ✅ CONCLUÍDO! A Teresa já recebeu a tua reflexão.
-      </div>
+      <div style={SL}>✅ Reflexão Entregue!</div>
+      <p style={{ textAlign: "center", color: "#94a3b8", fontSize: 13 }}>A Teresa já recebeu a tua participação.</p>
     </div>
   );
 
-  const perguntaAtual = perguntaDB?.text || data.activeQuestion || "O que mais te marcou esta semana?";
-  const opcoes = perguntaDB?.options || [];
-  const cmode = opcoes.length > 0 ? "botao" : (perguntaDB?.mode?.[0] || "texto");
+  if (!perguntaDB) return null;
+
+  const modosAtivos = perguntaDB.modes || ["texto"];
+  const opcoesBotao = perguntaDB.options || [];
 
   return (
     <div style={CARD}>
       <div style={SL}>Pergunta da Semana</div>
-      <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 20, padding: "15px", background: "rgba(0,0,0,0.3)", borderRadius: 16, borderLeft: `4px solid ${CYN}` }}>
-        {perguntaAtual}
+      <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 20, padding: "15px", background: "rgba(0,0,0,0.3)", borderRadius: 16, borderLeft: `4px solid ${CYN}` }}>
+        {perguntaDB.text}
       </div>
+
+      {/* SELETOR DE MODO (Só aparece se houver mais de um e nenhum botão fixo) */}
+      {opcoesBotao.length === 0 && modosAtivos.length > 1 && (
+        <div style={{ display: "flex", gap: 5, marginBottom: 15, overflowX: "auto", paddingBottom: 5 }}>
+          {modosAtivos.map(m => (
+            <button key={m} onClick={() => setActiveTab(m)} style={{ 
+              padding: "6px 12px", borderRadius: 10, border: "none", fontSize: 11, fontWeight: 800, whiteSpace: "nowrap",
+              background: activeTab === m ? CYN : "rgba(255,255,255,0.05)",
+              color: activeTab === m ? "#000" : "#94a3b8"
+            }}>
+              {m.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div style={{ marginBottom: 20 }}>
-        
-        {/* NOVO MODO: BOTÕES (Se a Teresa definir opções no Admin) */}
-        {cmode === "botao" && (
+        {/* BOTÕES FIXOS */}
+        {opcoesBotao.length > 0 ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {opcoes.map((opt, i) => (
-              <button key={i} onClick={() => submitAnswer(opt)} style={{ padding: "15px", borderRadius: 12, background: "rgba(255,255,255,0.05)", border: `1px solid ${CYN}40`, color: "#fff", fontWeight: 700, cursor: "pointer" }}>
-                {opt}
-              </button>
+            {opcoesBotao.map((opt, i) => (
+              <button key={i} onClick={() => submitAnswer(opt)} style={{ padding: 15, borderRadius: 12, background: "rgba(255,255,255,0.05)", border: `1px solid ${CYN}40`, color: "#fff", fontWeight: 700 }}>{opt}</button>
             ))}
           </div>
-        )}
+        ) : (
+          <>
+            {activeTab === "texto" && <textarea value={aTxt} onChange={e=>setATxt(e.target.value)} style={INP} rows={4} placeholder="Escreve aqui..." />}
+            
+            {activeTab === "3palavras" && (
+              <div style={{ display: "flex", gap: 10 }}>
+                {palavras.map((p, i) => (
+                  <input key={i} value={p} onChange={e => {
+                    const n = [...palavras]; n[i] = e.target.value; setPalavras(n);
+                  }} style={{ ...INP, textAlign: "center" }} placeholder={`P${i+1}`} />
+                ))}
+              </div>
+            )}
 
-        {/* TEXTO / COMPLETAR */}
-        {(cmode === "texto" || cmode === "completar") && (
-          <textarea value={aTxt} onChange={e => setATxt(e.target.value)} style={INP} rows={4} placeholder="Escreve aqui..." />
-        )}
+            {activeTab === "semana" && (
+              <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
+                {[1,2,3,4,5].map(n => (
+                  <button key={n} onClick={()=>setRatingSemana(n)} style={{ width: 45, height: 45, borderRadius: "50%", border: "none", background: ratingSemana === n ? CYN : "rgba(255,255,255,0.05)", color: ratingSemana === n ? "#000" : "#fff" }}>⭐</button>
+                ))}
+              </div>
+            )}
 
-        {/* 3 PALAVRAS */}
-        {cmode === "3palavras" && (
-          <div style={{ display: "flex", gap: 10 }}>
-            {palavras.map((p, i) => (
-              <input key={i} value={p} onChange={e => {
-                const newP = [...palavras]; newP[i] = e.target.value; setPalavras(newP);
-              }} style={{ ...INP, textAlign: "center" }} placeholder={`Palavra ${i+1}`} />
-            ))}
-          </div>
-        )}
+            {activeTab === "audio" && (
+              <div style={{ textAlign: "center" }}>
+                <button onClick={isRecording ? stopRecording : startRecording} style={{ padding: 20, borderRadius: "50%", background: isRecording ? "#f43f5e" : PNK, border: "none", color: "#fff" }}>
+                  {isRecording ? "⏹️" : "🎤"}
+                </button>
+                {audioURL && <audio src={audioURL} controls style={{ marginTop: 15, width: "100%" }} />}
+              </div>
+            )}
 
-        {/* SEMANA (RATING) */}
-        {cmode === "semana" && (
-          <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
-            {[1, 2, 3, 4, 5].map(n => (
-              <button key={n} onClick={() => setRatingSemana(n)} style={{ 
-                width: 50, height: 50, borderRadius: "50%", border: "none", fontSize: 20,
-                background: ratingSemana === n ? CYN : "rgba(255,255,255,0.05)",
-                color: ratingSemana === n ? "#000" : "#fff"
-              }}>⭐</button>
-            ))}
-          </div>
-        )}
+            {(activeTab === "imagem") && <input type="file" onChange={e=>setMediaFile(e.target.files[0])} style={INP} />}
 
-        {/* ÁUDIO (A TUA ORIGINAL) */}
-        {cmode === "audio" && (
-          <div style={{ textAlign: "center" }}>
-            <button onClick={isRecording ? stopRecording : startRecording} style={{ padding: 20, borderRadius: "50%", background: isRecording ? "#f43f5e" : PNK, border: "none", color: "#fff", cursor: "pointer" }}>
-              {isRecording ? "⏹️" : "🎤"}
-            </button>
-            {audioURL && <audio src={audioURL} controls style={{ marginTop: 15, width: "100%" }} />}
-          </div>
-        )}
-
-        {/* FOTO / VÍDEO */}
-        {(cmode === "imagem" || cmode === "video") && (
-          <input type="file" onChange={e => setMediaFile(e.target.files[0])} style={INP} />
-        )}
-
-        {/* MOOD */}
-        {cmode === "mood" && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            {["🔥 Focado", "😴 Cansado", "🚀 Motivado", "😐 Normal"].map(m => (
-              <button key={m} onClick={() => setATxt(m)} style={{ padding: 10, borderRadius: 12, background: aTxt === m ? PNK : "rgba(255,255,255,0.05)", border: "none", color: "#fff" }}>{m}</button>
-            ))}
-          </div>
+            {activeTab === "mood" && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {["🚀 Motivado", "😴 Cansado", "🔥 Focado", "😐 Normal"].map(m => (
+                  <button key={m} onClick={()=>setATxt(m)} style={{ padding: 12, borderRadius: 12, background: aTxt === m ? CYN : "rgba(255,255,255,0.05)", border: "none", color: aTxt === m ? "#000" : "#fff", fontWeight: 800 }}>{m}</button>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {cmode !== "botao" && (
-        <Btn onClick={() => submitAnswer()} disabled={isUploading}>
-          {isUploading ? "A ENVIAR..." : "SUBMETER RESPOSTA"}
-        </Btn>
+      {opcoesBotao.length === 0 && (
+        <Btn onClick={() => submitAnswer()} disabled={isUploading}>{isUploading ? "A ENVIAR..." : "SUBMETER RESPOSTA"}</Btn>
       )}
     </div>
   );
