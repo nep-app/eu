@@ -10,11 +10,8 @@ export default function ForumPost({ post, user, canalAtivo }) {
   const [editando, setEditando] = useState(false);
   const [textoEditado, setTextoEditado] = useState(post.text);
   
-  // Estados para edição de RESPOSTAS
   const [editandoReplyId, setEditandoReplyId] = useState(null);
   const [textoEditadoReply, setTextoEditadoReply] = useState("");
-
-  const isAdmin = user.username === "teresa";
 
   // ── FUNÇÕES DE APOIO ──
   async function darXP(acao) {
@@ -24,7 +21,6 @@ export default function ForumPost({ post, user, canalAtivo }) {
     });
   }
 
-  // NOVA FUNÇÃO: Enviar Notificação Social
   async function enviarNotificacao(tipo) {
     if (user.username === post.username) return; // Não notifica a si próprio
     
@@ -66,7 +62,7 @@ export default function ForumPost({ post, user, canalAtivo }) {
       rcts[tipo] = (rcts[tipo] || 0) + 1;
       rBy[tipo] = [...users, user.username];
       darXP("Interagiu no Fórum");
-      await enviarNotificacao("like"); // <-- ENVIAR ALERTA DE LIKE
+      await enviarNotificacao("like"); // ALERTA DE REAÇÃO
     }
     await updateDoc(doc(db, "forum", canalAtivo, "posts", post.id), { 
       reactions: rcts, reactedBy: rBy 
@@ -90,7 +86,7 @@ export default function ForumPost({ post, user, canalAtivo }) {
     setResponderA(false); 
     setTextoResposta(""); 
     darXP("Respondeu no Fórum");
-    await enviarNotificacao("reply"); // <-- ENVIAR ALERTA DE COMENTÁRIO
+    await enviarNotificacao("reply"); // ALERTA DE COMENTÁRIO
   }
 
   async function apagarReply(rid) {
@@ -126,12 +122,10 @@ export default function ForumPost({ post, user, canalAtivo }) {
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <div style={{ fontSize: 11, color: "#64748b" }}>{post.time}</div>
               
-              {/* APAGAR/EDITAR POST */}
-              {(post.username === user.username || isAdmin) && (
+              {/* APAGAR/EDITAR POST (Apenas o próprio dono do post pode apagar) */}
+              {post.username === user.username && (
                 <div style={{ display: "flex", gap: 8 }}>
-                  {post.username === user.username && (
-                    <button onClick={() => setEditando(true)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14 }}>✏️</button>
-                  )}
+                  <button onClick={() => setEditando(true)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14 }}>✏️</button>
                   <button onClick={handleApagarPost} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14 }}>🗑️</button>
                 </div>
               )}
@@ -175,12 +169,10 @@ export default function ForumPost({ post, user, canalAtivo }) {
                   {reply.user} <span style={{ color: "#64748b", fontWeight: 400, marginLeft: 5 }}>{reply.time}</span>
                 </div>
                 
-                {/* APAGAR/EDITAR RESPOSTA (ADMIN AGORA APAGA TUDO) */}
-                {(reply.username === user.username || isAdmin) && (
+                {/* APAGAR/EDITAR RESPOSTA (Apenas o próprio dono pode apagar) */}
+                {reply.username === user.username && (
                   <div style={{ display: "flex", gap: 8 }}>
-                    {reply.username === user.username && (
-                      <button onClick={() => { setEditandoReplyId(reply.id); setTextoEditadoReply(reply.text); }} style={{ background: "none", border: "none", fontSize: 12, cursor: "pointer", opacity: 0.6 }}>✏️</button>
-                    )}
+                    <button onClick={() => { setEditandoReplyId(reply.id); setTextoEditadoReply(reply.text); }} style={{ background: "none", border: "none", fontSize: 12, cursor: "pointer", opacity: 0.6 }}>✏️</button>
                     <button onClick={() => apagarReply(reply.id)} style={{ background: "none", border: "none", fontSize: 12, cursor: "pointer", opacity: 0.6 }}>🗑️</button>
                   </div>
                 )}
