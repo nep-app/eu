@@ -14,6 +14,8 @@ export default function ForumPost({ post, user, canalAtivo }) {
   const [editandoReplyId, setEditandoReplyId] = useState(null);
   const [textoEditadoReply, setTextoEditadoReply] = useState("");
 
+  const isAdmin = user.username === "teresa";
+
   // ── FUNÇÕES DE APOIO ──
   async function darXP(acao) {
     await updateDoc(doc(db, "userData", user.username), {
@@ -106,9 +108,13 @@ export default function ForumPost({ post, user, canalAtivo }) {
             </div>
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <div style={{ fontSize: 11, color: "#64748b" }}>{post.time}</div>
-              {post.username === user.username && (
+              
+              {/* APAGAR/EDITAR POST (Teresa apaga tudo, o dono edita/apaga o seu) */}
+              {(post.username === user.username || isAdmin) && (
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => setEditando(true)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14 }}>✏️</button>
+                  {post.username === user.username && (
+                    <button onClick={() => setEditando(true)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14 }}>✏️</button>
+                  )}
                   <button onClick={handleApagarPost} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14 }}>🗑️</button>
                 </div>
               )}
@@ -121,7 +127,7 @@ export default function ForumPost({ post, user, canalAtivo }) {
               <button onClick={handleGuardarEdicao} style={{ background: CYN, border: "none", borderRadius: 10, padding: "0 15px", fontWeight: 900, cursor: "pointer" }}>OK</button>
             </div>
           ) : (
-            <div style={{ fontSize: 15, color: "#e2e8f0", marginTop: 5, lineHeight: 1.5 }}>{post.text}</div>
+            <div style={{ fontSize: 15, color: "#e2e8f0", marginTop: 5, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{post.text}</div>
           )}
 
           {post.media && <img src={post.media} alt="Post" style={{ maxWidth: "100%", borderRadius: 16, marginTop: 12 }} />}
@@ -151,9 +157,13 @@ export default function ForumPost({ post, user, canalAtivo }) {
                 <div style={{ fontSize: 12, fontWeight: 800, color: reply.color }}>
                   {reply.user} <span style={{ color: "#64748b", fontWeight: 400, marginLeft: 5 }}>{reply.time}</span>
                 </div>
-                {reply.username === user.username && (
+                
+                {/* APAGAR/EDITAR RESPOSTA */}
+                {(reply.username === user.username || isAdmin) && (
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => { setEditandoReplyId(reply.id); setTextoEditadoReply(reply.text); }} style={{ background: "none", border: "none", fontSize: 12, cursor: "pointer", opacity: 0.6 }}>✏️</button>
+                    {reply.username === user.username && (
+                      <button onClick={() => { setEditandoReplyId(reply.id); setTextoEditadoReply(reply.text); }} style={{ background: "none", border: "none", fontSize: 12, cursor: "pointer", opacity: 0.6 }}>✏️</button>
+                    )}
                     <button onClick={() => apagarReply(reply.id)} style={{ background: "none", border: "none", fontSize: 12, cursor: "pointer", opacity: 0.6 }}>🗑️</button>
                   </div>
                 )}
@@ -165,7 +175,7 @@ export default function ForumPost({ post, user, canalAtivo }) {
                   <button onClick={() => handleGuardarEdicaoReply(reply.id)} style={{ background: CYN, border: "none", borderRadius: 8, padding: "0 10px", fontWeight: 900, cursor: "pointer", fontSize: 11 }}>OK</button>
                 </div>
               ) : (
-                <div style={{ fontSize: 13, color: "#cbd5e1", marginTop: 2 }}>{reply.text}</div>
+                <div style={{ fontSize: 13, color: "#cbd5e1", marginTop: 2, whiteSpace: "pre-wrap" }}>{reply.text}</div>
               )}
             </div>
           ))}
