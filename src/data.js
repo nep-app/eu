@@ -7,10 +7,17 @@ export function scoreLabel(v) {
   if (v <= 9) return ["Muito Bom","#a855f7"];
   return ["Excelente","#22d3ee"];
 }
+
+// ── REGRA DE OURO: Mapear nota (1-10) para o texto certo (a-f) ──
 export function getDimDesc(dim, v) {
-  if (v <= 2) return dim.s.a; if (v <= 4) return dim.s.b; if (v === 5) return dim.s.c;
-  if (v <= 7) return dim.s.d; if (v <= 9) return dim.s.e; return dim.s.f;
+  if (v <= 2) return dim.s.a; // 1-2
+  if (v <= 4) return dim.s.b; // 3-4
+  if (v === 5) return dim.s.c; // 5
+  if (v <= 7) return dim.s.d; // 6-7
+  if (v <= 9) return dim.s.e; // 8-9
+  return dim.s.f; // 10
 }
+
 export const MTHS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 export function nowLabel() { let d = new Date(); return MTHS[d.getMonth()] + " " + d.getFullYear(); }
 export function fmtDate(s) {
@@ -51,12 +58,84 @@ export const JEEP_LIST = [
 ];
 
 export const DIMS = [
-  { id:"D1", label:"Comunicação, Assertividade e Relação em Equipa", desc:"Comunica de forma clara, adequada e adaptada às diferentes pessoas, ouve o outro e mantem ambiente de respeito. Colabora e partilha responsabilidades.", s:{ a:"Tenho muita dificuldade em comunicar. Evito pedir ajuda e receber feedback.", b:"Às vezes comunico mal ou evito conversas difíceis. Prefiro trabalhar sozinho.", c:"Consigo comunicar no dia a dia. Respeito a equipa. Aceito feedback com algum esforço.", d:"Adapto a comunicação a quem me ouve. Trabalho bem em equipa e recebo feedback tranquilamente.", e:"Comunico bem mesmo em situações difíceis. Apoio os colegas e melhoro com o feedback.", f:"Sou uma referência na equipa. Ajudo a resolver tensões e apoio todos." } },
-  { id:"D2", label:"Resiliência, Gestão da Frustração e Adaptação", desc:"Enfrenta dificuldades e stress com maturidade. Controla a frustração perante imprevistos e mantém a calma.", s:{ a:"Quando as coisas correm mal, bloqueio, desisto ou fico muito agitado.", b:"As dificuldades afetam demasiado o meu espírito e o meu trabalho.", c:"Mantenho-me estável na maioria das situações. Fico desconfortável com imprevistos mas continuo.", d:"Mantenho a calma e encontro soluções. Não desisto à primeira.", e:"Lido bem com situações difíceis, focado e encontrando alternativas.", f:"Sou referência de calma. Transformo problemas em oportunidades de crescimento." } },
-  { id:"D3", label:"Autonomia, Proatividade e Cumprimento de Tarefas", desc:"Trabalha de forma independente e antecipa necessidades. Age por iniciativa própria e cumpre compromissos.", s:{ a:"Preciso que me digam sempre o que fazer. Não tenho iniciativa.", b:"Faço o que me pedem mas não costumo agir por conta própria.", c:"Sou autónomo nas tarefas habituais e cumpro o que prometo.", d:"Antecipio o que precisa de ser feito sem que me peçam.", e:"Proponho, tomo iniciativa e cumpro com rigor.", f:"A minha iniciativa faz a diferença no espaço. Proponho e executo com total autonomia." } },
-  { id:"D4", label:"Autoconhecimento, Autocrítica e Clareza de Objetivos", desc:"Autorreflexão para reconhecer competências e falhas. Define metas concretas e exequíveis para o futuro.", s:{ a:"Não penso muito no que faço bem ou mal. Não tenho objetivos claros.", b:"Tenho noção das limitações mas custa admiti-las. Ideias vagas para o futuro.", c:"Sei o que faço bem e o que melhorar. Tenho alguns objetivos.", d:"Conheço bem as minhas competências. Defino objetivos concretos e melhoro com as falhas.", e:"Reflito regularmente. Tenho um projeto de vida concreto e trabalho nele.", f:"Autoconhecimento profundo que guia as minhas decisões e relações." } },
-  { id:"D5", label:"Competências Digitais e Autonomia Administrativa", desc:"Domínio de ferramentas digitais e gestão burocrática. Literacia digital aplicada ao quotidiano e trabalho.", s:{ a:"Muita dificuldade com tecnologia e burocracia básica.", b:"Uso algumas ferramentas mas com dificuldade e ajuda frequente.", c:"Uso ferramentas digitais básicas e trato de assuntos simples sozinho.", d:"Uso bem a tecnologia no trabalho. Sou autónomo em processos burocráticos.", e:"Uso a tecnologia de forma proativa para melhorar o trabalho. Ajudo outros.", f:"Literacia digital que faz a diferença. Resolvo situações complexas para a equipa." } },
-  { id:"D6", label:"Qualidade da Intervenção e Conhecimentos Profissionais", desc:"Conceção e dinamização de atividades ajustadas ao grupo. Postura profissional e alinhamento com a missão.", s:{ a:"Muita dificuldade em fazer atividades adequadas. Não conheço o meu papel.", b:"Atividades ainda pouco ajustadas. Postura profissional inconsistente.", c:"Faço atividades básicas adaptadas. Cumpro regras e percebo o meu papel.", d:"Atividades boas e postura adequada. Identifico-me com os objetivos do espaço.", e:"Atividades com impacto real. Postura profissional de excelência.", f:"O meu trabalho tem impacto duradouro no grupo. Sou referência na conceção de atividades." } }
+  { 
+    id:"D1", 
+    label:"Comunicação, Assertividade e Relação em Equipa", 
+    desc:"Comunica de forma clara, adequada e adaptada às diferentes pessoas, ouve o outro e mantem ambiente de respeito. Colabora e partilha responsabilidades.", 
+    s:{ 
+      a:"Tenho muita dificuldade em comunicar com a equipa e com as crianças. Evito pedir ajuda e não me sinto à vontade para receber observações.", 
+      b:"Às vezes comunico mal, uso o tom errado ou evito conversas difíceis. Prefiro trabalhar sozinho/a.", 
+      c:"Consigo comunicar nas situações do dia a dia. Sou respeitoso/a. Aceito feedback, embora me custe um pouco.", 
+      d:"Consigo adaptar a forma como comunico consoante com quem estou. Trabalho bem em equipa e peço ajuda quando preciso.", 
+      e:"Comunico bem mesmo quando as situações são difíceis. Apoio os colegas e peço feedback regularmente.", 
+      f:"Sinto que sou uma referência na comunicação dentro da equipa. Ajudo a resolver tensões e apoio os colegas." 
+    } 
+  },
+  { 
+    id:"D2", 
+    label:"Resiliência, Gestão da Frustração e Adaptação", 
+    desc:"Enfrenta dificuldades e stress com maturidade. Controla a frustração perante imprevistos e mantém a calma.", 
+    s:{ 
+      a:"Quando as coisas não correm bem, bloqueio, desisto ou fico muito agitado/a. Muita dificuldade com imprevistos.", 
+      b:"Às vezes as dificuldades afetam demasiado o meu estado de espírito. Dificuldade em manter a calma sob pressão.", 
+      c:"Consigo manter-me estável na maior parte das situações. Em imprevistos fico desconfortável, mas continuo.", 
+      d:"Consigo manter-me calmo/a e encontrar formas de continuar perante imprevistos. Não desisto à primeira.", 
+      e:"Lido bem com situações difíceis, mantenho-me focado/a e encontro alternativas. Ajudo os outros a manter a calma.", 
+      f:"Sou uma referência de calma. Mantenho o equilíbrio nas crises e transformo problemas em crescimento." 
+    } 
+  },
+  { 
+    id:"D3", 
+    label:"Autonomia, Proatividade e Cumprimento de Tarefas", 
+    desc:"Trabalha de forma independente e antecipa necessidades. Age por iniciativa própria e cumpre compromissos.", 
+    s:{ 
+      a:"Preciso que me digam sempre o que fazer. Não tenho iniciativa própria.", 
+      b:"Faço o que me pedem, mas não costumo agir por iniciativa. Preciso de orientação frequente.", 
+      c:"Consigo trabalhar de forma autónoma nas tarefas habituais. Cumpro o que prometo.", 
+      d:"Trabalho de forma autónoma e às vezes antecipo o que precisa de ser feito sem que me peçam.", 
+      e:"Costumo identificar o que é preciso antes que me digam. Proponho e cumpro com rigor.", 
+      f:"A minha iniciativa faz a diferença no espaço. A equipa conta comigo sem precisar de me acompanhar." 
+    } 
+  },
+  { 
+    id:"D4", 
+    label:"Autoconhecimento, Autocrítica e Clareza de Objetivos", 
+    desc:"Autorreflexão para reconhecer competências e falhas. Define metas concretas e exequíveis.", 
+    s:{ 
+      a:"Não penso muito sobre o que faço bem ou mal. Não tenho objetivos claros para o futuro.", 
+      b:"Tenho alguma noção das limitações, mas custa admiti-las. Ideias de futuro ainda vagas.", 
+      c:"Sei o que faço bem e o que preciso de melhorar. Tenho alguns objetivos, mas sem plano claro.", 
+      d:"Conheço bem as minhas competências. Defino objetivos concretos e assumo falhas para melhorar.", 
+      e:"Reflito regularmente. Tenho um projeto de vida concreto e trabalho nos passos para o atingir.", 
+      f:"Conheço-me a um nível profundo. Esse saber guia as minhas decisões e o meu projeto de vida." 
+    } 
+  },
+  { 
+    id:"D5", 
+    label:"Competências Digitais e Autonomia Administrativa", 
+    desc:"Domínio de ferramentas digitais e gestão burocrática. Literacia digital aplicada ao trabalho.", 
+    s:{ 
+      a:"Muita dificuldade com tecnologia e processos burocráticos. Não sou autónomo nestas áreas.", 
+      b:"Uso algumas ferramentas com dificuldade. Preciso de ajuda constante para assuntos burocráticos.", 
+      c:"Uso ferramentas digitais básicas e trato de assuntos administrativos simples sozinho.", 
+      d:"Uso bem a tecnologia no trabalho e trato de processos burocráticos de forma autónoma.", 
+      e:"Uso a tecnologia de forma proativa para melhorar o trabalho. Ajudo outros em processos complexos.", 
+      f:"A minha literacia digital faz a diferença. Resolvo situações complexas e sou um recurso para a equipa." 
+    } 
+  },
+  { 
+    id:"D6", 
+    label:"Qualidade da Intervenção e Conhecimentos Profissionais", 
+    desc:"Conceção e dinamização de atividades ajustadas ao grupo. Postura profissional e alinhamento com a missão.", 
+    s:{ 
+      a:"Muita dificuldade em fazer atividades adequadas. Não me identifico com as regras do espaço.", 
+      b:"Atividades ainda pouco ajustadas ao grupo. Postura profissional inconsistente.", 
+      c:"Faço atividades básicas adaptadas. Cumpro regras e percebo o que é esperado de mim.", 
+      d:"Faço atividades boas e ajustadas. Tenho postura profissional adequada e alinhada com o local.", 
+      e:"Atividades com impacto real no grupo. Postura profissional que me orgulha.", 
+      f:"O meu trabalho tem impacto duradouro. Sou uma referência na conceção de atividades." 
+    } 
+  }
 ];
 
 export const RODA_DIMS = [
@@ -69,9 +148,8 @@ export const RODA_DIMS = [
   { id:"lazer",    label:"Lazer",               icon:"🎉", desc:"Tens tempo para ti? Fazes atividades que te dão prazer?" },
 ];
 
-// 👇 AQUI ESTÃO AS DESCRIÇÕES COMPLETAS DO TEU PRINT 👇
 export const CHANNELS = [
-  { id:"csi",       icon:"🔍", label:"CSI Ludotecas",      desc:"A tua linha de apoio 24/7. Usa este canal para expores desafios, desabafares sobre situações difíceis no terreno e procurares soluções em conjunto com a Teresa e os teus colegas." },
+  { id:"csi",       icon:"🔍", label:"CSI Ludotecas",      desc:"A tua linha de apoio 24/7. Usa este canal para expores desafios, desabafares sobre situações difíceis no terreno e procurares soluções em conjunto com a Coordenação e os teus colegas." },
   { id:"monitor",   icon:"🏆", label:"Super Monitor",      desc:"O palco das tuas vitórias! Partilha as atividades que correram incrivelmente bem, os sorrisos que arrancaste e as pequenas conquistas diárias do teu trabalho." },
   { id:"olx",       icon:"📦", label:"OLX EDUCA+",         desc:"Precisas de 5 tesouras para amanhã? Sobraram-te cartolinas? Este é o mercado de trocas, empréstimos e partilha de materiais entre todos os espaços JEEP." },
   { id:"orienta",   icon:"🧭", label:"Orienta-te",         desc:"O teu espaço de desenvolvimento pessoal. Partilha cursos, dicas de emprego, dúvidas sobre o teu futuro profissional ou coisas novas que aprendeste." },
@@ -86,58 +164,8 @@ export const SURVEY_CATS = [
   { id:"geral",    icon:"⭐", label:"Satisfação Geral", q:"No geral, como estás a sentir o programa?",               chips:["Melhor do que esperava 🚀","Está a correr bem ✓","Estou a aprender 📚","Difícil mas vale a pena 💪","Podia ser melhor 🤔"] },
 ];
 
-export const QUIZZES = [
-  { id:"q1", title:"Dilema da Autonomia", badge:"D3 — Proatividade",
-    scenario:"O Coordenador pediu-te para organizares os materiais de uma sala, mas teve de sair de urgência. O que fazes?",
-    opts:[{ id:"A", text:"Faço tudo à minha maneira.", reveal:"Muita autonomia — mas risco de retrabalho." },
-          { id:"B", text:"Paro e vou fazer outra tarefa até ele voltar.", reveal:"Respeito pela hierarquia — mas falta de iniciativa." },
-          { id:"C", text:"Arrumo uma prateleira, tiro foto e mando WhatsApp.", reveal:"Iniciativa + comunicação proativa. A mais equilibrada." }], mock:{ A:28, B:15, C:57 } },
-  { id:"q2", title:"O Desafio do PIA", badge:"D6 — Intervenção",
-    scenario:"Preparaste uma atividade incrível. Mas os jovens dizem que estão com preguiça. Como dás a volta?",
-    opts:[{ id:"A", text:"Sento-me com eles, crio ligação, depois puxo-os.", reveal:"Relação primeiro — boa estratégia." },
-          { id:"B", text:"Relembro as regras e dou-lhes a escolher.", reveal:"Limites claros — pode criar resistência." },
-          { id:"C", text:"Pergunto o que mudariam e adapto na hora.", reveal:"Cocriação — a forma mais genuína." }], mock:{ A:35, B:22, C:43 } },
-];
-
-export const SWOT_Q = [
-  { id:"forcas",    label:"💪 Forças",        sub:"O que o projeto tem de bom",      color:"#4ade80", ph:"Ex: Tenho os materiais todos..." },
-  { id:"fraquezas", label:"⚠️ Fraquezas",     sub:"O que pode falhar no projeto",    color:"#fb923c", ph:"Ex: O tempo é pouco..." },
-  { id:"oprtns",    label:"🌟 Oportunidades", sub:"O que o local oferece de extra",  color:"#60a5fa", ph:"Ex: Há um jardim para usar..." },
-  { id:"riscos",    label:"🚧 Riscos",        sub:"Ameaças externas ao plano",      color:"#f87171", ph:"Ex: Pode chover no dia..." },
-];
-
-export const ALL_MEDALS = [
-  { id:"proativo",    icon:"🎯", label:"Proatividade",       desc:"Agiu por iniciativa própria" },
-  { id:"equipa",      icon:"🤝", label:"Espírito de Equipa", desc:"Apoiou os colegas de forma notável" },
-  { id:"criativo",    icon:"💡", label:"Criatividade",       desc:"Propôs ou executou uma ideia original" },
-  { id:"destaque",    icon:"⭐", label:"Destaque da Semana", desc:"Momento especial reconhecido pela GO" },
-  { id:"pia",         icon:"📋", label:"PIA Completo",       desc:"Completou o Plano Individual de Ação" },
-  { id:"evolucao",    icon:"📈", label:"Evolução",           desc:"Progresso notável desde o início" },
-];
-
-export const PIA_FIELDS = [
-  { key:"oQue",     title:"O QUÊ",    icon:"🎯", hint:"Título e natureza do projeto",   ph:"Que projeto ou atividade quero desenvolver?" },
-  { key:"paraQue",  title:"PARA QUÊ", icon:"🏁", hint:"Objetivo global",               ph:"Qual é o propósito? O que vai mudar?" },
-  { key:"quanto",   title:"QUANTO",   icon:"📊", hint:"Volume e frequência",            ph:"Quantas sessões? Com que frequência?" },
-  { key:"onde",     title:"ONDE",     icon:"📍", hint:"Local e contexto",              ph:"Onde vai acontecer? Com que grupo?" },
-  { key:"recursos", title:"RECURSOS", icon:"🧰", hint:"O que é necessário",            ph:"Materiais, pessoas, espaços." },
-  { key:"comoSaber",title:"COMO SABER SE CORREU BEM", icon:"📏", hint:"Critérios de avaliação", ph:"O que vai ser diferente? Como vou medir?" },
-];
-
-export const COMPL = ["Esta semana aprendi que...","A maior dificuldade foi...","Surpreendi-me quando...","Da próxima vez vou...","Orgulhei-me quando..."];
-export const MOODS = ["😴","😟","😐","🙂","😄","🔥"];
-export const SEMOJIS = ["","😞","😕","😐","🙂","😄"];
 export const FORUM_REACTIONS = [{ id:"heart", icon:"❤️" }, { id:"fire", icon:"🔥" }, { id:"clap", icon:"👏" }, { id:"think", icon:"🤔" }];
-export const EVT_COLORS = { visit:"#22d3ee", group:"#f472b6", reminder:"#fbbf24", personal:"#4ade80" };
-export const EVT_ICONS  = { visit:"🏢",      group:"👥",      reminder:"🔔",      personal:"📌" };
 export const EC = { verde:"#4ade80", amarelo:"#fbbf24", vermelho:"#f87171" };
-
-export const DEF_PIA   = { oQue:"",paraQue:"",quanto:"",onde:"",recursos:"",comoSaber:"" };
-export const DEF_ACTS  = [{ oQue:"",quando:"",obj:"" },{ oQue:"",quando:"",obj:"" },{ oQue:"",quando:"",obj:"" },{ oQue:"",quando:"",obj:"" }];
 export const DEF_RODA  = { familia:5,amigos:5,dinheiro:5,trabalho:5,cresc:5,saude:5,lazer:5 };
-export const DEF_DSCORES = { D1:5,D2:5,D3:5,D4:5,D5:5,D6:5 };
-export const DEF_DNOTAS  = { D1:"",D2:"",D3:"",D4:"",D5:"",D6:"" };
-export const DEF_SWOT  = { forcas:"",fraquezas:"",oprtns:"",riscos:"" };
 export const DEF_CAP   = { text:"",locked:false,revealed:false,lockedDate:"" };
-
-export const GDPR_TEXT = "Os dados recolhidos nesta plataforma destinam-se exclusivamente ao acompanhamento do Programa JEEP EDUCA+ pela Câmara Municipal de Cascais. Os teus dados pessoais serão tratados de forma confidencial. Não serão partilhados com terceiros sem o teu consentimento. O armazenamento cumpre o RGPD.";
+export const GDPR_TEXT = "Os dados recolhidos nesta plataforma destinam-se exclusivamente ao acompanhamento do Programa JEEP EDUCA+ pela Câmara Municipal de Cascais. Os teus dados pessoais serão tratados de forma confidencial. O armazenamento cumpre o RGPD.";
