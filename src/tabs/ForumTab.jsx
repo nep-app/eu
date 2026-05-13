@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "../../firebase.js";
-import { CYN, AppIcon } from "../../theme.jsx";
-import { CHANNELS } from "../../data.js";
+import { db } from "../firebase.js";
+import { CYN, AppIcon } from "../theme.jsx";
+import { CHANNELS } from "../data.js";
 import ForumPost from './ForumPost.jsx';
 import ForumComposer from './ForumComposer.jsx';
 
@@ -45,7 +45,7 @@ export default function ForumTab({ user, data }) {
         })}
       </div>
 
-      {/* DESCRIÇÃO DO CANAL (Apenas o texto, sem título!) */}
+      {/* DESCRIÇÃO DO CANAL */}
       <div style={{ fontSize: "13px", color: "#94a3b8", lineHeight: "1.6", marginBottom: "25px", padding: "0 5px" }}>
         {infoCanal?.desc}
       </div>
