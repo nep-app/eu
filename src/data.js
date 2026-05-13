@@ -69,13 +69,14 @@ export const RODA_DIMS = [
   { id:"lazer",    label:"Lazer",               icon:"🎉", desc:"Tens tempo para ti? Fazes atividades que te dão prazer?" },
 ];
 
+// 👇 AQUI ESTÃO AS DESCRIÇÕES COMPLETAS DO TEU PRINT 👇
 export const CHANNELS = [
-  { id:"csi",       icon:"🔍", label:"CSI Ludotecas",      desc:"Para expores problemas no trabalho e procurares apoio dos outros." },
-  { id:"monitor",   icon:"🏆", label:"Super Monitor",      desc:"Para partilhares vitórias diárias no trabalho." },
-  { id:"olx",       icon:"📦", label:"OLX EDUCA+",         desc:"Para pedido e partilha de materiais e ajuda." },
-  { id:"orienta",   icon:"🧭", label:"Orienta-te",         desc:"Para pensar no futuro, dicas de emprego, o que estás a aprender." },
-  { id:"backstage", icon:"🎬", label:"Backstage",          desc:"Work in progress dos teus PIAs e atividades no terreno." },
-  { id:"coffee",    icon:"☕", label:"Coffee Break",       desc:"Recreio dos grandes — proibido falar de trabalho." },
+  { id:"csi",       icon:"🔍", label:"CSI Ludotecas",      desc:"A tua linha de apoio 24/7. Usa este canal para expores desafios, desabafares sobre situações difíceis no terreno e procurares soluções em conjunto com a Coordenação e os teus colegas." },
+  { id:"monitor",   icon:"🏆", label:"Super Monitor",      desc:"O palco das tuas vitórias! Partilha as atividades que correram incrivelmente bem, os sorrisos que arrancaste e as pequenas conquistas diárias do teu trabalho." },
+  { id:"olx",       icon:"📦", label:"OLX EDUCA+",         desc:"Precisas de 5 tesouras para amanhã? Sobraram-te cartolinas? Este é o mercado de trocas, empréstimos e partilha de materiais entre todos os espaços JEEP." },
+  { id:"orienta",   icon:"🧭", label:"Orienta-te",         desc:"O teu espaço de desenvolvimento pessoal. Partilha cursos, dicas de emprego, dúvidas sobre o teu futuro profissional ou coisas novas que aprendeste." },
+  { id:"backstage", icon:"🎬", label:"Backstage",          desc:"Onde a magia acontece! Mostra fotos do processo, a preparação dos teus PIAs, a sala desarrumada antes da atividade e o 'Work In Progress' do teu projeto." },
+  { id:"coffee",    icon:"☕", label:"Coffee Break",       desc:"A sala de convívio virtual! Um espaço livre de stress onde é literalmente proibido falar de trabalho. Partilha músicas, memes, séries e combina cafés com a malta." },
 ];
 
 export const SURVEY_CATS = [
