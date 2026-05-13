@@ -25,6 +25,13 @@ export const EVT_COLORS = {
   "outro": "#94a3b8" 
 };
 
+export const EVT_ICONS = { 
+  "formacao": "🎓", 
+  "reuniao": "👥", 
+  "evento": "🎉", 
+  "outro": "📌" 
+};
+
 export const MTHS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 export function nowLabel() { let d = new Date(); return MTHS[d.getMonth()] + " " + d.getFullYear(); }
 export function fmtDate(s) {
