@@ -8,11 +8,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
   const [launchType, setLaunchType] = useState("auto");
   const [launchTarget, setLaunchTarget] = useState("all");
   const [activeQEdit, setActiveQEdit] = useState("");
-
-  // Estados para as 3 opções de resposta (Botões)
-  const [opt1, setOpt1] = useState("");
-  const [opt2, setOpt2] = useState("");
-  const [opt3, setOpt3] = useState("");
+  const [activeMode, setActiveMode] = useState("texto"); // Novo estado para o modo
 
   async function launchRequest() {
     let msg = ""; let fieldToReset = "";
@@ -38,19 +34,17 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     });
     try {
       await setDoc(doc(db, "config", "weeklyLeaderboard"), { week: getWeekKey(), scores: scores, lastUpdate: nowLabel() });
-      alert("Tabela de XP atualizada com sucesso! 🏆");
+      alert("Tabela de XP atualizada! 🏆");
     } catch (e) { alert("Erro ao atualizar: " + e.message); }
   }
 
   async function updateActiveQ() {
     if (!activeQEdit.trim()) return alert("Escreve a pergunta!");
     
-    // Filtra apenas as opções que não estão vazias
-    const opcoesFinais = [opt1, opt2, opt3].filter(o => o.trim() !== "");
-
+    // Agora gravamos o texto E o modo escolhido pela Teresa
     await setDoc(doc(db, "config", "activeQuestion"), { 
       text: activeQEdit.trim(), 
-      options: opcoesFinais, // Agora envia o array de opções
+      mode: activeMode, 
       date: Date.now() 
     });
 
@@ -58,8 +52,8 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
       await setDoc(doc(db, "userData", u), { answered: false }, { merge: true });
       await addDoc(collection(db, "notifications", u, "items"), { from:"teresa", text:"💬 Nova pergunta da semana!", date:nowLabel(), read:false });
     }
-    alert("Pergunta publicada com sucesso!");
-    setActiveQEdit(""); setOpt1(""); setOpt2(""); setOpt3("");
+    alert("Pergunta publicada com o modo: " + activeMode); 
+    setActiveQEdit("");
   }
 
   async function markAdminNotifAsRead(notifId) {
@@ -68,7 +62,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
 
   return (
     <div>
-      {/* 1. NOTIFICAÇÕES / ALERTAS */}
+      {/* 1. NOTIFICAÇÕES */}
       {adminNotifs.length > 0 && (
         <div style={{ ...CARD, background:"rgba(239, 68, 68, 0.05)", border:`1px solid rgba(239, 68, 68, 0.2)` }}>
           <div style={{ ...SL, color:"#ef4444" }}>🔔 Alertas Recentes</div>
@@ -78,7 +72,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
                 <div>
                   <div style={{ fontSize:11, color:"#94a3b8" }}>{n.data}</div>
                   <div style={{ fontSize:13, fontWeight:700, color:n.lida?"#cbd5e1":"white" }}>
-                    {n.tipo === "AUTOAVALIACAO" ? `📊 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} entregou a Autoavaliação.` : `😊 Nova Avaliação de Satisfação Anónima.`}
+                    {n.tipo === "AUTOAVALIACAO" ? `📊 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} entregou a Autoavaliação.` : `😊 Nova Satisfação Anónima.`}
                   </div>
                 </div>
                 {!n.lida && <button onClick={() => markAdminNotifAsRead(n.id)} style={{ background:"none", border:"1px solid #ef4444", color:"#ef4444", borderRadius:8, padding:"4px 8px", fontSize:11, cursor:"pointer", fontWeight:800 }}>Lido</button>}
@@ -88,7 +82,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
         </div>
       )}
 
-      {/* 2. LANÇAR PEDIDOS (Ações de Acompanhamento) */}
+      {/* 2. LANÇAR PEDIDOS */}
       <div style={CARD}>
         <div style={SL}>Lançar Pedidos aos Jovens</div>
         <div style={{ display:"flex", gap:8, marginBottom:10 }}>
@@ -111,7 +105,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
       <div style={CARD}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:15 }}>
           <div style={SL}>Tabela de XP Semanal</div>
-          <button onClick={refreshLeaderboard} style={{ background:CYN, color:"#0f172a", border:"none", padding:"6px 12px", borderRadius:10, fontSize:11, fontWeight:900, cursor:"pointer" }}>ATUALIZAR 🔄</button>
+          <button onClick={refreshLeaderboard} style={{ background:CYN, color:"#0f172a", border:"none", padding:"6px 12px", borderRadius:10, fontSize:11, fontWeight:900, cursor:"pointer" }}>🔄</button>
         </div>              
         {Object.entries(leaderboard).sort((a,b)=>b[1].xp-a[1].xp).map((e, i) => (
           <div key={e[0]} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
@@ -122,26 +116,29 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
         ))}
       </div>
 
-      {/* 4. PERGUNTA DA SEMANA (COM OPÇÕES DE BOTÕES) */}
+      {/* 4. PERGUNTA DA SEMANA (COM SELETOR DE MODO) */}
       <div style={CARD}>
         <div style={SL}>Pergunta da Semana</div>
-        <div style={{ fontSize:13, color:"white", fontWeight:600, marginBottom:15, padding:"12px", background:"rgba(0,0,0,0.2)", borderRadius:12, borderLeft:`4px solid ${CYN}` }}>
+        <div style={{ fontSize:13, color:"white", marginBottom:15, padding:"12px", background:"rgba(0,0,0,0.2)", borderRadius:12, borderLeft:`4px solid ${CYN}` }}>
           {activeQ}
         </div>
         
-        <input value={activeQEdit} onChange={e=>setActiveQEdit(e.target.value)} placeholder="Nova pergunta..." style={INP}/>
-        
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginTop: 10 }}>
-          <input value={opt1} onChange={e=>setOpt1(e.target.value)} placeholder="Opção 1" style={{ ...INP, marginBottom: 0, fontSize: 12 }} />
-          <input value={opt2} onChange={e=>setOpt2(e.target.value)} placeholder="Opção 2" style={{ ...INP, marginBottom: 0, fontSize: 12 }} />
-          <input value={opt3} onChange={e=>setOpt3(e.target.value)} placeholder="Opção 3" style={{ ...INP, marginBottom: 0, fontSize: 12 }} />
+        <div style={{ display:"flex", gap:8, marginBottom:10 }}>
+          <input value={activeQEdit} onChange={e=>setActiveQEdit(e.target.value)} placeholder="Nova pergunta..." style={{ ...INP, flex:1, marginBottom:0 }}/>
+          
+          <select value={activeMode} onChange={e=>setActiveMode(e.target.value)} style={{ padding:"0 10px", borderRadius:12, background:"rgba(0,0,0,0.3)", color:"white", border:"1px solid rgba(255,255,255,0.1)" }}>
+            <option value="texto">📝 Texto</option>
+            <option value="audio">🎤 Áudio</option>
+            <option value="3palavras">3️⃣ 3 Palavras</option>
+            <option value="semana">⭐ Rating 1-5</option>
+            <option value="mood">😊 Mood</option>
+            <option value="imagem">📸 Imagem</option>
+          </select>
         </div>
-        <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 5 }}>* Deixa as opções vazias para resposta livre por texto.</div>
-        
-        <button onClick={updateActiveQ} style={{ ...Btn, marginTop: 15 }}>Publicar Pergunta 💬</button>
+        <Btn onClick={updateActiveQ}>Publicar Pergunta 💬</Btn>
       </div>
 
-      {/* 5. RESPOSTAS À PERGUNTA */}
+      {/* 5. RESPOSTAS RECEBIDAS */}
       <div style={CARD}>
         <div style={SL}>Respostas Recebidas</div>
         {JEEP_LIST.map(j => {
