@@ -171,6 +171,17 @@ export const SURVEY_CATS = [
   { id:"geral",    icon:"⭐", label:"Satisfação Geral", q:"No geral, como estás a sentir o programa JEEP?",          chips:["Melhor do que esperava 🚀","Está a correr bem ✓","Estou a aprender 📚","Difícil mas vale a pena 💪","Podia ser melhor 🤔"] },
 ];
 
+export const ALL_MEDALS = [
+  { id: "primeiro_passo", icon: "🌱", label: "Primeiro Passo" },
+  { id: "comunicador",    icon: "💬", label: "Comunicador" },
+  { id: "focado",         icon: "🎯", label: "Focado" },
+  { id: "equipa",         icon: "🤝", label: "Team Player" },
+  { id: "criativo",       icon: "🎨", label: "Criativo" },
+  { id: "resiliente",     icon: "🛡️", label: "Resiliente" },
+  { id: "on_fire",        icon: "🔥", label: "On Fire" },
+  { id: "lider",          icon: "👑", label: "Líder" }
+];
+
 export const FORUM_REACTIONS = [{ id:"heart", icon:"❤️" }, { id:"fire", icon:"🔥" }, { id:"clap", icon:"👏" }, { id:"think", icon:"🤔" }];
 export const EC = { verde:"#4ade80", amarelo:"#fbbf24", vermelho:"#f87171" };
 export const DEF_RODA  = { familia:5,amigos:5,dinheiro:5,trabalho:5,cresc:5,saude:5,lazer:5 };
