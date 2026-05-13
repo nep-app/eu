@@ -74,7 +74,7 @@ export default function HomeExtras({ user, data, setTab }) {
       {/* MENSAGENS DA COORDENAÇÃO */}
       {notificacoesAdmin.length > 0 && (
         <div style={{ ...CARD, background: "rgba(244, 114, 182, 0.15)", border: `1.5px solid ${PNK}` }}>
-          <div style={SL}>Mensagens da Coordenação</div>
+          <div style={SL}>Mensagens da Teresa</div>
           {notificacoesAdmin.map(notif => (
             <div key={notif.id} style={{ display: "flex", gap: 12, padding: "14px", background: "rgba(0,0,0,0.4)", borderRadius: 18, marginBottom: 10 }}>
               <div style={{ flex: 1, fontSize: 13, lineHeight: 1.5, color: "#fff" }}>{notif.text}</div>
@@ -133,7 +133,7 @@ export default function HomeExtras({ user, data, setTab }) {
 
       {/* FALAR COM A TERESA */}
       <div style={CARD}>
-        <div style={SL}>📱 Falar com a Coordenação</div>
+        <div style={SL}>📱 Falar com a Teresa</div>
         
         {/* BOTÕES DE CONTACTO DIRETO */}
         <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
