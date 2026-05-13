@@ -24,6 +24,19 @@ export default function ForumPost({ post, user, canalAtivo }) {
     });
   }
 
+  // NOVA FUNÇÃO: Enviar Notificação Social
+  async function enviarNotificacao(tipo) {
+    if (user.username === post.username) return; // Não notifica a si próprio
+    
+    let msg = "";
+    if (tipo === "like") msg = `❤️ ${user.realName} reagiu à tua partilha!`;
+    if (tipo === "reply") msg = `💬 ${user.realName} comentou a tua partilha!`;
+
+    await addDoc(collection(db, "notifications", post.username, "items"), { 
+      from: "sistema", text: msg, date: nowLabel(), read: false 
+    });
+  }
+
   // ── LÓGICA DE POST PRINCIPAL ──
   async function handleApagarPost() {
     if (window.confirm("Apagar esta partilha?")) {
@@ -53,6 +66,7 @@ export default function ForumPost({ post, user, canalAtivo }) {
       rcts[tipo] = (rcts[tipo] || 0) + 1;
       rBy[tipo] = [...users, user.username];
       darXP("Interagiu no Fórum");
+      await enviarNotificacao("like"); // <-- ENVIAR ALERTA DE LIKE
     }
     await updateDoc(doc(db, "forum", canalAtivo, "posts", post.id), { 
       reactions: rcts, reactedBy: rBy 
@@ -73,11 +87,14 @@ export default function ForumPost({ post, user, canalAtivo }) {
     await updateDoc(doc(db, "forum", canalAtivo, "posts", post.id), { 
       replies: [...(post.replies || []), novaR] 
     });
-    setResponderA(false); setTextoResposta(""); darXP("Respondeu no Fórum");
+    setResponderA(false); 
+    setTextoResposta(""); 
+    darXP("Respondeu no Fórum");
+    await enviarNotificacao("reply"); // <-- ENVIAR ALERTA DE COMENTÁRIO
   }
 
   async function apagarReply(rid) {
-    if (window.confirm("Apagar esta resposta?")) {
+    if (window.confirm("Apagar este comentário para sempre?")) {
       const novas = post.replies.filter(r => r.id !== rid);
       await updateDoc(doc(db, "forum", canalAtivo, "posts", post.id), { replies: novas });
     }
@@ -109,7 +126,7 @@ export default function ForumPost({ post, user, canalAtivo }) {
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <div style={{ fontSize: 11, color: "#64748b" }}>{post.time}</div>
               
-              {/* APAGAR/EDITAR POST (Teresa apaga tudo, o dono edita/apaga o seu) */}
+              {/* APAGAR/EDITAR POST */}
               {(post.username === user.username || isAdmin) && (
                 <div style={{ display: "flex", gap: 8 }}>
                   {post.username === user.username && (
@@ -158,7 +175,7 @@ export default function ForumPost({ post, user, canalAtivo }) {
                   {reply.user} <span style={{ color: "#64748b", fontWeight: 400, marginLeft: 5 }}>{reply.time}</span>
                 </div>
                 
-                {/* APAGAR/EDITAR RESPOSTA */}
+                {/* APAGAR/EDITAR RESPOSTA (ADMIN AGORA APAGA TUDO) */}
                 {(reply.username === user.username || isAdmin) && (
                   <div style={{ display: "flex", gap: 8 }}>
                     {reply.username === user.username && (
