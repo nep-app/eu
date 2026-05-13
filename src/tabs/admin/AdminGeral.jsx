@@ -23,32 +23,41 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     { id: "imagem", label: "Imagem", icon: "📸" },
     { id: "mood", label: "Emoji/Mood", icon: "🎭" }
   ];
-  // Estado que guarda um array com os modos ativos. Ex: ["texto", "audio"]
   const [selectedModes, setSelectedModes] = useState(["texto"]);
 
-  // Função para ligar/desligar cada modo
   const toggleMode = (id) => {
     if (selectedModes.includes(id)) {
-      setSelectedModes(selectedModes.filter(m => m !== id)); // Remove se já estiver
+      setSelectedModes(selectedModes.filter(m => m !== id));
     } else {
-      setSelectedModes([...selectedModes, id]); // Adiciona se não estiver
+      setSelectedModes([...selectedModes, id]);
     }
   };
 
   async function launchRequest() {
-    let msg = ""; let field = "";
+    let msg = ""; let field = null;
+    
+    // PEDIDOS OBRIGATÓRIOS (Bloqueiam os cards na Home do jovem)
     if (launchType === "auto") { msg = "📊 Nova Autoavaliação pedida!"; field = "autoSaved"; }
     if (launchType === "satisf") { msg = "😊 Nova Avaliação de Satisfação pedida!"; field = "sSaved"; }
-    if (launchType === "roda") { msg = "🌸 Nova Roda da Vida pedida!"; field = "rodaSaved"; }
     if (launchType === "pia") { msg = "📋 Atualização do PIA pedida!"; field = "piaSaved"; }
+    if (launchType === "roda") { msg = "🌸 Nova Roda da Vida pedida!"; field = "rodaSaved"; }
     if (launchType === "swot") { msg = "🔍 Raio-X do Projeto pedido!"; field = "swotSaved"; }
+    if (launchType === "pergunta") { msg = "💬 Lembrete: Responde à Pergunta da Semana!"; field = "answered"; }
+    
+    // LEMBRETES PUROS (Apenas enviam notificação, não bloqueiam cards)
+    if (launchType === "lembreteQuiz") { msg = "🧠 Lembrete: Tens um novo Dilema (Quiz) à tua espera nos Desafios!"; }
+    if (launchType === "lembreteGeral") { msg = "📢 A Teresa tem um aviso para ti. Vai ver as novidades!"; }
     
     const targets = launchTarget === "all" ? ALLOWED_USERNAMES : [launchTarget];
     for (const u of targets) {
-      await setDoc(doc(db, "userData", u), { [field]: false }, { merge: true });
+      // Só altera o estado se for um pedido obrigatório (field não é nulo)
+      if (field) {
+        await setDoc(doc(db, "userData", u), { [field]: false }, { merge: true });
+      }
+      // Todos enviam notificação
       await addDoc(collection(db, "notifications", u, "items"), { from: "teresa", text: msg, date: nowLabel(), read: false });
     }
-    alert("Pedidos lançados com sucesso!");
+    alert("Pedidos/Lembretes lançados com sucesso!");
   }
 
   async function refreshLeaderboard() {
@@ -67,13 +76,12 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     if (!activeQEdit.trim()) return alert("Escreve a pergunta!");
     if (selectedModes.length === 0 && opt1 === "") return alert("Seleciona pelo menos um modo de resposta!");
     
-    // Filtramos as opções que a Teresa escreveu
     const opcoesFinais = [opt1, opt2, opt3].filter(o => o.trim() !== "");
 
     await setDoc(doc(db, "config", "activeQuestion"), { 
       text: activeQEdit.trim(), 
-      options: opcoesFinais, // Grava os botões
-      modes: selectedModes, // Grava o ARRAY de modos que o Admin selecionou (ex: ["texto", "audio"])
+      options: opcoesFinais, 
+      modes: selectedModes, 
       date: Date.now() 
     });
 
@@ -108,21 +116,30 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
         </div>
       )}
 
-      {/* 2. LANÇAR PEDIDOS */}
+      {/* 2. LANÇAR PEDIDOS & LEMBRETES */}
       <div style={CARD}>
         <div style={SL}>Lançar Pedidos aos Jovens</div>
         <div style={{ display:"flex", gap:8, marginBottom:10 }}>
           <select value={launchType} onChange={e=>setLaunchType(e.target.value)} style={{ flex:1, padding:12, borderRadius:12, background:"rgba(0,0,0,0.3)", color:"white", border:"1px solid rgba(255,255,255,0.1)" }}>
-            <option value="auto">📊 Autoavaliação</option>
-            <option value="satisf">😊 Satisfação</option>
-            <option value="pia">📋 Atualizar PIA</option>
+            <optgroup label="Ações Obrigatórias">
+              <option value="auto">📊 Autoavaliação</option>
+              <option value="satisf">😊 Satisfação</option>
+              <option value="pia">📋 Atualizar PIA</option>
+              <option value="roda">🌸 Roda da Vida</option>
+              <option value="swot">🔍 Raio-X do Projeto (SWOT)</option>
+              <option value="pergunta">💬 Pergunta da Semana</option>
+            </optgroup>
+            <optgroup label="Lembretes">
+              <option value="lembreteQuiz">🧠 Lembrete: Novo Dilema (Quiz)</option>
+              <option value="lembreteGeral">📢 Lembrete: Aviso Geral</option>
+            </optgroup>
           </select>
           <select value={launchTarget} onChange={e=>setLaunchTarget(e.target.value)} style={{ flex:1, padding:12, borderRadius:12, background:"rgba(0,0,0,0.3)", color:"white", border:"1px solid rgba(255,255,255,0.1)" }}>
             <option value="all">Todos</option>
             {JEEP_LIST.map(j=><option key={j.username} value={j.username}>{j.name}</option>)}
           </select>
         </div>
-        <Btn onClick={launchRequest}>Lançar Pedido 🚀</Btn>
+        <Btn onClick={launchRequest}>Enviar Pedido / Lembrete 🚀</Btn>
       </div>
 
       {/* 3. RANKING */}
@@ -140,16 +157,15 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
         ))}
       </div>
 
-      {/* 4. PERGUNTA DA SEMANA (COM SELEÇÃO MÚLTIPLA) */}
+      {/* 4. PERGUNTA DA SEMANA */}
       <div style={CARD}>
         <div style={SL}>Lançar Pergunta da Semana</div>
         <div style={{ fontSize:13, color:"white", marginBottom:15, padding:"12px", background:"rgba(0,0,0,0.2)", borderRadius:12, borderLeft:`4px solid ${CYN}` }}>{activeQ}</div>
         
         <input value={activeQEdit} onChange={e=>setActiveQEdit(e.target.value)} placeholder="A pergunta da semana..." style={INP}/>
         
-        {/* CHECKBOXES DE MODO DE RESPOSTA (Múltipla Seleção) */}
         <div style={{ marginBottom: 15 }}>
-          <div style={{ fontSize: 11, color: CYN, fontWeight: 800, marginBottom: 8 }}>MODOS DE RESPOSTA PERMITIDOS (Podes selecionar vários):</div>
+          <div style={{ fontSize: 11, color: CYN, fontWeight: 800, marginBottom: 8 }}>MODOS DE RESPOSTA PERMITIDOS:</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
             {MODOS_DISPONIVEIS.map(m => (
               <button 
@@ -170,7 +186,6 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
           </div>
         </div>
 
-        {/* OU BOTÕES DE OPÇÃO FIXA */}
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 15 }}>
           <div style={{ fontSize: 11, color: PNK, fontWeight: 800, marginBottom: 8 }}>OU CRIAR BOTÕES DE OPÇÃO:</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
@@ -178,7 +193,6 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
             <input value={opt2} onChange={e=>setOpt2(e.target.value)} placeholder="Opção 2" style={{ ...INP, marginBottom: 0, fontSize: 11 }} />
             <input value={opt3} onChange={e=>setOpt3(e.target.value)} placeholder="Opção 3" style={{ ...INP, marginBottom: 0, fontSize: 11 }} />
           </div>
-          <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 5 }}>* Se preencheres as opções, os modos acima são ignorados.</div>
         </div>
         
         <button onClick={updateActiveQ} style={{ ...Btn, marginTop: 15, background: CYN, color: "#000" }}>Publicar Desafio Semanal 💬</button>
