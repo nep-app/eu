@@ -9,12 +9,12 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
   const [launchTarget, setLaunchTarget] = useState("all");
   const [activeQEdit, setActiveQEdit] = useState("");
   
-  // Opções para botões personalizados
+  // Opções para botões
   const [opt1, setOpt1] = useState("");
   const [opt2, setOpt2] = useState("");
   const [opt3, setOpt3] = useState("");
 
-  // NOVO: Seleção de Modos Híbridos
+  // SELEÇÃO MÚLTIPLA DE MODOS (HÍBRIDO)
   const MODOS_DISPONIVEIS = [
     { id: "texto", label: "Texto", icon: "📝" },
     { id: "audio", label: "Áudio", icon: "🎤" },
@@ -23,13 +23,15 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     { id: "imagem", label: "Imagem", icon: "📸" },
     { id: "mood", label: "Emoji/Mood", icon: "🎭" }
   ];
+  // Estado que guarda um array com os modos ativos. Ex: ["texto", "audio"]
   const [selectedModes, setSelectedModes] = useState(["texto"]);
 
+  // Função para ligar/desligar cada modo
   const toggleMode = (id) => {
     if (selectedModes.includes(id)) {
-      setSelectedModes(selectedModes.filter(m => m !== id));
+      setSelectedModes(selectedModes.filter(m => m !== id)); // Remove se já estiver
     } else {
-      setSelectedModes([...selectedModes, id]);
+      setSelectedModes([...selectedModes, id]); // Adiciona se não estiver
     }
   };
 
@@ -63,7 +65,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
 
   async function updateActiveQ() {
     if (!activeQEdit.trim()) return alert("Escreve a pergunta!");
-    if (selectedModes.length === 0 && opt1 === "") return alert("Seleciona pelo menos um modo ou cria botões!");
+    if (selectedModes.length === 0 && opt1 === "") return alert("Seleciona pelo menos um modo de resposta!");
     
     // Filtramos as opções que a Teresa escreveu
     const opcoesFinais = [opt1, opt2, opt3].filter(o => o.trim() !== "");
@@ -71,7 +73,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     await setDoc(doc(db, "config", "activeQuestion"), { 
       text: activeQEdit.trim(), 
       options: opcoesFinais, // Grava os botões
-      modes: selectedModes,  // Grava a lista de modos permitidos
+      modes: selectedModes, // Grava o ARRAY de modos que o Admin selecionou (ex: ["texto", "audio"])
       date: Date.now() 
     });
 
@@ -79,7 +81,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
       await setDoc(doc(db, "userData", u), { answered: false }, { merge: true });
       await addDoc(collection(db, "notifications", u, "items"), { from:"teresa", text:"💬 Nova pergunta da semana!", date:nowLabel(), read:false });
     }
-    alert("Pergunta publicada!");
+    alert("Pergunta publicada com os modos selecionados!");
     setActiveQEdit(""); setOpt1(""); setOpt2(""); setOpt3("");
   }
 
@@ -123,7 +125,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
         <Btn onClick={launchRequest}>Lançar Pedido 🚀</Btn>
       </div>
 
-      {/* 3. RANKING (RECUPERADO!) */}
+      {/* 3. RANKING */}
       <div style={CARD}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:15 }}>
           <div style={SL}>Tabela de XP Semanal</div>
@@ -138,29 +140,31 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
         ))}
       </div>
 
-      {/* 4. PERGUNTA DA SEMANA (AGORA COM OS MODOS HÍBRIDOS!) */}
+      {/* 4. PERGUNTA DA SEMANA (COM SELEÇÃO MÚLTIPLA) */}
       <div style={CARD}>
         <div style={SL}>Lançar Pergunta da Semana</div>
         <div style={{ fontSize:13, color:"white", marginBottom:15, padding:"12px", background:"rgba(0,0,0,0.2)", borderRadius:12, borderLeft:`4px solid ${CYN}` }}>{activeQ}</div>
         
         <input value={activeQEdit} onChange={e=>setActiveQEdit(e.target.value)} placeholder="A pergunta da semana..." style={INP}/>
         
-        {/* CHECKBOXES DE MODO DE RESPOSTA */}
+        {/* CHECKBOXES DE MODO DE RESPOSTA (Múltipla Seleção) */}
         <div style={{ marginBottom: 15 }}>
-          <div style={{ fontSize: 11, color: CYN, fontWeight: 800, marginBottom: 8 }}>MODOS DE RESPOSTA PERMITIDOS:</div>
+          <div style={{ fontSize: 11, color: CYN, fontWeight: 800, marginBottom: 8 }}>MODOS DE RESPOSTA PERMITIDOS (Podes selecionar vários):</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
             {MODOS_DISPONIVEIS.map(m => (
               <button 
                 key={m.id} 
                 onClick={() => toggleMode(m.id)}
                 style={{
-                  padding: "8px", borderRadius: "10px", fontSize: "11px", border: "none", cursor: "pointer",
+                  padding: "10px 5px", borderRadius: "10px", fontSize: "11px", border: "none", cursor: "pointer",
                   background: selectedModes.includes(m.id) ? CYN : "rgba(255,255,255,0.05)",
                   color: selectedModes.includes(m.id) ? "#000" : "#fff",
-                  fontWeight: 800
+                  fontWeight: selectedModes.includes(m.id) ? 900 : 600,
+                  transition: "0.2s"
                 }}
               >
-                {m.icon} {m.label}
+                <span style={{ fontSize: 16, display: "block", marginBottom: 2 }}>{m.icon}</span>
+                {m.label}
               </button>
             ))}
           </div>
@@ -174,13 +178,13 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
             <input value={opt2} onChange={e=>setOpt2(e.target.value)} placeholder="Opção 2" style={{ ...INP, marginBottom: 0, fontSize: 11 }} />
             <input value={opt3} onChange={e=>setOpt3(e.target.value)} placeholder="Opção 3" style={{ ...INP, marginBottom: 0, fontSize: 11 }} />
           </div>
-          <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 5 }}>* Preencher isto desativa os modos acima.</div>
+          <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 5 }}>* Se preencheres as opções, os modos acima são ignorados.</div>
         </div>
         
         <button onClick={updateActiveQ} style={{ ...Btn, marginTop: 15, background: CYN, color: "#000" }}>Publicar Desafio Semanal 💬</button>
       </div>
 
-      {/* 5. RESPOSTAS (RECUPERADO!) */}
+      {/* 5. RESPOSTAS */}
       <div style={CARD}>
         <div style={SL}>Respostas Recebidas</div>
         {JEEP_LIST.map(j => {
