@@ -24,7 +24,7 @@ export default function PerfilTab({ user, data }) {
         date: nowLabel(), 
         action: `Atualizou Roda da Vida (${share ? "Enviado à Admin" : "Privado"})`, 
         ts: Date.now(),
-        xp: 20 // O XP adicionado
+        xp: 20
       }];
 
       await setDoc(doc(db, "userData", user.username), { 
@@ -56,7 +56,7 @@ export default function PerfilTab({ user, data }) {
       date: nowLabel(), 
       action: "Selou uma Cápsula do Tempo 🔒", 
       ts: Date.now(),
-      xp: 15 // O XP adicionado
+      xp: 15
     }];
 
     await setDoc(doc(db, "userData", user.username), { 
@@ -88,6 +88,20 @@ export default function PerfilTab({ user, data }) {
     a.download = `jeep_dados_${user.username}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  // ── FUNÇÃO MÁGICA DE RESET (SÓ PARA A TERESA) ──
+  async function limparTudoDev() {
+    if (window.confirm("🚨 MODO DEV: Queres apagar as tuas entregas (Autoavaliação, Satisfação, PIA e Missões) para voltares a testar a app do zero?")) {
+      await setDoc(doc(db, "userData", user.username), {
+        autoSaved: false,
+        sSaved: false,
+        answered: false,
+        piaSaved: false,
+        completedMissions: []
+      }, { merge: true });
+      window.location.reload();
+    }
   }
 
   return (
@@ -203,13 +217,31 @@ export default function PerfilTab({ user, data }) {
 
       {/* ── INFO / EXPORTAÇÃO ── */}
       {subTab === "info" && (
-        <div style={CARD}>
-          <div style={SL}>Gestão de Dados</div>
-          <div style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.6, marginBottom: 20 }}>
-            De acordo com o RGPD, tens o direito de descarregar todos os teus dados guardados nesta plataforma. O ficheiro JSON inclui o teu PIA, avaliações, histórico e tarefas.
+        <>
+          <div style={CARD}>
+            <div style={SL}>Gestão de Dados</div>
+            <div style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.6, marginBottom: 20 }}>
+              De acordo com o RGPD, tens o direito de descarregar todos os teus dados guardados nesta plataforma. O ficheiro JSON inclui o teu PIA, avaliações, histórico e tarefas.
+            </div>
+            <Btn variant="dark" onClick={doExport}>⬇️ DESCARREGAR RELATÓRIO</Btn>
           </div>
-          <Btn variant="dark" onClick={doExport}>⬇️ DESCARREGAR RELATÓRIO</Btn>
-        </div>
+
+          {/* ⚠️ PAINEL DE TESTES (SÓ APARECE À TERESA) ⚠️ */}
+          {user.username === "teresa" && (
+            <div style={{ ...CARD, background: "rgba(244, 63, 94, 0.1)", border: "2px dashed #f43f5e", marginTop: 20 }}>
+              <div style={{ ...SL, color: "#f43f5e" }}>🔧 Ferramentas de Teste</div>
+              <p style={{ fontSize: "12px", color: "#cbd5e1", marginTop: 0, marginBottom: "15px" }}>
+                Como és a conta de testes, podes limpar o teu progresso para veres as "Ações Pendentes" novamente na Home.
+              </p>
+              <button 
+                onClick={limparTudoDev}
+                style={{ width: "100%", padding: "12px", background: "#f43f5e", color: "white", fontWeight: "900", border: "none", borderRadius: "12px", cursor: "pointer", fontSize: "13px" }}
+              >
+                ↻ REINICIAR AS MINHAS ENTREGAS
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
