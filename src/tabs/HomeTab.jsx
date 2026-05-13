@@ -16,8 +16,11 @@ export default function HomeTab({ user, data, setTab }) {
         <AppIcon size={100} />
       </div>
 
-      {/* 1. GESTÃO DE TAREFAS (To-Do & Sugestões da Teresa) */}
+{/* 1. GESTÃO DE TAREFAS (To-Do & Sugestões da Teresa) */}
       <HomeTodo user={user} data={data} />
+
+      {/* 1.5 VOTAÇÕES ATIVAS (Aparece automaticamente se houver) */}
+      <HomeVotacoes user={user} />
 
       {/* 2. GESTÃO DE AGENDA (Eventos) */}
       <HomeAgenda user={user} data={data} />
