@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { collection, addDoc, doc, updateDoc, increment, arrayUnion } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "../../firebase.js";
-import { CARD, SL, CYN, INP } from "../../theme.jsx";
-import { nowLabel } from "../../data.js";
+import { db, storage } from "../firebase.js";
+import { CARD, SL, CYN, INP } from "../theme.jsx";
+import { nowLabel } from "../data.js";
 
 export default function ForumComposer({ user, canalAtivo, infoCanal }) {
   const [textoPost, setTextoPost] = useState("");
