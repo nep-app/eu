@@ -45,9 +45,20 @@ export default function AutoAvaliacao({ user, data }) {
         </div>
       ) : (
         <>
-          <div style={{ ...CARD, background: "rgba(34, 211, 238, 0.05)", border: `1px solid ${CYN}30` }}>
-            <div style={{ fontSize: 14, fontWeight: 900, color: CYN }}>Autoavaliação de Competências</div>
+          {/* MENSAGEM DA TERESA AQUI NO TOPO */}
+          <div style={{ background: "#0f172a", borderRadius: "20px", padding: "20px", marginBottom: "20px", border: "1px solid rgba(255,255,255,0.05)" }}>
+            <div style={{ fontSize: 16, fontWeight: 900, color: "white", display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+              <span>🔒</span> Ninguém vai ver isto.
+            </div>
+            <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6, marginBottom: 12 }}>
+              Só tu e eu (Teresa) temos acesso. Não serve para te avaliar — serve para percebermos <em style={{ color: "#cbd5e1" }}>juntos</em> se estás a evoluir.
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "white", lineHeight: 1.6 }}>
+              Sê honesto/a. Ninguém é perfeito em tudo — não é suposto ser. Se deres tudo 10 não há margem para crescer. 🌱
+            </div>
           </div>
+
+          {/* LISTA DE SLIDERS DE AVALIAÇÃO */}
           {DIMS.map(dim => {
             const val = uData.dScores?.[dim.id] || 5;
             const status = scoreLabel(val);
