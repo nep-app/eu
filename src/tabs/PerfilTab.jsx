@@ -20,11 +20,11 @@ export default function PerfilTab({ user, data }) {
   async function saveRoda(share) {
     try {
       const newSaves = [...rodaSaves, { label: nowLabel(), scores: { ...roda } }];
-     const newH = [...history, { 
+      const newH = [...history, { 
         date: nowLabel(), 
         action: `Atualizou Roda da Vida (${share ? "Enviado à Admin" : "Privado"})`, 
         ts: Date.now(),
-        xp: 20 // <- Adicionar isto para a barra de XP ler!
+        xp: 20 // O XP adicionado
       }];
 
       await setDoc(doc(db, "userData", user.username), { 
@@ -32,7 +32,7 @@ export default function PerfilTab({ user, data }) {
         rodaSaves: newSaves, 
         rodaShared: share,
         history: newH,
-        weekXp: (uData.weekXp || 0) + 20 // Ganha 20 XP por atualizar a roda
+        weekXp: (uData.weekXp || 0) + 20 
       }, { merge: true });
 
       alert(share ? "Roda enviada para a Teresa! 🌸" : "Roda guardada no teu histórico.");
@@ -52,14 +52,21 @@ export default function PerfilTab({ user, data }) {
     const dateStr = lockedDate.toLocaleDateString("pt-PT");
 
     const newCap = { ...cap, locked: true, lockedDate: dateStr, sealedAt: nowLabel() };
-   const newH = [...history, { 
+    const newH = [...history, { 
       date: nowLabel(), 
       action: "Selou uma Cápsula do Tempo 🔒", 
       ts: Date.now(),
-      xp: 15 // <- Dá 15 XP como prémio por usar a cápsula!
+      xp: 15 // O XP adicionado
     }];
 
-    await setDoc(doc(db, "userData", user.username), { cap: newCap, history: newH, weekXp: (uData.weekXp || 0) + 15 }, { merge: true });
+    await setDoc(doc(db, "userData", user.username), { 
+      cap: newCap, 
+      history: newH,
+      weekXp: (uData.weekXp || 0) + 15
+    }, { merge: true });
+    
+    alert("Cápsula selada! Só a poderás abrir em " + dateStr);
+  }
 
   // ── EXPORTAÇÃO DE DADOS ──
   function doExport() {
