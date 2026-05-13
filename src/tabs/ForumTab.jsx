@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "../firebase.js";
-import { CYN, AppIcon } from "../theme.jsx";
+import { CYN } from "../theme.jsx";
 import { CHANNELS } from "../data.js";
 import ForumPost from './forum/ForumPost.jsx';
 import ForumComposer from './forum/ForumComposer.jsx';
@@ -22,29 +22,27 @@ export default function ForumTab({ user, data }) {
   return (
     <div style={{ padding: "18px 16px", paddingBottom: "100px" }}>
       
-      <div style={{ display: "flex", justifyContent: "center", marginBottom: "25px" }}>
-        <AppIcon size={60} />
-      </div>
-
-      {/* GRELHA DE CANAIS (2 COLUNAS) */}
+      {/* MENU DE CANAIS (TIPO "BOLHAS" HORIZONTAIS) */}
       <div style={{ 
-        display: "grid", 
-        gridTemplateColumns: "1fr 1fr", 
+        display: "flex", 
         gap: "10px", 
-        marginBottom: "20px" 
+        overflowX: "auto", 
+        paddingBottom: "10px", 
+        marginBottom: "20px",
+        scrollbarWidth: "none" // Esconde a barra de scroll no Android/Firefox
       }}>
         {CHANNELS.map(ch => {
           const selecionado = canalAtivo === ch.id;
           return (
             <button key={ch.id} onClick={() => setCanalAtivo(ch.id)} style={{ 
-              display: "flex", flexDirection: "column", alignItems: "center", gap: "8px",
-              padding: "15px 10px", borderRadius: "20px", cursor: "pointer", transition: "0.3s",
-              border: selecionado ? `2px solid ${CYN}` : "1px solid rgba(255,255,255,0.05)",
-              background: selecionado ? "rgba(34, 211, 238, 0.15)" : "rgba(255,255,255,0.03)",
+              display: "flex", alignItems: "center", gap: "6px", flexShrink: 0,
+              padding: "10px 16px", borderRadius: "30px", cursor: "pointer", transition: "0.2s",
+              border: selecionado ? `1px solid ${CYN}` : "1px solid rgba(255,255,255,0.1)",
+              background: selecionado ? "rgba(34, 211, 238, 0.15)" : "rgba(0,0,0,0.3)",
               color: selecionado ? CYN : "#94a3b8"
             }}>
-              <span style={{ fontSize: "24px" }}>{ch.icon}</span>
-              <span style={{ fontSize: "11px", fontWeight: "900", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "center" }}>
+              <span style={{ fontSize: "16px" }}>{ch.icon}</span>
+              <span style={{ fontSize: "12px", fontWeight: "800", whiteSpace: "nowrap" }}>
                 {ch.label}
               </span>
             </button>
