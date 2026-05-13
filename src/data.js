@@ -212,8 +212,10 @@ export const EC = { verde:"#4ade80", amarelo:"#fbbf24", vermelho:"#f87171" };
 
 export const DEF_PIA   = { oQue:"",paraQue:"",quanto:"",onde:"",recursos:"",comoSaber:"" };
 export const DEF_ACTS  = [{ oQue:"",quando:"",obj:"" },{ oQue:"",quando:"",obj:"" },{ oQue:"",quando:"",obj:"" },{ oQue:"",quando:"",obj:"" }];
-export const DEF_RODA  = { familia:5,amigos:5,dinheiro:5,trabalho:5,cresc:5,saude:5,lazer:5 };
-export const DEF_DSCORES = { D1:5,D2:5,D3:5,D4:5,D5:5,D6:5 };
+
+// MUDANÇA AQUI: Os valores de Roda e Scores começam agora em 1.
+export const DEF_RODA  = { familia:1,amigos:1,dinheiro:1,trabalho:1,cresc:1,saude:1,lazer:1 };
+export const DEF_DSCORES = { D1:1,D2:1,D3:1,D4:1,D5:1,D6:1 };
 export const DEF_DNOTAS  = { D1:"",D2:"",D3:"",D4:"",D5:"",D6:"" };
 export const DEF_SWOT  = { forcas:"",fraquezas:"",oprtns:"",riscos:"" };
 export const DEF_CAP   = { text:"",locked:false,revealed:false,lockedDate:"" };
