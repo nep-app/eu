@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, collection, getDocs, deleteDoc, query, where } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { CARD, SL, CYN, PNK, INP, Btn, SubTabs, RadarChart, BG } from "../theme.jsx";
 import { 
@@ -15,6 +15,17 @@ export default function PerfilTab({ user, data }) {
   const cap = uData.cap || DEF_CAP;
   const history = data.history || [];
   const userMedals = data.medals || [];
+
+  // Função para formatar o Timestamp (Milissegundos) para Dia/Mês e Horas
+  function formatarDataHora(ts, dataAntiga) {
+    if (!ts) return dataAntiga; // Para ações velhas que não tinham Timestamp
+    const d = new Date(ts);
+    const dia = String(d.getDate()).padStart(2, '0');
+    const mes = String(d.getMonth() + 1).padStart(2, '0');
+    const hora = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${dia}/${mes} às ${hora}:${min}`;
+  }
 
   // ── FUNÇÕES DA RODA DA VIDA ──
   async function saveRoda(share) {
@@ -90,18 +101,32 @@ export default function PerfilTab({ user, data }) {
     URL.revokeObjectURL(url);
   }
 
-  // ── FUNÇÃO MÁGICA DE RESET (SÓ PARA A TERESA) ──
+  // ── FUNÇÃO DE LIMPEZA MÁGICA (INTELIGENTE) SÓ PARA A TERESA ──
   async function limparTudoDev() {
-    if (window.confirm("🚨 MODO DEV: Queres apagar as entregas E ZERAR O TEU XP para voltares a testar a app do zero?")) {
+    if (window.confirm("🚨 MODO DEV: Queres reverter o estado das avaliações e APAGAR as tarefas/agenda para testar do zero?\n\n(O teu Histórico e XP serão mantidos para testares a acumulação!)")) {
+      
+      // 1. Repor as flags para a Home voltar a mostrar os pedidos pendentes
       await setDoc(doc(db, "userData", user.username), {
         autoSaved: false,
         sSaved: false,
         answered: false,
         piaSaved: false,
         completedMissions: [],
-        weekXp: 0, // Zera os pontos de XP
-        history: [] // Limpa o teu histórico de ações
       }, { merge: true });
+
+      // 2. Apagar TODAS as Tarefas (To-Do List) deste utilizador
+      const todosSnap = await getDocs(collection(db, "todos", user.username, "items"));
+      todosSnap.forEach(async (d) => {
+        await deleteDoc(d.ref);
+      });
+
+      // 3. Apagar TODOS os Eventos da Agenda deste utilizador
+      const evtsSnap = await getDocs(query(collection(db, "events"), where("userId", "==", user.username)));
+      evtsSnap.forEach(async (d) => {
+        await deleteDoc(d.ref);
+      });
+
+      alert("Limpeza efetuada com sucesso! A página vai recarregar.");
       window.location.reload();
     }
   }
@@ -170,7 +195,7 @@ export default function PerfilTab({ user, data }) {
             )}
           </div>
 
-          {/* Logs */}
+          {/* Logs com Data e Hora */}
           <div style={CARD}>
             <div style={SL}>📜 Registo de Atividades</div>
             {history.length === 0 ? (
@@ -179,7 +204,9 @@ export default function PerfilTab({ user, data }) {
               history.slice().reverse().map((h, i) => (
                 <div key={i} style={{ padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ fontSize: 13, fontWeight: 700, flex: 1 }}>{h.action}</div>
-                  <div style={{ fontSize: 10, color: CYN, fontWeight: 800, marginLeft: 10 }}>{h.date}</div>
+                  <div style={{ fontSize: 10, color: CYN, fontWeight: 800, marginLeft: 10 }}>
+                    {formatarDataHora(h.ts, h.date)}
+                  </div>
                 </div>
               ))
             )}
@@ -228,7 +255,7 @@ export default function PerfilTab({ user, data }) {
             <Btn variant="dark" onClick={doExport}>⬇️ DESCARREGAR RELATÓRIO</Btn>
           </div>
 
-          {/* ⚠️ PAINEL DE TESTES (SÓ APARECE À TERESA) ⚠️ */}
+          {/* ⚠️ PAINEL DE TESTES DA TERESA ⚠️ */}
           {user.username === "teresa" && (
             <div style={{ ...CARD, background: "rgba(244, 63, 94, 0.1)", border: "2px dashed #f43f5e", marginTop: 20 }}>
               <div style={{ ...SL, color: "#f43f5e" }}>🔧 Ferramentas de Teste</div>
@@ -239,7 +266,7 @@ export default function PerfilTab({ user, data }) {
                 onClick={limparTudoDev}
                 style={{ width: "100%", padding: "12px", background: "#f43f5e", color: "white", fontWeight: "900", border: "none", borderRadius: "12px", cursor: "pointer", fontSize: "13px" }}
               >
-                ↻ REINICIAR E ZERAR XP
+                ↻ APAGAR TAREFAS / AGENDA (Manter Histórico)
               </button>
             </div>
           )}
