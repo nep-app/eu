@@ -13,7 +13,7 @@ import AdminAgenda from './tabs/admin/AdminAgenda.jsx';
 import AdminMissoes from './tabs/admin/AdminMissoes.jsx';
 import AdminMsgs from './tabs/admin/AdminMsgs.jsx';
 import AdminUsers from './tabs/admin/AdminUsers.jsx';
-
+import AdminVotacoes from './tabs/admin/AdminVotacoes.jsx'; // ADICIONA ESTA LINHA
 export default function TeresaAdmin({ user, onLogout }) {
   const [adminTab, setAdminTab] = useState("geral");
 
@@ -80,9 +80,10 @@ export default function TeresaAdmin({ user, onLogout }) {
 
   const unreadNotifsCount = adminNotifs.filter(n => !n.lida).length;
 
-  const ADMIN_TABS = [
+const ADMIN_TABS = [
     ["geral", unreadNotifsCount > 0 ? `📊 Geral (${unreadNotifsCount})` : "📊 Geral"],
     ["mural", "🌐 Fórum"],
+    ["votacoes", "🗳️ Votações"], // ADICIONA ESTA LINHA
     ["partilhas", "📂 Partilhas"],
     ["tasks", "✅ Tarefas"],
     ["agenda", "📅 Agenda"],
@@ -159,8 +160,9 @@ export default function TeresaAdmin({ user, onLogout }) {
 
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "20px 16px" }}>
         {/* RENDERIZAÇÃO DAS FATIAS */}
-        {adminTab === "geral" && <AdminGeral allShared={allShared} leaderboard={leaderboard} adminNotifs={adminNotifs} activeQ={activeQ} />}
+   {adminTab === "geral" && <AdminGeral allShared={allShared} leaderboard={leaderboard} adminNotifs={adminNotifs} activeQ={activeQ} />}
         {adminTab === "mural" && <AdminMural />}
+        {adminTab === "votacoes" && <AdminVotacoes />} {/* ADICIONA ESTA LINHA */}
         {adminTab === "partilhas" && <AdminPartilhas allShared={allShared} />}
         {adminTab === "tasks" && <AdminTarefas />}
         {adminTab === "agenda" && <AdminAgenda events={events} />}
