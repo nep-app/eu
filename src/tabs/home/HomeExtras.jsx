@@ -41,6 +41,7 @@ export default function HomeExtras({ user, data, setTab }) {
 
   return (
     <>
+      {/* MENSAGENS DA COORDENAÇÃO */}
       {notificacoesAdmin.length > 0 && (
         <div style={{ ...CARD, background: "rgba(244, 114, 182, 0.15)", border: `1.5px solid ${PNK}` }}>
           <div style={SL}>Mensagens da Coordenação</div>
@@ -53,6 +54,7 @@ export default function HomeExtras({ user, data, setTab }) {
         </div>
       )}
 
+      {/* AÇÕES PENDENTES */}
       {acoesPendentes.length > 0 && (
         <div style={CARD}>
           <div style={SL}>Ações de Acompanhamento</div>
@@ -68,6 +70,7 @@ export default function HomeExtras({ user, data, setTab }) {
         </div>
       )}
 
+      {/* MISSÕES DE CAMPO */}
       {listaMissoes.filter(mis => mis.week === getWeekKey()).length > 0 && (
         <div style={CARD}>
           <div style={SL}>🎯 Missões de Campo</div>
@@ -86,6 +89,7 @@ export default function HomeExtras({ user, data, setTab }) {
         </div>
       )}
 
+      {/* RANKING TOP 3 */}
       <div style={CARD}>
         <div style={SL}>⭐ Destaques da Semana</div>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: "10px" }}>
@@ -97,15 +101,31 @@ export default function HomeExtras({ user, data, setTab }) {
         </div>
       </div>
 
+      {/* FALAR COM A TERESA (Agora com WhatsApp e Email restaurados!) */}
       <div style={CARD}>
         <div style={SL}>📱 Falar com a Teresa</div>
+        
+        {/* BOTÕES DE CONTACTO DIRETO */}
+        <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+          <a href="https://wa.me/351XXXXXXXXX" target="_blank" rel="noreferrer" style={{ flex: 1, background: "#25D366", color: "#fff", textDecoration: "none", padding: "12px", borderRadius: 14, textAlign: "center", fontWeight: 900, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            <span>💬</span> WHATSAPP
+          </a>
+          <a href="mailto:teresa@jeep.pt" style={{ flex: 1, background: "#3b82f6", color: "#fff", textDecoration: "none", padding: "12px", borderRadius: 14, textAlign: "center", fontWeight: 900, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            <span>✉️</span> EMAIL
+          </a>
+        </div>
+
         {mensagemEnviadaSucesso ? (
-          <div style={{ textAlign: "center", padding: "20px", color: CYN, fontWeight: 900, background: "rgba(34, 211, 238, 0.1)", borderRadius: 18, border: `1px solid ${CYN}30` }}>✓ ENTREGUE!</div>
+          <div style={{ textAlign: "center", padding: "20px", color: CYN, fontWeight: 900, background: "rgba(34, 211, 238, 0.1)", borderRadius: 18, border: `1px solid ${CYN}30` }}>✓ MENSAGEM ENTREGUE!</div>
         ) : (
           <div style={{ background: "rgba(0,0,0,0.2)", padding: "18px", borderRadius: 22 }}>
+            <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 8, fontWeight: 800 }}>MENSAGEM RÁPIDA:</div>
             <textarea value={mensagemTexto} onChange={e => setMensagemTexto(e.target.value)} style={{ ...INP, background: "rgba(0,0,0,0.4)" }} rows={3} placeholder="Dúvida ou sugestão..." />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
-              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}><input type="checkbox" checked={mensagemAnonima} onChange={() => setMensagemAnonima(!mensagemAnonima)} style={{ width: 20, height: 20, accentColor: PNK }} /><span style={{ fontSize: 13, color: "#cbd5e1", fontWeight: 600 }}>Anónimo</span></label>
+              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+                <input type="checkbox" checked={mensagemAnonima} onChange={() => setMensagemAnonima(!mensagemAnonima)} style={{ width: 20, height: 20, accentColor: PNK }} />
+                <span style={{ fontSize: 13, color: "#cbd5e1", fontWeight: 600 }}>Anónimo</span>
+              </label>
               <button onClick={enviarMensagemTeresa} style={{ background: PNK, color: "#070b14", border: "none", padding: "12px 28px", borderRadius: 16, fontWeight: 900, cursor: "pointer" }}>ENVIAR</button>
             </div>
           </div>
