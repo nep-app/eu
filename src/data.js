@@ -32,6 +32,8 @@ export const EVT_ICONS = {
   "outro": "📌" 
 };
 
+export const SEMOJIS = ["", "😟", "😐", "🙂", "😊", "🤩"];
+
 export const MTHS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 export function nowLabel() { let d = new Date(); return MTHS[d.getMonth()] + " " + d.getFullYear(); }
 export function fmtDate(s) {
