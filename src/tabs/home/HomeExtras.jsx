@@ -39,8 +39,38 @@ export default function HomeExtras({ user, data, setTab }) {
     setTimeout(() => setMensagemEnviadaSucesso(false), 3000);
   }
 
+  // ── FUNÇÃO MÁGICA DE RESET (SÓ PARA A TERESA) ──
+  async function limparTudoDev() {
+    if (window.confirm("🚨 MODO DEV: Queres apagar as tuas entregas (Autoavaliação, Satisfação, PIA, Missões e Respostas) para voltares a testar a app do zero?")) {
+      await setDoc(doc(db, "userData", user.username), {
+        autoSaved: false,
+        sSaved: false,
+        answered: false,
+        piaSaved: false,
+        completedMissions: [] // Limpa as missões que concluiste
+      }, { merge: true });
+      window.location.reload();
+    }
+  }
+
   return (
     <>
+      {/* ⚠️ PAINEL DE TESTES (SÓ APARECE À TERESA) ⚠️ */}
+      {user.username === "teresa" && (
+        <div style={{ ...CARD, background: "rgba(244, 63, 94, 0.1)", border: "2px dashed #f43f5e" }}>
+          <div style={{ ...SL, color: "#f43f5e" }}>🔧 Ferramentas de Teste</div>
+          <p style={{ fontSize: "12px", color: "#cbd5e1", marginTop: 0, marginBottom: "15px" }}>
+            Como és a conta de testes, podes limpar o teu progresso para veres as "Ações Pendentes" novamente.
+          </p>
+          <button 
+            onClick={limparTudoDev}
+            style={{ width: "100%", padding: "12px", background: "#f43f5e", color: "white", fontWeight: "900", border: "none", borderRadius: "12px", cursor: "pointer", fontSize: "13px" }}
+          >
+            ↻ REINICIAR AS MINHAS ENTREGAS
+          </button>
+        </div>
+      )}
+
       {/* MENSAGENS DA COORDENAÇÃO */}
       {notificacoesAdmin.length > 0 && (
         <div style={{ ...CARD, background: "rgba(244, 114, 182, 0.15)", border: `1.5px solid ${PNK}` }}>
@@ -101,16 +131,16 @@ export default function HomeExtras({ user, data, setTab }) {
         </div>
       </div>
 
-      {/* FALAR COM A TERESA (Agora com WhatsApp e Email restaurados!) */}
+      {/* FALAR COM A TERESA */}
       <div style={CARD}>
-        <div style={SL}>📱 Falar com a Teresa</div>
+        <div style={SL}>📱 Falar com a Coordenação</div>
         
         {/* BOTÕES DE CONTACTO DIRETO */}
         <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-          <a href="https://wa.me/351916025666" target="_blank" rel="noreferrer" style={{ flex: 1, background: "#25D366", color: "#fff", textDecoration: "none", padding: "12px", borderRadius: 14, textAlign: "center", fontWeight: 900, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          <a href="https://wa.me/351XXXXXXXXX" target="_blank" rel="noreferrer" style={{ flex: 1, background: "#25D366", color: "#fff", textDecoration: "none", padding: "12px", borderRadius: 14, textAlign: "center", fontWeight: 900, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
             <span>💬</span> WHATSAPP
           </a>
-          <a href="mailto:teresa.castro@cm-cascais.pt" style={{ flex: 1, background: "#3b82f6", color: "#fff", textDecoration: "none", padding: "12px", borderRadius: 14, textAlign: "center", fontWeight: 900, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          <a href="mailto:teresa@jeep.pt" style={{ flex: 1, background: "#3b82f6", color: "#fff", textDecoration: "none", padding: "12px", borderRadius: 14, textAlign: "center", fontWeight: 900, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
             <span>✉️</span> EMAIL
           </a>
         </div>
