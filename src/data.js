@@ -191,6 +191,19 @@ export const ALL_MEDALS = [
   { id: "lider",          icon: "👑", label: "Líder" }
 ];
 
+export const QUIZZES = [
+  {
+    id: "q_exemplo",
+    title: "Cenário de Teste",
+    desc: "Como geres esta situação?",
+    xp: 20,
+    options: [
+      { id: "a", text: "Falo com a equipa", isCorrect: true, feedback: "Exato! A comunicação é a chave." },
+      { id: "b", text: "Ignoro o problema", isCorrect: false, feedback: "Ignorar raramente resolve." }
+    ]
+  }
+];
+
 export const FORUM_REACTIONS = [{ id:"heart", icon:"❤️" }, { id:"fire", icon:"🔥" }, { id:"clap", icon:"👏" }, { id:"think", icon:"🤔" }];
 export const EC = { verde:"#4ade80", amarelo:"#fbbf24", vermelho:"#f87171" };
 export const DEF_RODA  = { familia:5,amigos:5,dinheiro:5,trabalho:5,cresc:5,saude:5,lazer:5 };
