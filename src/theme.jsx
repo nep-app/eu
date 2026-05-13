@@ -1,15 +1,15 @@
 import React from 'react';
 import logoImg from './logo.png'; // 💥 A ARMA NUCLEAR: Importar o logo diretamente!
 
-// ── CORES BASE (SOFT DARK MODE) ──
-export const BG  = "#1e293b"; 
+// ── CORES BASE (SOFT DARK MODE PREMIUM) ──
+export const BG  = "#0f172a"; // Azul muito escuro (Fundo do ecrã)
 export const PRP = "#a855f7"; 
 export const CYN = "#38bdf8"; 
 export const PNK = "#f472b6"; 
 export const TXT_MAIN = "#f8fafc"; 
 export const TXT_MUT = "#94a3b8"; 
 
-// ── CORREÇÃO GLOBAL DO BROWSER ──
+// ── CORREÇÃO GLOBAL DO BROWSER E BARRA DE SCROLL ──
 if (typeof document !== 'undefined') {
   document.body.style.backgroundColor = BG;
   document.body.style.margin = "0";
@@ -17,20 +17,27 @@ if (typeof document !== 'undefined') {
   document.body.style.fontFamily = "system-ui, -apple-system, sans-serif";
   document.body.style.color = TXT_MAIN;
   document.documentElement.style.backgroundColor = BG;
+  
+  // Esconde a barra de scroll feia (Chrome/Safari/Edge) mas permite fazer scroll
+  const style = document.createElement('style');
+  style.innerHTML = `
+    *::-webkit-scrollbar { display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+  `;
+  document.head.appendChild(style);
 }
 
-// ── CARTÕES (CORRIGIDO ALINHAMENTO) ──
+// ── CARTÕES (Visual Elevado e Clean) ──
 export const CARD = {
-  background: "rgba(30, 41, 59, 0.7)", 
-  borderRadius: 24,
+  background: "#1e293b", // Azul ardósia médio (Cartões)
+  borderRadius: "20px",
   padding: "20px",
-  margin: "0 0 16px 0", // Margem fixa para não entortar
-  backdropFilter: "blur(12px)",
-  border: "1px solid rgba(255, 255, 255, 0.08)", 
-  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)", 
+  margin: "0 0 16px 0",
+  border: "1px solid rgba(255, 255, 255, 0.05)", // Linha quase invisível
+  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)", // Sombra de profundidade
   color: TXT_MAIN,
   width: "100%",
-  boxSizing: "border-box", // Obriga a respeitar a largura
+  boxSizing: "border-box", 
   position: "relative",
   overflow: "hidden"
 };
@@ -47,28 +54,28 @@ export const SL = {
   display: "block"
 };
 
-// ── CAMPOS DE TEXTO E LOGIN (CORRIGIDO CAIXAS TORTAS) ──
+// ── CAMPOS DE TEXTO E LOGIN ──
 export const INP = {
   width: "100%",
   padding: "14px",
   borderRadius: 14,
-  background: "rgba(15, 23, 42, 0.4)", 
-  border: "1px solid rgba(255, 255, 255, 0.1)",
+  background: "rgba(15, 23, 42, 0.6)", // Escurece um bocadinho as caixas de texto
+  border: "1px solid rgba(255, 255, 255, 0.08)",
   color: TXT_MAIN,
   fontSize: "14px",
   outline: "none",
-  boxSizing: "border-box", // É ISTO QUE IMPEDE AS CAIXAS DE FICAREM TORTAS
+  boxSizing: "border-box", 
   fontFamily: "inherit",
   transition: "all 0.2s ease",
-  margin: "0 0 12px 0", // Margem inferior fixa
+  margin: "0 0 12px 0", 
   display: "block"
 };
 
 // ── CONFIGURAÇÃO DE STATUS ──
 export const PS = {
-  urgent:  { dot: "#f43f5e", bg: "rgba(244, 63, 94, 0.15)", badge: "URGENTE",   bc: "#fb7185", bl: "rgba(244, 63, 94, 0.3)" },
+  urgent:  { dot: "#f43f5e", bg: "rgba(244, 63, 94, 0.15)", badge: "URGENTE",  bc: "#fb7185", bl: "rgba(244, 63, 94, 0.3)" },
   pending: { dot: "#fbbf24", bg: "rgba(251, 191, 36, 0.15)", badge: "PENDENTE",  bc: "#fcd34d", bl: "rgba(251, 191, 36, 0.3)" },
-  new:     { dot: PRP,       bg: "rgba(168, 85, 247, 0.15)", badge: "NOVO",     bc: PRP,       bl: "rgba(168, 85, 247, 0.3)" },
+  new:     { dot: PRP,       bg: "rgba(168, 85, 247, 0.15)", badge: "NOVO",      bc: PRP,       bl: "rgba(168, 85, 247, 0.3)" },
 };
 
 // ── LOGO (TRUQUE NUCLEAR - NUNCA MAIS FALHA) ──
@@ -76,7 +83,7 @@ export function AppIcon({ size = 70 }) {
   return (
     <div style={{ display: "flex", justifyContent: "center", padding: "10px 0", width: "100%" }}>
       <img 
-        src={logoImg} // <-- Em vez de um caminho adivinhado, usa a imagem injetada
+        src={logoImg} 
         alt="JEEP EDUCA+" 
         style={{ width: size, height: "auto", objectFit: "contain", display: "block", margin: "0 auto" }}
       />
@@ -131,7 +138,7 @@ export function Btn({ children, onClick, variant, color = PRP, disabled }) {
     alignItems: "center",
     justifyContent: "center",
     gap: "8px",
-    boxSizing: "border-box", // Previne botões tortos e a saírem do ecrã
+    boxSizing: "border-box", 
     margin: "0"
   };
 
