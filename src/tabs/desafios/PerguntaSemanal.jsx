@@ -57,14 +57,6 @@ export default function PerguntaSemanal({ user, data }) {
   }
 
   async function submitAnswer(valorBotao = null) {
-    // Validações antes de enviar
-    if ((activeTab === "semana" || activeTab === "rating") && ratingSemana === 0 && !valorBotao) {
-      return alert("Por favor, dá uma avaliação de 1 a 5 estrelas antes de submeter.");
-    }
-    if (activeTab === "mood" && !aTxt && !valorBotao) {
-      return alert("Por favor, seleciona um emoji antes de submeter.");
-    }
-
     setIsUploading(true);
     try {
       let downloadURL = null;
@@ -76,9 +68,7 @@ export default function PerguntaSemanal({ user, data }) {
 
       let respostaFinal = valorBotao || aTxt;
       if (activeTab === "3palavras") respostaFinal = palavras.join(", ");
-      
-      // Regista "4 ⭐ (de 5)"
-      if (activeTab === "semana" || activeTab === "rating") respostaFinal = `${ratingSemana} ⭐ (de 5)`;
+      if (activeTab === "semana" || activeTab === "rating") respostaFinal = `${ratingSemana} ⭐`;
 
       await updateDoc(doc(db, "userData", user.username), {
         answered: true,
@@ -94,10 +84,9 @@ export default function PerguntaSemanal({ user, data }) {
     setIsUploading(false);
   }
 
-  // Função para dar nomes bonitos às abas
   const getTabLabel = (m) => {
     if (m === "semana" || m === "rating") return "AVALIAÇÃO";
-    if (m === "mood") return "EMOJIS";
+    if (m === "mood") return "MOOD";
     if (m === "3palavras") return "3 PALAVRAS";
     if (m === "imagem") return "FOTO/VÍDEO";
     return m.toUpperCase();
@@ -106,7 +95,6 @@ export default function PerguntaSemanal({ user, data }) {
   if (uData.answered) return (
     <div style={CARD}>
       <div style={SL}>✅ Reflexão Entregue!</div>
-      <p style={{ textAlign: "center", color: "#94a3b8", fontSize: 13 }}>A Teresa já recebeu a tua participação.</p>
     </div>
   );
 
@@ -123,7 +111,7 @@ export default function PerguntaSemanal({ user, data }) {
       </div>
 
       {opcoesBotao.length === 0 && modosAtivos.length > 1 && (
-        <div style={{ display: "flex", gap: 5, marginBottom: 15, overflowX: "auto", paddingBottom: 5 }}>
+        <div style={{ display: "flex", gap: 5, marginBottom: 20, overflowX: "auto", paddingBottom: 5 }}>
           {modosAtivos.map(m => (
             <button key={m} onClick={() => setActiveTab(m)} style={{ 
               padding: "6px 12px", borderRadius: 10, border: "none", fontSize: 11, fontWeight: 800, whiteSpace: "nowrap", cursor: "pointer",
@@ -136,7 +124,7 @@ export default function PerguntaSemanal({ user, data }) {
         </div>
       )}
 
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 25 }}>
         {opcoesBotao.length > 0 ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {opcoesBotao.map((opt, i) => (
@@ -152,27 +140,20 @@ export default function PerguntaSemanal({ user, data }) {
                 {palavras.map((p, i) => (
                   <input key={i} value={p} onChange={e => {
                     const n = [...palavras]; n[i] = e.target.value; setPalavras(n);
-                  }} style={{ ...INP, textAlign: "center" }} placeholder={`P${i+1}`} />
+                  }} style={{ ...INP, textAlign: "center" }} placeholder={`Palavra ${i+1}`} />
                 ))}
               </div>
             )}
 
-            {/* AVALIAÇÃO DE ESTRELAS */}
             {(activeTab === "semana" || activeTab === "rating") && (
-              <div style={{ textAlign: "center", padding: "10px 0" }}>
-                <div style={{ fontSize: 13, color: "#94a3b8", marginBottom: 15, fontWeight: 700 }}>Avalia de 1 a 5 estrelas:</div>
-                <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
-                  {[1,2,3,4,5].map(n => (
-                    <button key={n} onClick={()=>setRatingSemana(n)} style={{ 
-                      width: 45, height: 45, borderRadius: "50%", border: "none", fontSize: 20, cursor: "pointer", transition: "0.2s",
-                      background: ratingSemana >= n ? CYN : "rgba(255,255,255,0.05)", 
-                      color: ratingSemana >= n ? "#000" : "rgba(255,255,255,0.3)" 
-                    }}>⭐</button>
-                  ))}
-                </div>
-                <div style={{ fontSize: 12, color: CYN, marginTop: 15, fontWeight: 800, minHeight: 18 }}>
-                  {ratingSemana > 0 ? `Deste ${ratingSemana} estrela${ratingSemana > 1 ? 's' : ''}` : ""}
-                </div>
+              <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
+                {[1,2,3,4,5].map(n => (
+                  <button key={n} onClick={()=>setRatingSemana(n)} style={{ 
+                    width: 45, height: 45, borderRadius: "50%", border: "none", fontSize: 20, cursor: "pointer",
+                    background: ratingSemana >= n ? CYN : "rgba(255,255,255,0.05)", 
+                    color: ratingSemana >= n ? "#000" : "rgba(255,255,255,0.3)" 
+                  }}>⭐</button>
+                ))}
               </div>
             )}
 
@@ -187,19 +168,15 @@ export default function PerguntaSemanal({ user, data }) {
 
             {(activeTab === "imagem") && <input type="file" onChange={e=>setMediaFile(e.target.files[0])} style={INP} />}
 
-            {/* ESCOLHA DE EMOJIS */}
             {activeTab === "mood" && (
-              <div style={{ textAlign: "center", padding: "10px 0" }}>
-                <div style={{ fontSize: 13, color: "#94a3b8", marginBottom: 15, fontWeight: 700 }}>Qual emoji te define melhor?</div>
-                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 15 }}>
-                  {["🔥", "❤️", "🚀", "💪", "💡", "🎉", "😴", "🤯"].map(m => (
-                    <button key={m} onClick={()=>setATxt(m)} style={{ 
-                      width: 50, height: 50, borderRadius: "50%", border: "none", fontSize: 24, cursor: "pointer", transition: "0.2s",
-                      background: aTxt === m ? CYN : "rgba(255,255,255,0.05)", 
-                      transform: aTxt === m ? "scale(1.1)" : "scale(1)"
-                    }}>{m}</button>
-                  ))}
-                </div>
+              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 15 }}>
+                {["🔥", "❤️", "🚀", "💪", "💡", "🎉", "😴", "🤯"].map(m => (
+                  <button key={m} onClick={()=>setATxt(m)} style={{ 
+                    width: 50, height: 50, borderRadius: "50%", border: "none", fontSize: 24, cursor: "pointer", transition: "0.2s",
+                    background: aTxt === m ? CYN : "rgba(255,255,255,0.05)", 
+                    transform: aTxt === m ? "scale(1.1)" : "scale(1)"
+                  }}>{m}</button>
+                ))}
               </div>
             )}
           </>
