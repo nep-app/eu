@@ -92,13 +92,15 @@ export default function PerfilTab({ user, data }) {
 
   // ── FUNÇÃO MÁGICA DE RESET (SÓ PARA A TERESA) ──
   async function limparTudoDev() {
-    if (window.confirm("🚨 MODO DEV: Queres apagar as tuas entregas (Autoavaliação, Satisfação, PIA e Missões) para voltares a testar a app do zero?")) {
+    if (window.confirm("🚨 MODO DEV: Queres apagar as entregas E ZERAR O TEU XP para voltares a testar a app do zero?")) {
       await setDoc(doc(db, "userData", user.username), {
         autoSaved: false,
         sSaved: false,
         answered: false,
         piaSaved: false,
-        completedMissions: []
+        completedMissions: [],
+        weekXp: 0, // Zera os pontos de XP
+        history: [] // Limpa o teu histórico de ações
       }, { merge: true });
       window.location.reload();
     }
@@ -237,7 +239,7 @@ export default function PerfilTab({ user, data }) {
                 onClick={limparTudoDev}
                 style={{ width: "100%", padding: "12px", background: "#f43f5e", color: "white", fontWeight: "900", border: "none", borderRadius: "12px", cursor: "pointer", fontSize: "13px" }}
               >
-                ↻ REINICIAR AS MINHAS ENTREGAS
+                ↻ REINICIAR E ZERAR XP
               </button>
             </div>
           )}
