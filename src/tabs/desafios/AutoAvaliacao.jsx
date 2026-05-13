@@ -36,12 +36,43 @@ export default function AutoAvaliacao({ user, data }) {
     setIsSubmitting(false);
   }
 
+  // ── FUNÇÃO MÁGICA SÓ PARA A TERESA TESTAR ──
+  async function limparTeste() {
+    if (window.confirm("Queres limpar a tua entrega para poderes testar de novo?")) {
+      // Limpa a flag 'autoSaved' na base de dados
+      await setDoc(doc(db, "userData", user.username), { autoSaved: false }, { merge: true });
+      // Força a página a recarregar para mostrar o formulário
+      window.location.reload();
+    }
+  }
+
   return (
     <div>
       {uData.autoSaved || localSaved ? (
         <div style={{ ...CARD, textAlign: "center", padding: "40px 20px" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>✅</div>
           <div style={{ fontWeight: 900, color: CYN, fontSize: 18 }}>AVALIAÇÃO ENTREGUE!</div>
+          
+          {/* BOTÃO SECRETO DA TERESA */}
+          {user.username === "teresa" && (
+            <button 
+              onClick={limparTeste}
+              style={{ 
+                marginTop: "25px", 
+                background: "rgba(244, 63, 94, 0.15)", 
+                border: "1.5px dashed #f43f5e", 
+                color: "#f43f5e", 
+                padding: "10px 20px", 
+                borderRadius: "14px", 
+                fontWeight: "900", 
+                cursor: "pointer",
+                fontSize: "12px"
+              }}
+            >
+              🔧 MODO DEV: LIMPAR AVALIAÇÃO
+            </button>
+          )}
+
         </div>
       ) : (
         <>
