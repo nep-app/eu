@@ -29,7 +29,7 @@ export default function ForumTab({ user, data }) {
         overflowX: "auto", 
         paddingBottom: "10px", 
         marginBottom: "20px",
-        scrollbarWidth: "none" // Esconde a barra de scroll no Android/Firefox
+        scrollbarWidth: "none" 
       }}>
         {CHANNELS.map(ch => {
           const selecionado = canalAtivo === ch.id;
@@ -50,13 +50,12 @@ export default function ForumTab({ user, data }) {
         })}
       </div>
 
-      {/* INFO DO CANAL ATIVO */}
+      {/* INFO DO CANAL ATIVO - Removi o <strong> com o título aqui */}
       <div style={{ 
         background: "rgba(0,0,0,0.2)", padding: "15px", borderRadius: "18px", 
         fontSize: "12px", color: "#cbd5e1", lineHeight: "1.5", marginBottom: "25px",
         borderLeft: `3px solid ${CYN}`
       }}>
-        <strong style={{ color: CYN, display: "block", marginBottom: "4px" }}>{infoCanal?.label}</strong>
         {infoCanal?.desc}
       </div>
 
