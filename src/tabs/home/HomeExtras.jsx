@@ -107,10 +107,10 @@ export default function HomeExtras({ user, data, setTab }) {
         
         {/* BOTÕES DE CONTACTO DIRETO */}
         <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-          <a href="https://wa.me/351XXXXXXXXX" target="_blank" rel="noreferrer" style={{ flex: 1, background: "#25D366", color: "#fff", textDecoration: "none", padding: "12px", borderRadius: 14, textAlign: "center", fontWeight: 900, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          <a href="https://wa.me/351916025666" target="_blank" rel="noreferrer" style={{ flex: 1, background: "#25D366", color: "#fff", textDecoration: "none", padding: "12px", borderRadius: 14, textAlign: "center", fontWeight: 900, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
             <span>💬</span> WHATSAPP
           </a>
-          <a href="mailto:teresa@jeep.pt" style={{ flex: 1, background: "#3b82f6", color: "#fff", textDecoration: "none", padding: "12px", borderRadius: 14, textAlign: "center", fontWeight: 900, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          <a href="mailto:teresa.castro@cm-cascais.pt" style={{ flex: 1, background: "#3b82f6", color: "#fff", textDecoration: "none", padding: "12px", borderRadius: 14, textAlign: "center", fontWeight: 900, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
             <span>✉️</span> EMAIL
           </a>
         </div>
