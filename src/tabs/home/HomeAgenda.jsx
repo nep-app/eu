@@ -36,7 +36,7 @@ export default function HomeAgenda({ user, data }) {
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
           <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#94a3b8", cursor: "pointer" }}>
             <input type="checkbox" checked={partilharEventoCheck} onChange={e => setPartilharEventoCheck(e.target.checked)} style={{ accentColor: PNK }} />
-            Partilhar com Coordenação
+            Partilhar com a Teresa
           </label>
           <button onClick={criarNovoEvento} style={{ background: PNK, border: "none", borderRadius: 18, padding: "8px 20px", fontWeight: 900, cursor: "pointer", color: "#070b14", marginLeft: "auto" }}>CRIAR</button>
         </div>
