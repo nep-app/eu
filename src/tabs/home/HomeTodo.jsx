@@ -11,16 +11,38 @@ export default function HomeTodo({ user, data, setTab }) {
 
   const uData = data.userData || {};
   const listaTarefas = data.todos || [];
-  const tarefasSugestao = listaTarefas.filter(t => t.addedBy === "teresa" && t.accepted === false);
-  const minhasTarefas = listaTarefas.filter(t => t.addedBy !== "teresa" || t.accepted === true);
 
-  // ── LÓGICA DAS AÇÕES DE ACOMPANHAMENTO (REPOSTA) ──
+  // ── 1. FILTRO PARA EVITAR DUPLICAÇÃO ──
+  // Lista de títulos que já têm cards fixos no topo.
+  const NOMES_ACOES_FIXAS = [
+    "Pergunta da semana", 
+    "Autoavaliação mensal", 
+    "Satisfação", 
+    "Plano Individual (PIA)",
+    "Autoavaliação"
+  ];
+
+  // Filtramos as sugestões da Teresa para ignorar o que já é ação fixa
+  const tarefasSugestao = listaTarefas.filter(t => 
+    t.addedBy === "teresa" && 
+    t.accepted === false && 
+    !NOMES_ACOES_FIXAS.includes(t.text)
+  );
+
+  // Filtramos a To-Do List do jovem para ignorar o que já é ação fixa
+  const minhasTarefas = listaTarefas.filter(t => 
+    (t.addedBy !== "teresa" || t.accepted === true) && 
+    !NOMES_ACOES_FIXAS.includes(t.text)
+  );
+
+  // ── 2. LÓGICA DAS AÇÕES DE ACOMPANHAMENTO (TOPO) ──
   let acoesPendentes = [];
   if (!uData.answered) acoesPendentes.push({ status: "urgent", icon: "💬", title: "Pergunta da semana", sub: "A Teresa aguarda a tua reflexão", go: () => setTab("desafios") });
   if (!uData.autoSaved) acoesPendentes.push({ status: "pending", icon: "📊", title: "Autoavaliação mensal", sub: "Avalia as tuas competências", go: () => setTab("desafios") });
   if (!uData.sSaved) acoesPendentes.push({ status: "new", icon: "😊", title: "Satisfação", sub: "Diz-nos como corre o programa", go: () => setTab("desafios") });
   if (!uData.piaSaved) acoesPendentes.push({ status: "pending", icon: "🚀", title: "Plano Individual (PIA)", sub: "Desenha o teu projeto", go: () => setTab("pia") });
 
+  // ── 3. FUNÇÕES DE MANIPULAÇÃO DO FIREBASE ──
   async function criarNovaTarefa() {
     if (!novaTarefaTexto.trim()) return;
     try {
@@ -60,7 +82,7 @@ export default function HomeTodo({ user, data, setTab }) {
 
   return (
     <>
-      {/* ── 1. AÇÕES DE ACOMPANHAMENTO (VISUAL DE CARDS COLORIDOS) ── */}
+      {/* ── SECCÃO 1: CARDS COLORIDOS DE AÇÕES ── */}
       {acoesPendentes.length > 0 && (
         <div style={{ marginBottom: 20 }}>
           <div style={SL}>Ações de Acompanhamento</div>
@@ -81,7 +103,7 @@ export default function HomeTodo({ user, data, setTab }) {
         </div>
       )}
 
-      {/* ── 2. SUGESTÕES DA TERESA ── */}
+      {/* ── SECCÃO 2: SUGESTÕES DA TERESA (LIMPAS DE DUPLICADOS) ── */}
       {tarefasSugestao.length > 0 && (
         <div style={{ ...CARD, background: "rgba(34, 211, 238, 0.1)", border: `1.5px solid ${CYN}`, marginBottom: 20 }}>
           <div style={SL}>📩 Sugestões da Teresa</div>
@@ -98,7 +120,7 @@ export default function HomeTodo({ user, data, setTab }) {
         </div>
       )}
 
-      {/* ── 3. LISTA DE TAREFAS NORMAL ── */}
+      {/* ── SECCÃO 3: TO-DO LIST (LIMPA DE DUPLICADOS) ── */}
       <div style={CARD}>
         <div style={SL}>✅ A Minha To-Do List</div>
         <div style={{ marginBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "15px" }}>
