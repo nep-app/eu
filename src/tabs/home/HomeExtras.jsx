@@ -35,7 +35,7 @@ export default function HomeExtras({ user, data, setTab }) {
 
   return (
     <>
-      {/* MENSAGENS DA COORDENAÇÃO */}
+      {/* MENSAGENS DA TERESA */}
       {notificacoesAdmin.length > 0 && (
         <div style={{ ...CARD, background: "rgba(244, 114, 182, 0.15)", border: `1.5px solid ${PNK}` }}>
           <div style={SL}>Mensagens da Teresa</div>
@@ -48,7 +48,7 @@ export default function HomeExtras({ user, data, setTab }) {
         </div>
       )}
 
-      {/* MISSÕES DE CAMPO */}
+      {/* MISSÕES DE CAMPO (Sem as Ações Pendentes por cima) */}
       {listaMissoes.filter(mis => mis.week === getWeekKey()).length > 0 && (
         <div style={CARD}>
           <div style={SL}>🎯 Missões de Campo</div>
