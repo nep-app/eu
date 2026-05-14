@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { addDoc, collection, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, SL, PNK, CYN, INP, TXT_MUT } from "../../theme.jsx";
+import { CARD, SL, CYN, BLUE, INP, TXT_MUT } from "../../theme.jsx";
 import { fmtDate, EVT_COLORS, EVT_ICONS } from "../../data.js";
 
 const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -102,8 +102,8 @@ export default function HomeAgenda({ user, data }) {
             <button key={i} onClick={() => setSelectedDate(ds)} style={{
               display:"flex", flexDirection:"column", alignItems:"center", gap:3,
               padding:"7px 2px", borderRadius:10, border:"none", cursor:"pointer",
-              background: isSelected ? PNK : isToday ? `${PNK}22` : "transparent",
-              color: isSelected ? "#0f172a" : isToday ? PNK : "#cbd5e1",
+              background: isSelected ? CYN : isToday ? `${CYN}22` : "transparent",
+              color: isSelected ? "#0f172a" : isToday ? CYN : "#cbd5e1",
               fontWeight: isToday || isSelected ? 900 : 500,
               fontSize:13, transition:"all 0.15s",
             }}>
@@ -113,7 +113,7 @@ export default function HomeAgenda({ user, data }) {
                   {evts.slice(0,3).map((ev,j) => (
                     <span key={j} style={{
                       width:4, height:4, borderRadius:"50%",
-                      background: isSelected ? "rgba(0,0,0,0.4)" : (EVT_COLORS[ev.type] || PNK),
+                      background: isSelected ? "rgba(0,0,0,0.4)" : (EVT_COLORS[ev.type] || CYN),
                       display:"block",
                     }}/>
                   ))}
@@ -127,13 +127,13 @@ export default function HomeAgenda({ user, data }) {
       {/* ── DIA SELECIONADO ── */}
       <div style={{ borderTop:"1px solid rgba(255,255,255,0.07)", paddingTop:16 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-          <span style={{ fontSize:12, fontWeight:900, color: selectedDate === hojeStr ? PNK : "#f1f5f9" }}>
+          <span style={{ fontSize:12, fontWeight:900, color: selectedDate === hojeStr ? CYN : "#f1f5f9" }}>
             {selectedLabel}
           </span>
           <button onClick={() => setShowForm(!showForm)} style={{
-            background: showForm ? "rgba(244,114,182,0.15)" : "rgba(255,255,255,0.06)",
-            border: showForm ? `1px solid ${PNK}40` : "1px solid rgba(255,255,255,0.1)",
-            color: showForm ? PNK : TXT_MUT,
+            background: showForm ? "rgba(50,199,255,0.12)" : "rgba(255,255,255,0.06)",
+            border: showForm ? `1px solid ${CYN}40` : "1px solid rgba(255,255,255,0.1)",
+            color: showForm ? CYN : TXT_MUT,
             borderRadius:20, padding:"5px 14px", fontSize:11, fontWeight:800, cursor:"pointer",
           }}>
             {showForm ? "✕ Cancelar" : "+ Adicionar"}
@@ -150,11 +150,11 @@ export default function HomeAgenda({ user, data }) {
               style={{ ...INP, marginBottom:10, padding:"10px 14px", fontSize:13 }} />
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <label style={{ display:"flex", alignItems:"center", gap:6, fontSize:11, color:TXT_MUT, cursor:"pointer" }}>
-                <input type="checkbox" checked={partilhar} onChange={e=>setPartilhar(e.target.checked)} style={{ accentColor:PNK }} />
+                <input type="checkbox" checked={partilhar} onChange={e=>setPartilhar(e.target.checked)} style={{ accentColor:CYN }} />
                 Partilhar com a Teresa
               </label>
               <button onClick={criarEvento} style={{
-                background:PNK, border:"none", borderRadius:12, padding:"8px 20px",
+                background:CYN, border:"none", borderRadius:12, padding:"8px 20px",
                 fontWeight:900, cursor:"pointer", color:"#0f172a", fontSize:12,
               }}>AGENDAR</button>
             </div>
@@ -169,7 +169,7 @@ export default function HomeAgenda({ user, data }) {
         ) : (
           <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
             {eventosSelected.map(ev => {
-              const cor = EVT_COLORS[ev.type] || PNK;
+              const cor = EVT_COLORS[ev.type] || CYN;
               const icone = EVT_ICONS[ev.type] || "📌";
               return (
                 <div key={ev.id} style={{

@@ -2,15 +2,17 @@ import React from 'react';
 import logoImg from './logo.png';
 
 // ── PALETA ───────────────────────────────────────────────────────────────────
-export const BG       = "#0d1829";   // navy escuro — bom contraste com os cards
-export const PRP      = "#a78bfa";
-export const CYN      = "#38bdf8";
-export const PNK      = "#f472b6";
-export const GRN      = "#4ade80";
-export const TXT_MAIN = "#ffffff";   // branco puro — máximo contraste
-export const TXT_MUT  = "#8ba3be";   // azul-cinza legível no fundo escuro
+export const BG       = "#071529";   // deep navy
+export const CYN      = "#32C7FF";   // primary — cyan neon
+export const BLUE     = "#2196F3";   // blue — main buttons
+export const PRP      = "#7B5CFF";   // purple — depth/accents
+export const PNK      = "#FF4FA3";   // pink — detail only (5%)
+export const YLW      = "#FFE44D";   // yellow — badges/energy
+export const GRN      = "#4ade80";   // green — success states
+export const TXT_MAIN = "#FFFFFF";
+export const TXT_MUT  = "#B8C7DA";
 
-// ── INJECÇÃO DE CSS GLOBAL ────────────────────────────────────────────────────
+// ── CSS GLOBAL ───────────────────────────────────────────────────────────────
 if (typeof document !== 'undefined') {
   document.body.style.backgroundColor = BG;
   document.body.style.margin = "0";
@@ -27,15 +29,23 @@ if (typeof document !== 'undefined') {
     *::-webkit-scrollbar { display: none; }
     * { -ms-overflow-style: none; scrollbar-width: none; box-sizing: border-box; }
 
-    body { -webkit-font-smoothing: antialiased; }
+    body {
+      -webkit-font-smoothing: antialiased;
+      background-color: #071529;
+      background-image:
+        linear-gradient(rgba(50,199,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(50,199,255,0.04) 1px, transparent 1px);
+      background-size: 32px 32px;
+      background-attachment: fixed;
+    }
 
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(12px); }
       to   { opacity: 1; transform: translateY(0); }
     }
     @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 8px rgba(56,189,248,0.3); }
-      50%       { box-shadow: 0 0 20px rgba(56,189,248,0.6); }
+      0%, 100% { box-shadow: 0 0 8px rgba(50,199,255,0.3); }
+      50%       { box-shadow: 0 0 20px rgba(50,199,255,0.6); }
     }
     @keyframes fire-pulse {
       0%, 100% { transform: scale(1); }
@@ -48,6 +58,10 @@ if (typeof document !== 'undefined') {
     @keyframes pop-in {
       0%   { transform: scale(0.92); opacity: 0; }
       100% { transform: scale(1);    opacity: 1; }
+    }
+    @keyframes cyan-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(50,199,255,0); }
+      50%       { box-shadow: 0 0 16px 4px rgba(50,199,255,0.18); }
     }
 
     .fade-up  { animation: fadeUp  0.32s ease both; }
@@ -62,10 +76,10 @@ if (typeof document !== 'undefined') {
     button:active { transform: scale(0.96); }
 
     .card-hover:hover {
-      border-color: rgba(56,189,248,0.25) !important;
+      border-color: rgba(50,199,255,0.22) !important;
       transform: translateY(-2px);
       transition: all 0.2s ease;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
     }
   `;
   document.head.appendChild(style);
@@ -73,35 +87,34 @@ if (typeof document !== 'undefined') {
 
 // ── CARTÕES ───────────────────────────────────────────────────────────────────
 export const CARD = {
-  background: "rgba(255, 255, 255, 0.07)",
-  backdropFilter: "blur(24px)",
-  WebkitBackdropFilter: "blur(24px)",
+  background: "rgba(14, 36, 68, 0.82)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
   borderRadius: "20px",
   padding: "20px",
   margin: "0 0 16px 0",
-  border: "1px solid rgba(255,255,255,0.14)",
-  boxShadow: "0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12)",
+  border: "1px solid rgba(50,199,255,0.12)",
+  boxShadow: "0 4px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(50,199,255,0.08)",
   color: TXT_MAIN,
   width: "100%",
   position: "relative",
   overflow: "hidden",
 };
 
-// Card sólido — para destacar informação importante
 export const CARD_SOLID = {
-  background: "#162236",
+  background: "rgba(20, 45, 82, 0.95)",
   borderRadius: "20px",
   padding: "20px",
   margin: "0 0 16px 0",
-  border: "1px solid rgba(255,255,255,0.10)",
-  boxShadow: "0 4px 24px rgba(0,0,0,0.40)",
+  border: "1px solid rgba(50,199,255,0.14)",
+  boxShadow: "0 4px 24px rgba(0,0,0,0.50)",
   color: TXT_MAIN,
   width: "100%",
   position: "relative",
   overflow: "hidden",
 };
 
-// Cartão com cor accent no topo
+// Card com accent top border
 export function AccentCard({ color = CYN, children, style: extraStyle = {} }) {
   return (
     <div style={{ ...CARD, borderTop: `3px solid ${color}`, ...extraStyle }}>
@@ -126,8 +139,8 @@ export const INP = {
   width: "100%",
   padding: "13px 16px",
   borderRadius: 14,
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.10)",
+  background: "rgba(7,21,41,0.7)",
+  border: "1px solid rgba(50,199,255,0.15)",
   color: "#ffffff",
   fontSize: "14px",
   outline: "none",
@@ -141,7 +154,7 @@ export const INP = {
 export const PS = {
   urgent:  { dot:"#f43f5e", bg:"rgba(244,63,94,0.10)",  badge:"URGENTE",  bc:"#f43f5e", bl:"rgba(244,63,94,0.30)" },
   pending: { dot:"#fbbf24", bg:"rgba(251,191,36,0.10)", badge:"PENDENTE", bc:"#fbbf24", bl:"rgba(251,191,36,0.30)" },
-  new:     { dot:PRP,       bg:"rgba(167,139,250,0.10)", badge:"NOVO",    bc:PRP,       bl:"rgba(167,139,250,0.30)" },
+  new:     { dot:PRP,       bg:"rgba(123,92,255,0.10)", badge:"NOVO",     bc:PRP,       bl:"rgba(123,92,255,0.30)" },
 };
 
 // ── LOGO ─────────────────────────────────────────────────────────────────────
@@ -154,9 +167,9 @@ export function AppIcon({ size = 70 }) {
 }
 
 // ── SUB-TABS ─────────────────────────────────────────────────────────────────
-export function SubTabs({ options, active, onChange, color = PRP }) {
+export function SubTabs({ options, active, onChange, color = CYN }) {
   return (
-    <div style={{ display:"flex", gap:4, marginBottom:18, padding:4, background:"rgba(255,255,255,0.04)", borderRadius:16, overflowX:"auto", border:"1px solid rgba(255,255,255,0.07)" }}>
+    <div style={{ display:"flex", gap:4, marginBottom:18, padding:4, background:"rgba(7,21,41,0.6)", borderRadius:16, overflowX:"auto", border:"1px solid rgba(50,199,255,0.10)" }}>
       {options.map(opt => {
         const isA = active === opt[0];
         return (
@@ -177,7 +190,7 @@ export function SubTabs({ options, active, onChange, color = PRP }) {
 }
 
 // ── BOTÕES ────────────────────────────────────────────────────────────────────
-export function Btn({ children, onClick, variant, color = PRP, disabled, style: extraStyle = {} }) {
+export function Btn({ children, onClick, variant, color = BLUE, disabled, style: extraStyle = {} }) {
   const base = {
     width:"100%", padding:"15px 20px", fontSize:13, fontWeight:800,
     cursor: disabled ? "not-allowed" : "pointer", border:"none", borderRadius:14,
@@ -188,26 +201,31 @@ export function Btn({ children, onClick, variant, color = PRP, disabled, style: 
   };
 
   if (variant === "ghost") return (
-    <button disabled={disabled} onClick={onClick} style={{ ...base, background:"transparent", color:TXT_MUT, border:"1px solid rgba(255,255,255,0.12)" }}>
+    <button disabled={disabled} onClick={onClick} style={{ ...base, background:"transparent", color:TXT_MUT, border:"1px solid rgba(50,199,255,0.15)" }}>
       {children}
     </button>
   );
 
   if (variant === "dark") return (
-    <button disabled={disabled} onClick={onClick} style={{ ...base, background:"rgba(255,255,255,0.08)", color:"#ffffff", border:"1px solid rgba(255,255,255,0.12)" }}>
+    <button disabled={disabled} onClick={onClick} style={{ ...base, background:"rgba(14,36,68,0.9)", color:"#ffffff", border:"1px solid rgba(50,199,255,0.18)" }}>
       {children}
     </button>
   );
 
   if (variant === "success") return (
-    <button disabled={disabled} onClick={onClick} style={{ ...base, background:`linear-gradient(135deg, ${PRP} 0%, ${CYN} 100%)`, color:"#fff", boxShadow:`0 4px 20px rgba(167,139,250,0.40)` }}>
+    <button disabled={disabled} onClick={onClick} style={{ ...base, background:`linear-gradient(135deg, ${BLUE} 0%, ${CYN} 100%)`, color:"#fff", boxShadow:`0 4px 20px rgba(33,150,243,0.40)` }}>
       {children}
     </button>
   );
 
-  // White solid button for primary actions
   if (variant === "white") return (
-    <button disabled={disabled} onClick={onClick} style={{ ...base, background:"#ffffff", color:"#0d1829", boxShadow:"0 4px 20px rgba(255,255,255,0.20)" }}>
+    <button disabled={disabled} onClick={onClick} style={{ ...base, background:"#ffffff", color:"#071529", boxShadow:"0 4px 20px rgba(255,255,255,0.15)" }}>
+      {children}
+    </button>
+  );
+
+  if (variant === "cyan") return (
+    <button disabled={disabled} onClick={onClick} style={{ ...base, background:`linear-gradient(135deg, ${CYN}, ${BLUE})`, color:"#071529", fontWeight:900, boxShadow:`0 4px 20px rgba(50,199,255,0.35)` }}>
       {children}
     </button>
   );
@@ -220,18 +238,17 @@ export function Btn({ children, onClick, variant, color = PRP, disabled, style: 
 }
 
 // ── BADGE ─────────────────────────────────────────────────────────────────────
-export function Badge({ children, color = PRP }) {
+export function Badge({ children, color = CYN }) {
   return (
-    <span style={{ fontSize:9, fontWeight:900, background:`${color}22`, color, border:`1px solid ${color}45`, padding:"2px 7px", borderRadius:6, letterSpacing:1, textTransform:"uppercase", verticalAlign:"middle" }}>
+    <span style={{ fontSize:9, fontWeight:900, background:`${color}20`, color, border:`1px solid ${color}40`, padding:"2px 7px", borderRadius:6, letterSpacing:1, textTransform:"uppercase", verticalAlign:"middle" }}>
       {children}
     </span>
   );
 }
 
-// ── BADGE BRANCO (destaque) ────────────────────────────────────────────────────
 export function WhiteBadge({ children }) {
   return (
-    <span style={{ fontSize:9, fontWeight:900, background:"rgba(255,255,255,0.95)", color:"#0d1829", padding:"2px 8px", borderRadius:6, letterSpacing:1, textTransform:"uppercase", verticalAlign:"middle" }}>
+    <span style={{ fontSize:9, fontWeight:900, background:"rgba(255,255,255,0.95)", color:"#071529", padding:"2px 8px", borderRadius:6, letterSpacing:1, textTransform:"uppercase", verticalAlign:"middle" }}>
       {children}
     </span>
   );
@@ -248,7 +265,7 @@ export function HeroNumber({ value, unit, color }) {
 }
 
 // ── PROGRESS BAR ─────────────────────────────────────────────────────────────
-export function ProgressBar({ progress, color = PRP, label }) {
+export function ProgressBar({ progress, color = CYN, label }) {
   return (
     <div>
       {label && (
@@ -257,8 +274,8 @@ export function ProgressBar({ progress, color = PRP, label }) {
           <span style={{ fontSize:11, color, fontWeight:900 }}>{progress}%</span>
         </div>
       )}
-      <div style={{ width:"100%", height:6, background:"rgba(255,255,255,0.08)", borderRadius:10, overflow:"hidden" }}>
-        <div style={{ width:`${progress}%`, height:"100%", background:`linear-gradient(90deg, ${color}, ${color}99)`, borderRadius:10, transition:"width 0.6s ease-out" }}/>
+      <div style={{ width:"100%", height:6, background:"rgba(50,199,255,0.08)", borderRadius:10, overflow:"hidden" }}>
+        <div style={{ width:`${progress}%`, height:"100%", background:`linear-gradient(90deg, ${color}, ${BLUE})`, borderRadius:10, transition:"width 0.6s ease-out" }}/>
       </div>
     </div>
   );
@@ -278,9 +295,9 @@ export function RadarChart({ scores, color, prev }) {
   return (
     <svg viewBox="0 0 300 300" style={{ width:"100%", maxWidth:270, display:"block", margin:"0 auto" }}>
       {[0.2,0.4,0.6,0.8,1.0].map(f => (
-        <polygon key={f} points={polyStr(Array(NR).fill(f))} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1"/>
+        <polygon key={f} points={polyStr(Array(NR).fill(f))} fill="none" stroke="rgba(50,199,255,0.08)" strokeWidth="1"/>
       ))}
-      {IDS.map((_,i) => { const c = pt(i,1); return <line key={i} x1={CX} y1={CY} x2={c[0]} y2={c[1]} stroke="rgba(255,255,255,0.06)" strokeWidth="1"/>; })}
+      {IDS.map((_,i) => { const c = pt(i,1); return <line key={i} x1={CX} y1={CY} x2={c[0]} y2={c[1]} stroke="rgba(50,199,255,0.08)" strokeWidth="1"/>; })}
       {pF && <polygon points={polyStr(pF)} fill="none" stroke={`${color}50`} strokeWidth="1.5" strokeDasharray="4,3"/>}
       <polygon points={polyStr(fracs)} fill={`${color}20`} stroke={color} strokeWidth="2.5" strokeLinejoin="round"/>
       {IDS.map((_,i) => { const c = pt(i,fracs[i]); return <circle key={i} cx={c[0]} cy={c[1]} r="5" fill={color} stroke={BG} strokeWidth="2"/>; })}
@@ -288,7 +305,7 @@ export function RadarChart({ scores, color, prev }) {
         const a = ang(i); const lx = CX+(RR+28)*Math.cos(a); const ly = CY+(RR+28)*Math.sin(a);
         const anchor = Math.cos(a) > 0.2 ? "start" : Math.cos(a) < -0.2 ? "end" : "middle";
         const baseline = Math.sin(a) > 0.3 ? "hanging" : Math.sin(a) < -0.3 ? "auto" : "middle";
-        return <text key={i} x={lx} y={ly} textAnchor={anchor} dominantBaseline={baseline} fontSize="10" fill="#8ba3be" fontWeight="700">{lb}</text>;
+        return <text key={i} x={lx} y={ly} textAnchor={anchor} dominantBaseline={baseline} fontSize="10" fill={TXT_MUT} fontWeight="700">{lb}</text>;
       })}
     </svg>
   );

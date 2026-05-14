@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { onSnapshot, doc, collection } from "firebase/firestore";
 import { db } from "./firebase.js";
-import { BG, CYN, PRP, TXT_MUT } from "./theme.jsx";
+import { BG, CYN, BLUE, PRP, TXT_MUT } from "./theme.jsx";
 import { getWeekKey } from "./data.js";
 
 import HomeTab     from "./tabs/HomeTab.jsx";
@@ -55,7 +55,7 @@ export default function JovensApp({ user, onLogout }) {
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       <div style={{ position:"relative", padding:"22px 20px 20px", overflow:"hidden",
-        background:`linear-gradient(160deg, ${user.color}18 0%, rgba(13,24,41,0) 60%)`,
+        background:`linear-gradient(160deg, ${user.color}15 0%, rgba(7,21,41,0) 60%)`,
         borderBottom:"1px solid rgba(255,255,255,0.08)" }}>
 
         {/* Glow orb */}
@@ -89,7 +89,7 @@ export default function JovensApp({ user, onLogout }) {
                     🔥 {dayStreak} dia{dayStreak > 1 ? "s" : ""}
                   </div>
                 )}
-                <div style={{ fontSize:10, background:"rgba(56,189,248,0.15)", border:"1px solid rgba(56,189,248,0.30)",
+                <div style={{ fontSize:10, background:"rgba(50,199,255,0.12)", border:"1px solid rgba(50,199,255,0.28)",
                   borderRadius:20, padding:"3px 10px", fontWeight:800, color:CYN }}>
                   ⚡ {weekXp} XP
                 </div>
@@ -118,7 +118,7 @@ export default function JovensApp({ user, onLogout }) {
       {/* ── NAV BAR ────────────────────────────────────────────────────── */}
       <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
         width:"100%", maxWidth:420, zIndex:100,
-        background:"rgba(10,18,32,0.97)", backdropFilter:"blur(24px)",
+        background:"rgba(7,21,41,0.97)", backdropFilter:"blur(24px)",
         borderTop:"1px solid rgba(255,255,255,0.06)",
         display:"flex", padding:"12px 0 28px" }}>
         {NAV.map(([id, icon, label]) => {
