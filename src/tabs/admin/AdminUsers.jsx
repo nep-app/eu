@@ -1,133 +1,180 @@
 import React, { useState } from 'react';
 import { doc, setDoc, getDoc, addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, SL, CYN, PRP, RadarChart, INP } from "../../theme.jsx";
+import { CARD, SL, CYN, PRP, GRN, RadarChart, INP } from "../../theme.jsx";
 import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, PIA_FIELDS, getWeekKey } from "../../data.js";
 
 export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
   const [userSelecionado, setUserSelecionado] = useState(null);
-  const [medalModal, setMedalModal]           = useState(null); // { username, medal }
+  const [medalModal, setMedalModal]           = useState(null);
   const [medalMsg,   setMedalMsg]             = useState("");
 
-  // Função para formatar o Timestamp (Milissegundos) para Dia/Mês e Horas
   function formatarDataHora(ts, dataAntiga) {
-    if (!ts) return dataAntiga; 
+    if (!ts) return dataAntiga;
     const d = new Date(ts);
-    const dia = String(d.getDate()).padStart(2, '0');
-    const mes = String(d.getMonth() + 1).padStart(2, '0');
-    const hora = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    return `${dia}/${mes} às ${hora}:${min}`;
+    return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} às ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   }
 
-  // ── 1. LÓGICA DE ATRIBUIÇÃO DE MEDALHAS (semanal + histórico) ──
+  // ── ATRIBUIR MEDALHA ──────────────────────────────────────────────────────
   async function assignMedal(username, mid, msg) {
     const medalDoc  = amMedals[username] || {};
     const weekKey   = getWeekKey();
     const curWeek   = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
     const allTime   = medalDoc.allTime || [];
-    if (curWeek.includes(mid)) return; // já tem esta semana
+    if (curWeek.includes(mid)) return;
 
-    const nextWeek    = [...curWeek, mid];
-    const nextAllTime = allTime.includes(mid) ? allTime : [...allTime, mid];
-    const newDoc      = { week: nextWeek, weekKey, allTime: nextAllTime };
+    const newMedalDoc = { week:[...curWeek, mid], weekKey, allTime: allTime.includes(mid) ? allTime : [...allTime, mid] };
+    setAmMedals(p => upd(p, username, newMedalDoc));
+    await setDoc(doc(db, "medals", username), newMedalDoc);
 
-    setAmMedals(p => upd(p, username, newDoc));
-    await setDoc(doc(db, "medals", username), newDoc);
-
-    const medal = ALL_MEDALS.find(m => m.id === mid);
-    const userRef  = doc(db, "userData", username);
-    const userSnap = await getDoc(userRef);
-    const uData    = userSnap.exists() ? userSnap.data() : {};
+    const medal   = ALL_MEDALS.find(m => m.id === mid);
+    const userRef = doc(db, "userData", username);
+    const snap    = await getDoc(userRef);
+    const uData   = snap.exists() ? snap.data() : {};
     const newHistory = [...(uData.history || []),
       { date: nowLabel(), action: `Recebeste a medalha ${medal?.icon} ${medal?.label}! 🏅`, ts: Date.now(), xp: 50 }];
     await setDoc(userRef, { history: newHistory, weekXp: (uData.weekXp || 0) + 50 }, { merge: true });
 
     const notifText = `🏅 A Teresa atribuiu-te a medalha ${medal?.icon} ${medal?.label}!${msg ? ` "${msg}"` : ""}`;
-    await addDoc(collection(db, "notifications", username, "items"), {
-      from:"teresa", text: notifText, date: nowLabel(), read: false
-    });
+    await addDoc(collection(db, "notifications", username, "items"), { from:"teresa", text:notifText, date:nowLabel(), read:false });
   }
 
+  // ── REMOVER MEDALHA (semana + allTime + histórico + XP) ──────────────────
   async function removeMedal(username, mid) {
-    if (!window.confirm("Remover esta medalha da semana atual?")) return;
-    const medalDoc = amMedals[username] || {};
-    const weekKey  = getWeekKey();
-    const curWeek  = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
-    const nextWeek = curWeek.filter(m => m !== mid);
-    const newDoc   = { ...medalDoc, week: nextWeek, weekKey };
-    setAmMedals(p => upd(p, username, newDoc));
-    await setDoc(doc(db, "medals", username), newDoc);
-  }
-
-  // ── 2. COMPONENTE DO MODAL (DOSSIER) ──
-  function DossierModal({ username, onClose }) {
-    const uData     = allShared[username] || {};
+    if (!window.confirm("Remover esta medalha completamente?\n(semana + histórico + XP devolvido)")) return;
     const medalDoc  = amMedals[username] || {};
     const weekKey   = getWeekKey();
-    const weekMedals = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
+    const curWeek   = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
+    const newMedalDoc = {
+      ...medalDoc,
+      week:    curWeek.filter(m => m !== mid),
+      allTime: (medalDoc.allTime || []).filter(m => m !== mid),
+      weekKey,
+    };
+    setAmMedals(p => upd(p, username, newMedalDoc));
+    await setDoc(doc(db, "medals", username), newMedalDoc);
+
+    // Remove história + devolve XP
+    const medal   = ALL_MEDALS.find(m => m.id === mid);
+    const userRef = doc(db, "userData", username);
+    const snap    = await getDoc(userRef);
+    if (snap.exists()) {
+      const uData   = snap.data();
+      const history = uData.history || [];
+      // Remove a entrada mais recente que mencione esta medalha
+      let found = false;
+      const newHistory = [...history].reverse().filter(h => {
+        if (!found && h.action?.includes(medal?.label)) { found = true; return false; }
+        return true;
+      }).reverse();
+      const xpRemoved = found ? 50 : 0;
+      await setDoc(userRef, { history: newHistory, weekXp: Math.max(0, (uData.weekXp || 0) - xpRemoved) }, { merge: true });
+    }
+  }
+
+  // ── APAGAR ENTRADA DO HISTÓRICO (por ts) ─────────────────────────────────
+  async function deleteHistoryEntry(username, entry) {
+    if (!window.confirm(`Apagar esta entrada e devolver ${entry.xp || 0} XP?\n"${entry.action}"`)) return;
+    const userRef = doc(db, "userData", username);
+    const snap    = await getDoc(userRef);
+    if (!snap.exists()) return;
+    const uData      = snap.data();
+    const newHistory = (uData.history || []).filter(h =>
+      entry.ts ? h.ts !== entry.ts : h.action !== entry.action
+    );
+    await setDoc(userRef, {
+      history: newHistory,
+      weekXp:  Math.max(0, (uData.weekXp || 0) - (entry.xp || 0)),
+    }, { merge: true });
+  }
+
+  // ── RESET MISSÕES CONCLUÍDAS ──────────────────────────────────────────────
+  async function resetMissoes(username) {
+    if (!window.confirm("Limpar todas as missões concluídas deste jovem?")) return;
+    await setDoc(doc(db, "userData", username), { completedMissions: [] }, { merge: true });
+  }
+
+  // ── RESET AUTOAVALIAÇÃO ───────────────────────────────────────────────────
+  async function resetAutoavaliacao(username) {
+    if (!window.confirm("Repor a autoavaliação? O jovem poderá submeter de novo.")) return;
+    await setDoc(doc(db, "userData", username), { autoSaved: false, autoDate: null }, { merge: true });
+  }
+
+  // ── RESET PERGUNTA SEMANAL ────────────────────────────────────────────────
+  async function resetPergunta(username) {
+    if (!window.confirm("Repor a pergunta semanal? O jovem poderá responder de novo.")) return;
+    await setDoc(doc(db, "userData", username), { answered: false, qAnswer: null }, { merge: true });
+  }
+
+  // ── DOSSIER MODAL ─────────────────────────────────────────────────────────
+  function DossierModal({ username, onClose }) {
+    const uData         = allShared[username] || {};
+    const medalDoc      = amMedals[username] || {};
+    const weekKey       = getWeekKey();
+    const weekMedals    = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
     const allTimeMedals = medalDoc.allTime || [];
-    const totalXp   = (uData.history || []).reduce((s, h) => s + (h.xp || 0), 0);
-    const jeep      = JEEP_LIST.find(j => j.username === username);
+    const totalXp       = (uData.history || []).reduce((s, h) => s + (h.xp || 0), 0);
+    const jeep          = JEEP_LIST.find(j => j.username === username);
+
+    const BTN_RESET = {
+      background:"rgba(244,63,94,0.10)", border:"1.5px dashed rgba(244,63,94,0.4)",
+      color:"#f43f5e", borderRadius:10, padding:"8px 14px",
+      fontWeight:900, fontSize:11, cursor:"pointer",
+    };
 
     return (
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(7,11,20,0.98)", zIndex: 999, padding: "20px", overflowY: "auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 20, height: 20, borderRadius: "50%", background: jeep.color }} />
+      <div style={{ position:"fixed", inset:0, background:"rgba(7,11,20,0.98)", zIndex:999, padding:20, overflowY:"auto" }}>
+        {/* Header */}
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <div style={{ width:20, height:20, borderRadius:"50%", background:jeep.color }} />
             <div>
-              <h2 style={{ margin: 0, fontSize: 20 }}>{jeep.name}</h2>
-              <div style={{ fontSize:11, color:CYN, fontWeight:800 }}>{totalXp} XP total · {allTimeMedals.length} medalhas histórico</div>
+              <h2 style={{ margin:0, fontSize:20 }}>{jeep.name}</h2>
+              <div style={{ fontSize:11, color:CYN, fontWeight:800 }}>
+                {totalXp} XP total · {allTimeMedals.length} medalhas histórico · {uData.weekXp||0} XP esta semana
+              </div>
             </div>
           </div>
-          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", padding: "10px 20px", borderRadius: 12, fontWeight: 900, cursor: "pointer" }}>FECHAR ✕</button>
+          <button onClick={onClose} style={{ background:"rgba(255,255,255,0.1)", border:"none", color:"#fff", padding:"10px 20px", borderRadius:12, fontWeight:900, cursor:"pointer" }}>FECHAR ✕</button>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 15, maxWidth: 600, margin: "0 auto" }}>
-          
-          {/* SECÇÃO: MEDALHAS SEMANAIS */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr", gap:15, maxWidth:600, margin:"0 auto" }}>
+
+          {/* MEDALHAS */}
           <div style={CARD}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
               <div style={SL}>🏅 Medalhas desta Semana</div>
-              {allTimeMedals.length > 0 && (
-                <div style={{ fontSize:10, color:CYN, fontWeight:800 }}>
-                  {allTimeMedals.length} no total
-                </div>
-              )}
+              {allTimeMedals.length > 0 && <div style={{ fontSize:10, color:CYN, fontWeight:800 }}>{allTimeMedals.length} no total</div>}
             </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", marginBottom: allTimeMedals.length > 0 ? 16 : 0 }}>
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap", justifyContent:"center", marginBottom: allTimeMedals.length > 0 ? 16 : 0 }}>
               {ALL_MEDALS.map(m => {
                 const hasWeek = weekMedals.includes(m.id);
                 const hasEver = allTimeMedals.includes(m.id);
                 return (
                   <div key={m.id} style={{
-                    flex: "1 0 28%", minWidth: 90, padding: "10px 6px 8px", borderRadius: 16, textAlign: "center",
+                    flex:"1 0 28%", minWidth:90, padding:"10px 6px 8px", borderRadius:16, textAlign:"center",
                     background: hasWeek ? `${CYN}18` : hasEver ? "rgba(50,199,255,0.06)" : "rgba(255,255,255,0.04)",
-                    border: hasWeek ? `2px solid ${CYN}60` : hasEver ? `1.5px solid rgba(50,199,255,0.2)` : "1.5px solid rgba(255,255,255,0.07)",
-                    position: "relative",
+                    border: hasWeek ? `2px solid ${CYN}60` : hasEver ? "1.5px solid rgba(50,199,255,0.2)" : "1.5px solid rgba(255,255,255,0.07)",
+                    position:"relative",
                   }}>
-                    {/* Remove button if assigned this week */}
                     {hasWeek && (
                       <button onClick={() => removeMedal(username, m.id)} style={{
-                        position:"absolute", top:4, right:4, background:"rgba(244,63,94,0.15)",
+                        position:"absolute", top:4, right:4, background:"rgba(244,63,94,0.18)",
                         border:"none", color:"#f43f5e", fontSize:10, borderRadius:6,
                         cursor:"pointer", padding:"1px 5px", fontWeight:900, lineHeight:1.4,
                       }}>✕</button>
                     )}
-                    <div style={{ fontSize: 24, marginBottom: 4 }}>{m.icon}</div>
-                    <div style={{ fontSize: 9, fontWeight: 900, color: hasWeek ? CYN : hasEver ? "#5a7a9a" : "#475569", marginBottom: 4 }}>
+                    <div style={{ fontSize:24, marginBottom:4 }}>{m.icon}</div>
+                    <div style={{ fontSize:9, fontWeight:900, color: hasWeek ? CYN : hasEver ? "#5a7a9a" : "#475569", marginBottom:4 }}>
                       {m.label.toUpperCase()}
                     </div>
-                    {!hasWeek && (
-                      <button onClick={() => { setMedalModal({ username, medal: m }); setMedalMsg(""); }} style={{
-                        background: "rgba(50,199,255,0.12)", border:`1px solid ${CYN}30`,
-                        color: CYN, fontSize:9, fontWeight:900, borderRadius:8,
+                    {!hasWeek ? (
+                      <button onClick={() => { setMedalModal({ username, medal:m }); setMedalMsg(""); }} style={{
+                        background:"rgba(50,199,255,0.12)", border:`1px solid ${CYN}30`,
+                        color:CYN, fontSize:9, fontWeight:900, borderRadius:8,
                         padding:"3px 8px", cursor:"pointer", width:"100%",
-                      }}>
-                        + Atribuir
-                      </button>
-                    )}
-                    {hasWeek && (
+                      }}>+ Atribuir</button>
+                    ) : (
                       <div style={{ fontSize:8, color:"#5a7a9a", fontWeight:700 }}>✓ Esta semana</div>
                     )}
                   </div>
@@ -147,84 +194,61 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
             )}
           </div>
 
-          {/* SECÇÃO: RODA DA VIDA */}
+          {/* RODA DA VIDA */}
           <div style={CARD}>
             <div style={SL}>🌸 Bem-estar (Roda da Vida)</div>
-            {uData.roda ? (
-              <RadarChart scores={uData.roda} color={CYN} />
-            ) : (
-              <div style={{ textAlign: "center", color: "#475569", padding: 20, fontSize: 13 }}>Sem dados de Roda da Vida.</div>
-            )}
+            {uData.roda
+              ? <RadarChart scores={uData.roda} color={CYN} />
+              : <div style={{ textAlign:"center", color:"#475569", padding:20, fontSize:13 }}>Sem dados.</div>}
           </div>
 
-          {/* SECÇÃO: PIA (PROJETO) */}
+          {/* PIA */}
           <div style={CARD}>
             <div style={SL}>🚀 Plano Individual (PIA)</div>
-            {uData.pia ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {PIA_FIELDS.map(f => (
-                  <div key={f.key} style={{ background: "rgba(0,0,0,0.2)", padding: "10px 12px", borderRadius: 12 }}>
-                    <div style={{ fontSize: 10, fontWeight: 900, color: CYN, marginBottom: 2 }}>{f.title}</div>
-                    <div style={{ fontSize: 13, color: "#e2e8f0" }}>{uData.pia[f.key] || "---"}</div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ textAlign: "center", color: "#475569", fontSize: 13 }}>PIA por preencher.</div>
-            )}
+            {uData.pia
+              ? <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                  {PIA_FIELDS.map(f => (
+                    <div key={f.key} style={{ background:"rgba(0,0,0,0.2)", padding:"10px 12px", borderRadius:12 }}>
+                      <div style={{ fontSize:10, fontWeight:900, color:CYN, marginBottom:2 }}>{f.title}</div>
+                      <div style={{ fontSize:13, color:"#e2e8f0" }}>{uData.pia[f.key] || "---"}</div>
+                    </div>
+                  ))}
+                </div>
+              : <div style={{ textAlign:"center", color:"#475569", fontSize:13 }}>PIA por preencher.</div>}
           </div>
 
-          {/* SECÇÃO: CÁPSULA FINAL */}
+          {/* CÁPSULA FINAL */}
           <div style={CARD}>
             <div style={SL}>💌 Cápsula Final</div>
             {(() => {
               const cap2 = uData.cap2 || {};
-              const isUnlocked = cap2.unlocked;
-              const isSealed   = cap2.locked;
-              const isRevealed = cap2.revealed;
-
-              async function toggleCap2Unlock() {
-                await setDoc(doc(db, "userData", username), {
-                  cap2: { ...cap2, unlocked: !isUnlocked }
-                }, { merge: true });
-              }
-              async function toggleCap2Reveal() {
-                await setDoc(doc(db, "userData", username), {
-                  cap2: { ...cap2, revealed: !isRevealed }
-                }, { merge: true });
-              }
-
               return (
                 <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 14px", borderRadius:12, background:"rgba(0,0,0,0.2)" }}>
                     <div>
                       <div style={{ fontSize:12, fontWeight:800 }}>
-                        {!isUnlocked ? "🔐 Fechada" : isSealed ? "✅ Entregue pelo jovem" : "📝 Aberta para escrita"}
+                        {!cap2.unlocked ? "🔐 Fechada" : cap2.locked ? "✅ Entregue" : "📝 Aberta para escrita"}
                       </div>
-                      {isSealed && cap2.sealedAt && <div style={{ fontSize:10, color:"#64748b", marginTop:2 }}>Selada: {cap2.sealedAt}</div>}
+                      {cap2.locked && cap2.sealedAt && <div style={{ fontSize:10, color:"#64748b", marginTop:2 }}>Selada: {cap2.sealedAt}</div>}
                     </div>
                     <div style={{ display:"flex", gap:8 }}>
-                      <button onClick={toggleCap2Unlock} style={{
-                        background: isUnlocked ? "rgba(244,63,94,0.15)" : "rgba(50,199,255,0.15)",
-                        border: isUnlocked ? "1px solid rgba(244,63,94,0.3)" : "1px solid rgba(50,199,255,0.3)",
-                        color: isUnlocked ? "#f43f5e" : CYN,
+                      <button onClick={() => setDoc(doc(db,"userData",username),{cap2:{...cap2,unlocked:!cap2.unlocked}},{merge:true})} style={{
+                        background: cap2.unlocked ? "rgba(244,63,94,0.15)" : "rgba(50,199,255,0.15)",
+                        border: cap2.unlocked ? "1px solid rgba(244,63,94,0.3)" : "1px solid rgba(50,199,255,0.3)",
+                        color: cap2.unlocked ? "#f43f5e" : CYN,
                         borderRadius:10, padding:"6px 14px", fontWeight:900, fontSize:11, cursor:"pointer",
-                      }}>
-                        {isUnlocked ? "🔒 Fechar" : "🔓 Abrir"}
-                      </button>
-                      {isSealed && (
-                        <button onClick={toggleCap2Reveal} style={{
-                          background: isRevealed ? "rgba(251,191,36,0.1)" : "rgba(74,222,128,0.12)",
-                          border: isRevealed ? "1px solid rgba(251,191,36,0.3)" : "1px solid rgba(74,222,128,0.3)",
-                          color: isRevealed ? "#fbbf24" : "#4ade80",
+                      }}>{cap2.unlocked ? "🔒 Fechar" : "🔓 Abrir"}</button>
+                      {cap2.locked && (
+                        <button onClick={() => setDoc(doc(db,"userData",username),{cap2:{...cap2,revealed:!cap2.revealed}},{merge:true})} style={{
+                          background: cap2.revealed ? "rgba(251,191,36,0.1)" : "rgba(74,222,128,0.12)",
+                          border: cap2.revealed ? "1px solid rgba(251,191,36,0.3)" : "1px solid rgba(74,222,128,0.3)",
+                          color: cap2.revealed ? "#fbbf24" : "#4ade80",
                           borderRadius:10, padding:"6px 14px", fontWeight:900, fontSize:11, cursor:"pointer",
-                        }}>
-                          {isRevealed ? "👁 Esconder" : "👁 Revelar"}
-                        </button>
+                        }}>{cap2.revealed ? "👁 Esconder" : "👁 Revelar"}</button>
                       )}
                     </div>
                   </div>
-                  {isRevealed && cap2.text && (
+                  {cap2.revealed && cap2.text && (
                     <div style={{ fontSize:13, color:"#e2e8f0", lineHeight:1.6, padding:"12px 14px", background:"rgba(0,0,0,0.2)", borderRadius:12, whiteSpace:"pre-wrap" }}>
                       {cap2.text}
                     </div>
@@ -234,22 +258,61 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
             })()}
           </div>
 
-          {/* SECÇÃO: HISTÓRICO COMPLETO COM HORA */}
+          {/* HISTÓRICO — com botão de apagar por entrada */}
           <div style={CARD}>
-            <div style={SL}>📜 Linha do Tempo</div>
-            <div style={{ maxHeight: 400, overflowY: "auto", paddingRight: 5 }}>
-              {uData.history && uData.history.length > 0 ? (
-                uData.history.slice().reverse().map((h, i) => (
-                  <div key={i} style={{ padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, flex: 1, paddingRight: 10 }}>{h.action}</div>
-                    <div style={{ fontSize: 10, color: CYN, fontWeight: 800, textAlign: "right" }}>
-                      {formatarDataHora(h.ts, h.date)}
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+              <div style={SL}>📜 Linha do Tempo</div>
+              <div style={{ fontSize:10, color:"#5a7a9a", fontWeight:700 }}>✕ apaga entrada + devolve XP</div>
+            </div>
+            <div style={{ maxHeight:400, overflowY:"auto", paddingRight:4 }}>
+              {uData.history?.length > 0 ? (
+                [...(uData.history)].reverse().map((h, i) => (
+                  <div key={h.ts ?? i} style={{ padding:"10px 0", borderBottom:"1px solid rgba(255,255,255,0.05)", display:"flex", alignItems:"center", gap:10 }}>
+                    <button onClick={() => deleteHistoryEntry(username, h)} style={{
+                      background:"rgba(244,63,94,0.12)", border:"none", color:"#f43f5e",
+                      borderRadius:6, width:22, height:22, cursor:"pointer", fontWeight:900,
+                      fontSize:12, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center",
+                    }}>✕</button>
+                    <div style={{ flex:1, fontSize:12, fontWeight:600, color:"#e2e8f0", lineHeight:1.4 }}>{h.action}</div>
+                    <div style={{ fontSize:10, color:CYN, fontWeight:800, textAlign:"right", flexShrink:0 }}>
+                      {h.xp ? `+${h.xp} XP` : ""}<br/>
+                      <span style={{ color:"#5a7a9a", fontSize:9 }}>{formatarDataHora(h.ts, h.date)}</span>
                     </div>
                   </div>
                 ))
               ) : (
-                <div style={{ textAlign: "center", color: "#475569", padding: 20, fontSize: 13 }}>Sem atividade registada.</div>
+                <div style={{ textAlign:"center", color:"#475569", padding:20, fontSize:13 }}>Sem atividade registada.</div>
               )}
+            </div>
+          </div>
+
+          {/* REPOSIÇÕES DE EMERGÊNCIA */}
+          <div style={{ ...CARD, border:"1.5px dashed rgba(244,63,94,0.25)", background:"rgba(244,63,94,0.04)" }}>
+            <div style={{ fontSize:10, fontWeight:900, color:"#f43f5e", letterSpacing:1.5, textTransform:"uppercase", marginBottom:14 }}>
+              🔧 Reposições de Emergência
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:800 }}>Missões Concluídas</div>
+                  <div style={{ fontSize:10, color:"#64748b" }}>{(uData.completedMissions||[]).length} missão(ões) concluída(s)</div>
+                </div>
+                <button onClick={() => resetMissoes(username)} style={BTN_RESET}>Limpar</button>
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:800 }}>Autoavaliação</div>
+                  <div style={{ fontSize:10, color:"#64748b" }}>{uData.autoSaved ? `Entregue em ${uData.autoDate||"?"}` : "Ainda não submetida"}</div>
+                </div>
+                {uData.autoSaved && <button onClick={() => resetAutoavaliacao(username)} style={BTN_RESET}>Repor</button>}
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:800 }}>Pergunta Semanal</div>
+                  <div style={{ fontSize:10, color:"#64748b" }}>{uData.answered ? "Respondida" : "Ainda não respondida"}</div>
+                </div>
+                {uData.answered && <button onClick={() => resetPergunta(username)} style={BTN_RESET}>Repor</button>}
+              </div>
             </div>
           </div>
 
@@ -259,89 +322,65 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
   }
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 15 }}>
+    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:15 }}>
       {JEEP_LIST.map(j => {
-        const medalDoc   = amMedals[j.username] || {};
-        const weekKey    = getWeekKey();
-        const wMedals    = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
-        const atMedals   = medalDoc.allTime || [];
-        const uData      = allShared[j.username] || {};
+        const medalDoc    = amMedals[j.username] || {};
+        const weekKey     = getWeekKey();
+        const wMedals     = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
+        const atMedals    = medalDoc.allTime || [];
+        const uData       = allShared[j.username] || {};
         const totalXpCard = (uData.history || []).reduce((s, h) => s + (h.xp || 0), 0);
 
         return (
-          <div key={j.username} style={{ ...CARD, textAlign: "center", padding: "20px 15px" }}>
-            <div style={{ width: 12, height: 12, borderRadius: "50%", background: j.color, margin: "0 auto 8px auto" }} />
-            <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 2 }}>{j.name}</div>
-            <div style={{ fontSize: 10, color: CYN, fontWeight: 900 }}>{uData.weekXp || 0} XP semana</div>
-            <div style={{ fontSize: 9, color: "#5a7a9a", fontWeight: 700, marginBottom: 10 }}>{totalXpCard} XP total</div>
-
-            {/* Medalhas desta semana */}
+          <div key={j.username} style={{ ...CARD, textAlign:"center", padding:"20px 15px" }}>
+            <div style={{ width:12, height:12, borderRadius:"50%", background:j.color, margin:"0 auto 8px" }} />
+            <div style={{ fontWeight:800, fontSize:15, marginBottom:2 }}>{j.name}</div>
+            <div style={{ fontSize:10, color:CYN, fontWeight:900 }}>{uData.weekXp||0} XP semana</div>
+            <div style={{ fontSize:9, color:"#5a7a9a", fontWeight:700, marginBottom:10 }}>{totalXpCard} XP total</div>
             {wMedals.length > 0 && (
               <div style={{ display:"flex", gap:3, justifyContent:"center", marginBottom:6, flexWrap:"wrap" }}>
-                {wMedals.map(mid => {
-                  const m = ALL_MEDALS.find(x => x.id === mid);
-                  return m ? <span key={mid} style={{ fontSize:16 }}>{m.icon}</span> : null;
-                })}
+                {wMedals.map(mid => { const m = ALL_MEDALS.find(x=>x.id===mid); return m ? <span key={mid} style={{fontSize:16}}>{m.icon}</span> : null; })}
               </div>
             )}
             {atMedals.length > 0 && (
-              <div style={{ fontSize:9, color:"#5a7a9a", marginBottom:12 }}>
-                🏅 {atMedals.length} medalha{atMedals.length !== 1 ? "s" : ""} no histórico
-              </div>
+              <div style={{ fontSize:9, color:"#5a7a9a", marginBottom:12 }}>🏅 {atMedals.length} medalha{atMedals.length!==1?"s":""} no histórico</div>
             )}
-
-            <button
-              onClick={() => setUserSelecionado(j.username)}
-              style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${CYN}40`, color: CYN, borderRadius: 12, padding: "10px", fontSize: 11, fontWeight: 900, cursor: "pointer" }}
-            >
-              VER DOSSIER
-            </button>
+            <button onClick={() => setUserSelecionado(j.username)} style={{
+              width:"100%", background:"rgba(255,255,255,0.05)", border:`1px solid ${CYN}40`,
+              color:CYN, borderRadius:12, padding:10, fontSize:11, fontWeight:900, cursor:"pointer",
+            }}>VER DOSSIER</button>
           </div>
         );
       })}
 
       {userSelecionado && (
-        <DossierModal
-          username={userSelecionado}
-          onClose={() => setUserSelecionado(null)}
-        />
+        <DossierModal username={userSelecionado} onClose={() => setUserSelecionado(null)} />
       )}
 
-      {/* ── MODAL DE ATRIBUIÇÃO DE MEDALHA ── */}
+      {/* MODAL DE ATRIBUIÇÃO DE MEDALHA */}
       {medalModal && (
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.88)", zIndex:1100,
           display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
           <div style={{ ...CARD, maxWidth:360, width:"100%", padding:28 }}>
             <div style={{ fontSize:48, textAlign:"center", marginBottom:8 }}>{medalModal.medal.icon}</div>
-            <div style={{ fontWeight:900, fontSize:17, textAlign:"center", color:CYN, marginBottom:4 }}>
-              {medalModal.medal.label}
-            </div>
-            <div style={{ fontSize:12, color:"#94a3b8", lineHeight:1.65, marginBottom:18, textAlign:"center" }}>
-              {medalModal.medal.desc}
-            </div>
-            <div style={{ fontSize:10, color:"#5a7a9a", fontWeight:800, marginBottom:6, textTransform:"uppercase", letterSpacing:0.8 }}>
-              Mensagem opcional para o jovem
-            </div>
+            <div style={{ fontWeight:900, fontSize:17, textAlign:"center", color:CYN, marginBottom:4 }}>{medalModal.medal.label}</div>
+            <div style={{ fontSize:12, color:"#94a3b8", lineHeight:1.65, marginBottom:18, textAlign:"center" }}>{medalModal.medal.desc}</div>
+            <div style={{ fontSize:10, color:"#5a7a9a", fontWeight:800, marginBottom:6, textTransform:"uppercase", letterSpacing:0.8 }}>Mensagem opcional para o jovem</div>
             <textarea value={medalMsg} onChange={e => setMedalMsg(e.target.value)}
               style={{ ...INP, resize:"none", marginBottom:18, fontSize:13 }} rows={3}
               placeholder="Ex: Foste incrível hoje na sessão! 🌟" />
             <div style={{ display:"flex", gap:10 }}>
               <button onClick={() => setMedalModal(null)} style={{
                 flex:1, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)",
-                color:"#94a3b8", borderRadius:12, padding:"12px", fontWeight:900, fontSize:13, cursor:"pointer",
-              }}>
-                Cancelar
-              </button>
+                color:"#94a3b8", borderRadius:12, padding:12, fontWeight:900, fontSize:13, cursor:"pointer",
+              }}>Cancelar</button>
               <button onClick={async () => {
                 await assignMedal(medalModal.username, medalModal.medal.id, medalMsg);
-                setMedalModal(null);
-                setMedalMsg("");
+                setMedalModal(null); setMedalMsg("");
               }} style={{
                 flex:2, background:CYN, border:"none", color:"#071529",
-                borderRadius:12, padding:"12px", fontWeight:900, fontSize:13, cursor:"pointer",
-              }}>
-                ✓ Atribuir Medalha
-              </button>
+                borderRadius:12, padding:12, fontWeight:900, fontSize:13, cursor:"pointer",
+              }}>✓ Atribuir Medalha</button>
             </div>
           </div>
         </div>
