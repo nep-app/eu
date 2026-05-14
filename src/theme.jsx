@@ -65,7 +65,7 @@ if (typeof document !== 'undefined') {
 
 // ── CARTÕES ───────────────────────────────────────────────────────────────────
 export const CARD = {
-  background: "rgba(255, 255, 255, 0.075)",
+  background: "rgba(255, 255, 255, 0.13)",
   backdropFilter: "blur(20px)",
   WebkitBackdropFilter: "blur(20px)",
   borderRadius: "20px",
