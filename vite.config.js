@@ -14,8 +14,10 @@ export default defineConfig({
         name: 'JEEP EDUCA+',
         short_name: 'JEEP',
         description: 'Aplicação de Gestão JEEP EDUCA+',
-        theme_color: '#1e293b',
-        background_color: '#1e293b',
+        theme_color: '#0f172a',
+        background_color: '#0f172a',
+        start_url: '/eu/',
+        scope: '/eu/',
         display: 'standalone',
         icons: [
           {

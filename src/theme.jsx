@@ -2,7 +2,7 @@ import React from 'react';
 import logoImg from './logo.png';
 
 // ── PALETA ───────────────────────────────────────────────────────────────────
-export const BG      = "#070b14";
+export const BG      = "#0f172a";   // slate-900 — escuro mas não preto
 export const PRP     = "#a78bfa";
 export const CYN     = "#38bdf8";
 export const PNK     = "#f472b6";
@@ -12,7 +12,7 @@ export const TXT_MUT  = "#64748b";
 
 // ── INJECÇÃO DE CSS GLOBAL ────────────────────────────────────────────────────
 if (typeof document !== 'undefined') {
-  document.body.style.backgroundColor = BG;
+  document.body.style.backgroundColor = "#0f172a";
   document.body.style.margin = "0";
   document.body.style.padding = "0";
   document.body.style.fontFamily = "'Inter', system-ui, -apple-system, sans-serif";
@@ -64,14 +64,14 @@ if (typeof document !== 'undefined') {
 
 // ── CARTÕES ───────────────────────────────────────────────────────────────────
 export const CARD = {
-  background: "rgba(15, 23, 42, 0.7)",
+  background: "rgba(30, 41, 59, 0.75)",   // slate-800 translúcido — mais visível
   backdropFilter: "blur(16px)",
   WebkitBackdropFilter: "blur(16px)",
   borderRadius: "20px",
   padding: "20px",
   margin: "0 0 16px 0",
-  border: "1px solid rgba(255,255,255,0.07)",
-  boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)",
+  border: "1px solid rgba(255,255,255,0.09)",
+  boxShadow: "0 4px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)",
   color: TXT_MAIN,
   width: "100%",
   position: "relative",
