@@ -1,168 +1,156 @@
 import React, { useState, useEffect } from 'react';
 import { doc, setDoc, addDoc, collection, deleteDoc, updateDoc, getDocs } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, SL, CYN, INP, PS } from "../../theme.jsx";
+import { CARD, SL, CYN, PNK, INP, PS, TXT_MUT } from "../../theme.jsx";
 import { nowLabel, fmtDate, isOverdue } from "../../data.js";
 
 export default function HomeTodo({ user, data, setTab }) {
-  const [novaTarefaTexto, setNovaTarefaTexto] = useState("");
-  const [novaTarefaData, setNovaTarefaData] = useState("");
+  const [novaTarefaTexto, setNovaTarefaTexto]       = useState("");
+  const [novaTarefaData, setNovaTarefaData]         = useState("");
   const [partilharTarefaCheck, setPartilharTarefaCheck] = useState(false);
-  const [temQuizPendente, setTemQuizPendente] = useState(false);
+  const [temQuizPendente, setTemQuizPendente]       = useState(false);
 
-  const uData = data.userData || {};
+  const uData        = data.userData || {};
   const listaTarefas = data.todos || [];
 
-  // Verificar se há quizzes não respondidos no Firestore
   useEffect(() => {
     async function checkQuizzes() {
       const snap = await getDocs(collection(db, "quizzes"));
-      const ativos = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(q => q.active !== false);
+      const ativos = snap.docs.map(d => ({id:d.id,...d.data()})).filter(q => q.active !== false);
       const feitos = uData.completedQuizzes || [];
-      const faltaFazer = ativos.some(q => !feitos.includes(q.id));
-      setTemQuizPendente(faltaFazer);
+      setTemQuizPendente(ativos.some(q => !feitos.includes(q.id)));
     }
     checkQuizzes();
   }, [uData.completedQuizzes]);
 
-  // ── 1. FILTRO PARA EVITAR DUPLICAÇÃO ──
-  const NOMES_ACOES_FIXAS = [
-    "Pergunta da semana", 
-    "Autoavaliação mensal", 
-    "Satisfação", 
-    "Plano Individual (PIA)",
-    "Autoavaliação"
-  ];
+  const NOMES_FIXAS = ["Pergunta da semana","Autoavaliação mensal","Satisfação","Plano Individual (PIA)","Autoavaliação"];
+  const tarefasSugestao = listaTarefas.filter(t => t.addedBy === "teresa" && t.accepted === false && !NOMES_FIXAS.includes(t.text));
+  const minhasTarefas   = listaTarefas.filter(t => (t.addedBy !== "teresa" || t.accepted === true) && !NOMES_FIXAS.includes(t.text));
 
-  const tarefasSugestao = listaTarefas.filter(t => 
-    t.addedBy === "teresa" && 
-    t.accepted === false && 
-    !NOMES_ACOES_FIXAS.includes(t.text)
-  );
-
-  const minhasTarefas = listaTarefas.filter(t => 
-    (t.addedBy !== "teresa" || t.accepted === true) && 
-    !NOMES_ACOES_FIXAS.includes(t.text)
-  );
-
-  // ── 2. LÓGICA DAS AÇÕES DE ACOMPANHAMENTO (TOPO) ──
   let acoesPendentes = [];
-  if (!uData.answered) acoesPendentes.push({ status: "urgent", icon: "💬", title: "Pergunta da semana", sub: "A Teresa aguarda a tua reflexão", go: () => setTab("desafios") });
-  if (!uData.autoSaved) acoesPendentes.push({ status: "pending", icon: "📊", title: "Autoavaliação mensal", sub: "Avalia as tuas competências", go: () => setTab("desafios") });
-  if (!uData.sSaved) acoesPendentes.push({ status: "new", icon: "😊", title: "Satisfação", sub: "Diz-nos como corre o programa", go: () => setTab("desafios") });
-  if (!uData.piaSaved) acoesPendentes.push({ status: "pending", icon: "🚀", title: "Plano Individual (PIA)", sub: "Desenha o teu projeto", go: () => setTab("pia") });
-  
-  // ADIÇÃO DO QUIZ: Aparece um card se houver um quiz novo
-  if (temQuizPendente) acoesPendentes.push({ status: "pending", icon: "🧠", title: "Dilema Pendente", sub: "Tens um novo quiz para resolver", go: () => setTab("desafios") });
+  if (!uData.answered)  acoesPendentes.push({ status:"urgent",  icon:"💬", title:"Pergunta da semana",    sub:"A Teresa aguarda a tua reflexão", go:() => setTab("desafios") });
+  if (!uData.autoSaved) acoesPendentes.push({ status:"pending", icon:"📊", title:"Autoavaliação mensal",  sub:"Avalia as tuas competências",     go:() => setTab("desafios") });
+  if (!uData.sSaved)    acoesPendentes.push({ status:"new",     icon:"😊", title:"Satisfação",            sub:"Diz-nos como corre o programa",   go:() => setTab("desafios") });
+  if (!uData.piaSaved)  acoesPendentes.push({ status:"pending", icon:"🚀", title:"Plano Individual (PIA)", sub:"Desenha o teu projeto",          go:() => setTab("pia") });
+  if (temQuizPendente)  acoesPendentes.push({ status:"pending", icon:"🧠", title:"Dilema Pendente",        sub:"Tens um novo quiz para resolver", go:() => setTab("desafios") });
 
-  // ── 3. FUNÇÕES DE MANIPULAÇÃO DO FIREBASE ──
   async function criarNovaTarefa() {
     if (!novaTarefaTexto.trim()) return;
-    try {
-      await addDoc(collection(db, "todos", user.username, "items"), {
-        text: novaTarefaTexto, due: novaTarefaData, done: false, shared: partilharTarefaCheck, ts: Date.now()
-      });
-      setNovaTarefaTexto(""); setNovaTarefaData(""); setPartilharTarefaCheck(false);
-    } catch (erro) { console.error(erro); }
+    await addDoc(collection(db, "todos", user.username, "items"), {
+      text: novaTarefaTexto, due: novaTarefaData, done: false,
+      shared: partilharTarefaCheck, ts: Date.now()
+    });
+    setNovaTarefaTexto(""); setNovaTarefaData(""); setPartilharTarefaCheck(false);
   }
 
   async function alternarEstadoTarefa(tarefa) {
-    try {
-      await updateDoc(doc(db, "todos", user.username, "items", tarefa.id), { done: !tarefa.done });
-      if (!tarefa.done) {
-        const newHistory = [...(data.history || []), { date: nowLabel(), action: `Concluiu a tarefa: ${tarefa.text}`, ts: Date.now(), xp: 5 }];
-        await setDoc(doc(db, "userData", user.username), { history: newHistory, weekXp: (uData.weekXp || 0) + 5 }, { merge: true });
-      }
-    } catch (erro) { console.error(erro); }
+    await updateDoc(doc(db, "todos", user.username, "items", tarefa.id), { done: !tarefa.done });
+    if (!tarefa.done) {
+      const newHistory = [...(data.history || []), { date:nowLabel(), action:`Concluiu a tarefa: ${tarefa.text}`, ts:Date.now(), xp:5 }];
+      await setDoc(doc(db, "userData", user.username), { history:newHistory, weekXp:(uData.weekXp||0)+5 }, { merge:true });
+    }
   }
 
-  async function removerTarefa(idTarefa) {
-    if (window.confirm("Queres mesmo apagar esta tarefa?")) {
-      await deleteDoc(doc(db, "todos", user.username, "items", idTarefa));
-    }
+  async function removerTarefa(id) {
+    if (window.confirm("Apagar esta tarefa?")) await deleteDoc(doc(db, "todos", user.username, "items", id));
   }
 
   async function aceitarTarefa(id) {
-    await updateDoc(doc(db, "todos", user.username, "items", id), { accepted: true, shared: true });
-    alert("Tarefa aceite! 💪");
+    await updateDoc(doc(db, "todos", user.username, "items", id), { accepted:true, shared:true });
   }
 
   async function recusarTarefa(id) {
-    if (window.confirm("Queres mesmo recusar esta sugestão?")) {
-      await deleteDoc(doc(db, "todos", user.username, "items", id));
-    }
+    if (window.confirm("Recusar esta sugestão?")) await deleteDoc(doc(db, "todos", user.username, "items", id));
   }
 
   return (
     <>
-      {/* ── SECCÃO 1: CARDS COLORIDOS DE AÇÕES ── */}
+      {/* ── AÇÕES PENDENTES ─────────────────────────────────────────── */}
       {acoesPendentes.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          <div style={SL}>Ações de Acompanhamento</div>
+        <div style={{ marginBottom:20 }}>
+          <div style={SL}>Ações Pendentes</div>
           {acoesPendentes.map((item, idx) => (
-            <div key={idx} onClick={item.go} style={{ 
-              display: "flex", alignItems: "center", gap: 14, padding: "16px", borderRadius: 22, 
-              background: PS[item.status].bg, marginBottom: 12, border: `1.5px solid ${PS[item.status].bl}`, 
-              cursor: "pointer", transition: "0.2s" 
+            <div key={idx} onClick={item.go} style={{
+              display:"flex", alignItems:"center", gap:14, padding:"14px 16px",
+              borderRadius:18, marginBottom:10, cursor:"pointer", transition:"all 0.18s",
+              background: PS[item.status].bg,
+              border:`1px solid ${PS[item.status].bl}`,
+              borderLeft:`3px solid ${PS[item.status].bc}`,
             }}>
-              <span style={{ fontSize: 24 }}>{item.icon}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{item.title}</div>
-                <div style={{ fontSize: 12, color: "#cbd5e1", marginTop: 2 }}>{item.sub}</div>
+              <div style={{ fontSize:22, lineHeight:1, flexShrink:0 }}>{item.icon}</div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:14, fontWeight:800, color:"#f1f5f9" }}>{item.title}</div>
+                <div style={{ fontSize:11, color:"#94a3b8", marginTop:2 }}>{item.sub}</div>
               </div>
-              <div style={{ color: PS[item.status].bc, fontWeight: 900, fontSize: 16 }}>→</div>
+              <div style={{ color:PS[item.status].bc, fontWeight:900, fontSize:18, opacity:0.8 }}>›</div>
             </div>
           ))}
         </div>
       )}
 
-      {/* ── SECCÃO 2: SUGESTÕES DA TERESA ── */}
+      {/* ── SUGESTÕES DA TERESA ─────────────────────────────────────── */}
       {tarefasSugestao.length > 0 && (
-        <div style={{ ...CARD, background: "rgba(34, 211, 238, 0.1)", border: `1.5px solid ${CYN}`, marginBottom: 20 }}>
+        <div style={{ ...CARD, border:`1px solid ${CYN}25`, marginBottom:16 }}>
           <div style={SL}>📩 Sugestões da Teresa</div>
           {tarefasSugestao.map(t => (
-            <div key={t.id} style={{ background: "rgba(0,0,0,0.3)", padding: 15, borderRadius: 18, marginBottom: 10 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 5 }}>{t.text}</div>
-              <div style={{ fontSize: 11, color: CYN, fontWeight: 800, marginBottom: 12 }}>Prazo sugerido: {fmtDate(t.due)}</div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => aceitarTarefa(t.id)} style={{ flex: 1, background: CYN, color: "#070b14", border: "none", padding: "8px", borderRadius: 10, fontWeight: 900, cursor: "pointer" }}>ACEITAR</button>
-                <button onClick={() => recusarTarefa(t.id)} style={{ flex: 1, background: "rgba(244, 63, 94, 0.2)", color: "#f43f5e", border: "none", padding: "8px", borderRadius: 10, fontWeight: 900, cursor: "pointer" }}>RECUSAR</button>
+            <div key={t.id} style={{ background:"rgba(56,189,248,0.04)", padding:14, borderRadius:14, marginBottom:10, border:"1px solid rgba(56,189,248,0.1)" }}>
+              <div style={{ fontSize:14, fontWeight:700, color:"#f1f5f9", marginBottom:4 }}>{t.text}</div>
+              <div style={{ fontSize:11, color:CYN, fontWeight:800, marginBottom:12 }}>Prazo: {fmtDate(t.due)}</div>
+              <div style={{ display:"flex", gap:8 }}>
+                <button onClick={() => aceitarTarefa(t.id)} style={{ flex:1, background:`${CYN}18`, color:CYN, border:`1px solid ${CYN}30`, padding:"8px", borderRadius:10, fontWeight:800, cursor:"pointer", fontSize:12 }}>ACEITAR</button>
+                <button onClick={() => recusarTarefa(t.id)} style={{ flex:1, background:"rgba(244,63,94,0.08)", color:"#f43f5e", border:"1px solid rgba(244,63,94,0.2)", padding:"8px", borderRadius:10, fontWeight:800, cursor:"pointer", fontSize:12 }}>RECUSAR</button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* ── SECCÃO 3: TO-DO LIST ── */}
+      {/* ── TO-DO LIST ──────────────────────────────────────────────── */}
       <div style={CARD}>
-        <div style={SL}>✅ A Minha To-Do List</div>
-        <div style={{ marginBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "15px" }}>
-          <input value={novaTarefaTexto} onChange={e => setNovaTarefaTexto(e.target.value)} style={INP} placeholder="O que precisas de fazer hoje?" />
-          <input type="date" value={novaTarefaData} onChange={e => setNovaTarefaData(e.target.value)} style={{ ...INP, marginBottom: 0 }} />
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#94a3b8", cursor: "pointer" }}>
-              <input type="checkbox" checked={partilharTarefaCheck} onChange={e => setPartilharTarefaCheck(e.target.checked)} style={{ accentColor: CYN }} />
-              Partilhar com a Teresa
-            </label>
-            <button onClick={criarNovaTarefa} style={{ background: CYN, border: "none", borderRadius: 18, padding: "8px 20px", fontWeight: 900, cursor: "pointer", color: "#070b14", marginLeft: "auto" }}>ADICIONAR</button>
+        <div style={SL}>✅ A Minha Lista</div>
+
+        {/* Novo item */}
+        <div style={{ marginBottom:16, paddingBottom:16, borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+          <input value={novaTarefaTexto} onChange={e => setNovaTarefaTexto(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && criarNovaTarefa()}
+            style={INP} placeholder="O que precisas de fazer?" />
+          <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+            <input type="date" value={novaTarefaData} onChange={e => setNovaTarefaData(e.target.value)}
+              style={{ ...INP, flex:1, marginBottom:0, fontSize:12 }} />
+            <button onClick={criarNovaTarefa} style={{
+              background:CYN, border:"none", borderRadius:12, padding:"12px 18px",
+              fontWeight:900, cursor:"pointer", color:"#070b14", fontSize:12, flexShrink:0, letterSpacing:0.5 }}>
+              + ADD
+            </button>
           </div>
+          <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:11, color:TXT_MUT, cursor:"pointer", marginTop:8 }}>
+            <input type="checkbox" checked={partilharTarefaCheck} onChange={e => setPartilharTarefaCheck(e.target.checked)} style={{ accentColor:CYN }} />
+            Partilhar com a Teresa
+          </label>
         </div>
 
+        {/* Lista */}
         {minhasTarefas.length === 0 ? (
-          <div style={{ textAlign: "center", color: "#94a3b8", fontSize: 13, padding: "15px 0" }}>Não tens tarefas pendentes.</div>
+          <div style={{ textAlign:"center", color:TXT_MUT, fontSize:13, padding:"14px 0" }}>Sem tarefas pendentes 🎉</div>
         ) : (
-          minhasTarefas.sort((a,b) => b.ts - a.ts).map(tarefa => (
-            <div key={tarefa.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-              <div onClick={() => alternarEstadoTarefa(tarefa)} style={{ width: 26, height: 26, borderRadius: 9, border: `2.5px solid ${tarefa.done ? "#4ade80" : CYN}`, background: tarefa.done ? "#4ade80" : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {tarefa.done && <span style={{ color: "#070b14", fontWeight: 900 }}>✓</span>}
+          minhasTarefas.sort((a,b) => (b.ts||0)-(a.ts||0)).map(tarefa => (
+            <div key={tarefa.id} style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 0", borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
+              <div onClick={() => alternarEstadoTarefa(tarefa)} style={{
+                width:24, height:24, borderRadius:8, flexShrink:0, cursor:"pointer",
+                border:`2px solid ${tarefa.done ? "#4ade80" : "rgba(255,255,255,0.15)"}`,
+                background: tarefa.done ? "#4ade80" : "transparent",
+                display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.2s",
+              }}>
+                {tarefa.done && <span style={{ color:"#070b14", fontWeight:900, fontSize:12 }}>✓</span>}
               </div>
-              <div style={{ flex: 1, opacity: tarefa.done ? 0.4 : 1, textDecoration: tarefa.done ? "line-through" : "none" }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
-                  {tarefa.text} {tarefa.shared && <span style={{ fontSize: 9, background: CYN, color: "#000", padding: "2px 5px", borderRadius: 4, marginLeft: 8, verticalAlign: "middle" }}>PARTILHADO</span>}
+              <div style={{ flex:1, opacity:tarefa.done ? 0.35 : 1 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:"#f1f5f9", textDecoration:tarefa.done?"line-through":"none" }}>
+                  {tarefa.text}
+                  {tarefa.shared && <span style={{ fontSize:9, background:CYN, color:"#000", padding:"2px 5px", borderRadius:4, marginLeft:7, verticalAlign:"middle", fontWeight:900 }}>PARTILHADO</span>}
                 </div>
-                {tarefa.due && <div style={{ fontSize: 11, color: isOverdue(tarefa.due) ? "#f43f5e" : "#94a3b8", marginTop: 2, fontWeight: 800 }}>LIMITE: {fmtDate(tarefa.due)}</div>}
+                {tarefa.due && <div style={{ fontSize:11, color:isOverdue(tarefa.due) ? "#f43f5e" : TXT_MUT, marginTop:2, fontWeight:700 }}>{fmtDate(tarefa.due)}</div>}
               </div>
-              <button onClick={() => removerTarefa(tarefa.id)} style={{ background: "none", border: "none", color: "#f43f5e", fontSize: 20, cursor: "pointer" }}>✕</button>
+              <button onClick={() => removerTarefa(tarefa.id)} style={{ background:"none", border:"none", color:"rgba(244,63,94,0.5)", fontSize:17, cursor:"pointer", padding:"2px 4px" }}>✕</button>
             </div>
           ))
         )}
