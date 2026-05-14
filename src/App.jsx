@@ -32,6 +32,11 @@ function getDimDesc(dim, v) {
 }
 var MTHS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 function nowLabel() { var d = new Date(); return MTHS[d.getMonth()] + " " + d.getFullYear(); }
+function nowFull() {
+  var d = new Date();
+  var pad = function(n){ return n < 10 ? "0"+n : ""+n; };
+  return pad(d.getDate())+" "+MTHS[d.getMonth()]+" "+d.getFullYear()+", "+pad(d.getHours())+":"+pad(d.getMinutes());
+}
 function fmtDate(s) {
   if (!s) return "";
   var p = s.split("-");
@@ -446,6 +451,8 @@ export default function App() {
   var [leaderboard,     setLeaderboard]     = useState({});
   var [reflStreak,      setReflStreak]      = useState(0);
   var [lastReflWeek,    setLastReflWeek]    = useState(null);
+  var [dayStreak,       setDayStreak]       = useState(0);
+  var [lastActiveDay,   setLastActiveDay]   = useState(null);
   var [missions,        setMissions]        = useState([]);
   var [completedMissions, setCompletedMissions] = useState([]);
   var [adminMissionTxt, setAdminMissionTxt] = useState("");
@@ -659,17 +666,13 @@ export default function App() {
     if (d.reflStreak)            setReflStreak(d.reflStreak);
     if (d.lastReflWeek)          setLastReflWeek(d.lastReflWeek);
     if (d.completedMissions)     setCompletedMissions(d.completedMissions);
+    if (d.dayStreak)             setDayStreak(d.dayStreak);
+    if (d.lastActiveDay)         setLastActiveDay(d.lastActiveDay);
     // weekly XP — reset if new week
     var wk = getWeekKey();
     var curWXp = (d.weekKey === wk) ? (d.weekXp || 0) : 0;
     if (d.weekKey !== wk) {
       setDoc(doc(db, "userData", uname), { weekXp: 0, weekKey: wk }, { merge:true });
-    }
-    // daily login XP (+2 once per day)
-    var todayStr = new Date().toDateString();
-    if ((d.lastXpDay || "") !== todayStr) {
-      curWXp = curWXp + 2;
-      setDoc(doc(db, "userData", uname), { weekXp: curWXp, weekKey: wk, lastXpDay: todayStr }, { merge:true });
     }
     setWeekXp(curWXp);
     setWeekKey(wk);
@@ -707,6 +710,15 @@ export default function App() {
       await setDoc(lbRef, init);
     }
     window.setTimeout(function(){ setXpGain(null); }, 2500);
+  }
+  async function markActiveDay() {
+    var today = new Date().toDateString();
+    if (lastActiveDay === today) return;
+    var yesterday = new Date(Date.now() - 86400000).toDateString();
+    var newStreak = lastActiveDay === yesterday ? dayStreak + 1 : 1;
+    setDayStreak(newStreak);
+    setLastActiveDay(today);
+    await saveUserField(user.username, { dayStreak: newStreak, lastActiveDay: today });
   }
   async function completeMission(missionId) {
     if (completedMissions.includes(missionId)) return;
@@ -773,6 +785,7 @@ export default function App() {
     setPosts({ csi:[], monitor:[], olx:[], orienta:[], backstage:[], coffee:[] });
     setWeekXp(0); setWeekKey(getWeekKey()); setLeaderboard({});
     setReflStreak(0); setLastReflWeek(null);
+    setDayStreak(0); setLastActiveDay(null);
     setMissions([]); setCompletedMissions([]); setXpGain(null);
     setTab("home");
   }
@@ -781,19 +794,19 @@ export default function App() {
   async function postForum() {
     if (!fPost.trim() || !user) return;
     await addDoc(collection(db, "forum", channel, "posts"), {
-      user:dispName, color:user.color, text:fPost, time:nowLabel(),
+      user:dispName, color:user.color, text:fPost, time:nowFull(),
       reactions:{ heart:0, fire:0, clap:0, think:0 },
       reactedBy:{ heart:[], fire:[], clap:[], think:[] },
       replies:[]
     });
     setFPost("");
-    if (!user.isAdmin) await addXp(5);
+    if (!user.isAdmin) { await addXp(5); await markActiveDay(); }
   }
   async function sendReply(pid) {
     if (!replyTxt.trim()) return;
     var cur = (posts[channel]||[]).find(function(p) { return p.id === pid; });
     if (!cur) return;
-    var newReplies = cur.replies.concat([{ user:dispName, color:user.color, text:replyTxt, time:nowLabel() }]);
+    var newReplies = cur.replies.concat([{ user:dispName, color:user.color, text:replyTxt, time:nowFull() }]);
     await updateDoc(doc(db, "forum", channel, "posts", pid), { replies:newReplies });
     setReplyTxt(""); setReplyTo(null);
   }
@@ -884,7 +897,7 @@ export default function App() {
  async function sendMsg() {
     if (!msgTxt.trim() || !user) return;
     await addDoc(collection(db,"messages"),{
-      text:msgTxt, anon:msgAnon, from:msgAnon?"Anónimo":user.username, hiddenUser:user.username, date:nowLabel(), adminReply:""
+      text:msgTxt, anon:msgAnon, from:msgAnon?"Anónimo":user.username, hiddenUser:user.username, date:nowFull(), adminReply:""
     });
     setMsgTxt(""); setMsgSent(true);
   }
@@ -896,7 +909,7 @@ async function replyToMsg(msgId, hiddenUser, replyText) {
       await updateDoc(doc(db, "messages", msgId), { adminReply: replyText });
       if (targetUser !== "desconhecido") {
         await addDoc(collection(db, "notifications", targetUser, "items"), {
-          from:"teresa", text:"Resposta à tua mensagem: " + replyText, date:nowLabel(), read:false
+          from:"teresa", text:"Resposta à tua mensagem: " + replyText, date:nowFull(), read:false
         });
       }
       setAdminReplyId(null);
@@ -908,7 +921,7 @@ async function replyToMsg(msgId, hiddenUser, replyText) {
   }
   async function sendSugg() {
     if (!suggTxt.trim() || !user) return;
-    await addDoc(collection(db,"suggestions"),{ from:user.username, text:suggTxt, date:nowLabel() });
+    await addDoc(collection(db,"suggestions"),{ from:user.username, text:suggTxt, date:nowFull() });
     setSuggTxt("");
   }
 
@@ -954,7 +967,7 @@ async function replyToMsg(msgId, hiddenUser, replyText) {
     for (var u of ALLOWED_USERNAMES) {
       await saveUserField(u, type==="auto" ? { autoSaved:false } : { sSaved:false });
       await addDoc(collection(db, "notifications", u, "items"), {
-        from:"teresa", text:msg, date:nowLabel(), read:false
+        from:"teresa", text:msg, date:nowFull(), read:false
       });
     }
     alert("Lançado! Todos os utilizadores receberam notificação. 🎉");
@@ -965,25 +978,30 @@ async function replyToMsg(msgId, hiddenUser, replyText) {
     var sh = share !== undefined ? share : piaShared;
     var wasNew = !piaSaved;
     setPiaSaved(true); setPiaShared(sh);
-    await saveUserField(user.username, { pia, piaActs, piaSaved:true, piaShared:sh });
+    await saveUserField(user.username, { pia, piaActs, piaSaved:true, piaShared:sh, piaSavedAt:nowFull() });
     if (wasNew) await addXp(10);
+    await markActiveDay();
   }
   async function saveAutoEval(share) {
     var sh = share !== undefined ? share : autoShared;
     setAutoSaved(true); setAutoShared(sh);
-    await saveUserField(user.username, { dScores, dNotas, autoSaved:true, autoShared:sh });
+    await saveUserField(user.username, { dScores, dNotas, autoSaved:true, autoShared:sh, autoSavedAt:nowFull() });
+    await markActiveDay();
   }
   async function saveSwot(share) {
     var sh = share !== undefined ? share : swotShared;
     setSwotSaved(true); setSwotShared(sh);
-    await saveUserField(user.username, { swotP, swotPia, swotSaved:true, swotShared:sh });
+    await saveUserField(user.username, { swotP, swotPia, swotSaved:true, swotShared:sh, swotSavedAt:nowFull() });
+    await markActiveDay();
   }
   async function saveRoda(share) {
     var sh = share !== undefined ? share : rodaShared;
-    var newSaves = rodaSaves.concat([{ label:nowLabel(), scores:Object.assign({},roda) }]);
+    var ts = nowFull();
+    var newSaves = rodaSaves.concat([{ label:nowLabel(), savedAt:ts, scores:Object.assign({},roda) }]);
     setRodaSaves(newSaves); setRodaShared(sh);
-    await saveUserField(user.username, { roda, rodaSaves:newSaves, rodaShared:sh });
+    await saveUserField(user.username, { roda, rodaSaves:newSaves, rodaShared:sh, rodaSavedAt:ts });
     await addXp(15);
+    await markActiveDay();
   }
 async function updateActiveQ() {
     try {
@@ -997,7 +1015,7 @@ async function updateActiveQ() {
       for (var u of ALLOWED_USERNAMES) {
         await setDoc(doc(db, "users", u), { answered: false }, { merge: true });
         await addDoc(collection(db, "notifications", u, "items"), {
-          from:"teresa", text:"💬 Nova pergunta da semana! Vai à Reflexão para responder.", date:nowLabel(), read:false
+          from:"teresa", text:"💬 Nova pergunta da semana! Vai à Reflexão para responder.", date:nowFull(), read:false
         });
       }
       setAnswered(false);
@@ -1010,7 +1028,7 @@ async function updateActiveQ() {
   async function sendAdminMsg() {
     if (!adminMsgTxt.trim()) return;
     await addDoc(collection(db, "notifications", adminMsgTarget, "items"), {
-      from:"teresa", text:adminMsgTxt.trim(), date:nowLabel(), read:false
+      from:"teresa", text:adminMsgTxt.trim(), date:nowFull(), read:false
     });
     setAdminMsgTxt(""); alert("Mensagem enviada!");
   }
@@ -1041,6 +1059,7 @@ async function submitAnswer() {
       await saveUserField(user.username, { answered:true, answerText: aTxt, answerType: cmode });
     }
     setAnswered(true);
+    await markActiveDay();
     // streak + XP for reflexão semanal
     var wk = getWeekKey();
     if (lastReflWeek !== wk) {
@@ -1048,7 +1067,7 @@ async function submitAnswer() {
       var newStreak = isConsec ? reflStreak + 1 : 1;
       setReflStreak(newStreak);
       setLastReflWeek(wk);
-      await saveUserField(user.username, { reflStreak: newStreak, lastReflWeek: wk });
+      await saveUserField(user.username, { reflStreak: newStreak, lastReflWeek: wk, answerDate:nowFull() });
       await addXp(20);
     }
   }
@@ -1058,6 +1077,7 @@ async function submitAnswer() {
     setQAnswers(newA);
     await saveUserField(user.username, { qAnswers:newA });
     await addXp(15);
+    await markActiveDay();
   }
   async function sealCapsule() {
     if (!cap.text.trim()) return;
@@ -1766,7 +1786,7 @@ async function submitAnswer() {
               <div style={{ fontSize:11, opacity:0.75 }}>Olá,</div>
               <div style={{ fontSize:18, fontWeight:800 }}>{dispName}</div>
               <div style={{ display:"flex", gap:6, marginTop:3 }}>
-                {reflStreak > 0 && (<div style={{ fontSize:10, background:"rgba(255,255,255,0.18)", borderRadius:20, padding:"2px 8px", fontWeight:700 }}>🔥 {reflStreak} sem.</div>)}
+                {dayStreak > 0 && (<div style={{ fontSize:10, background:"rgba(255,255,255,0.18)", borderRadius:20, padding:"2px 8px", fontWeight:700 }}>🔥 {dayStreak} dia{dayStreak>1?"s":""}</div>)}
                 <div style={{ fontSize:10, background:"rgba(255,255,255,0.18)", borderRadius:20, padding:"2px 8px", fontWeight:700 }}>⚡ {weekXp} XP esta semana</div>
               </div>
             </div>
@@ -1866,12 +1886,13 @@ async function submitAnswer() {
               </div>
             </div>
             {(function(){
-              var top3 = Object.entries(leaderboard)
-                .sort(function(a,b){ return b[1].xp - a[1].xp; })
-                .slice(0,3);
-              var medals = ["🥇","🥈","🥉"];
-              var myRank = Object.entries(leaderboard).sort(function(a,b){return b[1].xp-a[1].xp;}).findIndex(function(e){return e[0]===user.username;});
+              var sorted = Object.entries(leaderboard).sort(function(a,b){ return b[1].xp - a[1].xp; });
+              var top3 = sorted.slice(0,3);
+              var myRank = sorted.findIndex(function(e){return e[0]===user.username;});
               var inTop3 = myRank >= 0 && myRank < 3;
+              // shuffle top3 for non-admins so rank order isn't shown
+              var displayTop3 = user.isAdmin ? top3 : top3.slice().sort(function(){ return Math.random()-0.5; });
+              var adminMedals = ["🥇","🥈","🥉"];
               return (
                 <div style={CARD}>
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
@@ -1881,14 +1902,18 @@ async function submitAnswer() {
                   {top3.length === 0 ? (
                     <div style={{ textAlign:"center", padding:"12px 0", color:"#94a3b8", fontSize:13 }}>Ainda ninguém tem XP esta semana.</div>
                   ) : (
-                    top3.map(function(e, i) {
+                    displayTop3.map(function(e, i) {
                       var isMe = e[0] === user.username;
+                      var realRank = sorted.findIndex(function(x){ return x[0]===e[0]; });
                       return (
                         <div key={e[0]} style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 12px", borderRadius:12, background:isMe?C+"12":"#f8fafc", marginBottom:6, border:isMe?"1.5px solid "+C+"30":"1.5px solid #f1f5f9" }}>
-                          <span style={{ fontSize:20 }}>{medals[i]}</span>
+                          {user.isAdmin
+                            ? <span style={{ fontSize:20 }}>{adminMedals[realRank]}</span>
+                            : <div style={{ width:28, height:28, borderRadius:"50%", background:"#f1f5f9", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14 }}>⭐</div>
+                          }
                           <div style={{ width:28, height:28, borderRadius:"50%", background:"linear-gradient(135deg,"+e[1].color+","+e[1].color+"cc)", display:"flex", alignItems:"center", justifyContent:"center", color:"white", fontSize:12, fontWeight:800, flexShrink:0 }}>{e[1].name[0]}</div>
                           <div style={{ flex:1, fontSize:13, fontWeight:isMe?800:600, color:isMe?C:"#0f172a" }}>{isMe ? "Tu ("+e[1].name+")" : e[1].name}</div>
-                          <div style={{ fontSize:14, fontWeight:800, color:isMe?C:"#64748b" }}>{e[1].xp} XP</div>
+                          {user.isAdmin && <div style={{ fontSize:14, fontWeight:800, color:isMe?C:"#64748b" }}>{e[1].xp} XP</div>}
                         </div>
                       );
                     })
@@ -1897,10 +1922,10 @@ async function submitAnswer() {
                     <span style={{ fontSize:12, color:inTop3?C:"#64748b", fontWeight:inTop3?700:400 }}>{inTop3 ? "Estás no TOP 3! 🎉" : "A tua pontuação"}</span>
                     <span style={{ fontSize:14, fontWeight:800, color:inTop3?C:"#374151" }}>{weekXp} XP</span>
                   </div>
-                  {reflStreak > 0 && (
+                  {dayStreak > 0 && (
                     <div style={{ marginTop:8, display:"flex", alignItems:"center", gap:6, padding:"6px 12px", background:"#fff7ed", borderRadius:10 }}>
                       <span style={{ fontSize:14 }}>🔥</span>
-                      <span style={{ fontSize:12, fontWeight:700, color:"#ea580c" }}>{reflStreak} semana{reflStreak>1?"s":""} seguida{reflStreak>1?"s":""} de reflexão</span>
+                      <span style={{ fontSize:12, fontWeight:700, color:"#ea580c" }}>{dayStreak} dia{dayStreak>1?"s":""} seguido{dayStreak>1?"s":""} a usar a app</span>
                     </div>
                   )}
                 </div>
