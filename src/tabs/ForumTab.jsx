@@ -34,7 +34,7 @@ export default function ForumTab({ user }) {
               boxShadow: sel ? `0 0 0 1px ${CYN}20` : "none",
             }}>
               <span style={{ fontSize:20 }}>{ch.icon}</span>
-              <span style={{ fontSize:9, fontWeight:900, whiteSpace:"nowrap", letterSpacing:0.5, textTransform:"uppercase" }}>{ch.label.split(" ")[0]}</span>
+              <span style={{ fontSize:8, fontWeight:900, textAlign:"center", letterSpacing:0.3, textTransform:"uppercase", lineHeight:1.3 }}>{ch.label}</span>
             </button>
           );
         })}

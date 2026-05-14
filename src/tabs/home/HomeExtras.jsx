@@ -135,20 +135,30 @@ export default function HomeExtras({ user, data, setTab }) {
       <div style={CARD}>
         <div style={SL}>⭐ Destaques da Semana</div>
         {destaquesXp.length === 0 ? (
-          <div style={{ textAlign:"center", padding:"16px 0", color:"#64748b", fontSize:13 }}>Ainda sem destaques esta semana.</div>
+          <div style={{ textAlign:"center", padding:"20px 0", color:"#64748b", fontSize:13 }}>
+            Ainda sem destaques esta semana.<br/>
+            <span style={{ fontSize:11 }}>Completa desafios para aparecer aqui!</span>
+          </div>
         ) : (
-          <div style={{ display:"flex", gap:10, flexWrap:"wrap", justifyContent:"center" }}>
+          <div style={{ display:"grid", gridTemplateColumns:`repeat(${destaquesXp.length}, 1fr)`, gap:10 }}>
             {destaquesXp.map(jovem => (
               <div key={jovem.username} style={{
-                padding:"10px 18px", borderRadius:50,
-                background:`${jovem.color}12`,
-                border:`1.5px solid ${jovem.color}35`,
-                display:"flex", alignItems:"center", gap:8,
+                display:"flex", flexDirection:"column", alignItems:"center", gap:8,
+                padding:"16px 8px", borderRadius:18,
+                background:`${jovem.color}0e`,
+                border:`1px solid ${jovem.color}25`,
               }}>
-                <div style={{ width:24, height:24, borderRadius:"50%", background:`linear-gradient(135deg,${jovem.color},${jovem.color}88)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:900, color:"#0f172a" }}>
+                <div style={{
+                  width:44, height:44, borderRadius:"50%",
+                  background:`linear-gradient(135deg,${jovem.color},${jovem.color}77)`,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  fontSize:18, fontWeight:900, color:"#0f172a",
+                  boxShadow:`0 0 0 3px ${jovem.color}20`,
+                }}>
                   {jovem.name[0]}
                 </div>
-                <span style={{ fontSize:12, fontWeight:800, color:jovem.color }}>{jovem.name}</span>
+                <span style={{ fontSize:12, fontWeight:800, color:jovem.color, textAlign:"center" }}>{jovem.name}</span>
+                <span style={{ fontSize:9, color:"#64748b", fontWeight:700, letterSpacing:0.5 }}>ATIVO ESTA SEM.</span>
               </div>
             ))}
           </div>

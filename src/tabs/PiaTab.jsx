@@ -219,7 +219,7 @@ async function saveSwot(share) {
             </div>
 
             <div style={{ ...CARD, marginBottom: 0, padding: "12px", borderLeft: `4px solid ${CYN}` }}>
-              <div style={{ fontSize: 11, fontWeight: 900, color: CYN, marginBottom: 4 }}>🌟 OPORTUN.</div>
+              <div style={{ fontSize: 10, fontWeight: 900, color: CYN, marginBottom: 4, lineHeight:1.2 }}>🌟 OPOR-<br/>TUNIDADES</div>
               <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 8 }}>O que há lá fora?</div>
               <textarea 
                 value={swotPia.o || ""} 

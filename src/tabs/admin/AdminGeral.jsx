@@ -196,7 +196,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
           </div>
         </div>
         
-        <button onClick={updateActiveQ} style={{ ...Btn, marginTop: 15, background: CYN, color: "#000" }}>Publicar Desafio Semanal 💬</button>
+        <button onClick={updateActiveQ} style={{ marginTop:15, width:"100%", padding:"14px 20px", fontSize:13, fontWeight:800, letterSpacing:1.2, textTransform:"uppercase", background:CYN, color:"#0f172a", border:"none", borderRadius:14, cursor:"pointer" }}>Publicar Desafio Semanal 💬</button>
       </div>
 
       {/* 5. RESPOSTAS */}

@@ -60,15 +60,15 @@ export default function AutoAvaliacao({ user, data }) {
       ) : (
         <>
           {/* CABEÇALHO DE SEGURANÇA */}
-          <div style={{ background: "#1e293b", borderRadius: "24px", padding: "20px", marginBottom: "20px", border: "1px solid rgba(255,255,255,0.08)" }}>
-            <div style={{ fontSize: 16, fontWeight: 900, color: "white", display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-              <span>🔒</span> Espaço Seguro
+          <div style={{ background: "rgba(0,0,0,0.25)", borderRadius: "24px", padding: "20px", marginBottom: "20px", border: "1px solid rgba(255,255,255,0.10)" }}>
+            <div style={{ fontSize: 15, fontWeight: 900, color: "white", display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              🔒 NINGUÉM VAI VER ISTO.
             </div>
-            <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6, marginBottom: 10 }}>
-              Só tu e a **Teresa** têm acesso a estas notas. Isto serve para perceberem **juntos** o teu crescimento no JEEP.
+            <div style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.6, marginBottom: 10 }}>
+              Só tu e eu (Teresa) temos acesso. Não serve para te avaliar — serve para percebermos <strong>juntos</strong> se estás a evoluir.
             </div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: CYN, lineHeight: 1.6 }}>
-              Sê honesto/a contigo mesmo/a. Errar faz parte do percurso! 🌱
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#f1f5f9", lineHeight: 1.6 }}>
+              Sê honesto/a. Ninguém é perfeito em tudo e não é suposto ser. Se deres tudo 10 não há margem para crescer. 🌱
             </div>
           </div>
 
@@ -81,7 +81,11 @@ export default function AutoAvaliacao({ user, data }) {
             return (
               <div key={dim.id} style={CARD}>
                 {/* Título e Descrição Geral */}
-                <div style={{ fontWeight: 900, fontSize: 15, color: "#fff", marginBottom: 6 }}>{dim.label}</div>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
+                  <div style={{ fontSize:9, fontWeight:900, color:"#64748b", letterSpacing:1.5 }}>{dim.id}</div>
+                  <div style={{ fontSize:10, fontWeight:900, color:status[1], background:`${status[1]}15`, border:`1px solid ${status[1]}40`, padding:"2px 8px", borderRadius:6 }}>{status[0].toUpperCase()}</div>
+                </div>
+                <div style={{ fontWeight: 900, fontSize: 14, color: "#fff", marginBottom: 6 }}>{dim.label}</div>
                 <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 20, lineHeight: 1.5 }}>{dim.desc}</div>
                 
                 {/* Slider */}
