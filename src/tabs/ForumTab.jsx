@@ -20,20 +20,21 @@ export default function ForumTab({ user }) {
   return (
     <div style={{ paddingBottom:100 }}>
 
-      {/* ── CANAIS HORIZONTAIS ──────────────────────────────────────── */}
-      <div style={{ padding:"16px 16px 0", overflowX:"auto", display:"flex", gap:8 }}>
+      {/* ── CANAIS EM GRELHA 3×2 ────────────────────────────────────── */}
+      <div style={{ padding:"16px 16px 0", display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
         {CHANNELS.map(ch => {
           const sel = canalAtivo === ch.id;
           return (
             <button key={ch.id} onClick={() => setCanalAtivo(ch.id)} style={{
-              display:"flex", alignItems:"center", gap:6, flexShrink:0,
-              padding:"9px 16px", borderRadius:30, cursor:"pointer", transition:"all 0.18s",
+              display:"flex", flexDirection:"column", alignItems:"center", gap:4,
+              padding:"12px 8px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
               border: sel ? `1px solid ${CYN}50` : "1px solid rgba(255,255,255,0.07)",
               background: sel ? `${CYN}12` : "rgba(255,255,255,0.03)",
               color: sel ? CYN : TXT_MUT,
+              boxShadow: sel ? `0 0 0 1px ${CYN}20` : "none",
             }}>
-              <span style={{ fontSize:15 }}>{ch.icon}</span>
-              <span style={{ fontSize:11, fontWeight:800, whiteSpace:"nowrap" }}>{ch.label}</span>
+              <span style={{ fontSize:20 }}>{ch.icon}</span>
+              <span style={{ fontSize:9, fontWeight:900, whiteSpace:"nowrap", letterSpacing:0.5, textTransform:"uppercase" }}>{ch.label.split(" ")[0]}</span>
             </button>
           );
         })}
