@@ -2,7 +2,7 @@ import React from 'react';
 import logoImg from './logo.png';
 
 // ── PALETA ───────────────────────────────────────────────────────────────────
-export const BG      = "#1e2d45";   // navy médio — claramente mais claro que preto
+export const BG      = "#1b2f4e";   // navy médio — claramente mais claro que preto
 export const PRP     = "#a78bfa";
 export const CYN     = "#38bdf8";
 export const PNK     = "#f472b6";
@@ -65,14 +65,14 @@ if (typeof document !== 'undefined') {
 
 // ── CARTÕES ───────────────────────────────────────────────────────────────────
 export const CARD = {
-  background: "rgba(42, 62, 92, 0.80)",   // navy claro translúcido — contraste visível
-  backdropFilter: "blur(16px)",
-  WebkitBackdropFilter: "blur(16px)",
+  background: "rgba(255, 255, 255, 0.075)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
   borderRadius: "20px",
   padding: "20px",
   margin: "0 0 16px 0",
-  border: "1px solid rgba(255,255,255,0.09)",
-  boxShadow: "0 4px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.13)",
+  boxShadow: "0 4px 28px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.10)",
   color: TXT_MAIN,
   width: "100%",
   position: "relative",
