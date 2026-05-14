@@ -157,7 +157,7 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
                     border: hasWeek ? `2px solid ${CYN}60` : hasEver ? "1.5px solid rgba(50,199,255,0.2)" : "1.5px solid rgba(255,255,255,0.07)",
                     position:"relative",
                   }}>
-                    {hasWeek && (
+                    {(hasWeek || hasEver) && (
                       <button onClick={() => removeMedal(username, m.id)} style={{
                         position:"absolute", top:4, right:4, background:"rgba(244,63,94,0.18)",
                         border:"none", color:"#f43f5e", fontSize:10, borderRadius:6,
@@ -168,14 +168,16 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
                     <div style={{ fontSize:9, fontWeight:900, color: hasWeek ? CYN : hasEver ? "#5a7a9a" : "#475569", marginBottom:4 }}>
                       {m.label.toUpperCase()}
                     </div>
-                    {!hasWeek ? (
+                    {hasWeek ? (
+                      <div style={{ fontSize:8, color:"#5a7a9a", fontWeight:700 }}>✓ Esta semana</div>
+                    ) : hasEver ? (
+                      <div style={{ fontSize:8, color:"#475569", fontWeight:700 }}>📅 Histórico</div>
+                    ) : (
                       <button onClick={() => { setMedalModal({ username, medal:m }); setMedalMsg(""); }} style={{
                         background:"rgba(50,199,255,0.12)", border:`1px solid ${CYN}30`,
                         color:CYN, fontSize:9, fontWeight:900, borderRadius:8,
                         padding:"3px 8px", cursor:"pointer", width:"100%",
                       }}>+ Atribuir</button>
-                    ) : (
-                      <div style={{ fontSize:8, color:"#5a7a9a", fontWeight:700 }}>✓ Esta semana</div>
                     )}
                   </div>
                 );
