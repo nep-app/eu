@@ -1,14 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, doc } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { CYN, TXT_MUT, BG } from "../theme.jsx";
-import { CHANNELS } from "../data.js";
+import { CHANNELS, JEEP_LIST, getWeekKey } from "../data.js";
 import ForumPost     from './forum/ForumPost.jsx';
 import ForumComposer from './forum/ForumComposer.jsx';
 
 export default function ForumTab({ user }) {
   const [canalAtivo, setCanalAtivo] = useState("csi");
   const [listaPosts, setListaPosts]  = useState([]);
+  const [allMedals,  setAllMedals]   = useState({});
+
+  // Load current-week medals for all users
+  useEffect(() => {
+    const wk = getWeekKey();
+    const unsubs = JEEP_LIST.map(j =>
+      onSnapshot(doc(db, "medals", j.username), s => {
+        if (!s.exists()) return;
+        const d = s.data();
+        const week = d.weekKey === wk ? (d.week || []) : [];
+        setAllMedals(prev => ({ ...prev, [j.username]: week }));
+      })
+    );
+    return () => unsubs.forEach(u => u());
+  }, []);
 
   useEffect(() => {
     const q = query(collection(db, "forum", canalAtivo, "posts"), orderBy("time", "desc"));
@@ -61,7 +76,8 @@ export default function ForumTab({ user }) {
           </div>
         ) : (
           listaPosts.map(post => (
-            <ForumPost key={post.id} post={post} user={user} canalAtivo={canalAtivo} />
+            <ForumPost key={post.id} post={post} user={user} canalAtivo={canalAtivo}
+              authorMedals={allMedals[post.username] || []} />
           ))
         )}
       </div>

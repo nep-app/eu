@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PRP, RadarChart } from "../../theme.jsx";
-import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, PIA_FIELDS } from "../../data.js";
+import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, PIA_FIELDS, getWeekKey } from "../../data.js";
 
 export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
   const [userSelecionado, setUserSelecionado] = useState(null);
@@ -18,64 +18,95 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
     return `${dia}/${mes} às ${hora}:${min}`;
   }
 
-  // ── 1. LÓGICA DE ATRIBUIÇÃO DE MEDALHAS ──
+  // ── 1. LÓGICA DE ATRIBUIÇÃO DE MEDALHAS (semanal + histórico) ──
   async function toggleAMedal(username, mid) {
-    const cur = amMedals[username] || [];
-    const isAdding = !cur.includes(mid);
-    const next = isAdding ? [...cur, mid] : cur.filter(m => m !== mid);
-    
-    setAmMedals(p => upd(p, username, next)); 
-    await setDoc(doc(db, "medals", username), { list: next });
+    const medalDoc  = amMedals[username] || {};
+    const weekKey   = getWeekKey();
+    const curWeek   = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
+    const allTime   = medalDoc.allTime || [];
+    const isAdding  = !curWeek.includes(mid);
+    const nextWeek  = isAdding ? [...curWeek, mid] : curWeek.filter(m => m !== mid);
+    const nextAllTime = isAdding && !allTime.includes(mid) ? [...allTime, mid] : allTime;
+
+    const newDoc = { week: nextWeek, weekKey, allTime: nextAllTime };
+    setAmMedals(p => upd(p, username, newDoc));
+    await setDoc(doc(db, "medals", username), newDoc);
 
     if (isAdding) {
-      const userRef = doc(db, "userData", username);
+      const userRef  = doc(db, "userData", username);
       const userSnap = await getDoc(userRef);
-      const uData = userSnap.exists() ? userSnap.data() : {};
-      
-      const newHistory = [
-        ...(uData.history || []), 
-        { date: nowLabel(), action: `Conquistaste uma nova Medalha! 🏅`, ts: Date.now(), xp: 50 }
-      ];
+      const uData    = userSnap.exists() ? userSnap.data() : {};
+      const newHistory = [...(uData.history || []),
+        { date: nowLabel(), action: `Conquistaste uma nova Medalha! 🏅`, ts: Date.now(), xp: 50 }];
       await setDoc(userRef, { history: newHistory, weekXp: (uData.weekXp || 0) + 50 }, { merge: true });
     }
   }
 
   // ── 2. COMPONENTE DO MODAL (DOSSIER) ──
   function DossierModal({ username, onClose }) {
-    const uData = allShared[username] || {};
-    const medals = amMedals[username] || [];
-    const jeep = JEEP_LIST.find(j => j.username === username);
+    const uData     = allShared[username] || {};
+    const medalDoc  = amMedals[username] || {};
+    const weekKey   = getWeekKey();
+    const weekMedals = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
+    const allTimeMedals = medalDoc.allTime || [];
+    const totalXp   = (uData.history || []).reduce((s, h) => s + (h.xp || 0), 0);
+    const jeep      = JEEP_LIST.find(j => j.username === username);
 
     return (
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(7,11,20,0.98)", zIndex: 999, padding: "20px", overflowY: "auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ width: 20, height: 20, borderRadius: "50%", background: jeep.color }} />
-            <h2 style={{ margin: 0, fontSize: 22 }}>Dossier: {jeep.name}</h2>
+            <div>
+              <h2 style={{ margin: 0, fontSize: 20 }}>{jeep.name}</h2>
+              <div style={{ fontSize:11, color:CYN, fontWeight:800 }}>{totalXp} XP total · {allTimeMedals.length} medalhas histórico</div>
+            </div>
           </div>
           <button onClick={onClose} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", padding: "10px 20px", borderRadius: 12, fontWeight: 900, cursor: "pointer" }}>FECHAR ✕</button>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 15, maxWidth: 600, margin: "0 auto" }}>
           
-          {/* SECÇÃO: MEDALHAS */}
+          {/* SECÇÃO: MEDALHAS SEMANAIS */}
           <div style={CARD}>
-            <div style={SL}>🏅 Medalhas e Reconhecimento</div>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+              <div style={SL}>🏅 Medalhas desta Semana</div>
+              {allTimeMedals.length > 0 && (
+                <div style={{ fontSize:10, color:CYN, fontWeight:800 }}>
+                  {allTimeMedals.length} no total
+                </div>
+              )}
+            </div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", marginBottom: allTimeMedals.length > 0 ? 16 : 0 }}>
               {ALL_MEDALS.map(m => {
-                const has = medals.includes(m.id);
+                const hasWeek = weekMedals.includes(m.id);
+                const hasEver = allTimeMedals.includes(m.id);
                 return (
-                  <div key={m.id} onClick={() => toggleAMedal(username, m.id)} style={{ 
+                  <div key={m.id} onClick={() => toggleAMedal(username, m.id)} style={{
                     flex: "1 0 30%", minWidth: 85, padding: "12px 5px", borderRadius: 16, textAlign: "center",
-                    background: has ? CYN : "rgba(255,255,255,0.05)", 
-                    cursor: "pointer", transition: "0.2s", border: has ? `2px solid ${CYN}` : "2px solid transparent"
+                    background: hasWeek ? CYN : hasEver ? "rgba(50,199,255,0.08)" : "rgba(255,255,255,0.05)",
+                    cursor: "pointer", transition: "0.2s",
+                    border: hasWeek ? `2px solid ${CYN}` : hasEver ? `2px solid rgba(50,199,255,0.25)` : "2px solid transparent"
                   }}>
                     <div style={{ fontSize: 22, marginBottom: 4 }}>{m.icon}</div>
-                    <div style={{ fontSize: 9, fontWeight: 900, color: has ? "#000" : "#94a3b8" }}>{m.label.toUpperCase()}</div>
+                    <div style={{ fontSize: 9, fontWeight: 900, color: hasWeek ? "#071529" : hasEver ? CYN : "#94a3b8" }}>
+                      {m.label.toUpperCase()}
+                    </div>
                   </div>
                 );
               })}
             </div>
+            {allTimeMedals.length > 0 && (
+              <div style={{ borderTop:"1px solid rgba(255,255,255,0.06)", paddingTop:10 }}>
+                <div style={{ fontSize:10, color:"#5a7a9a", fontWeight:800, marginBottom:6 }}>HISTÓRICO — TODAS AS SEMANAS</div>
+                <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                  {allTimeMedals.map(mid => {
+                    const m = ALL_MEDALS.find(x => x.id === mid);
+                    return m ? <span key={mid} style={{ fontSize:20 }} title={m.label}>{m.icon}</span> : null;
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* SECÇÃO: RODA DA VIDA */}
@@ -192,22 +223,36 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 15 }}>
       {JEEP_LIST.map(j => {
-        const medals = amMedals[j.username] || [];
-        const uData = allShared[j.username] || {};
-        
+        const medalDoc   = amMedals[j.username] || {};
+        const weekKey    = getWeekKey();
+        const wMedals    = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
+        const atMedals   = medalDoc.allTime || [];
+        const uData      = allShared[j.username] || {};
+        const totalXpCard = (uData.history || []).reduce((s, h) => s + (h.xp || 0), 0);
+
         return (
           <div key={j.username} style={{ ...CARD, textAlign: "center", padding: "20px 15px" }}>
-            <div style={{ width: 12, height: 12, borderRadius: "50%", background: j.color, margin: "0 auto 10px auto" }} />
-            <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 2 }}>{j.name}</div>
-            <div style={{ fontSize: 10, color: CYN, fontWeight: 900, marginBottom: 15 }}>{uData.weekXp || 0} XP TOTAL</div>
-            
-            <div style={{ display: "flex", gap: 3, justifyContent: "center", marginBottom: 20, flexWrap: "wrap" }}>
-              {ALL_MEDALS.map(m => (
-                <span key={m.id} style={{ opacity: medals.includes(m.id) ? 1 : 0.05, fontSize: 16 }}>{m.icon}</span>
-              ))}
-            </div>
+            <div style={{ width: 12, height: 12, borderRadius: "50%", background: j.color, margin: "0 auto 8px auto" }} />
+            <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 2 }}>{j.name}</div>
+            <div style={{ fontSize: 10, color: CYN, fontWeight: 900 }}>{uData.weekXp || 0} XP semana</div>
+            <div style={{ fontSize: 9, color: "#5a7a9a", fontWeight: 700, marginBottom: 10 }}>{totalXpCard} XP total</div>
 
-            <button 
+            {/* Medalhas desta semana */}
+            {wMedals.length > 0 && (
+              <div style={{ display:"flex", gap:3, justifyContent:"center", marginBottom:6, flexWrap:"wrap" }}>
+                {wMedals.map(mid => {
+                  const m = ALL_MEDALS.find(x => x.id === mid);
+                  return m ? <span key={mid} style={{ fontSize:16 }}>{m.icon}</span> : null;
+                })}
+              </div>
+            )}
+            {atMedals.length > 0 && (
+              <div style={{ fontSize:9, color:"#5a7a9a", marginBottom:12 }}>
+                🏅 {atMedals.length} medalha{atMedals.length !== 1 ? "s" : ""} no histórico
+              </div>
+            )}
+
+            <button
               onClick={() => setUserSelecionado(j.username)}
               style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${CYN}40`, color: CYN, borderRadius: 12, padding: "10px", fontSize: 11, fontWeight: 900, cursor: "pointer" }}
             >

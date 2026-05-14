@@ -62,8 +62,8 @@ export default function TeresaAdmin({ user, onLogout }) {
     });
 
     JEEP_LIST.forEach(j => {
-      getDoc(doc(db, "medals", j.username)).then(s => { 
-        if(s.exists()) setAmMedals(p => upd(p, j.name, s.data().list || [])); 
+      getDoc(doc(db, "medals", j.username)).then(s => {
+        if (s.exists()) setAmMedals(p => upd(p, j.username, s.data()));
       });
     });
     
@@ -168,7 +168,7 @@ const ADMIN_TABS = [
         {adminTab === "agenda" && <AdminAgenda events={events} />}
         {adminTab === "missoes" && <AdminMissoes missions={missions} />}
         {adminTab === "msgs" && <AdminMsgs msgs={msgs} />}
-        {adminTab === "users" && <AdminUsers amMedals={amMedals} setAmMedals={setAmMedals} />}
+        {adminTab === "users" && <AdminUsers amMedals={amMedals} setAmMedals={setAmMedals} allShared={allShared} />}
       </div>
       
     </div>

@@ -41,7 +41,7 @@ export default function JovensApp({ user, onLogout }) {
           setAllData(p => ({...p, userData: d, history: d.history || [], completedMissions: d.completedMissions || []}));
         }
       }),
-      onSnapshot(doc(db, "medals", user.username), s => setAllData(p => ({...p, medals: s.exists() ? s.data().list || [] : []}))),
+      onSnapshot(doc(db, "medals", user.username), s => setAllData(p => ({...p, medals: s.exists() ? s.data() : {}}))),
     ];
     return () => unsubs.forEach(u => u());
   }, [user]);

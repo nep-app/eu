@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { doc, updateDoc, deleteDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, CYN, INP, TXT_MUT, PRP } from "../../theme.jsx";
-import { nowFull, FORUM_REACTIONS } from "../../data.js";
+import { nowFull, FORUM_REACTIONS, ALL_MEDALS } from "../../data.js";
 
-export default function ForumPost({ post, user, canalAtivo }) {
+export default function ForumPost({ post, user, canalAtivo, authorMedals = [] }) {
   const [responderA,        setResponderA]        = useState(false);
   const [textoResposta,     setTextoResposta]      = useState("");
   const [editando,          setEditando]           = useState(false);
@@ -113,6 +113,15 @@ export default function ForumPost({ post, user, canalAtivo }) {
               <span style={{ fontSize:13, fontWeight:800, color:post.color }}>{post.user}</span>
               {isAdmin && (
                 <span style={{ fontSize:9, background:CYN, color:"#0f172a", padding:"2px 6px", borderRadius:5, fontWeight:900, letterSpacing:0.5 }}>ADMIN</span>
+              )}
+              {authorMedals.length > 0 && (
+                <span style={{ display:"flex", alignItems:"center", gap:1 }}>
+                  {authorMedals.slice(0, 3).map(mid => {
+                    const m = ALL_MEDALS.find(x => x.id === mid);
+                    return m ? <span key={mid} style={{ fontSize:13 }} title={m.label}>{m.icon}</span> : null;
+                  })}
+                  {authorMedals.length > 3 && <span style={{ fontSize:10, color:"#5a7a9a", fontWeight:800, marginLeft:2 }}>+{authorMedals.length - 3}</span>}
+                </span>
               )}
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>

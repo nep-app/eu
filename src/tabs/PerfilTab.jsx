@@ -4,7 +4,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../firebase.js";
 import { CARD, SL, CYN, PNK, INP, Btn, SubTabs, RadarChart, BG, TXT_MUT } from "../theme.jsx";
 import {
-  upd, nowLabel, nowFull, RODA_DIMS, ALL_MEDALS, DEF_RODA, DEF_CAP
+  upd, nowLabel, nowFull, RODA_DIMS, ALL_MEDALS, DEF_RODA, DEF_CAP, getWeekKey
 } from "../data.js";
 
 const DEF_CAP2 = { text:"", locked:false, revealed:false, lockedDate:"" };
@@ -18,8 +18,10 @@ export default function PerfilTab({ user, data }) {
   const rodaSaves = uData.rodaSaves || [];
   const cap  = uData.cap  || DEF_CAP;
   const cap2 = uData.cap2 || DEF_CAP2;
-  const history = data.history || [];
-  const userMedals = data.medals || [];
+  const history    = data.history || [];
+  const medalDoc   = data.medals || {};
+  const weekKey    = getWeekKey();
+  const userMedals = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
 
   function formatarDataHora(ts, dataAntiga) {
     if (!ts) return dataAntiga;
