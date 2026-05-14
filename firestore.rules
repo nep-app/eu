@@ -61,10 +61,17 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Notificações para os jovens (Teresa cria, utilizador lê e apaga)
+    // Notificações (Teresa e outros users criam, utilizador lê e apaga)
     match /notifications/{username}/items/{notifId} {
-      allow read, delete: if isUser(username);
-      allow create, update: if isAdmin();
+      allow read, delete: if isUser(username) || isAdmin();
+      allow create: if request.auth != null;
+      allow update: if isAdmin();
+    }
+
+    // Notificações admin (jovens criam ao completar ações, admin lê)
+    match /adminNotificacoes/{docId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if isAdmin();
     }
   }
 }

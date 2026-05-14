@@ -3,6 +3,7 @@ import { onSnapshot, doc, collection } from "firebase/firestore";
 import { db } from "./firebase.js";
 import { BG, CYN, BLUE, PRP, TXT_MUT } from "./theme.jsx";
 import { getWeekKey } from "./data.js";
+import logoImg from "./logo.png";
 
 import HomeTab     from "./tabs/HomeTab.jsx";
 import DesafiosTab from "./tabs/DesafiosTab.jsx";
@@ -54,7 +55,7 @@ export default function JovensApp({ user, onLogout }) {
     <div style={{ minHeight:"100vh", background:BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif" }}>
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      <div style={{ position:"relative", padding:"22px 20px 20px", overflow:"hidden",
+      <div style={{ position:"relative", padding:"20px 20px 16px", overflow:"hidden",
         background:`linear-gradient(160deg, ${user.color}15 0%, rgba(7,21,41,0) 60%)`,
         borderBottom:"1px solid rgba(255,255,255,0.08)" }}>
 
@@ -62,47 +63,32 @@ export default function JovensApp({ user, onLogout }) {
         <div style={{ position:"absolute", top:-50, right:-30, width:180, height:180, borderRadius:"50%",
           background:`radial-gradient(circle, ${user.color}22, transparent 68%)`, pointerEvents:"none" }}/>
 
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", position:"relative" }}>
-          {/* Avatar + info */}
-          <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-            <div style={{ position:"relative" }}>
-              <div style={{ width:52, height:52, borderRadius:16,
-                background:`linear-gradient(135deg, ${user.color}, ${user.color}88)`,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                fontSize:22, fontWeight:900, color:"#0d1829",
-                boxShadow:`0 0 0 2px ${user.color}40, 0 8px 20px ${user.color}25` }}>
-                {user.realName[0]}
-              </div>
+        <div style={{ display:"flex", alignItems:"flex-start", gap:14, position:"relative" }}>
+          {/* Logo */}
+          <img src={logoImg} alt="JEEP" style={{ width:48, height:48, objectFit:"contain", flexShrink:0, marginTop:2 }} />
+
+          {/* Info + Sair */}
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontSize:11, color:TXT_MUT, fontWeight:600, letterSpacing:0.3 }}>Olá,</div>
+            <div style={{ fontSize:22, fontWeight:900, color:"#ffffff", lineHeight:1.15, letterSpacing:-0.3 }}>{user.realName}</div>
+            <div style={{ display:"flex", gap:6, marginTop:6, flexWrap:"wrap", alignItems:"center" }}>
               {dayStreak > 0 && (
-                <div style={{ position:"absolute", bottom:-5, right:-5, fontSize:15,
-                  animation:"fire-pulse 1.8s ease-in-out infinite" }}>🔥</div>
-              )}
-            </div>
-
-            <div>
-              <div style={{ fontSize:11, color:TXT_MUT, fontWeight:600, letterSpacing:0.3 }}>Olá,</div>
-              <div style={{ fontSize:21, fontWeight:900, color:"#ffffff", lineHeight:1.15, letterSpacing:-0.3 }}>{user.realName}</div>
-              <div style={{ display:"flex", gap:6, marginTop:6, flexWrap:"wrap" }}>
-                {dayStreak > 0 && (
-                  <div style={{ fontSize:10, background:"rgba(251,146,60,0.18)", border:"1px solid rgba(251,146,60,0.35)",
-                    borderRadius:20, padding:"3px 10px", fontWeight:800, color:"#fb923c" }}>
-                    🔥 {dayStreak} dia{dayStreak > 1 ? "s" : ""}
-                  </div>
-                )}
-                <div style={{ fontSize:10, background:"rgba(50,199,255,0.12)", border:"1px solid rgba(50,199,255,0.28)",
-                  borderRadius:20, padding:"3px 10px", fontWeight:800, color:CYN }}>
-                  ⚡ {weekXp} XP
+                <div style={{ fontSize:10, background:"rgba(251,146,60,0.18)", border:"1px solid rgba(251,146,60,0.35)",
+                  borderRadius:20, padding:"3px 10px", fontWeight:800, color:"#fb923c" }}>
+                  🔥 {dayStreak} dia{dayStreak > 1 ? "s" : ""}
                 </div>
+              )}
+              <div style={{ fontSize:10, background:"rgba(50,199,255,0.12)", border:"1px solid rgba(50,199,255,0.28)",
+                borderRadius:20, padding:"3px 10px", fontWeight:800, color:CYN }}>
+                ⚡ {weekXp} XP
               </div>
             </div>
+            <button onClick={onLogout} style={{ marginTop:8, background:"none", border:"none",
+              color:TXT_MUT, fontSize:11, cursor:"pointer", fontWeight:600, padding:0,
+              letterSpacing:0.3, opacity:0.7 }}>
+              Sair →
+            </button>
           </div>
-
-          {/* Botão sair */}
-          <button onClick={onLogout} style={{ background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)",
-            color:"#ffffff", padding:"8px 16px", borderRadius:20, fontSize:11, cursor:"pointer", fontWeight:700,
-            transition:"all 0.2s" }}>
-            Sair
-          </button>
         </div>
       </div>
 

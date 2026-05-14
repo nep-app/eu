@@ -131,7 +131,7 @@ export default function HomeExtras({ user, data, setTab }) {
         </div>
       )}
 
-      {/* ── DESTAQUES DA SEMANA (TOP 3 sem ordem) ───────────────────── */}
+      {/* ── DESTAQUES DA SEMANA (TOP 3 sem ordem/hierarquia) ────────── */}
       <div style={CARD}>
         <div style={SL}>⭐ Destaques da Semana</div>
         {destaquesXp.length === 0 ? (
@@ -139,15 +139,16 @@ export default function HomeExtras({ user, data, setTab }) {
             Ainda sem destaques esta semana.
           </div>
         ) : (
-          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-            {destaquesXp.map(jovem => (
+          <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
+            {destaquesXp.map((jovem, i) => (
               <div key={jovem.username} style={{
+                flex: i === 1 ? "2 1 55%" : "1 1 38%",
+                padding:"14px 16px", borderRadius:18,
+                background:`${jovem.color}10`, border:`1px solid ${jovem.color}28`,
                 display:"flex", alignItems:"center", justifyContent:"space-between",
-                padding:"13px 16px", borderRadius:14,
-                background:`${jovem.color}0d`, border:`1px solid ${jovem.color}22`,
               }}>
-                <span style={{ fontSize:15, fontWeight:900, color:jovem.color }}>{jovem.name}</span>
-                <span style={{ fontSize:11 }}>✨</span>
+                <span style={{ fontSize:14, fontWeight:900, color:jovem.color }}>{jovem.name}</span>
+                <span style={{ fontSize:16 }}>✨</span>
               </div>
             ))}
           </div>

@@ -219,8 +219,8 @@ export const DEF_PIA   = { oQue:"",paraQue:"",quanto:"",onde:"",recursos:"",como
 export const DEF_ACTS  = [{ oQue:"",quando:"",obj:"" },{ oQue:"",quando:"",obj:"" },{ oQue:"",quando:"",obj:"" },{ oQue:"",quando:"",obj:"" }];
 
 // MUDANÇA AQUI: Os valores de Roda e Scores começam agora em 1.
-export const DEF_RODA  = { familia:1,amigos:1,dinheiro:1,trabalho:1,cresc:1,saude:1,lazer:1 };
-export const DEF_DSCORES = { D1:1,D2:1,D3:1,D4:1,D5:1,D6:1 };
+export const DEF_RODA  = { familia:0,amigos:0,dinheiro:0,trabalho:0,cresc:0,saude:0,lazer:0 };
+export const DEF_DSCORES = { D1:0,D2:0,D3:0,D4:0,D5:0,D6:0 };
 export const DEF_DNOTAS  = { D1:"",D2:"",D3:"",D4:"",D5:"",D6:"" };
 export const DEF_SWOT  = { forcas:"",fraquezas:"",oprtns:"",riscos:"" };
 export const DEF_CAP   = { text:"",locked:false,revealed:false,lockedDate:"" };

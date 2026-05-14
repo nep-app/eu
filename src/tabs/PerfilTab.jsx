@@ -155,6 +155,27 @@ export default function PerfilTab({ user, data }) {
 
     const isSealed   = capData.locked;
     const isRevealed = capData.revealed;
+    const isUnlocked = capData.unlocked;
+
+    // cap2 not yet unlocked by admin — default locked state
+    if (isSlot2 && !isUnlocked && !isRevealed) return (
+      <div style={{ ...CARD, borderTop:`2px solid ${accent}` }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+          <span style={{ fontSize:24 }}>💌</span>
+          <div>
+            <div style={{ fontSize:13, fontWeight:900, color:"#f1f5f9" }}>{title}</div>
+            <div style={{ fontSize:10, color:accent, fontWeight:800 }}>A Teresa vai abrir quando for altura</div>
+          </div>
+        </div>
+        <div style={{ textAlign:"center", padding:"28px 0" }}>
+          <div style={{ fontSize:48 }}>🔐</div>
+          <div style={{ fontWeight:900, color:accent, fontSize:13, marginTop:12, letterSpacing:0.5 }}>AINDA NÃO DISPONÍVEL</div>
+          <div style={{ fontSize:12, color:"#64748b", marginTop:8, lineHeight:1.6 }}>
+            Esta cápsula será aberta pela Teresa<br/>no momento certo do programa.
+          </div>
+        </div>
+      </div>
+    );
 
     // cap2 sealed but not yet revealed by admin
     if (isSlot2 && isSealed && !isRevealed) return (

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PRP, RadarChart } from "../../theme.jsx";
 import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, PIA_FIELDS } from "../../data.js";
@@ -103,6 +103,66 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
             ) : (
               <div style={{ textAlign: "center", color: "#475569", fontSize: 13 }}>PIA por preencher.</div>
             )}
+          </div>
+
+          {/* SECÇÃO: CÁPSULA FINAL */}
+          <div style={CARD}>
+            <div style={SL}>💌 Cápsula Final</div>
+            {(() => {
+              const cap2 = uData.cap2 || {};
+              const isUnlocked = cap2.unlocked;
+              const isSealed   = cap2.locked;
+              const isRevealed = cap2.revealed;
+
+              async function toggleCap2Unlock() {
+                await setDoc(doc(db, "userData", username), {
+                  cap2: { ...cap2, unlocked: !isUnlocked }
+                }, { merge: true });
+              }
+              async function toggleCap2Reveal() {
+                await setDoc(doc(db, "userData", username), {
+                  cap2: { ...cap2, revealed: !isRevealed }
+                }, { merge: true });
+              }
+
+              return (
+                <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 14px", borderRadius:12, background:"rgba(0,0,0,0.2)" }}>
+                    <div>
+                      <div style={{ fontSize:12, fontWeight:800 }}>
+                        {!isUnlocked ? "🔐 Fechada" : isSealed ? "✅ Entregue pelo jovem" : "📝 Aberta para escrita"}
+                      </div>
+                      {isSealed && cap2.sealedAt && <div style={{ fontSize:10, color:"#64748b", marginTop:2 }}>Selada: {cap2.sealedAt}</div>}
+                    </div>
+                    <div style={{ display:"flex", gap:8 }}>
+                      <button onClick={toggleCap2Unlock} style={{
+                        background: isUnlocked ? "rgba(244,63,94,0.15)" : "rgba(50,199,255,0.15)",
+                        border: isUnlocked ? "1px solid rgba(244,63,94,0.3)" : "1px solid rgba(50,199,255,0.3)",
+                        color: isUnlocked ? "#f43f5e" : CYN,
+                        borderRadius:10, padding:"6px 14px", fontWeight:900, fontSize:11, cursor:"pointer",
+                      }}>
+                        {isUnlocked ? "🔒 Fechar" : "🔓 Abrir"}
+                      </button>
+                      {isSealed && (
+                        <button onClick={toggleCap2Reveal} style={{
+                          background: isRevealed ? "rgba(251,191,36,0.1)" : "rgba(74,222,128,0.12)",
+                          border: isRevealed ? "1px solid rgba(251,191,36,0.3)" : "1px solid rgba(74,222,128,0.3)",
+                          color: isRevealed ? "#fbbf24" : "#4ade80",
+                          borderRadius:10, padding:"6px 14px", fontWeight:900, fontSize:11, cursor:"pointer",
+                        }}>
+                          {isRevealed ? "👁 Esconder" : "👁 Revelar"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {isRevealed && cap2.text && (
+                    <div style={{ fontSize:13, color:"#e2e8f0", lineHeight:1.6, padding:"12px 14px", background:"rgba(0,0,0,0.2)", borderRadius:12, whiteSpace:"pre-wrap" }}>
+                      {cap2.text}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
           {/* SECÇÃO: HISTÓRICO COMPLETO COM HORA */}

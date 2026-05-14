@@ -119,8 +119,8 @@ export default function ForumPost({ post, user, canalAtivo }) {
               <span style={{ fontSize:10, color:TXT_MUT, flexShrink:0 }}>{post.time}</span>
               {post.username === user.username && (
                 <>
-                  <button onClick={() => setEditando(!editando)} style={{ background:"none", border:"none", cursor:"pointer", fontSize:13, opacity:0.5, padding:0 }}>✏️</button>
-                  <button onClick={handleApagarPost} style={{ background:"none", border:"none", cursor:"pointer", fontSize:13, opacity:0.5, padding:0 }}>🗑️</button>
+                  <button onClick={() => setEditando(!editando)} style={{ background: editando ? "rgba(50,199,255,0.12)" : "rgba(255,255,255,0.06)", border:"none", cursor:"pointer", fontSize:12, padding:"3px 8px", borderRadius:8, color: editando ? "#32C7FF" : "#8ba3be" }}>✏️</button>
+                  <button onClick={handleApagarPost} style={{ background:"rgba(244,63,94,0.1)", border:"none", cursor:"pointer", fontSize:12, padding:"3px 8px", borderRadius:8, color:"#f43f5e" }}>🗑️</button>
                 </>
               )}
             </div>
@@ -187,9 +187,9 @@ export default function ForumPost({ post, user, canalAtivo }) {
                 {reply.username === user.username && (
                   <div style={{ display:"flex", gap:6 }}>
                     <button onClick={() => { setEditandoReplyId(reply.id); setTextoEditadoReply(reply.text); }}
-                      style={{ background:"none", border:"none", fontSize:11, cursor:"pointer", opacity:0.4 }}>✏️</button>
+                      style={{ background:"rgba(255,255,255,0.06)", border:"none", fontSize:11, cursor:"pointer", padding:"2px 6px", borderRadius:6, color:"#8ba3be" }}>✏️</button>
                     <button onClick={() => apagarReply(reply.id)}
-                      style={{ background:"none", border:"none", fontSize:11, cursor:"pointer", opacity:0.4 }}>🗑️</button>
+                      style={{ background:"rgba(244,63,94,0.1)", border:"none", fontSize:11, cursor:"pointer", padding:"2px 6px", borderRadius:6, color:"#f43f5e" }}>🗑️</button>
                   </div>
                 )}
               </div>

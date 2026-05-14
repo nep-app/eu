@@ -74,7 +74,7 @@ export default function AutoAvaliacao({ user, data }) {
 
           {/* LISTA DINÂMICA (D1 A D6) */}
           {DIMS.map(dim => {
-            const val = uData.dScores?.[dim.id] || 5;
+            const val = uData.dScores?.[dim.id] ?? 0;
             const status = scoreLabel(val);
             const textoEspecifico = getDimDesc(dim, val); // Puxa o texto 1-2, 3-4, etc.
 
