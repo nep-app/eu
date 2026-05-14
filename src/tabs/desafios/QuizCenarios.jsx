@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, doc, setDoc, updateDoc, increment, arrayUnion, query, orderBy } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, Btn } from "../../theme.jsx";
+import { fmtDate, isOverdue } from "../../data.js";
 import { nowLabel } from "../../data.js";
 
 export default function QuizCenarios({ user, data }) {
@@ -84,7 +85,10 @@ export default function QuizCenarios({ user, data }) {
 
   return (
     <div style={{ ...CARD, borderLeft: `4px solid ${CYN}` }}>
-      <div style={{ fontSize: 10, fontWeight: 900, color: CYN, marginBottom: 5 }}>{q.badge}</div>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5 }}>
+        <div style={{ fontSize:10, fontWeight:900, color:CYN }}>{q.badge}</div>
+        {q.prazo && <div style={{ fontSize:10, fontWeight:800, color: isOverdue(q.prazo) ? "#f43f5e" : "#fbbf24" }}>⏰ Até {fmtDate(q.prazo)}</div>}
+      </div>
       <div style={SL}>{q.title}</div>
       
       <p style={{ fontSize: 14, lineHeight: 1.6, color: "#cbd5e1", marginBottom: 20 }}>

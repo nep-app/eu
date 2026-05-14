@@ -9,6 +9,7 @@ export default function AdminQuizzes() {
     title: "",
     badge: "D1 — Geral",
     scenario: "",
+    prazo: "",
     optA: "", revA: "",
     optB: "", revB: "",
     optC: "", revC: ""
@@ -31,6 +32,7 @@ export default function AdminQuizzes() {
         title: novo.title,
         badge: novo.badge,
         scenario: novo.scenario,
+        prazo: novo.prazo || null,
         active: true,
         ts: Date.now(),
         opts: [
@@ -43,7 +45,7 @@ export default function AdminQuizzes() {
       });
 
       // Limpar formulário
-      setNovo({ title: "", badge: "D1 — Geral", scenario: "", optA: "", revA: "", optB: "", revB: "", optC: "", revC: "" });
+      setNovo({ title: "", badge: "D1 — Geral", scenario: "", prazo: "", optA: "", revA: "", optB: "", revB: "", optC: "", revC: "" });
       alert("Novo Dilema publicado com sucesso! 🚀");
     } catch (e) {
       console.error(e);
@@ -105,6 +107,12 @@ export default function AdminQuizzes() {
             />
           </div>
         ))}
+
+        <div style={{ marginBottom:14 }}>
+          <label style={{ fontSize:11, color:CYN, fontWeight:800 }}>PRAZO PARA RESPONDER (opcional)</label>
+          <input type="date" style={{ ...INP, marginTop:6 }}
+            value={novo.prazo} onChange={e => setNovo({...novo, prazo: e.target.value})} />
+        </div>
 
         <Btn onClick={salvarQuiz}>Publicar Dilema 🚩</Btn>
       </div>

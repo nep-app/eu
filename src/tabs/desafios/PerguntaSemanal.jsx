@@ -3,7 +3,7 @@ import { doc, setDoc, getDoc, updateDoc, increment, arrayUnion } from "firebase/
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
 import { CARD, SL, CYN, INP, Btn, PNK } from "../../theme.jsx";
-import { nowFull } from "../../data.js";
+import { nowFull, fmtDate, isOverdue } from "../../data.js";
 
 export default function PerguntaSemanal({ user, data }) {
   const [perguntaDB, setPerguntaDB] = useState(null);
@@ -111,7 +111,10 @@ export default function PerguntaSemanal({ user, data }) {
 
   return (
     <div style={CARD}>
-      <div style={SL}>Pergunta da Semana</div>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+        <div style={{ fontSize:10, fontWeight:800, letterSpacing:2, textTransform:"uppercase", color:"#5a7a9a" }}>Pergunta da Semana</div>
+        {perguntaDB.prazo && <div style={{ fontSize:10, fontWeight:800, color: isOverdue(perguntaDB.prazo) ? "#f43f5e" : "#fbbf24" }}>⏰ Até {fmtDate(perguntaDB.prazo)}</div>}
+      </div>
       <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 20, padding: "15px", background: "rgba(0,0,0,0.3)", borderRadius: 16, borderLeft: `4px solid ${CYN}` }}>
         {perguntaDB.text}
       </div>

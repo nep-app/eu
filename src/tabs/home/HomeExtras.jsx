@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { doc, setDoc, addDoc, collection, deleteDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, BLUE, PNK, YLW, INP, Btn, TXT_MUT, GRN } from "../../theme.jsx";
-import { nowFull, getWeekKey } from "../../data.js";
+import { nowFull, getWeekKey, fmtDate, isOverdue } from "../../data.js";
 
 export default function HomeExtras({ user, data, setTab }) {
   const [mensagemTexto, setMensagemTexto]           = useState("");
@@ -119,10 +119,18 @@ export default function HomeExtras({ user, data, setTab }) {
                   display:"flex", alignItems:"center", justifyContent:"center" }}>
                   {concluida && <span style={{ color:"#070b14", fontWeight:900, fontSize:13 }}>✓</span>}
                 </div>
-                <div style={{ flex:1, fontSize:13, fontWeight:600,
-                  color: concluida ? "#64748b" : "#f1f5f9",
-                  textDecoration: concluida ? "line-through" : "none" }}>
-                  {missao.text}
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:13, fontWeight:600,
+                    color: concluida ? "#64748b" : "#f1f5f9",
+                    textDecoration: concluida ? "line-through" : "none" }}>
+                    {missao.text}
+                  </div>
+                  {missao.prazo && !concluida && (
+                    <div style={{ fontSize:10, fontWeight:800, marginTop:2,
+                      color: isOverdue(missao.prazo) ? "#f43f5e" : "#fbbf24" }}>
+                      ⏰ {isOverdue(missao.prazo) ? "Prazo expirado" : `Até ${fmtDate(missao.prazo)}`}
+                    </div>
+                  )}
                 </div>
                 <div style={{ fontSize:11, fontWeight:800, color: concluida ? "#64748b" : CYN }}>+{missao.xp} XP</div>
               </div>
