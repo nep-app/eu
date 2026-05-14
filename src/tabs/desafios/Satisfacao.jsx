@@ -122,32 +122,42 @@ export default function Satisfacao({ user, data }) {
               ))}
             </div>
 
-            {/* FRASES PRÉ-FEITAS (CHIPS) - Aparecem só depois de dar a nota */}
-            {score > 0 && (
-              <div style={{ animation: "fadeIn 0.3s ease-out" }}>
-                <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 800, marginBottom: 8 }}>O QUE DESTACAS? (Opcional)</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 15 }}>
-                  {cat.chips.map(chip => {
-                    const isSel = myChips.includes(chip);
-                    return (
-                      <button key={chip} onClick={() => toggleChip(cat.id, chip)} style={{
-                        padding: "8px 12px", borderRadius: 12, fontSize: 11, fontWeight: 800, cursor: "pointer", border: "none", transition: "0.2s",
-                        background: isSel ? PNK : "rgba(255,255,255,0.05)",
-                        color: isSel ? "#000" : "#cbd5e1"
-                      }}>
-                        {chip}
-                      </button>
-                    )
-                  })}
-                </div>
+            {/* FRASES PRÉ-FEITAS (CHIPS) */}
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 800, letterSpacing: 1.5, marginBottom: 8, textTransform: "uppercase" }}>
+                O que destacas? <span style={{ opacity: 0.6 }}>(opcional)</span>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                {cat.chips.map(chip => {
+                  const isSel = myChips.includes(chip);
+                  return (
+                    <button key={chip} onClick={() => toggleChip(cat.id, chip)} style={{
+                      padding: "7px 13px", borderRadius: 20, fontSize: 12, fontWeight: 700,
+                      cursor: "pointer", transition: "all 0.18s",
+                      border: isSel ? `1.5px solid ${PNK}` : "1.5px solid rgba(255,255,255,0.10)",
+                      background: isSel ? `${PNK}22` : "rgba(255,255,255,0.04)",
+                      color: isSel ? PNK : "#94a3b8",
+                      transform: isSel ? "scale(1.04)" : "scale(1)",
+                    }}>
+                      {chip}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-                <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 800, marginBottom: 8 }}>TENS MAIS ALGUMA COISA A DIZER? (Opcional)</div>
-                <textarea 
-                  value={myR.comment || ""} 
-                  onChange={(e) => handleComment(cat.id, e.target.value)} 
-                  style={{ ...INP, marginBottom: 0, fontSize: 13, background: "rgba(0,0,0,0.2)" }} 
-                  rows={2} 
-                  placeholder="Escreve aqui outros comentários ou justifica a tua escolha..." 
+            {/* COMENTÁRIO LIVRE - só aparece depois de seleccionar uma nota */}
+            {score > 0 && (
+              <div className="fade-up">
+                <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 800, letterSpacing: 1.5, marginBottom: 6, textTransform: "uppercase" }}>
+                  Tens mais alguma coisa a dizer? <span style={{ opacity: 0.6 }}>(opcional)</span>
+                </div>
+                <textarea
+                  value={myR.comment || ""}
+                  onChange={(e) => handleComment(cat.id, e.target.value)}
+                  style={{ ...INP, marginBottom: 0, fontSize: 13, background: "rgba(0,0,0,0.15)", resize: "none" }}
+                  rows={2}
+                  placeholder="Escreve aqui outros comentários..."
                 />
               </div>
             )}
