@@ -131,29 +131,24 @@ export default function HomeExtras({ user, data, setTab }) {
         </div>
       )}
 
-      {/* ── DESTAQUES DA SEMANA (TOP 3 sem ordem/hierarquia) ────────── */}
-      <div style={CARD}>
-        <div style={SL}>⭐ Destaques da Semana</div>
-        {destaquesXp.length === 0 ? (
-          <div style={{ textAlign:"center", padding:"16px 0", color:"#64748b", fontSize:13 }}>
-            Ainda sem destaques esta semana.
+      {/* ── DESTAQUES DA SEMANA ───────────────────────────────────── */}
+      {destaquesXp.length > 0 && (
+        <div style={{ ...CARD, background:"rgba(14,36,68,0.6)", border:"1px solid rgba(50,199,255,0.10)" }}>
+          <div style={{ fontSize:10, fontWeight:800, letterSpacing:2, color:"#5a7a9a", textTransform:"uppercase", marginBottom:12 }}>
+            ⭐ Esta semana brilharam
           </div>
-        ) : (
-          <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
+          <div style={{ fontSize:16, fontWeight:800, lineHeight:1.8, color:"#94a3b8" }}>
             {destaquesXp.map((jovem, i) => (
-              <div key={jovem.username} style={{
-                flex: i === 1 ? "2 1 55%" : "1 1 38%",
-                padding:"14px 16px", borderRadius:18,
-                background:`${jovem.color}10`, border:`1px solid ${jovem.color}28`,
-                display:"flex", alignItems:"center", justifyContent:"space-between",
-              }}>
-                <span style={{ fontSize:14, fontWeight:900, color:jovem.color }}>{jovem.name}</span>
-                <span style={{ fontSize:16 }}>✨</span>
-              </div>
+              <span key={jovem.username}>
+                <span style={{ color:jovem.color, fontWeight:900 }}>{jovem.name}</span>
+                {i < destaquesXp.length - 2 && ", "}
+                {i === destaquesXp.length - 2 && " e "}
+              </span>
             ))}
+            <span style={{ fontSize:18, marginLeft:6 }}>✨</span>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* ── MENSAGEM À TERESA ────────────────────────────────────────── */}
       <div style={CARD}>

@@ -117,7 +117,7 @@ export default function ForumPost({ post, user, canalAtivo }) {
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               <span style={{ fontSize:10, color:TXT_MUT, flexShrink:0 }}>{post.time}</span>
-              {post.username === user.username && (
+              {(post.username === user.username || (!post.username && post.user === user.realName)) && (
                 <>
                   <button onClick={() => setEditando(!editando)} style={{ background: editando ? "rgba(50,199,255,0.12)" : "rgba(255,255,255,0.06)", border:"none", cursor:"pointer", fontSize:12, padding:"3px 8px", borderRadius:8, color: editando ? "#32C7FF" : "#8ba3be" }}>✏️</button>
                   <button onClick={handleApagarPost} style={{ background:"rgba(244,63,94,0.1)", border:"none", cursor:"pointer", fontSize:12, padding:"3px 8px", borderRadius:8, color:"#f43f5e" }}>🗑️</button>

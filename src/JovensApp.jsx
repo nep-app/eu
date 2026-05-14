@@ -56,19 +56,16 @@ export default function JovensApp({ user, onLogout }) {
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       <div style={{ position:"relative", padding:"20px 20px 16px", overflow:"hidden",
-        background:`linear-gradient(160deg, ${user.color}15 0%, rgba(7,21,41,0) 60%)`,
-        borderBottom:"1px solid rgba(255,255,255,0.08)" }}>
+        background:`linear-gradient(160deg, rgba(14,36,68,0.95) 0%, rgba(10,25,52,0.92) 100%)`,
+        borderBottom:"1px solid rgba(50,199,255,0.10)" }}>
 
-        {/* Glow orb */}
-        <div style={{ position:"absolute", top:-50, right:-30, width:180, height:180, borderRadius:"50%",
-          background:`radial-gradient(circle, ${user.color}22, transparent 68%)`, pointerEvents:"none" }}/>
+        {/* Subtle user-color glow */}
+        <div style={{ position:"absolute", top:-40, left:-20, width:160, height:160, borderRadius:"50%",
+          background:`radial-gradient(circle, ${user.color}18, transparent 70%)`, pointerEvents:"none" }}/>
 
-        <div style={{ display:"flex", alignItems:"flex-start", gap:14, position:"relative" }}>
-          {/* Logo */}
-          <img src={logoImg} alt="JEEP" style={{ width:48, height:48, objectFit:"contain", flexShrink:0, marginTop:2 }} />
-
-          {/* Info + Sair */}
-          <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", position:"relative" }}>
+          {/* Left: info + Sair */}
+          <div>
             <div style={{ fontSize:11, color:TXT_MUT, fontWeight:600, letterSpacing:0.3 }}>Olá,</div>
             <div style={{ fontSize:22, fontWeight:900, color:"#ffffff", lineHeight:1.15, letterSpacing:-0.3 }}>{user.realName}</div>
             <div style={{ display:"flex", gap:6, marginTop:6, flexWrap:"wrap", alignItems:"center" }}>
@@ -84,11 +81,13 @@ export default function JovensApp({ user, onLogout }) {
               </div>
             </div>
             <button onClick={onLogout} style={{ marginTop:8, background:"none", border:"none",
-              color:TXT_MUT, fontSize:11, cursor:"pointer", fontWeight:600, padding:0,
-              letterSpacing:0.3, opacity:0.7 }}>
+              color:"#5a7a9a", fontSize:11, cursor:"pointer", fontWeight:600, padding:0, letterSpacing:0.2 }}>
               Sair →
             </button>
           </div>
+
+          {/* Right: logo */}
+          <img src={logoImg} alt="JEEP" style={{ width:56, height:56, objectFit:"contain", flexShrink:0, opacity:0.92 }} />
         </div>
       </div>
 
