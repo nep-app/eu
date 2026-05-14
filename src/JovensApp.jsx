@@ -55,16 +55,15 @@ export default function JovensApp({ user, onLogout }) {
     <div style={{ minHeight:"100vh", background:BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif" }}>
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      <div style={{ position:"relative", padding:"20px 20px 16px", overflow:"hidden",
-        background:`linear-gradient(160deg, rgba(14,36,68,0.95) 0%, rgba(10,25,52,0.92) 100%)`,
-        borderBottom:"1px solid rgba(50,199,255,0.10)" }}>
+      <div style={{ position:"relative", padding:"18px 20px 16px", overflow:"hidden",
+        background:"linear-gradient(160deg, rgba(24,62,112,0.88) 0%, rgba(16,44,84,0.84) 100%)",
+        borderBottom:"1px solid rgba(50,199,255,0.12)" }}>
 
-        {/* Subtle user-color glow */}
         <div style={{ position:"absolute", top:-40, left:-20, width:160, height:160, borderRadius:"50%",
-          background:`radial-gradient(circle, ${user.color}18, transparent 70%)`, pointerEvents:"none" }}/>
+          background:`radial-gradient(circle, ${user.color}14, transparent 70%)`, pointerEvents:"none" }}/>
 
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", position:"relative" }}>
-          {/* Left: info + Sair */}
+          {/* Left: greeting + badges */}
           <div>
             <div style={{ fontSize:11, color:TXT_MUT, fontWeight:600, letterSpacing:0.3 }}>Olá,</div>
             <div style={{ fontSize:22, fontWeight:900, color:"#ffffff", lineHeight:1.15, letterSpacing:-0.3 }}>{user.realName}</div>
@@ -80,14 +79,16 @@ export default function JovensApp({ user, onLogout }) {
                 ⚡ {weekXp} XP
               </div>
             </div>
-            <button onClick={onLogout} style={{ marginTop:8, background:"none", border:"none",
-              color:"#5a7a9a", fontSize:11, cursor:"pointer", fontWeight:600, padding:0, letterSpacing:0.2 }}>
+          </div>
+
+          {/* Right: logo + Sair */}
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6, flexShrink:0 }}>
+            <img src={logoImg} alt="JEEP" style={{ width:68, height:68, objectFit:"contain", opacity:0.95 }} />
+            <button onClick={onLogout} style={{ background:"none", border:"none",
+              color:"#5a7a9a", fontSize:10, cursor:"pointer", fontWeight:600, padding:0, letterSpacing:0.2 }}>
               Sair →
             </button>
           </div>
-
-          {/* Right: logo */}
-          <img src={logoImg} alt="JEEP" style={{ width:56, height:56, objectFit:"contain", flexShrink:0, opacity:0.92 }} />
         </div>
       </div>
 

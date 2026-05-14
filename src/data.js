@@ -36,7 +36,7 @@ export function getWeekKey() {
   return d.getFullYear()+"-W"+wk;
 }
 
-export const ALLOWED_USERNAMES = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","teresa","ricardo"];
+export const ALLOWED_USERNAMES = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","marisa","teresa","ricardo"];
 export const SPECIAL_USERS = ["teresa","ricardo"];
 export const USERS = [
   { username:"nilton",   realName:"Nilton",   color:"#22d3ee" },
@@ -58,6 +58,7 @@ export const JEEP_LIST = [
   { name:"Rudmilo",  username:"rudmilo",  color:"#fbbf24", entidade:"", estado:"verde" },
   { name:"Bruno",    username:"bruno",    color:"#60a5fa", entidade:"", estado:"verde" },
   { name:"Salimo",   username:"salimo",   color:"#f87171", entidade:"", estado:"verde" },
+  { name:"Marisa",   username:"marisa",   color:"#fb923c", entidade:"", estado:"verde" },
   { name:"Teresa",   username:"teresa",   color:"#e2e8f0", entidade:"(teste)", estado:"verde" },
   { name:"Ricardo",  username:"ricardo",  color:"#2dd4bf", entidade:"(teste)", estado:"verde" },
 ];
@@ -190,12 +191,18 @@ export const SWOT_Q = [
 ];
 
 export const ALL_MEDALS = [
-  { id:"proativo",    icon:"🎯", label:"Proatividade",       desc:"Agiu por iniciativa própria" },
-  { id:"equipa",      icon:"🤝", label:"Espírito de Equipa", desc:"Apoiou os colegas de forma notável" },
-  { id:"criativo",    icon:"💡", label:"Criatividade",       desc:"Propôs ou executou uma ideia original" },
-  { id:"destaque",    icon:"⭐", label:"Destaque da Semana", desc:"Momento especial reconhecido pela GO" },
-  { id:"pia",         icon:"📋", label:"PIA Completo",       desc:"Completou o Plano Individual de Ação" },
-  { id:"evolucao",    icon:"📈", label:"Evolução",           desc:"Progresso notável desde o início" },
+  { id:"proativo",    icon:"🎯", label:"Proatividade",         desc:"Tomou iniciativa sem que ninguém pedisse — identificou uma necessidade e agiu." },
+  { id:"equipa",      icon:"🤝", label:"Espírito de Equipa",   desc:"Apoiou os colegas de forma notável, colocando o grupo à frente do individual." },
+  { id:"criativo",    icon:"💡", label:"Criatividade",         desc:"Propôs ou executou uma ideia original que fez a diferença no espaço." },
+  { id:"destaque",    icon:"⭐", label:"Destaque da Semana",   desc:"Momento especial reconhecido pela GO — esta semana brilhaste." },
+  { id:"pia",         icon:"📋", label:"PIA Completo",         desc:"Entregou e trabalhou o Plano Individual de Ação com rigor e comprometimento." },
+  { id:"evolucao",    icon:"📈", label:"Evolução",             desc:"Progresso notável e visível desde o início do programa — estás a crescer." },
+  { id:"pontual",     icon:"⏰", label:"Pontualidade",         desc:"Demonstrou consistência e respeito pelo tempo dos outros esta semana." },
+  { id:"coragem",     icon:"🦁", label:"Coragem",              desc:"Enfrentou uma situação desafiante ou desconfortável com determinação." },
+  { id:"presenca",    icon:"🌟", label:"Presença Marcante",    desc:"A tua energia e atitude positiva elevou o grupo esta semana." },
+  { id:"curiosidade", icon:"🔍", label:"Curiosidade",          desc:"Fez perguntas, investigou e foi além do que foi pedido para aprender mais." },
+  { id:"comunicacao", icon:"🗣", label:"Comunicação",          desc:"Comunicou de forma clara, assertiva e empática em situações difíceis." },
+  { id:"superacao",   icon:"🏆", label:"Superação",            desc:"Ultrapassou um obstáculo pessoal ou profissional que parecia impossível." },
 ];
 
 export const PIA_FIELDS = [
@@ -218,7 +225,7 @@ export const EC = { verde:"#4ade80", amarelo:"#fbbf24", vermelho:"#f87171" };
 export const DEF_PIA   = { oQue:"",paraQue:"",quanto:"",onde:"",recursos:"",comoSaber:"" };
 export const DEF_ACTS  = [{ oQue:"",quando:"",obj:"" },{ oQue:"",quando:"",obj:"" },{ oQue:"",quando:"",obj:"" },{ oQue:"",quando:"",obj:"" }];
 
-// MUDANÇA AQUI: Os valores de Roda e Scores começam agora em 1.
+// Valores por defeito: 0 em tudo
 export const DEF_RODA  = { familia:0,amigos:0,dinheiro:0,trabalho:0,cresc:0,saude:0,lazer:0 };
 export const DEF_DSCORES = { D1:0,D2:0,D3:0,D4:0,D5:0,D6:0 };
 export const DEF_DNOTAS  = { D1:"",D2:"",D3:"",D4:"",D5:"",D6:"" };

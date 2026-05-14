@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { doc, setDoc, addDoc, collection, deleteDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, BLUE, PNK, YLW, INP, Btn, TXT_MUT, GRN } from "../../theme.jsx";
-import { nowFull, getWeekKey, fmtDate, isOverdue } from "../../data.js";
+import { nowFull, getWeekKey, fmtDate, isOverdue, SPECIAL_USERS } from "../../data.js";
 
 export default function HomeExtras({ user, data, setTab }) {
   const [mensagemTexto, setMensagemTexto]           = useState("");
@@ -17,9 +17,10 @@ export default function HomeExtras({ user, data, setTab }) {
   const dayStreak          = uData.dayStreak || 0;
   const weekXp             = uData.weekXp || 0;
 
-  // Top 3 sem ordem de ranking para utilizadores normais
+  // Top 3 sem ordem de ranking — excluir utilizadores especiais (teste)
   const destaquesXp = Object.entries(rankingDados)
     .map(([username, d]) => ({ username, ...d }))
+    .filter(d => !SPECIAL_USERS.includes(d.username))
     .sort((a, b) => (b.xp || 0) - (a.xp || 0))
     .slice(0, 3)
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -74,22 +75,7 @@ export default function HomeExtras({ user, data, setTab }) {
         </div>
       )}
 
-      {/* ── STREAK + XP ──────────────────────────────────────────────── */}
-      {dayStreak > 0 && (
-        <div style={{ ...CARD, background:"linear-gradient(135deg, rgba(251,146,60,0.1), rgba(239,68,68,0.08))", border:"1px solid rgba(251,146,60,0.2)" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:16 }}>
-            <div style={{ fontSize:40, animation:"fire-pulse 1.8s ease-in-out infinite", lineHeight:1 }}>🔥</div>
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:22, fontWeight:900, color:"#fb923c" }}>{dayStreak} {dayStreak === 1 ? "dia" : "dias"}</div>
-              <div style={{ fontSize:12, color:"#94a3b8", marginTop:2 }}>seguido{dayStreak > 1 ? "s" : ""} a usar a app</div>
-            </div>
-            <div style={{ textAlign:"right" }}>
-              <div style={{ fontSize:18, fontWeight:900, color:CYN }}>{weekXp}</div>
-              <div style={{ fontSize:10, color:"#64748b", fontWeight:700 }}>XP ESTA SEM.</div>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* ── MISSÕES DE CAMPO ─────────────────────────────────────────── */}
       {missoesSemana.length > 0 && (

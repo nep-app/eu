@@ -89,7 +89,7 @@ export default function AutoAvaliacao({ user, data }) {
                 <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 20, lineHeight: 1.5 }}>{dim.desc}</div>
                 
                 {/* Slider */}
-                <input type="range" min="1" max="10" value={val} 
+                <input type="range" min="0" max="10" value={val}
                   onChange={async (e) => {
                     const nS = { ...(uData.dScores || {}), [dim.id]: Number(e.target.value) };
                     await setDoc(doc(db, "userData", user.username), { dScores: nS }, { merge: true });
