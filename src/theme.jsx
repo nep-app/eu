@@ -2,22 +2,23 @@ import React from 'react';
 import logoImg from './logo.png';
 
 // ── PALETA ───────────────────────────────────────────────────────────────────
-export const BG      = "#0f172a";   // slate-900 — escuro mas não preto
+export const BG      = "#1e2d45";   // navy médio — claramente mais claro que preto
 export const PRP     = "#a78bfa";
 export const CYN     = "#38bdf8";
 export const PNK     = "#f472b6";
 export const GRN     = "#4ade80";
 export const TXT_MAIN = "#f1f5f9";
-export const TXT_MUT  = "#64748b";
+export const TXT_MUT  = "#7a90b0";  // ligeiramente mais claro para melhor legibilidade
 
 // ── INJECÇÃO DE CSS GLOBAL ────────────────────────────────────────────────────
 if (typeof document !== 'undefined') {
-  document.body.style.backgroundColor = "#0f172a";
+  document.body.style.backgroundColor = BG;
   document.body.style.margin = "0";
   document.body.style.padding = "0";
   document.body.style.fontFamily = "'Inter', system-ui, -apple-system, sans-serif";
   document.body.style.color = TXT_MAIN;
   document.documentElement.style.backgroundColor = BG;
+  document.documentElement.style.background = BG;
 
   const style = document.createElement('style');
   style.innerHTML = `
@@ -64,7 +65,7 @@ if (typeof document !== 'undefined') {
 
 // ── CARTÕES ───────────────────────────────────────────────────────────────────
 export const CARD = {
-  background: "rgba(30, 41, 59, 0.75)",   // slate-800 translúcido — mais visível
+  background: "rgba(42, 62, 92, 0.80)",   // navy claro translúcido — contraste visível
   backdropFilter: "blur(16px)",
   WebkitBackdropFilter: "blur(16px)",
   borderRadius: "20px",

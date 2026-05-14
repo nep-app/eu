@@ -118,7 +118,7 @@ export default function JovensApp({ user, onLogout }) {
       {/* ── NAV BAR ────────────────────────────────────────────────────── */}
       <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
         width:"100%", maxWidth:420, zIndex:100,
-        background:"rgba(15,23,42,0.95)", backdropFilter:"blur(20px)",
+        background:"rgba(20,36,62,0.97)", backdropFilter:"blur(20px)",
         borderTop:"1px solid rgba(255,255,255,0.06)",
         display:"flex", padding:"12px 0 28px" }}>
         {NAV.map(([id, icon, label]) => {
