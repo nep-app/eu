@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, SL, CYN, PRP, RadarChart } from "../../theme.jsx";
+import { CARD, SL, CYN, PRP, RadarChart, INP } from "../../theme.jsx";
 import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, PIA_FIELDS, getWeekKey } from "../../data.js";
 
 export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
   const [userSelecionado, setUserSelecionado] = useState(null);
+  const [medalModal, setMedalModal]           = useState(null); // { username, medal }
+  const [medalMsg,   setMedalMsg]             = useState("");
 
   // Função para formatar o Timestamp (Milissegundos) para Dia/Mês e Horas
   function formatarDataHora(ts, dataAntiga) {
@@ -19,27 +21,43 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
   }
 
   // ── 1. LÓGICA DE ATRIBUIÇÃO DE MEDALHAS (semanal + histórico) ──
-  async function toggleAMedal(username, mid) {
+  async function assignMedal(username, mid, msg) {
     const medalDoc  = amMedals[username] || {};
     const weekKey   = getWeekKey();
     const curWeek   = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
     const allTime   = medalDoc.allTime || [];
-    const isAdding  = !curWeek.includes(mid);
-    const nextWeek  = isAdding ? [...curWeek, mid] : curWeek.filter(m => m !== mid);
-    const nextAllTime = isAdding && !allTime.includes(mid) ? [...allTime, mid] : allTime;
+    if (curWeek.includes(mid)) return; // já tem esta semana
 
-    const newDoc = { week: nextWeek, weekKey, allTime: nextAllTime };
+    const nextWeek    = [...curWeek, mid];
+    const nextAllTime = allTime.includes(mid) ? allTime : [...allTime, mid];
+    const newDoc      = { week: nextWeek, weekKey, allTime: nextAllTime };
+
     setAmMedals(p => upd(p, username, newDoc));
     await setDoc(doc(db, "medals", username), newDoc);
 
-    if (isAdding) {
-      const userRef  = doc(db, "userData", username);
-      const userSnap = await getDoc(userRef);
-      const uData    = userSnap.exists() ? userSnap.data() : {};
-      const newHistory = [...(uData.history || []),
-        { date: nowLabel(), action: `Conquistaste uma nova Medalha! 🏅`, ts: Date.now(), xp: 50 }];
-      await setDoc(userRef, { history: newHistory, weekXp: (uData.weekXp || 0) + 50 }, { merge: true });
-    }
+    const medal = ALL_MEDALS.find(m => m.id === mid);
+    const userRef  = doc(db, "userData", username);
+    const userSnap = await getDoc(userRef);
+    const uData    = userSnap.exists() ? userSnap.data() : {};
+    const newHistory = [...(uData.history || []),
+      { date: nowLabel(), action: `Recebeste a medalha ${medal?.icon} ${medal?.label}! 🏅`, ts: Date.now(), xp: 50 }];
+    await setDoc(userRef, { history: newHistory, weekXp: (uData.weekXp || 0) + 50 }, { merge: true });
+
+    const notifText = `🏅 A Teresa atribuiu-te a medalha ${medal?.icon} ${medal?.label}!${msg ? ` "${msg}"` : ""}`;
+    await addDoc(collection(db, "notifications", username, "items"), {
+      from:"teresa", text: notifText, date: nowLabel(), read: false
+    });
+  }
+
+  async function removeMedal(username, mid) {
+    if (!window.confirm("Remover esta medalha da semana atual?")) return;
+    const medalDoc = amMedals[username] || {};
+    const weekKey  = getWeekKey();
+    const curWeek  = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
+    const nextWeek = curWeek.filter(m => m !== mid);
+    const newDoc   = { ...medalDoc, week: nextWeek, weekKey };
+    setAmMedals(p => upd(p, username, newDoc));
+    await setDoc(doc(db, "medals", username), newDoc);
   }
 
   // ── 2. COMPONENTE DO MODAL (DOSSIER) ──
@@ -77,21 +95,41 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
                 </div>
               )}
             </div>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", marginBottom: allTimeMedals.length > 0 ? 16 : 0 }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", marginBottom: allTimeMedals.length > 0 ? 16 : 0 }}>
               {ALL_MEDALS.map(m => {
                 const hasWeek = weekMedals.includes(m.id);
                 const hasEver = allTimeMedals.includes(m.id);
                 return (
-                  <div key={m.id} onClick={() => toggleAMedal(username, m.id)} style={{
-                    flex: "1 0 30%", minWidth: 85, padding: "12px 5px", borderRadius: 16, textAlign: "center",
-                    background: hasWeek ? CYN : hasEver ? "rgba(50,199,255,0.08)" : "rgba(255,255,255,0.05)",
-                    cursor: "pointer", transition: "0.2s",
-                    border: hasWeek ? `2px solid ${CYN}` : hasEver ? `2px solid rgba(50,199,255,0.25)` : "2px solid transparent"
+                  <div key={m.id} style={{
+                    flex: "1 0 28%", minWidth: 90, padding: "10px 6px 8px", borderRadius: 16, textAlign: "center",
+                    background: hasWeek ? `${CYN}18` : hasEver ? "rgba(50,199,255,0.06)" : "rgba(255,255,255,0.04)",
+                    border: hasWeek ? `2px solid ${CYN}60` : hasEver ? `1.5px solid rgba(50,199,255,0.2)` : "1.5px solid rgba(255,255,255,0.07)",
+                    position: "relative",
                   }}>
-                    <div style={{ fontSize: 22, marginBottom: 4 }}>{m.icon}</div>
-                    <div style={{ fontSize: 9, fontWeight: 900, color: hasWeek ? "#071529" : hasEver ? CYN : "#94a3b8" }}>
+                    {/* Remove button if assigned this week */}
+                    {hasWeek && (
+                      <button onClick={() => removeMedal(username, m.id)} style={{
+                        position:"absolute", top:4, right:4, background:"rgba(244,63,94,0.15)",
+                        border:"none", color:"#f43f5e", fontSize:10, borderRadius:6,
+                        cursor:"pointer", padding:"1px 5px", fontWeight:900, lineHeight:1.4,
+                      }}>✕</button>
+                    )}
+                    <div style={{ fontSize: 24, marginBottom: 4 }}>{m.icon}</div>
+                    <div style={{ fontSize: 9, fontWeight: 900, color: hasWeek ? CYN : hasEver ? "#5a7a9a" : "#475569", marginBottom: 4 }}>
                       {m.label.toUpperCase()}
                     </div>
+                    {!hasWeek && (
+                      <button onClick={() => { setMedalModal({ username, medal: m }); setMedalMsg(""); }} style={{
+                        background: "rgba(50,199,255,0.12)", border:`1px solid ${CYN}30`,
+                        color: CYN, fontSize:9, fontWeight:900, borderRadius:8,
+                        padding:"3px 8px", cursor:"pointer", width:"100%",
+                      }}>
+                        + Atribuir
+                      </button>
+                    )}
+                    {hasWeek && (
+                      <div style={{ fontSize:8, color:"#5a7a9a", fontWeight:700 }}>✓ Esta semana</div>
+                    )}
                   </div>
                 );
               })}
@@ -263,10 +301,50 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
       })}
 
       {userSelecionado && (
-        <DossierModal 
-          username={userSelecionado} 
-          onClose={() => setUserSelecionado(null)} 
+        <DossierModal
+          username={userSelecionado}
+          onClose={() => setUserSelecionado(null)}
         />
+      )}
+
+      {/* ── MODAL DE ATRIBUIÇÃO DE MEDALHA ── */}
+      {medalModal && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.88)", zIndex:1100,
+          display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
+          <div style={{ ...CARD, maxWidth:360, width:"100%", padding:28 }}>
+            <div style={{ fontSize:48, textAlign:"center", marginBottom:8 }}>{medalModal.medal.icon}</div>
+            <div style={{ fontWeight:900, fontSize:17, textAlign:"center", color:CYN, marginBottom:4 }}>
+              {medalModal.medal.label}
+            </div>
+            <div style={{ fontSize:12, color:"#94a3b8", lineHeight:1.65, marginBottom:18, textAlign:"center" }}>
+              {medalModal.medal.desc}
+            </div>
+            <div style={{ fontSize:10, color:"#5a7a9a", fontWeight:800, marginBottom:6, textTransform:"uppercase", letterSpacing:0.8 }}>
+              Mensagem opcional para o jovem
+            </div>
+            <textarea value={medalMsg} onChange={e => setMedalMsg(e.target.value)}
+              style={{ ...INP, resize:"none", marginBottom:18, fontSize:13 }} rows={3}
+              placeholder="Ex: Foste incrível hoje na sessão! 🌟" />
+            <div style={{ display:"flex", gap:10 }}>
+              <button onClick={() => setMedalModal(null)} style={{
+                flex:1, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)",
+                color:"#94a3b8", borderRadius:12, padding:"12px", fontWeight:900, fontSize:13, cursor:"pointer",
+              }}>
+                Cancelar
+              </button>
+              <button onClick={async () => {
+                await assignMedal(medalModal.username, medalModal.medal.id, medalMsg);
+                setMedalModal(null);
+                setMedalMsg("");
+              }} style={{
+                flex:2, background:CYN, border:"none", color:"#071529",
+                borderRadius:12, padding:"12px", fontWeight:900, fontSize:13, cursor:"pointer",
+              }}>
+                ✓ Atribuir Medalha
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
