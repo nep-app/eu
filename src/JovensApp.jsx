@@ -54,43 +54,43 @@ export default function JovensApp({ user, onLogout }) {
     <div style={{ minHeight:"100vh", background:BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif" }}>
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      <div style={{ position:"relative", padding:"20px 20px 22px", overflow:"hidden",
-        background:`linear-gradient(135deg, ${user.color}22 0%, rgba(56,189,248,0.08) 100%)`,
-        borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+      <div style={{ position:"relative", padding:"22px 20px 20px", overflow:"hidden",
+        background:`linear-gradient(160deg, ${user.color}18 0%, rgba(13,24,41,0) 60%)`,
+        borderBottom:"1px solid rgba(255,255,255,0.08)" }}>
 
-        {/* Glow orb de fundo */}
-        <div style={{ position:"absolute", top:-40, right:-40, width:140, height:140, borderRadius:"50%",
-          background:`radial-gradient(circle, ${user.color}30, transparent 70%)`, pointerEvents:"none" }}/>
+        {/* Glow orb */}
+        <div style={{ position:"absolute", top:-50, right:-30, width:180, height:180, borderRadius:"50%",
+          background:`radial-gradient(circle, ${user.color}22, transparent 68%)`, pointerEvents:"none" }}/>
 
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", position:"relative" }}>
           {/* Avatar + info */}
           <div style={{ display:"flex", alignItems:"center", gap:14 }}>
             <div style={{ position:"relative" }}>
-              <div style={{ width:48, height:48, borderRadius:"50%",
+              <div style={{ width:52, height:52, borderRadius:16,
                 background:`linear-gradient(135deg, ${user.color}, ${user.color}88)`,
                 display:"flex", alignItems:"center", justifyContent:"center",
-                fontSize:20, fontWeight:900, color:"#0f172a",
-                boxShadow:`0 0 0 3px ${user.color}30, 0 4px 16px ${user.color}30` }}>
+                fontSize:22, fontWeight:900, color:"#0d1829",
+                boxShadow:`0 0 0 2px ${user.color}40, 0 8px 20px ${user.color}25` }}>
                 {user.realName[0]}
               </div>
               {dayStreak > 0 && (
-                <div style={{ position:"absolute", bottom:-4, right:-4, fontSize:14,
+                <div style={{ position:"absolute", bottom:-5, right:-5, fontSize:15,
                   animation:"fire-pulse 1.8s ease-in-out infinite" }}>🔥</div>
               )}
             </div>
 
             <div>
-              <div style={{ fontSize:11, color:TXT_MUT, fontWeight:700, letterSpacing:0.5 }}>Olá,</div>
-              <div style={{ fontSize:19, fontWeight:900, color:"#f1f5f9", lineHeight:1.2 }}>{user.realName}</div>
-              <div style={{ display:"flex", gap:6, marginTop:5, flexWrap:"wrap" }}>
+              <div style={{ fontSize:11, color:TXT_MUT, fontWeight:600, letterSpacing:0.3 }}>Olá,</div>
+              <div style={{ fontSize:21, fontWeight:900, color:"#ffffff", lineHeight:1.15, letterSpacing:-0.3 }}>{user.realName}</div>
+              <div style={{ display:"flex", gap:6, marginTop:6, flexWrap:"wrap" }}>
                 {dayStreak > 0 && (
-                  <div style={{ fontSize:10, background:"rgba(251,146,60,0.15)", border:"1px solid rgba(251,146,60,0.3)",
-                    borderRadius:20, padding:"2px 9px", fontWeight:800, color:"#fb923c" }}>
+                  <div style={{ fontSize:10, background:"rgba(251,146,60,0.18)", border:"1px solid rgba(251,146,60,0.35)",
+                    borderRadius:20, padding:"3px 10px", fontWeight:800, color:"#fb923c" }}>
                     🔥 {dayStreak} dia{dayStreak > 1 ? "s" : ""}
                   </div>
                 )}
-                <div style={{ fontSize:10, background:"rgba(56,189,248,0.12)", border:"1px solid rgba(56,189,248,0.25)",
-                  borderRadius:20, padding:"2px 9px", fontWeight:800, color:CYN }}>
+                <div style={{ fontSize:10, background:"rgba(56,189,248,0.15)", border:"1px solid rgba(56,189,248,0.30)",
+                  borderRadius:20, padding:"3px 10px", fontWeight:800, color:CYN }}>
                   ⚡ {weekXp} XP
                 </div>
               </div>
@@ -98,8 +98,8 @@ export default function JovensApp({ user, onLogout }) {
           </div>
 
           {/* Botão sair */}
-          <button onClick={onLogout} style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)",
-            color:TXT_MUT, padding:"7px 16px", borderRadius:20, fontSize:11, cursor:"pointer", fontWeight:700,
+          <button onClick={onLogout} style={{ background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)",
+            color:"#ffffff", padding:"8px 16px", borderRadius:20, fontSize:11, cursor:"pointer", fontWeight:700,
             transition:"all 0.2s" }}>
             Sair
           </button>
@@ -118,7 +118,7 @@ export default function JovensApp({ user, onLogout }) {
       {/* ── NAV BAR ────────────────────────────────────────────────────── */}
       <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
         width:"100%", maxWidth:420, zIndex:100,
-        background:"rgba(20,36,62,0.97)", backdropFilter:"blur(20px)",
+        background:"rgba(10,18,32,0.97)", backdropFilter:"blur(24px)",
         borderTop:"1px solid rgba(255,255,255,0.06)",
         display:"flex", padding:"12px 0 28px" }}>
         {NAV.map(([id, icon, label]) => {

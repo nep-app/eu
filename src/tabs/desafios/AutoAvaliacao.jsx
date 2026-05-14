@@ -98,10 +98,11 @@ export default function AutoAvaliacao({ user, data }) {
                 />
                 
                 {/* Badge da Nota */}
-                <div style={{ textAlign: "center", margin: "20px 0" }}>
-                  <div style={{ display: "inline-block", padding: "8px 20px", borderRadius: "12px", background: "rgba(0,0,0,0.3)", border: `1px solid ${status[1]}` }}>
-                    <span style={{ fontSize: 24, fontWeight: 900, color: status[1] }}>{val}</span>
-                    <span style={{ marginLeft: 10, fontSize: 12, fontWeight: 800, color: status[1], textTransform: "uppercase" }}>{status[0]}</span>
+                <div style={{ display:"flex", alignItems:"center", gap:12, margin:"16px 0", padding:"14px 18px", borderRadius:16, background:`${status[1]}12`, border:`1px solid ${status[1]}30` }}>
+                  <span style={{ fontSize:40, fontWeight:900, color:"#ffffff", lineHeight:1 }}>{val}</span>
+                  <div>
+                    <div style={{ fontSize:13, fontWeight:900, color:status[1], textTransform:"uppercase", letterSpacing:0.5 }}>{status[0]}</div>
+                    <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)", marginTop:2 }}>em 10 possíveis</div>
                   </div>
                 </div>
 
