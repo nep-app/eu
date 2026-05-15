@@ -160,7 +160,7 @@ export default function PerfilTab({ user, data }) {
     const isUnlocked = capData.unlocked;
 
     // cap2 not yet unlocked by admin — default locked state
-    if (isSlot2 && !isUnlocked && !isRevealed) return (
+    if (!isUnlocked && !isSealed && !isRevealed) return (
       <div style={{ ...CARD, borderTop:`2px solid ${accent}` }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
           <span style={{ fontSize:24 }}>💌</span>

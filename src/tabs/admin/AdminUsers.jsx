@@ -224,19 +224,76 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
               : <div style={{ textAlign:"center", color:"#475569", padding:20, fontSize:13 }}>Sem dados.</div>}
           </div>
 
-          {/* PIA */}
+          {/* SECÇÃO: PIA */}
           <div style={CARD}>
-            <div style={SL}>🚀 Plano Individual (PIA)</div>
-            {uData.pia
-              ? <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                  {PIA_FIELDS.map(f => (
-                    <div key={f.key} style={{ background:"rgba(0,0,0,0.2)", padding:"10px 12px", borderRadius:12 }}>
-                      <div style={{ fontSize:10, fontWeight:900, color:CYN, marginBottom:2 }}>{f.title}</div>
-                      <div style={{ fontSize:13, color:"#e2e8f0" }}>{uData.pia[f.key] || "---"}</div>
-                    </div>
-                  ))}
+            <div style={SL}>🚀 Plano Individual de Ação (PIA)</div>
+            {(() => {
+              const piaUnlocked = uData.piaUnlocked || {};
+              const piaData     = uData.piaData     || {};
+              async function togglePiaSection(sectionId) {
+                const current = piaUnlocked[sectionId] || false;
+                await setDoc(doc(db, "userData", username), {
+                  piaUnlocked: { ...piaUnlocked, [sectionId]: !current }
+                }, { merge: true });
+              }
+              const PIA_SECTIONS_MINI = [
+                { id:"s1", title:"Identificação", icon:"👤" },
+                { id:"s2", title:"Diagnóstico",   icon:"🔍" },
+                { id:"s3", title:"Atributos",      icon:"⭐" },
+                { id:"s4", title:"Projeto",        icon:"🚀" },
+                { id:"s5", title:"Monitorização",  icon:"📈" },
+              ];
+              return (
+                <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                  {PIA_SECTIONS_MINI.map((sec, idx) => {
+                    const isOpen = piaUnlocked[sec.id] || false;
+                    const secData = piaData[sec.id] || {};
+                    const filled = Object.values(secData).filter(v => v?.trim?.()).length;
+                    return (
+                      <div key={sec.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", borderRadius:12, background:"rgba(0,0,0,0.2)", border: isOpen ? `1px solid ${CYN}30` : "1px solid transparent" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                          <span style={{ fontSize:18 }}>{sec.icon}</span>
+                          <div>
+                            <div style={{ fontSize:12, fontWeight:800, color: isOpen ? "#f1f5f9" : "#64748b" }}>{idx+1}. {sec.title}</div>
+                            {isOpen && filled > 0 && <div style={{ fontSize:10, color:CYN }}>{filled} campo(s) preenchido(s)</div>}
+                          </div>
+                        </div>
+                        <button onClick={() => togglePiaSection(sec.id)} style={{
+                          background: isOpen ? "rgba(244,63,94,0.12)" : "rgba(50,199,255,0.12)",
+                          border: isOpen ? "1px solid rgba(244,63,94,0.3)" : `1px solid ${CYN}30`,
+                          color: isOpen ? "#f43f5e" : CYN,
+                          borderRadius:8, padding:"5px 12px", fontWeight:900, fontSize:11, cursor:"pointer",
+                        }}>{isOpen ? "🔒 Bloquear" : "🔓 Abrir"}</button>
+                      </div>
+                    );
+                  })}
                 </div>
-              : <div style={{ textAlign:"center", color:"#475569", fontSize:13 }}>PIA por preencher.</div>}
+              );
+            })()}
+          </div>
+
+          {/* SECÇÃO: CÁPSULA DE MEIO-CAMINHO */}
+          <div style={CARD}>
+            <div style={SL}>💌 Cápsula de Meio-Caminho</div>
+            {(() => {
+              const cap1 = uData.cap || {};
+              return (
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 14px", borderRadius:12, background:"rgba(0,0,0,0.2)" }}>
+                  <div>
+                    <div style={{ fontSize:12, fontWeight:800 }}>
+                      {!cap1.unlocked ? "🔐 Fechada" : cap1.locked ? "✅ Entregue pelo jovem" : "📝 Aberta para escrita"}
+                    </div>
+                    {cap1.locked && cap1.sealedAt && <div style={{ fontSize:10, color:"#64748b", marginTop:2 }}>Selada: {cap1.sealedAt}</div>}
+                  </div>
+                  <button onClick={() => setDoc(doc(db,"userData",username),{cap:{...cap1,unlocked:!cap1.unlocked}},{merge:true})} style={{
+                    background: cap1.unlocked ? "rgba(244,63,94,0.15)" : "rgba(50,199,255,0.15)",
+                    border: cap1.unlocked ? "1px solid rgba(244,63,94,0.3)" : "1px solid rgba(50,199,255,0.3)",
+                    color: cap1.unlocked ? "#f43f5e" : CYN,
+                    borderRadius:10, padding:"6px 14px", fontWeight:900, fontSize:11, cursor:"pointer",
+                  }}>{cap1.unlocked ? "🔒 Fechar" : "🔓 Abrir"}</button>
+                </div>
+              );
+            })()}
           </div>
 
           {/* CÁPSULA FINAL */}

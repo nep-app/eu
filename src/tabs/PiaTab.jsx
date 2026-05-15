@@ -1,250 +1,161 @@
 import React, { useState } from 'react';
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../firebase.js";
-import { CARD, SL, INP, Btn, CYN, PNK, SubTabs } from "../theme.jsx";
-import { nowFull, PIA_FIELDS } from "../data.js";
+import { CARD, SL, INP, CYN, GRN, TXT_MUT } from "../theme.jsx";
+import { PIA_SECTIONS, nowFull } from "../data.js";
 
 export default function PiaTab({ user, data }) {
-  // ── ESTADOS DE NAVEGAÇÃO ──
-  const [subTab, setSubTab] = useState("planeamento");
-
   const uData = data.userData || {};
+  const piaUnlocked = uData.piaUnlocked || {};
+  const piaData     = uData.piaData     || {};
+  const [sending, setSending] = useState(false);
 
-  // ── ESTADOS DOS DADOS DO PIA ──
-  const [pia, setPia] = useState(uData.pia || {});
-  const [piaActs, setPiaActs] = useState(uData.piaActs || [
-    { oQue: "", quando: "", obj: "" },
-    { oQue: "", quando: "", obj: "" }
-  ]);
-  const [swotPia, setSwotPia] = useState(uData.swotPia || {
-    f: "", a: "", o: "", r: ""
-  });
-
-  // ── CÁLCULO DO TERMÓMETRO DO PIA ──
-  const fields = PIA_FIELDS || []; 
-  const totalPia = fields.length + (piaActs.length * 3);
-  
-  let filledPia = fields.filter(f => pia[f.key] && pia[f.key].trim() !== "").length;
-  piaActs.forEach(act => {
-    if (act.oQue?.trim()) filledPia++;
-    if (act.quando?.trim()) filledPia++;
-    if (act.obj?.trim()) filledPia++;
-  });
-  
-  const progPia = totalPia > 0 ? Math.round((filledPia / totalPia) * 100) : 0;
-
-  // ── HELPERS: ATUALIZAR ESTADOS LOCAIS E FIREBASE TEMPORÁRIO ──
-  const updatePia = (key, val) => {
-    const newPia = { ...pia, [key]: val };
-    setPia(newPia);
-    setDoc(doc(db, "userData", user.username), { pia: newPia }, { merge: true });
-  };
-
-  const updateAct = (idx, field, val) => {
-    const newActs = [...piaActs];
-    newActs[idx] = { ...newActs[idx], [field]: val };
-    setPiaActs(newActs);
-    setDoc(doc(db, "userData", user.username), { piaActs: newActs }, { merge: true });
-  };
-
-  const updateSwot = (id, val) => {
-    const newSwot = { ...swotPia, [id]: val };
-    setSwotPia(newSwot);
-    setDoc(doc(db, "userData", user.username), { swotPia: newSwot }, { merge: true });
-  };
-
-  // ── FUNÇÕES DE GUARDAR E ENVIAR ──
-  async function savePia(share) {
-    try {
-      const ts = nowFull();
-      const today = new Date().toDateString();
-      const yesterday = new Date(Date.now() - 86400000).toDateString();
-      const newStreak = uData.lastActiveDay === today ? (uData.dayStreak || 1) : (uData.lastActiveDay === yesterday ? (uData.dayStreak || 0) + 1 : 1);
-      const streakUpdate = uData.lastActiveDay !== today ? { dayStreak: newStreak, lastActiveDay: today } : {};
-      const newH = [...(data.history || [])];
-      if (share) newH.push({ date: ts, action: "Enviou o Plano (PIA) à Teresa", ts: Date.now() });
-      else newH.push({ date: ts, action: "Guardou o PIA (privado)", ts: Date.now() });
-
-      await setDoc(doc(db, "userData", user.username), {
-        pia, piaActs, piaSaved: true, piaShared: share, piaSavedAt: ts,
-        history: newH,
-        weekXp: (uData.weekXp || 0) + (uData.piaSaved ? 0 : 10),
-        ...streakUpdate
-      }, { merge: true });
-
-      alert(share ? "Enviado com sucesso para a Teresa! 🚀" : "Guardado em modo privado. ✨");
-    } catch (e) {
-      alert("Erro ao guardar o PIA.");
-    }
+  function saveField(sectionId, key, val) {
+    const newSectionData = { ...(piaData[sectionId] || {}), [key]: val };
+    const newPiaData = { ...piaData, [sectionId]: newSectionData };
+    setDoc(doc(db, "userData", user.username), { piaData: newPiaData }, { merge: true });
   }
 
-async function saveSwot(share) {
-    try {
-      const ts = nowFull();
-      const today = new Date().toDateString();
-      const yesterday = new Date(Date.now() - 86400000).toDateString();
-      const newStreak = uData.lastActiveDay === today ? (uData.dayStreak || 1) : (uData.lastActiveDay === yesterday ? (uData.dayStreak || 0) + 1 : 1);
-      const streakUpdate = uData.lastActiveDay !== today ? { dayStreak: newStreak, lastActiveDay: today } : {};
-      const newH = [...(data.history || [])];
-      if (share) newH.push({ date: ts, action: "Enviou o Raio-X do projeto à Teresa", ts: Date.now(), xp: 15 });
-      else newH.push({ date: ts, action: "Guardou o Raio-X (privado)", ts: Date.now() });
-
-      await setDoc(doc(db, "userData", user.username), {
-        swotPia, swotSaved: true, swotShared: share, swotSavedAt: ts,
-        history: newH,
-        weekXp: (uData.weekXp || 0) + (uData.swotSaved ? 0 : 15),
-        ...streakUpdate
-      }, { merge: true });
-
-      alert(share ? "Raio-X enviado para a Teresa! 🔍" : "Raio-X guardado em modo privado.");
-    } catch (e) {
-      alert("Erro ao guardar o SWOT.");
-    }
+  async function enviarTereса() {
+    if (!window.confirm("Enviar o PIA à Teresa?")) return;
+    setSending(true);
+    const ts = nowFull();
+    const newHistory = [...(data.history || []),
+      { date: ts, action: "Enviou o Plano Individual de Ação (PIA) à Teresa 🚀", ts: Date.now(), xp: 30 }];
+    await setDoc(doc(db, "userData", user.username), {
+      piaSaved: true, piaSavedAt: ts,
+      history: newHistory,
+      weekXp: (uData.weekXp || 0) + (uData.piaSaved ? 0 : 30),
+    }, { merge: true });
+    setSending(false);
+    alert("PIA enviado à Teresa! 🚀");
   }
+
+  // Count total filled fields across all unlocked sections
+  const totalFields = PIA_SECTIONS.reduce((s, sec) => piaUnlocked[sec.id] ? s + sec.fields.length : s, 0);
+  const filledFields = PIA_SECTIONS.reduce((s, sec) => {
+    if (!piaUnlocked[sec.id]) return s;
+    const secData = piaData[sec.id] || {};
+    return s + sec.fields.filter(f => secData[f.key]?.trim()).length;
+  }, 0);
+  const progress = totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0;
+  const unlockedCount = PIA_SECTIONS.filter(s => piaUnlocked[s.id]).length;
 
   return (
-    <div style={{ padding: "18px 16px", paddingBottom: "100px" }}>
-      
-      {/* ── NAVEGAÇÃO DE SUB-ABAS ── */}
-      <SubTabs 
-        options={[["planeamento", "📋 Planeamento"], ["swot", "🔍 Raio-X"]]} 
-        active={subTab} 
-        onChange={setSubTab} 
-        color={CYN} 
-      />
+    <div style={{ padding: "18px 16px", paddingBottom: 100 }}>
 
-      {/* =========================================
-          ABA 1: PLANEAMENTO DO PROJETO (PIA) 
-      ========================================= */}
-      {subTab === "planeamento" && (
-        <div>
-          <div style={CARD}>
-            <div style={SL}>Termómetro do Projeto</div>
-            <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 99, height: 14, marginBottom: 8, overflow: "hidden" }}>
-              <div style={{ 
-                background: `linear-gradient(90deg, ${CYN}, #0ea5e9)`, 
-                height: "100%", 
-                width: `${progPia}%`, 
-                borderRadius: 99, 
-                boxShadow: `0 0 15px ${CYN}60`,
-                transition: "width 0.5s ease-out"
-              }} />
+      {/* HEADER */}
+      <div style={{ ...CARD, background: "rgba(14,36,68,0.9)", marginBottom: 16 }}>
+        <div style={{ fontSize: 13, fontWeight: 900, color: CYN, marginBottom: 4 }}>
+          📋 Plano Individual de Ação
+        </div>
+        <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6, marginBottom: unlockedCount > 0 ? 14 : 0 }}>
+          A Teresa vai desbloqueando as secções à medida que o programa avança.
+        </div>
+        {unlockedCount > 0 && (
+          <>
+            <div style={{ height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 4, overflow: "hidden", marginBottom: 6 }}>
+              <div style={{ height: "100%", width: `${progress}%`, background: `linear-gradient(90deg, ${CYN}, ${GRN})`, borderRadius: 4, transition: "width 0.5s" }} />
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 800 }}>
-              <span style={{ color: "#94a3b8" }}>ESTADO DO PIA</span>
-              <span style={{ color: CYN }}>{progPia}% CONCLUÍDO</span>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, fontWeight: 800 }}>
+              <span style={{ color: TXT_MUT }}>PROGRESSO</span>
+              <span style={{ color: CYN }}>{progress}% ({filledFields}/{totalFields} campos)</span>
             </div>
-          </div>
+          </>
+        )}
+      </div>
 
-          {fields.map(f => (
-            <div key={f.key} style={CARD}>
-              <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 12 }}>
-                <span style={{ fontSize: 20 }}>{f.icon}</span>
+      {/* SECTIONS */}
+      {PIA_SECTIONS.map((sec, idx) => {
+        const unlocked = piaUnlocked[sec.id];
+        const secData  = piaData[sec.id] || {};
+        const filled   = sec.fields.filter(f => secData[f.key]?.trim()).length;
+
+        if (!unlocked) {
+          return (
+            <div key={sec.id} style={{ ...CARD, opacity: 0.6, marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontSize: 28 }}>🔐</span>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 0.5 }}>{f.title}</div>
-                  <div style={{ fontSize: 11, color: "#94a3b8" }}>{f.hint}</div>
+                  <div style={{ fontSize: 13, fontWeight: 900, color: "#64748b" }}>
+                    {idx + 1}. {sec.title}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>
+                    A Teresa vai desbloquear esta secção quando for altura
+                  </div>
                 </div>
               </div>
-              <textarea 
-                value={pia[f.key] || ""} 
-                onChange={(e) => updatePia(f.key, e.target.value)}
-                style={INP} rows={3} placeholder={f.ph} 
-              />
             </div>
-          ))}
+          );
+        }
 
-          <div style={SL}>📅 Atividades Específicas</div>
-          {piaActs.map((act, i) => (
-            <div key={i} style={{ ...CARD, borderLeft: `4px solid ${CYN}` }}>
-              <div style={{ fontSize: 10, fontWeight: 900, color: CYN, marginBottom: 12 }}>PROPOSTA #{i + 1}</div>
-              
-              <div style={{ marginBottom: 10 }}>
-                <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 4 }}>O QUE VOU FAZER?</div>
-                <input value={act.oQue || ""} onChange={(e) => updateAct(i, "oQue", e.target.value)} style={INP} placeholder="Ex: Torneio de Matraquilhos" />
+        return (
+          <div key={sec.id} style={{ ...CARD, marginBottom: 12 }}>
+            {/* Section header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 22 }}>{sec.icon}</span>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 900, color: "#f1f5f9" }}>
+                    {idx + 1}. {sec.title}
+                  </div>
+                </div>
               </div>
-
-              <div style={{ marginBottom: 10 }}>
-                <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 4 }}>QUANDO?</div>
-                <input value={act.quando || ""} onChange={(e) => updateAct(i, "quando", e.target.value)} style={INP} placeholder="Ex: Terça-feira às 15h" />
-              </div>
-
-              <div>
-                <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 4 }}>PARA QUÊ? (OBJETIVO)</div>
-                <input value={act.obj || ""} onChange={(e) => updateAct(i, "obj", e.target.value)} style={INP} placeholder="Ex: Trabalhar a paciência e fair-play" />
+              <div style={{ fontSize: 10, fontWeight: 900, color: filled === sec.fields.length ? GRN : CYN }}>
+                {filled}/{sec.fields.length}
               </div>
             </div>
-          ))}
 
-          <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
-            <Btn variant="dark" onClick={() => savePia(false)}>💾 Guardar Privado</Btn>
-            <Btn variant="success" onClick={() => savePia(true)}>🚀 Enviar à Teresa</Btn>
+            {/* Fields */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {sec.fields.map(f => (
+                <div key={f.key}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "#94a3b8", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.6 }}>
+                    {f.label}
+                  </div>
+                  {f.rows === 1 ? (
+                    <input
+                      value={secData[f.key] || ""}
+                      onChange={e => saveField(sec.id, f.key, e.target.value)}
+                      placeholder={f.ph}
+                      style={{ ...INP, marginBottom: 0 }}
+                    />
+                  ) : (
+                    <textarea
+                      value={secData[f.key] || ""}
+                      onChange={e => saveField(sec.id, f.key, e.target.value)}
+                      placeholder={f.ph}
+                      rows={f.rows}
+                      style={{ ...INP, resize: "vertical", marginBottom: 0 }}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        );
+      })}
+
+      {/* ENVIAR */}
+      {unlockedCount > 0 && (
+        <button onClick={enviarTereса} disabled={sending} style={{
+          width: "100%", padding: "14px", borderRadius: 14,
+          background: uData.piaSaved ? "rgba(74,222,128,0.12)" : GRN,
+          border: uData.piaSaved ? `1.5px solid ${GRN}40` : "none",
+          color: uData.piaSaved ? GRN : "#071529",
+          fontWeight: 900, fontSize: 14, cursor: sending ? "default" : "pointer",
+          letterSpacing: 0.5,
+        }}>
+          {uData.piaSaved ? "✓ PIA enviado à Teresa" : sending ? "A enviar..." : "🚀 Enviar PIA à Teresa"}
+        </button>
       )}
 
-      {/* =========================================
-          ABA 2: RAIO-X DO PROJETO (SWOT 2X2) 
-      ========================================= */}
-      {subTab === "swot" && (
-        <div>
-          <div style={{ ...CARD, background: "rgba(34, 211, 238, 0.05)", border: `1px solid ${CYN}40` }}>
-            <div style={{ fontSize: 14, fontWeight: 900, color: CYN, marginBottom: 5 }}>Raio-X do Projeto</div>
-            <div style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.5 }}>
-              Mapeia as Forças e Fraquezas (internas) e as Oportunidades e Riscos (externos) do teu plano no local de ação.
-            </div>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "20px" }}>
-            
-            <div style={{ ...CARD, marginBottom: 0, padding: "12px", borderLeft: "4px solid #4ade80" }}>
-              <div style={{ fontSize: 11, fontWeight: 900, color: "#4ade80", marginBottom: 4 }}>💪 FORÇAS</div>
-              <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 8 }}>O que corre bem?</div>
-              <textarea 
-                value={swotPia.f || ""} 
-                onChange={(e) => updateSwot("f", e.target.value)}
-                style={{ ...INP, background: "rgba(0,0,0,0.15)", border: "none", fontSize: "12px", minHeight: "80px", marginBottom: 0 }} 
-                placeholder="Ex: Sou criativo..." 
-              />
-            </div>
-
-            <div style={{ ...CARD, marginBottom: 0, padding: "12px", borderLeft: "4px solid #fbbf24" }}>
-              <div style={{ fontSize: 11, fontWeight: 900, color: "#fbbf24", marginBottom: 4 }}>⚠️ FRAQUEZAS</div>
-              <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 8 }}>Onde preciso ajuda?</div>
-              <textarea 
-                value={swotPia.a || ""} 
-                onChange={(e) => updateSwot("a", e.target.value)}
-                style={{ ...INP, background: "rgba(0,0,0,0.15)", border: "none", fontSize: "12px", minHeight: "80px", marginBottom: 0 }} 
-                placeholder="Ex: Falta material..." 
-              />
-            </div>
-
-            <div style={{ ...CARD, marginBottom: 0, padding: "12px", borderLeft: `4px solid ${CYN}` }}>
-              <div style={{ fontSize: 9, fontWeight: 900, color: CYN, marginBottom: 4 }}>🌟 OPORTUNIDADES</div>
-              <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 8 }}>O que há lá fora?</div>
-              <textarea 
-                value={swotPia.o || ""} 
-                onChange={(e) => updateSwot("o", e.target.value)}
-                style={{ ...INP, background: "rgba(0,0,0,0.15)", border: "none", fontSize: "12px", minHeight: "80px", marginBottom: 0 }} 
-                placeholder="Ex: Espaço grande..." 
-              />
-            </div>
-
-            <div style={{ ...CARD, marginBottom: 0, padding: "12px", borderLeft: "4px solid #f43f5e" }}>
-              <div style={{ fontSize: 11, fontWeight: 900, color: "#f43f5e", marginBottom: 4 }}>🚨 RISCOS</div>
-              <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 8 }}>O que pode falhar?</div>
-              <textarea 
-                value={swotPia.r || ""} 
-                onChange={(e) => updateSwot("r", e.target.value)}
-                style={{ ...INP, background: "rgba(0,0,0,0.15)", border: "none", fontSize: "12px", minHeight: "80px", marginBottom: 0 }} 
-                placeholder="Ex: Mau tempo..." 
-              />
-            </div>
-
-          </div>
-
-          <div style={{ display: "flex", gap: 10 }}>
-            <Btn variant="dark" onClick={() => saveSwot(false)}>💾 Guardar Privado</Btn>
-            <Btn variant="success" onClick={() => saveSwot(true)}>🔗 Enviar à Teresa</Btn>
+      {unlockedCount === 0 && (
+        <div style={{ textAlign: "center", padding: "40px 20px", color: "#475569" }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>🔐</div>
+          <div style={{ fontSize: 14, fontWeight: 800 }}>Aguarda a Teresa</div>
+          <div style={{ fontSize: 12, marginTop: 6, lineHeight: 1.6 }}>
+            As secções do teu PIA vão sendo desbloqueadas ao longo do programa.
           </div>
         </div>
       )}

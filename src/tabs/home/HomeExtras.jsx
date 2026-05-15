@@ -20,7 +20,7 @@ export default function HomeExtras({ user, data, setTab }) {
   // Top 3 sem ordem de ranking — excluir utilizadores especiais (teste)
   const destaquesXp = Object.entries(rankingDados)
     .map(([username, d]) => ({ username, ...d }))
-    .filter(d => !SPECIAL_USERS.includes(d.username))
+    .filter(d => !SPECIAL_USERS.includes(d.username) && (d.xp || 0) > 0)
     .sort((a, b) => (b.xp || 0) - (a.xp || 0))
     .slice(0, 3)
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -126,11 +126,11 @@ export default function HomeExtras({ user, data, setTab }) {
       )}
 
       {/* ── DESTAQUES DA SEMANA ───────────────────────────────────── */}
-      {destaquesXp.length > 0 && (
-        <div style={{ ...CARD, background:"rgba(14,36,68,0.6)", border:"1px solid rgba(50,199,255,0.10)" }}>
-          <div style={{ fontSize:10, fontWeight:800, letterSpacing:2, color:"#5a7a9a", textTransform:"uppercase", marginBottom:12 }}>
-            ⭐ Esta semana brilharam
-          </div>
+      <div style={{ ...CARD, background:"rgba(14,36,68,0.6)", border:"1px solid rgba(50,199,255,0.10)" }}>
+        <div style={{ fontSize:10, fontWeight:800, letterSpacing:2, color:"#5a7a9a", textTransform:"uppercase", marginBottom:12 }}>
+          ⭐ Destaques da semana
+        </div>
+        {destaquesXp.length > 0 ? (
           <div style={{ fontSize:16, fontWeight:800, lineHeight:1.8, color:"#94a3b8" }}>
             {destaquesXp.map((jovem, i) => (
               <span key={jovem.username}>
@@ -141,8 +141,12 @@ export default function HomeExtras({ user, data, setTab }) {
             ))}
             <span style={{ fontSize:18, marginLeft:6 }}>✨</span>
           </div>
-        </div>
-      )}
+        ) : (
+          <div style={{ fontSize:13, color:"#475569", fontStyle:"italic" }}>
+            Esta semana ainda não temos destaques — vai lá ganhar XP! 🚀
+          </div>
+        )}
+      </div>
 
       {/* ── MENSAGEM À TERESA ────────────────────────────────────────── */}
       <div style={CARD}>
