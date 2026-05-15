@@ -20,8 +20,16 @@ export default function AdminAgenda({ events = [] }) {
   const [data,      setData]      = useState(hoje);
   const [hora,      setHora]      = useState("");
   const [dest,      setDest]      = useState("all");
+  const [tipo,      setTipo]      = useState("group");
   const [modo,      setModo]      = useState("forcar"); // "propor" | "forcar"
   const [showForm,  setShowForm]  = useState(false);
+
+  const TIPOS = [
+    { id:"group",    label:"Grupo",   icon:"👥" },
+    { id:"visit",    label:"Visita",  icon:"🏢" },
+    { id:"reminder", label:"Aviso",   icon:"🔔" },
+    { id:"personal", label:"Pessoal", icon:"📌" },
+  ];
 
   const sorted   = [...events].sort((a, b) => a.date.localeCompare(b.date) || (a.time||"").localeCompare(b.time||""));
   const futuros  = sorted.filter(e => e.date >= hoje);
@@ -32,7 +40,7 @@ export default function AdminAgenda({ events = [] }) {
     const isForcar = modo === "forcar";
     await addDoc(collection(db, "events"), {
       title: titulo, date: data, time: hora,
-      userId: dest, type: "group", ts: Date.now(),
+      userId: dest, type: tipo, ts: Date.now(),
       accepted: isForcar ? true : false,
     });
     const dataFmt = fmtDatePt(data);
@@ -127,6 +135,28 @@ export default function AdminAgenda({ events = [] }) {
                 style={{ ...INP, flex:1, marginBottom:0 }} />
               <input type="time" value={hora} onChange={e => setHora(e.target.value)}
                 style={{ ...INP, flex:1, marginBottom:0 }} />
+            </div>
+
+            {/* Tipo de evento */}
+            <div>
+              <div style={{ fontSize:10, color:TXT_MUT, fontWeight:800, marginBottom:6, textTransform:"uppercase", letterSpacing:0.8 }}>Tipo</div>
+              <div style={{ display:"flex", gap:6 }}>
+                {TIPOS.map(t => {
+                  const cor = EVT_COLORS[t.id];
+                  return (
+                    <button key={t.id} onClick={() => setTipo(t.id)} style={{
+                      flex:1, padding:"8px 4px", borderRadius:10, cursor:"pointer",
+                      border: tipo === t.id ? `1.5px solid ${cor}` : "1.5px solid rgba(255,255,255,0.08)",
+                      background: tipo === t.id ? `${cor}18` : "rgba(255,255,255,0.03)",
+                      color: tipo === t.id ? cor : "#64748b",
+                      fontWeight:800, fontSize:11, textAlign:"center",
+                    }}>
+                      <div style={{ fontSize:16, marginBottom:2 }}>{t.icon}</div>
+                      {t.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Destinatário */}
