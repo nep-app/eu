@@ -109,14 +109,20 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
 
   // ── RESET AUTOAVALIAÇÃO ───────────────────────────────────────────────────
   async function resetAutoavaliacao(username) {
-    if (!window.confirm("Repor a autoavaliação? O jovem poderá submeter de novo.")) return;
-    await setDoc(doc(db, "userData", username), { autoSaved: false, autoDate: null }, { merge: true });
+    if (!window.confirm("Repor a autoavaliação? O jovem poderá submeter de novo (as notas dos sliders também são limpas).")) return;
+    await setDoc(doc(db, "userData", username), { autoSaved: false, autoDate: null, dScores: {}, dNotas: {} }, { merge: true });
   }
 
   // ── RESET PERGUNTA SEMANAL ────────────────────────────────────────────────
   async function resetPergunta(username) {
     if (!window.confirm("Repor a pergunta semanal? O jovem poderá responder de novo.")) return;
     await setDoc(doc(db, "userData", username), { answered: false, qAnswer: null }, { merge: true });
+  }
+
+  // ── RESET SATISFAÇÃO ──────────────────────────────────────────────────────
+  async function resetSatisfacao(username) {
+    if (!window.confirm("Repor a satisfação? O jovem poderá submeter de novo.")) return;
+    await setDoc(doc(db, "userData", username), { sSaved: false, sRatings: {}, sChips: [], sMudaria: "" }, { merge: true });
   }
 
   // ── DOSSIER MODAL ─────────────────────────────────────────────────────────
@@ -356,6 +362,13 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
                   <div style={{ fontSize:10, color:"#64748b" }}>{uData.answered ? "Respondida" : "Ainda não respondida"}</div>
                 </div>
                 {uData.answered && <button onClick={() => resetPergunta(username)} style={BTN_RESET}>Repor</button>}
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:800 }}>Satisfação</div>
+                  <div style={{ fontSize:10, color:"#64748b" }}>{uData.sSaved ? "Submetida" : "Ainda não submetida"}</div>
+                </div>
+                {uData.sSaved && <button onClick={() => resetSatisfacao(username)} style={BTN_RESET}>Repor</button>}
               </div>
             </div>
           </div>

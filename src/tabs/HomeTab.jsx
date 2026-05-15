@@ -4,12 +4,12 @@ import HomeVotacoes from './home/HomeVotacoes.jsx';
 import HomeAgenda from './home/HomeAgenda.jsx';
 import HomeExtras from './home/HomeExtras.jsx';
 
-export default function HomeTab({ user, data, setTab }) {
+export default function HomeTab({ user, data, setTab, setDesafiosSubTab }) {
   return (
     <div style={{ padding: "18px 16px", paddingBottom: "100px" }}>
 
       {/* 1. GESTÃO DE TAREFAS (Ações Pendentes, To-Do & Sugestões da Teresa) */}
-      <HomeTodo user={user} data={data} setTab={setTab} />
+      <HomeTodo user={user} data={data} setTab={setTab} setDesafiosSubTab={setDesafiosSubTab} />
 
       {/* 1.5 VOTAÇÕES ATIVAS (Aparece automaticamente se houver) */}
       <HomeVotacoes user={user} />

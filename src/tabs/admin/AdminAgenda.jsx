@@ -1,102 +1,134 @@
-import React, { useState, useEffect } from 'react';
-import { collection, addDoc, onSnapshot, query } from "firebase/firestore";
+import React, { useState } from 'react';
+import { addDoc, collection, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, SL, INP, Btn, CYN } from "../../theme.jsx";
-import { JEEP_LIST, ALLOWED_USERNAMES, fmtDate } from "../../data.js";
+import { CARD, SL, INP, CYN, TXT_MUT } from "../../theme.jsx";
+import { JEEP_LIST, EVT_COLORS, EVT_ICONS } from "../../data.js";
 
-export default function AdminTarefas() {
-  const [adminTodoUsr, setAdminTodoUsr] = useState("nilton");
-  const [adminSuggTxt, setAdminSuggTxt] = useState("");
-  const [adminSuggDue, setAdminSuggDue] = useState("");
-  const [tarefasPartilhadas, setTarefasPartilhadas] = useState([]);
+function toDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function fmtDatePt(str) {
+  if (!str) return "";
+  const [y, m, d] = str.split("-");
+  const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  return `${parseInt(d)} ${MESES[parseInt(m)-1]} ${y}`;
+}
 
-  // Buscar todas as tarefas partilhadas por todos os utilizadores
-  useEffect(() => {
-    let unsubs = [];
-    let todasTarefas = [];
+export default function AdminAgenda({ events = [] }) {
+  const hoje = toDateStr(new Date());
+  const [titulo, setTitulo]   = useState("");
+  const [data,   setData]     = useState(hoje);
+  const [hora,   setHora]     = useState("");
+  const [dest,   setDest]     = useState("all"); // "all" ou username específico
+  const [showForm, setShowForm] = useState(false);
 
-    ALLOWED_USERNAMES.forEach(uname => {
-      const q = query(collection(db, "todos", uname, "items"));
-      const unsub = onSnapshot(q, (snap) => {
-        const tarefasDoUser = snap.docs
-          .map(d => ({ id: d.id, userId: uname, ...d.data() }))
-          .filter(t => t.shared === true && t.addedBy !== "teresa"); // Apenas partilhadas pelo jovem
+  const sorted = [...events].sort((a, b) =>
+    a.date.localeCompare(b.date) || (a.time||"").localeCompare(b.time||"")
+  );
+  const futuros  = sorted.filter(e => e.date >= hoje);
+  const passados = sorted.filter(e => e.date < hoje);
 
-        // Atualizar lista global
-        todasTarefas = todasTarefas.filter(t => t.userId !== uname).concat(tarefasDoUser);
-        
-        // Ordenar por data mais recente de adição
-        setTarefasPartilhadas([...todasTarefas].sort((a, b) => b.ts - a.ts));
-      });
-      unsubs.push(unsub);
+  async function criarEvento() {
+    if (!titulo.trim()) return alert("Preenche o título.");
+    await addDoc(collection(db, "events"), {
+      title: titulo, date: data, time: hora,
+      userId: dest, type: "group", ts: Date.now(),
     });
+    setTitulo(""); setHora(""); setShowForm(false);
+  }
 
-    return () => unsubs.forEach(u => u());
-  }, []);
+  async function remover(id) {
+    if (window.confirm("Remover este evento?")) await deleteDoc(doc(db, "events", id));
+  }
 
-  async function addAdminTodo() {
-    if (!adminSuggTxt.trim()) return;
-    await addDoc(collection(db, "todos", adminTodoUsr, "items"), { 
-      text: adminSuggTxt, due: adminSuggDue, done: false, shared: true, addedBy: "teresa", accepted: false, ts: Date.now()
-    });
-    setAdminSuggTxt(""); setAdminSuggDue("");
-    alert("Tarefa enviada como sugestão!");
+  function EventRow({ ev }) {
+    const cor   = EVT_COLORS[ev.type] || CYN;
+    const icone = EVT_ICONS[ev.type]  || "📌";
+    const jeep  = JEEP_LIST.find(j => j.username === ev.userId);
+    return (
+      <div style={{ display:"flex", alignItems:"center", gap:12, padding:"11px 14px",
+        borderRadius:14, background:"rgba(0,0,0,0.18)", borderLeft:`3px solid ${cor}`, marginBottom:6 }}>
+        <span style={{ fontSize:16, flexShrink:0 }}>{icone}</span>
+        <div style={{ flex:1 }}>
+          <div style={{ fontSize:13, fontWeight:800, color:"#f1f5f9" }}>{ev.title}</div>
+          <div style={{ fontSize:11, color:cor, fontWeight:700, marginTop:2 }}>
+            {fmtDatePt(ev.date)}{ev.time ? ` · ${ev.time}` : ""}
+            {" · "}
+            <span style={{ color: jeep ? jeep.color : TXT_MUT }}>
+              {ev.userId === "all" ? "Todos" : jeep?.name || ev.userId}
+            </span>
+          </div>
+        </div>
+        <button onClick={() => remover(ev.id)} style={{
+          background:"rgba(244,63,94,0.12)", border:"none", color:"#f43f5e",
+          borderRadius:6, padding:"4px 8px", cursor:"pointer", fontSize:11, fontWeight:900,
+        }}>✕</button>
+      </div>
+    );
   }
 
   return (
     <div>
-      {/* 1. ATRIBUIR TAREFA */}
+      {/* CRIAR EVENTO */}
       <div style={CARD}>
-        <div style={SL}>Atribuir Tarefa a Jovem</div>
-        <div style={{ display:"flex", gap:8, marginBottom:15, flexWrap:"wrap" }}>
-          {JEEP_LIST.map(j => (
-            <button key={j.name} onClick={()=>setAdminTodoUsr(j.username)} style={{ 
-              padding:"8px 16px", borderRadius:20, 
-              border: adminTodoUsr === j.username ? `1px solid ${j.color}` : "1px solid rgba(255,255,255,0.1)", 
-              background: adminTodoUsr === j.username ? `${j.color}20` : "rgba(255,255,255,0.05)", 
-              fontSize:12, fontWeight:700, cursor:"pointer", 
-              color: adminTodoUsr === j.username ? j.color : "#94a3b8" 
-            }}>
-              {j.name}
-            </button>
-          ))}
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: showForm ? 14 : 0 }}>
+          <div style={SL}>📅 Criar Evento</div>
+          <button onClick={() => setShowForm(!showForm)} style={{
+            background: showForm ? "rgba(50,199,255,0.12)" : "rgba(255,255,255,0.06)",
+            border: `1px solid ${showForm ? CYN+"40" : "rgba(255,255,255,0.1)"}`,
+            color: showForm ? CYN : TXT_MUT,
+            borderRadius:20, padding:"5px 14px", fontSize:11, fontWeight:800, cursor:"pointer",
+          }}>{showForm ? "✕ Cancelar" : "+ Novo"}</button>
         </div>
-        <input value={adminSuggTxt} onChange={e=>setAdminSuggTxt(e.target.value)} placeholder="O que é preciso fazer?" style={INP}/>
-        <input type="date" value={adminSuggDue} onChange={e=>setAdminSuggDue(e.target.value)} style={{ ...INP, marginBottom: 15 }}/>
-        <Btn onClick={addAdminTodo}>Enviar Tarefa ✅</Btn>
-      </div>
 
-      {/* 2. TAREFAS PARTILHADAS PELOS JOVENS */}
-      <div style={CARD}>
-        <div style={SL}>Tarefas Partilhadas Connosco</div>
-        
-        {tarefasPartilhadas.length === 0 ? (
-          <div style={{ textAlign: "center", color: "#94a3b8", fontSize: 13, padding: "15px 0" }}>Nenhuma tarefa partilhada pelos jovens.</div>
-        ) : (
-          tarefasPartilhadas.map(t => {
-            const jInfo = JEEP_LIST.find(j => j.username === t.userId);
-            const nomeJovem = jInfo ? jInfo.name : t.userId;
-            const corJovem = jInfo ? jInfo.color : CYN;
-
-            return (
-              <div key={t.id} style={{ padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: 10 }}>
-                {/* Checkbox visual para saber se está feita */}
-                <div style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${t.done ? "#4ade80" : "#64748b"}`, background: t.done ? "#4ade80" : "transparent" }} />
-                
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, color: "#fff", textDecoration: t.done ? "line-through" : "none", opacity: t.done ? 0.5 : 1 }}>
-                    {t.text}
-                  </div>
-                  <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>
-                    <span style={{ color: corJovem, fontWeight: 800 }}>{nomeJovem}</span>
-                    {t.due && ` • Limite: ${fmtDate(t.due)}`}
-                  </div>
-                </div>
+        {showForm && (
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            <input value={titulo} onChange={e => setTitulo(e.target.value)}
+              placeholder="Título do evento..." style={{ ...INP, marginBottom:0 }} />
+            <div style={{ display:"flex", gap:8 }}>
+              <input type="date" value={data} onChange={e => setData(e.target.value)}
+                style={{ ...INP, flex:1, marginBottom:0 }} />
+              <input type="time" value={hora} onChange={e => setHora(e.target.value)}
+                style={{ ...INP, flex:1, marginBottom:0 }} />
+            </div>
+            {/* Destinatário */}
+            <div>
+              <div style={{ fontSize:10, color:TXT_MUT, fontWeight:800, marginBottom:6, textTransform:"uppercase", letterSpacing:0.8 }}>Para quem</div>
+              <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                {[{ name:"Todos", username:"all", color:CYN }, ...JEEP_LIST].map(j => (
+                  <button key={j.username} onClick={() => setDest(j.username)} style={{
+                    padding:"6px 14px", borderRadius:20, fontSize:11, fontWeight:700, cursor:"pointer",
+                    border: dest === j.username ? `1px solid ${j.color}` : "1px solid rgba(255,255,255,0.1)",
+                    background: dest === j.username ? `${j.color}20` : "rgba(255,255,255,0.04)",
+                    color: dest === j.username ? j.color : "#94a3b8",
+                  }}>{j.name}</button>
+                ))}
               </div>
-            );
-          })
+            </div>
+            <button onClick={criarEvento} style={{
+              background:CYN, border:"none", borderRadius:12, padding:"11px",
+              fontWeight:900, cursor:"pointer", color:"#071529", fontSize:13,
+            }}>AGENDAR</button>
+          </div>
         )}
       </div>
+
+      {/* PRÓXIMOS EVENTOS */}
+      <div style={CARD}>
+        <div style={SL}>📋 Próximos ({futuros.length})</div>
+        {futuros.length === 0
+          ? <div style={{ textAlign:"center", color:"#475569", fontSize:12, padding:"12px 0" }}>Sem eventos futuros.</div>
+          : futuros.map(ev => <EventRow key={ev.id} ev={ev} />)
+        }
+      </div>
+
+      {/* PASSADOS */}
+      {passados.length > 0 && (
+        <div style={CARD}>
+          <div style={SL}>🗓 Passados ({passados.length})</div>
+          {passados.slice().reverse().map(ev => <EventRow key={ev.id} ev={ev} />)}
+        </div>
+      )}
     </div>
   );
 }

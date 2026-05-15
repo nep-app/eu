@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { SubTabs, CYN } from "../theme.jsx";
 
 // Importamos os novos componentes "fatiados"
@@ -7,9 +7,7 @@ import AutoAvaliacao from './desafios/AutoAvaliacao.jsx';
 import Satisfacao from './desafios/Satisfacao.jsx';
 import QuizCenarios from './desafios/QuizCenarios.jsx';
 
-export default function DesafiosTab({ user, data }) {
-  const [subTab, setSubTab] = useState("pergunta");
-
+export default function DesafiosTab({ user, data, subTab = "pergunta", setSubTab }) {
   return (
     <div style={{ padding: "18px 16px" }}>
       <SubTabs 

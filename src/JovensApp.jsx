@@ -21,6 +21,7 @@ const NAV = [
 
 export default function JovensApp({ user, onLogout }) {
   const [tab, setTab] = useState("home");
+  const [desafiosSubTab, setDesafiosSubTab] = useState("pergunta");
   const [allData, setAllData] = useState({
     todos: [], events: [], myNotifs: [], leaderboard: {},
     missions: [], completedMissions: [], history: [],
@@ -94,8 +95,8 @@ export default function JovensApp({ user, onLogout }) {
 
       {/* ── CONTEÚDO ───────────────────────────────────────────────────── */}
       <div style={{ flex:1, overflowY:"auto", paddingBottom:90 }}>
-        {tab === "home"     && <HomeTab     user={user} data={allData} setTab={setTab} />}
-        {tab === "desafios" && <DesafiosTab user={user} data={allData} />}
+        {tab === "home"     && <HomeTab     user={user} data={allData} setTab={setTab} setDesafiosSubTab={setDesafiosSubTab} />}
+        {tab === "desafios" && <DesafiosTab user={user} data={allData} subTab={desafiosSubTab} setSubTab={setDesafiosSubTab} />}
         {tab === "forum"    && <ForumTab    user={user} />}
         {tab === "pia"      && <PiaTab      user={user} data={allData} />}
         {tab === "perfil"   && <PerfilTab   user={user} data={allData} />}
