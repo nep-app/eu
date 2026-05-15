@@ -9,7 +9,7 @@ import {
 
 const DEF_CAP2 = { text:"", locked:false, revealed:false, lockedDate:"" };
 
-export default function PerfilTab({ user, data }) {
+export default function PerfilTab({ user, data, features = {} }) {
   const [subTab, setSubTab] = useState("roda");
   const [expandedDim, setExpandedDim] = useState(null);
 
@@ -358,7 +358,16 @@ export default function PerfilTab({ user, data }) {
       />
 
       {/* ── RODA DA VIDA ── */}
-      {subTab === "roda" && (
+      {subTab === "roda" && !features.rodaVida && (
+        <div style={{ ...CARD, textAlign:"center", padding:"48px 20px", marginTop:16 }}>
+          <div style={{ fontSize:48, marginBottom:12 }}>🔐</div>
+          <div style={{ fontWeight:900, fontSize:15, color:"#64748b", marginBottom:8 }}>Roda da Vida</div>
+          <div style={{ fontSize:13, color:"#475569", lineHeight:1.6 }}>
+            A Teresa ainda não lançou esta secção.<br/>Fica atento!
+          </div>
+        </div>
+      )}
+      {subTab === "roda" && features.rodaVida && (
         <div>
           <div style={CARD}>
             <div style={SL}>A Minha Roda Atual</div>

@@ -1,10 +1,30 @@
-import React, { useState } from 'react';
-import { doc, setDoc, addDoc, collection, updateDoc } from "firebase/firestore";
+import React, { useState, useEffect } from 'react';
+import { doc, setDoc, addDoc, collection, updateDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, SL, CYN, Btn, INP, PNK } from "../../theme.jsx";
+import { CARD, SL, CYN, GRN, Btn, INP, PNK } from "../../theme.jsx";
 import { nowLabel, getWeekKey, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
 
 export default function AdminGeral({ allShared, leaderboard, adminNotifs, activeQ }) {
+  const [features, setFeatures] = useState({});
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, "config", "features"), s => {
+      setFeatures(s.exists() ? s.data() : {});
+    });
+    return unsub;
+  }, []);
+
+  async function toggleFeature(key) {
+    const newVal = !features[key];
+    await setDoc(doc(db, "config", "features"), { [key]: newVal }, { merge: true });
+  }
+
+  const FEATURES = [
+    { key:"perguntaSemanal", label:"💬 Pergunta da Semana",      desc:"Sub-tab Pergunta nos Desafios" },
+    { key:"autoAvaliacao",   label:"📊 Autoavaliação",           desc:"Sub-tab Auto nos Desafios" },
+    { key:"satisfacao",      label:"😊 Satisfação",              desc:"Sub-tab Satisfação nos Desafios" },
+    { key:"rodaVida",        label:"🌸 Roda da Vida",            desc:"Secção Roda no Perfil" },
+  ];
   const [launchType, setLaunchType] = useState("auto");
   const [launchTarget, setLaunchTarget] = useState("all");
   const [activeQEdit, setActiveQEdit] = useState("");
@@ -100,6 +120,33 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
 
   return (
     <div>
+      {/* 0. CONTROLO DE FUNCIONALIDADES */}
+      <div style={CARD}>
+        <div style={SL}>🔧 Funcionalidades Ativas</div>
+        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+          {FEATURES.map(f => {
+            const on = !!features[f.key];
+            return (
+              <div key={f.key} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", borderRadius:12, background:"rgba(0,0,0,0.2)", border: on ? `1px solid ${GRN}30` : "1px solid rgba(255,255,255,0.05)" }}>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:800, color: on ? "#f1f5f9" : "#64748b" }}>{f.label}</div>
+                  <div style={{ fontSize:10, color:"#475569" }}>{f.desc}</div>
+                </div>
+                <button onClick={() => toggleFeature(f.key)} style={{
+                  background: on ? `${GRN}20` : "rgba(255,255,255,0.06)",
+                  border: on ? `1.5px solid ${GRN}60` : "1.5px solid rgba(255,255,255,0.1)",
+                  color: on ? GRN : "#64748b",
+                  borderRadius:20, padding:"6px 18px", fontWeight:900, fontSize:12, cursor:"pointer",
+                  minWidth:70, textAlign:"center",
+                }}>
+                  {on ? "ON ✓" : "OFF"}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* 1. NOTIFICAÇÕES (AGORA DESAPARECEM AO CLICAR EM LIDO) */}
       {alertasNaoLidos.length > 0 && (
         <div style={{ ...CARD, background:"rgba(239, 68, 68, 0.05)", border:`1px solid rgba(239, 68, 68, 0.2)` }}>

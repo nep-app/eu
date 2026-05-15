@@ -25,7 +25,7 @@ export default function JovensApp({ user, onLogout }) {
   const [allData, setAllData] = useState({
     todos: [], events: [], myNotifs: [], leaderboard: {},
     missions: [], completedMissions: [], history: [],
-    userData: {}, medals: []
+    userData: {}, medals: [], features: {}
   });
 
   useEffect(() => {
@@ -35,6 +35,7 @@ export default function JovensApp({ user, onLogout }) {
       onSnapshot(collection(db, "todos", user.username, "items"), s => setAllData(p => ({...p, todos: s.docs.map(d=>({id:d.id,...d.data()}))}))),
       onSnapshot(collection(db, "notifications", user.username, "items"), s => setAllData(p => ({...p, myNotifs: s.docs.map(d=>({id:d.id,...d.data()}))}))),
       onSnapshot(doc(db, "config", "weeklyLeaderboard"), s => setAllData(p => ({...p, leaderboard: s.exists() && s.data().week === getWeekKey() ? s.data().scores : {}}))),
+      onSnapshot(doc(db, "config", "features"), s => setAllData(p => ({...p, features: s.exists() ? s.data() : {}}))),
       onSnapshot(collection(db, "missions"), s => setAllData(p => ({...p, missions: s.docs.map(d=>({id:d.id,...d.data()}))}))),
       onSnapshot(doc(db, "userData", user.username), s => {
         if (s.exists()) {
@@ -96,10 +97,10 @@ export default function JovensApp({ user, onLogout }) {
       {/* ── CONTEÚDO ───────────────────────────────────────────────────── */}
       <div style={{ flex:1, overflowY:"auto", paddingBottom:90 }}>
         {tab === "home"     && <HomeTab     user={user} data={allData} setTab={setTab} setDesafiosSubTab={setDesafiosSubTab} />}
-        {tab === "desafios" && <DesafiosTab user={user} data={allData} subTab={desafiosSubTab} setSubTab={setDesafiosSubTab} />}
+        {tab === "desafios" && <DesafiosTab user={user} data={allData} subTab={desafiosSubTab} setSubTab={setDesafiosSubTab} features={allData.features} />}
         {tab === "forum"    && <ForumTab    user={user} />}
         {tab === "pia"      && <PiaTab      user={user} data={allData} />}
-        {tab === "perfil"   && <PerfilTab   user={user} data={allData} />}
+        {tab === "perfil"   && <PerfilTab   user={user} data={allData} features={allData.features} />}
       </div>
 
       {/* ── NAV BAR ────────────────────────────────────────────────────── */}
