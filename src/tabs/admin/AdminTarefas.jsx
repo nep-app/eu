@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { collection, addDoc, onSnapshot, query } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, INP, Btn, CYN, GRN, PNK } from "../../theme.jsx";
-import { JEEP_LIST, ALLOWED_USERNAMES, fmtDate, nowLabel } from "../../data.js";
+import { JEEP_LIST, ALLOWED_USERNAMES, fmtDate, nowLabel, TASK_TYPES } from "../../data.js";
 
 export default function AdminTarefas() {
   const [adminTodoUsr, setAdminTodoUsr] = useState("nilton");
   const [adminSuggTxt, setAdminSuggTxt] = useState("");
   const [adminSuggDue, setAdminSuggDue] = useState("");
+  const [tipoTarefa,   setTipoTarefa]   = useState("geral");
   const [modo, setModo] = useState("propor"); // "propor" | "forcar"
   const [tarefasPartilhadas, setTarefasPartilhadas] = useState([]);
 
@@ -33,7 +34,7 @@ export default function AdminTarefas() {
     const isForcar = modo === "forcar";
     await addDoc(collection(db, "todos", adminTodoUsr, "items"), {
       text: adminSuggTxt, due: adminSuggDue, done: false,
-      shared: true, addedBy: "teresa",
+      shared: true, addedBy: "teresa", type: tipoTarefa,
       accepted: isForcar, ts: Date.now()
     });
     const notifText = isForcar
@@ -82,6 +83,22 @@ export default function AdminTarefas() {
               color: adminTodoUsr === j.username ? j.color : "#94a3b8"
             }}>
               {j.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Tipo de tarefa */}
+        <div style={{ display:"flex", gap:6, marginBottom:14 }}>
+          {TASK_TYPES.map(t => (
+            <button key={t.id} onClick={() => setTipoTarefa(t.id)} style={{
+              flex:1, padding:"8px 4px", borderRadius:10, cursor:"pointer",
+              border: tipoTarefa === t.id ? `1.5px solid ${t.color}` : "1.5px solid rgba(255,255,255,0.08)",
+              background: tipoTarefa === t.id ? `${t.color}18` : "rgba(255,255,255,0.03)",
+              color: tipoTarefa === t.id ? t.color : "#64748b",
+              fontWeight:800, fontSize:11, textAlign:"center",
+            }}>
+              <div style={{ fontSize:16, marginBottom:2 }}>{t.icon}</div>
+              {t.label}
             </button>
           ))}
         </div>

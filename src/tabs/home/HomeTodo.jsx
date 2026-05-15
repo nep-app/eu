@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { doc, setDoc, addDoc, collection, deleteDoc, updateDoc, getDocs } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP, PS, TXT_MUT } from "../../theme.jsx";
-import { nowLabel, fmtDate, isOverdue } from "../../data.js";
+import { nowLabel, fmtDate, isOverdue, TASK_TYPES } from "../../data.js";
 
 function fmtDatePt(str) {
   if (!str) return "";
@@ -187,6 +187,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
               </div>
               <div style={{ flex:1, opacity:tarefa.done ? 0.35 : 1 }}>
                 <div style={{ fontSize:13, fontWeight:700, color:"#f1f5f9", textDecoration:tarefa.done?"line-through":"none" }}>
+                  {(() => { const tt = TASK_TYPES.find(t => t.id === tarefa.type); return tt && tt.id !== "geral" ? <span style={{ marginRight:5 }}>{tt.icon}</span> : null; })()}
                   {tarefa.text}
                   {tarefa.shared && <span style={{ fontSize:9, background:CYN, color:"#000", padding:"2px 5px", borderRadius:4, marginLeft:7, verticalAlign:"middle", fontWeight:900 }}>PARTILHADO</span>}
                 </div>

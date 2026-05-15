@@ -279,8 +279,15 @@ export const COMPL = ["Esta semana aprendi que...","A maior dificuldade foi...",
 export const MOODS = ["😴","😟","😐","🙂","😄","🔥"];
 export const SEMOJIS = ["","😞","😕","😐","🙂","😄"];
 export const FORUM_REACTIONS = [{ id:"heart", icon:"❤️" }, { id:"fire", icon:"🔥" }, { id:"clap", icon:"👏" }, { id:"think", icon:"🤔" }];
-export const EVT_COLORS = { visit:"#22d3ee", group:"#f472b6", reminder:"#fbbf24", personal:"#4ade80" };
-export const EVT_ICONS  = { visit:"🏢",      group:"👥",      reminder:"🔔",      personal:"📌" };
+export const EVT_COLORS = { group:"#f472b6", visit:"#22d3ee", formacao:"#a78bfa", personal:"#4ade80" };
+export const EVT_ICONS  = { group:"👥",      visit:"🏢",      formacao:"🎓",       personal:"📌" };
+
+export const TASK_TYPES = [
+  { id:"geral",    label:"Geral",     icon:"📋", color:"#94a3b8" },
+  { id:"objetivo", label:"Objetivo",  icon:"🎯", color:"#f472b6" },
+  { id:"estudo",   label:"Estudo",    icon:"📚", color:"#a78bfa" },
+  { id:"reuniao",  label:"Reunião",   icon:"🤝", color:"#22d3ee" },
+];
 export const EC = { verde:"#4ade80", amarelo:"#fbbf24", vermelho:"#f87171" };
 
 export const DEF_PIA   = { oQue:"",paraQue:"",quanto:"",onde:"",recursos:"",comoSaber:"" };

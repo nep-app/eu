@@ -25,10 +25,10 @@ export default function AdminAgenda({ events = [] }) {
   const [showForm,  setShowForm]  = useState(false);
 
   const TIPOS = [
-    { id:"group",    label:"Grupo",   icon:"👥" },
-    { id:"visit",    label:"Visita",  icon:"🏢" },
-    { id:"reminder", label:"Aviso",   icon:"🔔" },
-    { id:"personal", label:"Pessoal", icon:"📌" },
+    { id:"group",    label:"Grupo",    icon:"👥" },
+    { id:"visit",    label:"Visita",   icon:"🏢" },
+    { id:"formacao", label:"Formação", icon:"🎓" },
+    { id:"personal", label:"Pessoal",  icon:"📌" },
   ];
 
   const sorted   = [...events].sort((a, b) => a.date.localeCompare(b.date) || (a.time||"").localeCompare(b.time||""));
