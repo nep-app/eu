@@ -20,7 +20,7 @@ export default function ForumPost({ post, user, canalAtivo, authorMedals = [] })
   }
 
   async function enviarNotificacao(tipo) {
-    if (user.username === post.username) return;
+    if (!post.username || user.username === post.username) return;
     const msg = tipo === "like"
       ? `❤️ ${user.realName} reagiu à tua partilha!`
       : `💬 ${user.realName} comentou a tua partilha!`;

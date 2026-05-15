@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { addDoc, collection, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, SL, INP, CYN, TXT_MUT } from "../../theme.jsx";
-import { JEEP_LIST, EVT_COLORS, EVT_ICONS } from "../../data.js";
+import { CARD, SL, INP, CYN, GRN, TXT_MUT } from "../../theme.jsx";
+import { JEEP_LIST, ALLOWED_USERNAMES, EVT_COLORS, EVT_ICONS, nowLabel } from "../../data.js";
 
 function toDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -16,25 +16,37 @@ function fmtDatePt(str) {
 
 export default function AdminAgenda({ events = [] }) {
   const hoje = toDateStr(new Date());
-  const [titulo, setTitulo]   = useState("");
-  const [data,   setData]     = useState(hoje);
-  const [hora,   setHora]     = useState("");
-  const [dest,   setDest]     = useState("all"); // "all" ou username específico
-  const [showForm, setShowForm] = useState(false);
+  const [titulo,    setTitulo]    = useState("");
+  const [data,      setData]      = useState(hoje);
+  const [hora,      setHora]      = useState("");
+  const [dest,      setDest]      = useState("all");
+  const [modo,      setModo]      = useState("forcar"); // "propor" | "forcar"
+  const [showForm,  setShowForm]  = useState(false);
 
-  const sorted = [...events].sort((a, b) =>
-    a.date.localeCompare(b.date) || (a.time||"").localeCompare(b.time||"")
-  );
+  const sorted   = [...events].sort((a, b) => a.date.localeCompare(b.date) || (a.time||"").localeCompare(b.time||""));
   const futuros  = sorted.filter(e => e.date >= hoje);
-  const passados = sorted.filter(e => e.date < hoje);
+  const passados = sorted.filter(e => e.date <  hoje);
 
   async function criarEvento() {
     if (!titulo.trim()) return alert("Preenche o título.");
+    const isForcar = modo === "forcar";
     await addDoc(collection(db, "events"), {
       title: titulo, date: data, time: hora,
       userId: dest, type: "group", ts: Date.now(),
+      accepted: isForcar ? true : false,
     });
+    const dataFmt = fmtDatePt(data);
+    const notifText = isForcar
+      ? `📅 Novo evento agendado: "${titulo}" — ${dataFmt}${hora ? ` às ${hora}` : ""}`
+      : `📅 A Teresa propôs um evento: "${titulo}" — ${dataFmt}. Vai ao Início para aceitar ou recusar!`;
+    const targets = dest === "all" ? ALLOWED_USERNAMES : [dest];
+    for (const u of targets) {
+      await addDoc(collection(db, "notifications", u, "items"), {
+        from:"teresa", text:notifText, date:nowLabel(), read:false
+      });
+    }
     setTitulo(""); setHora(""); setShowForm(false);
+    alert(isForcar ? "Evento criado!" : "Proposta de evento enviada!");
   }
 
   async function remover(id) {
@@ -47,11 +59,16 @@ export default function AdminAgenda({ events = [] }) {
     const jeep  = JEEP_LIST.find(j => j.username === ev.userId);
     return (
       <div style={{ display:"flex", alignItems:"center", gap:12, padding:"11px 14px",
-        borderRadius:14, background:"rgba(0,0,0,0.18)", borderLeft:`3px solid ${cor}`, marginBottom:6 }}>
-        <span style={{ fontSize:16, flexShrink:0 }}>{icone}</span>
+        borderRadius:14, background:"rgba(0,0,0,0.18)", borderLeft:`3px solid ${ev.accepted === false ? "#f59e0b" : cor}`, marginBottom:6 }}>
+        <span style={{ fontSize:16, flexShrink:0 }}>{ev.accepted === false ? "⏳" : icone}</span>
         <div style={{ flex:1 }}>
-          <div style={{ fontSize:13, fontWeight:800, color:"#f1f5f9" }}>{ev.title}</div>
-          <div style={{ fontSize:11, color:cor, fontWeight:700, marginTop:2 }}>
+          <div style={{ fontSize:13, fontWeight:800, color:"#f1f5f9" }}>
+            {ev.title}
+            {ev.accepted === false && (
+              <span style={{ fontSize:9, background:"rgba(245,158,11,0.2)", color:"#f59e0b", padding:"2px 6px", borderRadius:4, marginLeft:6, fontWeight:900 }}>PROPOSTA</span>
+            )}
+          </div>
+          <div style={{ fontSize:11, color: ev.accepted === false ? "#f59e0b" : cor, fontWeight:700, marginTop:2 }}>
             {fmtDatePt(ev.date)}{ev.time ? ` · ${ev.time}` : ""}
             {" · "}
             <span style={{ color: jeep ? jeep.color : TXT_MUT }}>
@@ -83,6 +100,26 @@ export default function AdminAgenda({ events = [] }) {
 
         {showForm && (
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+
+            {/* Modo propor / forçar */}
+            <div style={{ display:"flex", gap:8 }}>
+              {[
+                { id:"forcar", label:"📅 Forçar", desc:"Entra no calendário" },
+                { id:"propor", label:"📩 Propor",  desc:"Jovem aceita ou recusa" },
+              ].map(m => (
+                <button key={m.id} onClick={() => setModo(m.id)} style={{
+                  flex:1, padding:"9px 6px", borderRadius:11, cursor:"pointer",
+                  border: modo === m.id ? `1.5px solid ${m.id === "forcar" ? GRN : CYN}` : "1.5px solid rgba(255,255,255,0.08)",
+                  background: modo === m.id ? `${m.id === "forcar" ? GRN : CYN}15` : "rgba(255,255,255,0.03)",
+                  color: modo === m.id ? (m.id === "forcar" ? GRN : CYN) : "#64748b",
+                  fontWeight:800, fontSize:11, textAlign:"center",
+                }}>
+                  <div>{m.label}</div>
+                  <div style={{ fontSize:9, fontWeight:600, marginTop:2, opacity:0.75 }}>{m.desc}</div>
+                </button>
+              ))}
+            </div>
+
             <input value={titulo} onChange={e => setTitulo(e.target.value)}
               placeholder="Título do evento..." style={{ ...INP, marginBottom:0 }} />
             <div style={{ display:"flex", gap:8 }}>
@@ -91,6 +128,7 @@ export default function AdminAgenda({ events = [] }) {
               <input type="time" value={hora} onChange={e => setHora(e.target.value)}
                 style={{ ...INP, flex:1, marginBottom:0 }} />
             </div>
+
             {/* Destinatário */}
             <div>
               <div style={{ fontSize:10, color:TXT_MUT, fontWeight:800, marginBottom:6, textTransform:"uppercase", letterSpacing:0.8 }}>Para quem</div>
@@ -105,10 +143,13 @@ export default function AdminAgenda({ events = [] }) {
                 ))}
               </div>
             </div>
+
             <button onClick={criarEvento} style={{
-              background:CYN, border:"none", borderRadius:12, padding:"11px",
+              background: modo === "forcar" ? GRN : CYN, border:"none", borderRadius:12, padding:"11px",
               fontWeight:900, cursor:"pointer", color:"#071529", fontSize:13,
-            }}>AGENDAR</button>
+            }}>
+              {modo === "forcar" ? "AGENDAR" : "ENVIAR PROPOSTA"}
+            </button>
           </div>
         )}
       </div>
@@ -122,7 +163,6 @@ export default function AdminAgenda({ events = [] }) {
         }
       </div>
 
-      {/* PASSADOS */}
       {passados.length > 0 && (
         <div style={CARD}>
           <div style={SL}>🗓 Passados ({passados.length})</div>

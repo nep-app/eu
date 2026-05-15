@@ -4,6 +4,13 @@ import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP, PS, TXT_MUT } from "../../theme.jsx";
 import { nowLabel, fmtDate, isOverdue } from "../../data.js";
 
+function fmtDatePt(str) {
+  if (!str) return "";
+  const [y, m, d] = str.split("-");
+  const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  return `${parseInt(d)} ${MESES[parseInt(m)-1]} ${y}`;
+}
+
 export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, features = {} }) {
   const [novaTarefaTexto, setNovaTarefaTexto]       = useState("");
   const [novaTarefaData, setNovaTarefaData]         = useState("");
@@ -11,7 +18,8 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
   const [temQuizPendente, setTemQuizPendente]       = useState(false);
 
   const uData        = data.userData || {};
-  const listaTarefas = data.todos || [];
+  const listaTarefas = data.todos    || [];
+  const listaEventos = data.events   || [];
 
   useEffect(() => {
     async function checkQuizzes() {
@@ -26,6 +34,11 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
   const NOMES_FIXAS = ["Pergunta da semana","Autoavaliação mensal","Satisfação","Plano Individual (PIA)","Autoavaliação"];
   const tarefasSugestao = listaTarefas.filter(t => t.addedBy === "teresa" && t.accepted === false && !NOMES_FIXAS.includes(t.text));
   const minhasTarefas   = listaTarefas.filter(t => (t.addedBy !== "teresa" || t.accepted === true) && !NOMES_FIXAS.includes(t.text));
+
+  // Eventos propostos (accepted === false) destinados ao utilizador ou a todos
+  const eventosProposta = listaEventos.filter(e =>
+    e.accepted === false && (e.userId === user.username || e.userId === "all")
+  );
 
   let acoesPendentes = [];
   if (features.perguntaSemanal && !uData.answered)  acoesPendentes.push({ status:"urgent",  icon:"💬", title:"Pergunta da semana",    sub:"A Teresa aguarda a tua reflexão", go:() => { setDesafiosSubTab("pergunta"); setTab("desafios"); } });
@@ -65,6 +78,14 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
     if (window.confirm("Recusar esta sugestão?")) await deleteDoc(doc(db, "todos", user.username, "items", id));
   }
 
+  async function aceitarEvento(id) {
+    await updateDoc(doc(db, "events", id), { accepted: true });
+  }
+
+  async function recusarEvento(id) {
+    if (window.confirm("Recusar este evento?")) await deleteDoc(doc(db, "events", id));
+  }
+
   return (
     <>
       {/* ── AÇÕES PENDENTES ─────────────────────────────────────────── */}
@@ -85,6 +106,25 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                 <div style={{ fontSize:11, color:"#94a3b8", marginTop:2 }}>{item.sub}</div>
               </div>
               <div style={{ color:PS[item.status].bc, fontWeight:900, fontSize:18, opacity:0.8 }}>›</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── EVENTOS PROPOSTOS ───────────────────────────────────────── */}
+      {eventosProposta.length > 0 && (
+        <div style={{ ...CARD, border:"1px solid rgba(245,158,11,0.25)", marginBottom:16 }}>
+          <div style={{ ...SL, color:"#f59e0b" }}>📅 Eventos Propostos</div>
+          {eventosProposta.map(ev => (
+            <div key={ev.id} style={{ background:"rgba(245,158,11,0.05)", padding:14, borderRadius:14, marginBottom:10, border:"1px solid rgba(245,158,11,0.12)" }}>
+              <div style={{ fontSize:14, fontWeight:700, color:"#f1f5f9", marginBottom:2 }}>{ev.title}</div>
+              <div style={{ fontSize:11, color:"#f59e0b", fontWeight:800, marginBottom:12 }}>
+                {fmtDatePt(ev.date)}{ev.time ? ` · ${ev.time}` : ""}
+              </div>
+              <div style={{ display:"flex", gap:8 }}>
+                <button onClick={() => aceitarEvento(ev.id)} style={{ flex:1, background:"rgba(245,158,11,0.18)", color:"#f59e0b", border:"1px solid rgba(245,158,11,0.3)", padding:"8px", borderRadius:10, fontWeight:800, cursor:"pointer", fontSize:12 }}>ACEITAR</button>
+                <button onClick={() => recusarEvento(ev.id)} style={{ flex:1, background:"rgba(244,63,94,0.08)", color:"#f43f5e", border:"1px solid rgba(244,63,94,0.2)", padding:"8px", borderRadius:10, fontWeight:800, cursor:"pointer", fontSize:12 }}>RECUSAR</button>
+              </div>
             </div>
           ))}
         </div>
