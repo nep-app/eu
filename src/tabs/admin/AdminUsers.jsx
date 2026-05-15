@@ -128,6 +128,7 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
     const allTimeMedals = medalDoc.allTime || [];
     const totalXp       = (uData.history || []).reduce((s, h) => s + (h.xp || 0), 0);
     const jeep          = JEEP_LIST.find(j => j.username === username);
+    const [xpEdit, setXpEdit] = useState(String(uData.weekXp || 0));
 
     const BTN_RESET = {
       background:"rgba(244,63,94,0.10)", border:"1.5px dashed rgba(244,63,94,0.4)",
@@ -316,6 +317,25 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
               🗑 RESET TOTAL — apagar tudo deste jovem
             </button>
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {/* XP DIRETO */}
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:800 }}>XP desta semana</div>
+                  <div style={{ fontSize:10, color:"#64748b" }}>valor atual: {uData.weekXp || 0} XP</div>
+                </div>
+                <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+                  <input
+                    type="number" min="0" value={xpEdit}
+                    onChange={e => setXpEdit(e.target.value)}
+                    style={{ width:64, background:"rgba(0,0,0,0.4)", border:"1px solid rgba(50,199,255,0.3)",
+                      color:"#fff", borderRadius:8, padding:"6px 8px", fontSize:13, fontWeight:900, textAlign:"center" }}
+                  />
+                  <button onClick={async () => {
+                    const v = Math.max(0, parseInt(xpEdit) || 0);
+                    await setDoc(doc(db, "userData", username), { weekXp: v }, { merge: true });
+                  }} style={{ ...BTN_RESET, padding:"6px 12px" }}>Guardar</button>
+                </div>
+              </div>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
                 <div>
                   <div style={{ fontSize:12, fontWeight:800 }}>Missões Concluídas</div>
