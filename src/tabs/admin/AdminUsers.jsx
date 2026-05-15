@@ -409,9 +409,9 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
                 <div>
                   <div style={{ fontSize:12, fontWeight:800 }}>Autoavaliação</div>
-                  <div style={{ fontSize:10, color:"#64748b" }}>{uData.autoSaved ? `Entregue em ${uData.autoDate||"?"}` : "Ainda não submetida"}</div>
+                  <div style={{ fontSize:10, color:"#64748b" }}>{uData.autoSaved ? `Entregue em ${uData.autoDate||"?"}` : Object.keys(uData.dScores||{}).length > 0 ? "Iniciada (não submetida)" : "Ainda não submetida"}</div>
                 </div>
-                {uData.autoSaved && <button onClick={() => resetAutoavaliacao(username)} style={BTN_RESET}>Repor</button>}
+                {(uData.autoSaved || Object.keys(uData.dScores||{}).length > 0) && <button onClick={() => resetAutoavaliacao(username)} style={BTN_RESET}>Repor</button>}
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
                 <div>
