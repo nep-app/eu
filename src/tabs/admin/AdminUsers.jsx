@@ -74,7 +74,7 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
 
   // ── APAGAR ENTRADA DO HISTÓRICO (por ts) ─────────────────────────────────
   async function deleteHistoryEntry(username, entry) {
-    if (!window.confirm(`Apagar esta entrada e devolver ${entry.xp || 0} XP?\n"${entry.action}"`)) return;
+    if (!window.confirm(`Apagar esta entrada?\n"${entry.action}"`)) return;
     const userRef = doc(db, "userData", username);
     const snap    = await getDoc(userRef);
     if (!snap.exists()) return;
@@ -82,10 +82,23 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
     const newHistory = (uData.history || []).filter(h =>
       entry.ts ? h.ts !== entry.ts : h.action !== entry.action
     );
+    // Recalcula weekXp a partir do histórico restante (evita erros acumulados)
+    const newWeekXp = newHistory.reduce((s, h) => s + (h.xp || 0), 0);
+    await setDoc(userRef, { history: newHistory, weekXp: newWeekXp }, { merge: true });
+  }
+
+  // ── RESET TOTAL (XP + histórico + missões + medalhas + entregas) ──────────
+  async function resetTotal(username) {
+    if (!window.confirm(`RESET TOTAL do ${username}?\n\nApaga: todo o XP, histórico, missões concluídas, medalhas (semana + histórico), autoavaliação e pergunta semanal.\n\nEsta ação não tem volta!`)) return;
+    const userRef = doc(db, "userData", username);
     await setDoc(userRef, {
-      history: newHistory,
-      weekXp:  Math.max(0, (uData.weekXp || 0) - (entry.xp || 0)),
+      weekXp: 0, history: [], completedMissions: [],
+      autoSaved: false, autoDate: null,
+      answered: false, qAnswer: null,
     }, { merge: true });
+    const newMedalDoc = { week: [], weekKey: getWeekKey(), allTime: [] };
+    setAmMedals(p => upd(p, username, newMedalDoc));
+    await setDoc(doc(db, "medals", username), newMedalDoc);
   }
 
   // ── RESET MISSÕES CONCLUÍDAS ──────────────────────────────────────────────
@@ -293,6 +306,15 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
             <div style={{ fontSize:10, fontWeight:900, color:"#f43f5e", letterSpacing:1.5, textTransform:"uppercase", marginBottom:14 }}>
               🔧 Reposições de Emergência
             </div>
+            {/* RESET TOTAL */}
+            <button onClick={() => resetTotal(username)} style={{
+              width:"100%", marginBottom:14, padding:"13px",
+              background:"rgba(244,63,94,0.15)", border:"2px solid rgba(244,63,94,0.5)",
+              color:"#f43f5e", borderRadius:12, fontWeight:900, fontSize:13, cursor:"pointer",
+              letterSpacing:0.5,
+            }}>
+              🗑 RESET TOTAL — apagar tudo deste jovem
+            </button>
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
                 <div>
