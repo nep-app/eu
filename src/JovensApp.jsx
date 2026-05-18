@@ -53,6 +53,15 @@ export default function JovensApp({ user, onLogout }) {
   const weekXp    = ud.weekXp || 0;
   const notifCount = allData.myNotifs.length;
 
+  // Merge global feature flags with per-user overrides (override wins when set)
+  const globalFeatures   = allData.features || {};
+  const featureOverrides = ud.featureOverrides || {};
+  const effectiveFeatures = Object.fromEntries(
+    ["perguntaSemanal","autoAvaliacao","satisfacao","rodaVida"].map(k => [
+      k, featureOverrides[k] !== undefined ? featureOverrides[k] : (globalFeatures[k] || false)
+    ])
+  );
+
   return (
     <div style={{ minHeight:"100vh", background:BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif" }}>
 
@@ -96,11 +105,11 @@ export default function JovensApp({ user, onLogout }) {
 
       {/* ── CONTEÚDO ───────────────────────────────────────────────────── */}
       <div style={{ flex:1, overflowY:"auto", paddingBottom:90 }}>
-        {tab === "home"     && <HomeTab     user={user} data={allData} setTab={setTab} setDesafiosSubTab={setDesafiosSubTab} />}
-        {tab === "desafios" && <DesafiosTab user={user} data={allData} subTab={desafiosSubTab} setSubTab={setDesafiosSubTab} features={allData.features} />}
+        {tab === "home"     && <HomeTab     user={user} data={{...allData, features: effectiveFeatures}} setTab={setTab} setDesafiosSubTab={setDesafiosSubTab} />}
+        {tab === "desafios" && <DesafiosTab user={user} data={allData} subTab={desafiosSubTab} setSubTab={setDesafiosSubTab} features={effectiveFeatures} />}
         {tab === "forum"    && <ForumTab    user={user} />}
         {tab === "pia"      && <PiaTab      user={user} data={allData} />}
-        {tab === "perfil"   && <PerfilTab   user={user} data={allData} features={allData.features} />}
+        {tab === "perfil"   && <PerfilTab   user={user} data={allData} features={effectiveFeatures} />}
       </div>
 
       {/* ── NAV BAR ────────────────────────────────────────────────────── */}

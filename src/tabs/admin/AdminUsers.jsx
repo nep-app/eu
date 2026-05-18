@@ -272,6 +272,57 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
             })()}
           </div>
 
+          {/* SECÇÃO: FUNCIONALIDADES INDIVIDUAIS */}
+          <div style={CARD}>
+            <div style={SL}>🔧 Funcionalidades (este jovem)</div>
+            <div style={{ fontSize:11, color:"#475569", marginBottom:12 }}>
+              Override ao toggle global. "Global" segue o que está no painel Geral.
+            </div>
+            {(() => {
+              const overrides = uData.featureOverrides || {};
+              const FEATS = [
+                { key:"perguntaSemanal", label:"💬 Pergunta da Semana" },
+                { key:"autoAvaliacao",   label:"📊 Autoavaliação" },
+                { key:"satisfacao",      label:"😊 Satisfação" },
+                { key:"rodaVida",        label:"🌸 Roda da Vida" },
+              ];
+              async function setOverride(key, val) {
+                const next = { ...overrides };
+                if (val === null) delete next[key]; else next[key] = val;
+                await setDoc(doc(db, "userData", username), { featureOverrides: next }, { merge: true });
+              }
+              return (
+                <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                  {FEATS.map(f => {
+                    const v = overrides[f.key];
+                    return (
+                      <div key={f.key} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", borderRadius:12, background:"rgba(0,0,0,0.2)" }}>
+                        <div style={{ fontSize:12, fontWeight:800, color: v === true ? "#f1f5f9" : v === false ? "#475569" : "#94a3b8" }}>{f.label}</div>
+                        <div style={{ display:"flex", gap:5 }}>
+                          {[
+                            { val:null,  label:"🌐",    title:"Seguir global" },
+                            { val:true,  label:"✓ ON",  title:"Forçar ON"     },
+                            { val:false, label:"✗ OFF", title:"Bloquear"      },
+                          ].map(opt => {
+                            const active = v === opt.val || (opt.val === null && v === undefined);
+                            return (
+                              <button key={String(opt.val)} onClick={() => setOverride(f.key, opt.val)} title={opt.title} style={{
+                                padding:"4px 9px", borderRadius:8, fontSize:11, fontWeight:800, cursor:"pointer",
+                                border: active ? `1.5px solid ${opt.val === true ? GRN : opt.val === false ? "#f43f5e" : CYN}` : "1.5px solid rgba(255,255,255,0.08)",
+                                background: active ? `${opt.val === true ? GRN : opt.val === false ? "#f43f5e" : CYN}18` : "rgba(255,255,255,0.03)",
+                                color: active ? (opt.val === true ? GRN : opt.val === false ? "#f43f5e" : CYN) : "#475569",
+                              }}>{opt.label}</button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
+
           {/* SECÇÃO: CÁPSULA DE MEIO-CAMINHO */}
           <div style={CARD}>
             <div style={SL}>💌 Cápsula de Meio-Caminho</div>
