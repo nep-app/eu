@@ -14,7 +14,7 @@ function fmtDatePt(str) {
   return `${parseInt(d)} ${MESES[parseInt(m)-1]} ${y}`;
 }
 
-export default function AdminAgenda({ events = [] }) {
+export default function AdminAgenda({ events = [], sandboxMode = false }) {
   const hoje = toDateStr(new Date());
   const [titulo,    setTitulo]    = useState("");
   const [data,      setData]      = useState(hoje);
@@ -40,14 +40,14 @@ export default function AdminAgenda({ events = [] }) {
     const isForcar = modo === "forcar";
     await addDoc(collection(db, "events"), {
       title: titulo, date: data, time: hora,
-      userId: dest, type: tipo, ts: Date.now(),
+      userId: sandboxMode ? "demo" : dest, type: tipo, ts: Date.now(),
       accepted: isForcar ? true : false,
     });
     const dataFmt = fmtDatePt(data);
     const notifText = isForcar
       ? `📅 Novo evento agendado: "${titulo}" — ${dataFmt}${hora ? ` às ${hora}` : ""}`
       : `📅 A Teresa propôs um evento: "${titulo}" — ${dataFmt}. Vai ao Início para aceitar ou recusar!`;
-    const targets = dest === "all" ? ALLOWED_USERNAMES : [dest];
+    const targets = sandboxMode ? ["demo"] : (dest === "all" ? ALLOWED_USERNAMES : [dest]);
     for (const u of targets) {
       await addDoc(collection(db, "notifications", u, "items"), {
         from:"teresa", text:notifText, date:nowLabel(), read:false
@@ -108,6 +108,12 @@ export default function AdminAgenda({ events = [] }) {
 
         {showForm && (
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+
+            {sandboxMode && (
+              <div style={{ background:"rgba(251,146,60,0.1)", border:"1px solid rgba(251,146,60,0.25)", borderRadius:10, padding:"8px 12px", fontSize:11, color:"#fb923c", fontWeight:800 }}>
+                🎭 Sandbox: o evento vai apenas para o utilizador demo
+              </div>
+            )}
 
             {/* Modo propor / forçar */}
             <div style={{ display:"flex", gap:8 }}>

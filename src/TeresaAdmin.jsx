@@ -16,6 +16,7 @@ import AdminUsers from './tabs/admin/AdminUsers.jsx';
 import AdminVotacoes from './tabs/admin/AdminVotacoes.jsx'; // ADICIONA ESTA LINHA
 export default function TeresaAdmin({ user, onLogout }) {
   const [adminTab, setAdminTab] = useState("geral");
+  const [sandboxMode, setSandboxMode] = useState(false);
 
   // ── DADOS GLOBAIS DA COORDENAÇÃO ──
   const [allShared, setAllShared] = useState({});
@@ -115,22 +116,37 @@ const ADMIN_TABS = [
             </div>
           </div>
         </div>
-        <button 
-          onClick={onLogout} 
-          style={{ 
-            background: "rgba(255,255,255,0.1)", 
-            border: "1px solid rgba(255,255,255,0.2)", 
-            color: "white", 
-            padding: "7px 16px", 
-            borderRadius: 20, 
-            fontSize: 12, 
-            cursor: "pointer", 
-            fontWeight: 600 
-          }}
-        >
-          Sair
-        </button>
+        <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+          <button onClick={() => setSandboxMode(s => !s)} style={{
+            background: sandboxMode ? "rgba(251,146,60,0.2)" : "rgba(255,255,255,0.07)",
+            border: sandboxMode ? "1.5px solid rgba(251,146,60,0.6)" : "1.5px solid rgba(255,255,255,0.15)",
+            color: sandboxMode ? "#fb923c" : "#64748b",
+            padding: "7px 14px", borderRadius: 20, fontSize: 11,
+            cursor: "pointer", fontWeight: 900, letterSpacing: 0.3,
+          }}>
+            🎭 {sandboxMode ? "SANDBOX ON" : "Sandbox"}
+          </button>
+          <button onClick={onLogout} style={{
+            background: "rgba(255,255,255,0.1)",
+            border: "1px solid rgba(255,255,255,0.2)",
+            color: "white", padding: "7px 16px",
+            borderRadius: 20, fontSize: 12,
+            cursor: "pointer", fontWeight: 600
+          }}>Sair</button>
+        </div>
       </div>
+
+      {/* BANNER SANDBOX */}
+      {sandboxMode && (
+        <div style={{ background:"rgba(251,146,60,0.12)", borderBottom:"1px solid rgba(251,146,60,0.3)",
+          padding:"8px 20px", display:"flex", alignItems:"center", gap:10 }}>
+          <span style={{ fontSize:18 }}>🎭</span>
+          <div style={{ flex:1 }}>
+            <span style={{ fontSize:12, fontWeight:900, color:"#fb923c", marginRight:8 }}>MODO SANDBOX ATIVO</span>
+            <span style={{ fontSize:11, color:"#92400e" }}>Todos os envios (pedidos, tarefas, eventos) vão apenas para o utilizador demo. Nenhum jovem real é afetado.</span>
+          </div>
+        </div>
+      )}
       
       {/* NAVEGAÇÃO DE TABS */}
       <div style={{ display: "flex", gap: 0, background: "rgba(0,0,0,0.5)", overflowX: "auto" }}>
@@ -160,12 +176,12 @@ const ADMIN_TABS = [
 
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "20px 16px" }}>
         {/* RENDERIZAÇÃO DAS FATIAS */}
-   {adminTab === "geral" && <AdminGeral allShared={allShared} leaderboard={leaderboard} adminNotifs={adminNotifs} activeQ={activeQ} />}
-        {adminTab === "mural" && <AdminMural />}
-        {adminTab === "votacoes" && <AdminVotacoes />} {/* ADICIONA ESTA LINHA */}
+        {adminTab === "geral"     && <AdminGeral allShared={allShared} leaderboard={leaderboard} adminNotifs={adminNotifs} activeQ={activeQ} sandboxMode={sandboxMode} />}
+        {adminTab === "mural"     && <AdminMural />}
+        {adminTab === "votacoes"  && <AdminVotacoes />}
         {adminTab === "partilhas" && <AdminPartilhas allShared={allShared} />}
-        {adminTab === "tasks" && <AdminTarefas />}
-        {adminTab === "agenda" && <AdminAgenda events={events} />}
+        {adminTab === "tasks"     && <AdminTarefas sandboxMode={sandboxMode} />}
+        {adminTab === "agenda"    && <AdminAgenda events={events} sandboxMode={sandboxMode} />}
         {adminTab === "missoes" && <AdminMissoes missions={missions} />}
         {adminTab === "msgs" && <AdminMsgs msgs={msgs} />}
         {adminTab === "users" && <AdminUsers amMedals={amMedals} setAmMedals={setAmMedals} allShared={allShared} />}

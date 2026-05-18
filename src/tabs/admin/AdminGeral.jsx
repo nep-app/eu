@@ -4,7 +4,7 @@ import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, Btn, INP, PNK } from "../../theme.jsx";
 import { nowLabel, getWeekKey, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
 
-export default function AdminGeral({ allShared, leaderboard, adminNotifs, activeQ }) {
+export default function AdminGeral({ allShared, leaderboard, adminNotifs, activeQ, sandboxMode = false }) {
   const [features, setFeatures] = useState({});
 
   useEffect(() => {
@@ -68,7 +68,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     if (launchType === "lembreteQuiz") { msg = "🧠 Lembrete: Tens um novo Dilema (Quiz) à tua espera nos Desafios!"; }
     if (launchType === "lembreteGeral") { msg = "📢 A Teresa tem um aviso para ti. Vai ver as novidades!"; }
     
-    const targets = launchTarget === "all" ? ALLOWED_USERNAMES : [launchTarget];
+    const targets = sandboxMode ? ["demo"] : (launchTarget === "all" ? ALLOWED_USERNAMES : [launchTarget]);
     for (const u of targets) {
       if (field) {
         await setDoc(doc(db, "userData", u), { [field]: false }, { merge: true });
@@ -103,7 +103,8 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
       date: Date.now() 
     });
 
-    for (const u of ALLOWED_USERNAMES) {
+    const qTargets = sandboxMode ? ["demo"] : ALLOWED_USERNAMES;
+    for (const u of qTargets) {
       await setDoc(doc(db, "userData", u), { answered: false }, { merge: true });
       await addDoc(collection(db, "notifications", u, "items"), { from:"teresa", text:"💬 Nova pergunta da semana!", date:nowLabel(), read:false });
     }
@@ -200,19 +201,17 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
             <div style={{ fontSize:13, fontWeight:800 }}>{sec.icon} {sec.title}</div>
             <div style={{ display:"flex", gap:6 }}>
               <button onClick={async () => {
-                for (const u of ALLOWED_USERNAMES) {
-                  await setDoc(doc(db,"userData",u), { piaUnlocked: { [sec.id]: true } }, { merge:true });
-                }
-                alert(`Secção "${sec.title}" aberta para todos!`);
+                const targets = sandboxMode ? ["demo"] : ALLOWED_USERNAMES;
+                for (const u of targets) await setDoc(doc(db,"userData",u), { piaUnlocked: { [sec.id]: true } }, { merge:true });
+                alert(`Secção "${sec.title}" aberta${sandboxMode ? " (demo)" : " para todos"}!`);
               }} style={{ background:`${GRN}18`, border:`1px solid ${GRN}40`, color:GRN, borderRadius:8, padding:"5px 12px", fontWeight:900, fontSize:11, cursor:"pointer" }}>
-                🔓 Abrir a todos
+                🔓 {sandboxMode ? "Abrir (demo)" : "Abrir a todos"}
               </button>
               <button onClick={async () => {
-                if (!window.confirm(`Fechar "${sec.title}" para todos?`)) return;
-                for (const u of ALLOWED_USERNAMES) {
-                  await setDoc(doc(db,"userData",u), { piaUnlocked: { [sec.id]: false } }, { merge:true });
-                }
-                alert(`Secção "${sec.title}" fechada para todos.`);
+                if (!window.confirm(`Fechar "${sec.title}"?`)) return;
+                const targets = sandboxMode ? ["demo"] : ALLOWED_USERNAMES;
+                for (const u of targets) await setDoc(doc(db,"userData",u), { piaUnlocked: { [sec.id]: false } }, { merge:true });
+                alert(`Secção "${sec.title}" fechada${sandboxMode ? " (demo)" : " para todos"}.`);
               }} style={{ background:"rgba(244,63,94,0.1)", border:"1px solid rgba(244,63,94,0.25)", color:"#f43f5e", borderRadius:8, padding:"5px 12px", fontWeight:900, fontSize:11, cursor:"pointer" }}>
                 🔒 Fechar a todos
               </button>
