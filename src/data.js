@@ -37,7 +37,7 @@ export function getWeekKey() {
 }
 
 export const ALLOWED_USERNAMES = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","marisa","teresa","ricardo"];
-export const SPECIAL_USERS = ["teresa","ricardo"];
+export const SPECIAL_USERS = ["teresa","ricardo","demo"];
 export const USERS = [
   { username:"nilton",   realName:"Nilton",   color:"#22d3ee" },
   { username:"erick",    realName:"Erick",    color:"#f472b6" },
@@ -46,8 +46,10 @@ export const USERS = [
   { username:"rudmilo",  realName:"Rudmilo",  color:"#fbbf24" },
   { username:"bruno",    realName:"Bruno",    color:"#60a5fa" },
   { username:"salimo",   realName:"Salimo",   color:"#f87171" },
+  { username:"marisa",   realName:"Marisa",   color:"#fb923c" },
   { username:"teresa",   realName:"Teresa",   color:"#e2e8f0" },
   { username:"ricardo",  realName:"Ricardo",  color:"#2dd4bf" },
+  { username:"demo",     realName:"Demo JEEP",color:"#a3e635", isDemo:true },
 ];
 
 export const JEEP_LIST = [

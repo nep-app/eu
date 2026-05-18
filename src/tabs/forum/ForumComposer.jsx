@@ -5,7 +5,7 @@ import { db, storage } from "../../firebase.js";
 import { CARD, SL, CYN, INP, TXT_MUT } from "../../theme.jsx";
 import { nowFull } from "../../data.js";
 
-export default function ForumComposer({ user, canalAtivo, infoCanal }) {
+export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollection = "forum" }) {
   const [textoPost,     setTextoPost]     = useState("");
   const [ficheiroMedia, setFicheiroMedia] = useState(null);
   const [estaAEnviar,   setEstaAEnviar]   = useState(false);
@@ -33,7 +33,7 @@ export default function ForumComposer({ user, canalAtivo, infoCanal }) {
         await uploadBytes(storageRef, ficheiroMedia);
         urlMedia = await getDownloadURL(storageRef);
       }
-      await addDoc(collection(db, "forum", canalAtivo, "posts"), {
+      await addDoc(collection(db, forumCollection, canalAtivo, "posts"), {
         user: user.realName || user.username,
         username: user.username,
         color: user.color || CYN,

@@ -6,7 +6,7 @@ import { CHANNELS, JEEP_LIST, getWeekKey } from "../data.js";
 import ForumPost     from './forum/ForumPost.jsx';
 import ForumComposer from './forum/ForumComposer.jsx';
 
-export default function ForumTab({ user }) {
+export default function ForumTab({ user, forumCollection = "forum" }) {
   const [canalAtivo, setCanalAtivo] = useState("csi");
   const [listaPosts, setListaPosts]  = useState([]);
   const [allMedals,  setAllMedals]   = useState({});
@@ -26,9 +26,9 @@ export default function ForumTab({ user }) {
   }, []);
 
   useEffect(() => {
-    const q = query(collection(db, "forum", canalAtivo, "posts"), orderBy("time", "desc"));
+    const q = query(collection(db, forumCollection, canalAtivo, "posts"), orderBy("time", "desc"));
     return onSnapshot(q, snap => setListaPosts(snap.docs.map(d => ({ id:d.id, ...d.data() }))));
-  }, [canalAtivo]);
+  }, [canalAtivo, forumCollection]);
 
   const infoCanal = CHANNELS.find(c => c.id === canalAtivo);
 
@@ -64,7 +64,7 @@ export default function ForumTab({ user }) {
 
       {/* ── COMPOSER ────────────────────────────────────────────────── */}
       <div style={{ padding:"14px 16px 0" }}>
-        <ForumComposer user={user} canalAtivo={canalAtivo} infoCanal={infoCanal} />
+        <ForumComposer user={user} canalAtivo={canalAtivo} infoCanal={infoCanal} forumCollection={forumCollection} />
       </div>
 
       {/* ── POSTS ───────────────────────────────────────────────────── */}
@@ -77,7 +77,7 @@ export default function ForumTab({ user }) {
         ) : (
           listaPosts.map(post => (
             <ForumPost key={post.id} post={post} user={user} canalAtivo={canalAtivo}
-              authorMedals={allMedals[post.username] || []} />
+              forumCollection={forumCollection} authorMedals={allMedals[post.username] || []} />
           ))
         )}
       </div>

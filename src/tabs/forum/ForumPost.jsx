@@ -4,7 +4,7 @@ import { db } from "../../firebase.js";
 import { CARD, CYN, INP, TXT_MUT, PRP } from "../../theme.jsx";
 import { nowFull, FORUM_REACTIONS, ALL_MEDALS } from "../../data.js";
 
-export default function ForumPost({ post, user, canalAtivo, authorMedals = [] }) {
+export default function ForumPost({ post, user, canalAtivo, forumCollection = "forum", authorMedals = [] }) {
   const [responderA,        setResponderA]        = useState(false);
   const [textoResposta,     setTextoResposta]      = useState("");
   const [editando,          setEditando]           = useState(false);
@@ -31,12 +31,12 @@ export default function ForumPost({ post, user, canalAtivo, authorMedals = [] })
 
   async function handleApagarPost() {
     if (window.confirm("Apagar esta partilha?"))
-      await deleteDoc(doc(db, "forum", canalAtivo, "posts", post.id));
+      await deleteDoc(doc(db, forumCollection, canalAtivo, "posts", post.id));
   }
 
   async function handleGuardarEdicao() {
     if (!textoEditado.trim()) return;
-    await updateDoc(doc(db, "forum", canalAtivo, "posts", post.id), {
+    await updateDoc(doc(db, forumCollection, canalAtivo, "posts", post.id), {
       text: textoEditado, time: nowFull() + " (editado)"
     });
     setEditando(false);
@@ -55,7 +55,7 @@ export default function ForumPost({ post, user, canalAtivo, authorMedals = [] })
       darXP("Interagiu no Fórum");
       enviarNotificacao("like");
     }
-    await updateDoc(doc(db, "forum", canalAtivo, "posts", post.id), { reactions:rcts, reactedBy:rBy });
+    await updateDoc(doc(db, forumCollection, canalAtivo, "posts", post.id), { reactions:rcts, reactedBy:rBy });
   }
 
   async function handleResponder() {
@@ -65,7 +65,7 @@ export default function ForumPost({ post, user, canalAtivo, authorMedals = [] })
       user:user.realName, color:user.color,
       text:textoResposta, time:nowFull()
     };
-    await updateDoc(doc(db, "forum", canalAtivo, "posts", post.id), {
+    await updateDoc(doc(db, forumCollection, canalAtivo, "posts", post.id), {
       replies: [...(post.replies||[]), novaR]
     });
     setResponderA(false); setTextoResposta("");
@@ -75,7 +75,7 @@ export default function ForumPost({ post, user, canalAtivo, authorMedals = [] })
 
   async function apagarReply(rid) {
     if (window.confirm("Apagar este comentário?")) {
-      await updateDoc(doc(db, "forum", canalAtivo, "posts", post.id), {
+      await updateDoc(doc(db, forumCollection, canalAtivo, "posts", post.id), {
         replies: post.replies.filter(r => r.id !== rid)
       });
     }
@@ -83,7 +83,7 @@ export default function ForumPost({ post, user, canalAtivo, authorMedals = [] })
 
   async function handleGuardarEdicaoReply(rid) {
     if (!textoEditadoReply.trim()) return;
-    await updateDoc(doc(db, "forum", canalAtivo, "posts", post.id), {
+    await updateDoc(doc(db, forumCollection, canalAtivo, "posts", post.id), {
       replies: post.replies.map(r => r.id === rid ? {...r, text:textoEditadoReply, time:nowFull()+" (editado)"} : r)
     });
     setEditandoReplyId(null);

@@ -103,11 +103,23 @@ export default function JovensApp({ user, onLogout }) {
         </div>
       </div>
 
+      {/* ── BANNER DEMO ────────────────────────────────────────────────── */}
+      {user.isDemo && (
+        <div style={{ background:"rgba(163,230,53,0.12)", borderBottom:"1px solid rgba(163,230,53,0.25)",
+          padding:"8px 16px", display:"flex", alignItems:"center", gap:8 }}>
+          <span style={{ fontSize:16 }}>🎭</span>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:11, fontWeight:900, color:"#a3e635", letterSpacing:0.5 }}>MODO DEMONSTRAÇÃO</div>
+            <div style={{ fontSize:10, color:"#84cc16", lineHeight:1.4 }}>O fórum está isolado. Nenhuma ação afeta os dados reais.</div>
+          </div>
+        </div>
+      )}
+
       {/* ── CONTEÚDO ───────────────────────────────────────────────────── */}
       <div style={{ flex:1, overflowY:"auto", paddingBottom:90 }}>
         {tab === "home"     && <HomeTab     user={user} data={{...allData, features: effectiveFeatures}} setTab={setTab} setDesafiosSubTab={setDesafiosSubTab} />}
         {tab === "desafios" && <DesafiosTab user={user} data={allData} subTab={desafiosSubTab} setSubTab={setDesafiosSubTab} features={effectiveFeatures} />}
-        {tab === "forum"    && <ForumTab    user={user} />}
+        {tab === "forum"    && <ForumTab    user={user} forumCollection={user.isDemo ? "forum_demo" : "forum"} />}
         {tab === "pia"      && <PiaTab      user={user} data={allData} />}
         {tab === "perfil"   && <PerfilTab   user={user} data={allData} features={effectiveFeatures} />}
       </div>

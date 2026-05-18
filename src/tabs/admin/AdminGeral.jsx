@@ -147,7 +147,43 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
         </div>
       </div>
 
-      {/* 0b. PIA — LANÇAR SECÇÕES A TODOS */}
+      {/* 0b. UTILIZADOR DEMO */}
+      <div style={CARD}>
+        <div style={SL}>🎭 Utilizador Demo</div>
+        <div style={{ fontSize:11, color:"#475569", marginBottom:12, lineHeight:1.6 }}>
+          Partilha o username <span style={{ color:CYN, fontWeight:800 }}>demo</span> com quem queiras (Gulbenkian, colegas, etc.). O fórum é isolado e nenhuma ação afeta os dados reais. Usa o botão abaixo para pré-popular dados realistas.
+        </div>
+        <button onClick={async () => {
+          const { setDoc: sd, addDoc: ad, collection: col, doc: d } = await import("firebase/firestore");
+          const now = Date.now();
+          await sd(d(db, "userData", "demo"), {
+            weekXp: 95, dayStreak: 3, answered: false, autoSaved: false, sSaved: false, piaSaved: false,
+            piaUnlocked: { s1:true, s2:true }, featureOverrides: {},
+            dScores: { empreendedorismo:7, comunicacao:6, trabalhoEquipa:8, autonomia:5, criatividade:7, lideranca:6, adaptabilidade:8, responsabilidade:7 },
+            roda: { saude:6, familia:7, amigos:8, amor:5, financas:4, carreira:7, diversao:8, desenvolvimentoPessoal:6 },
+            history: [
+              { date:nowLabel(), action:"Respondeu à Pergunta da Semana", ts:now-3600000, xp:15 },
+              { date:nowLabel(), action:"Completou missão: Partilha no Fórum", ts:now-7200000, xp:20 },
+              { date:nowLabel(), action:"Concluiu a tarefa: Pesquisar estágios", ts:now-86400000, xp:5 },
+              { date:nowLabel(), action:"Autoavaliação submetida", ts:now-172800000, xp:25 },
+              { date:nowLabel(), action:"Publicou no Fórum", ts:now-259200000, xp:5 },
+            ],
+            completedMissions: [],
+          }, { merge:false });
+          await sd(d(db, "medals", "demo"), {
+            week: ["estrela", "comunicador"], weekKey: (await import("../../data.js")).getWeekKey(),
+            allTime: ["estrela", "comunicador", "pontual"]
+          });
+          await sd(d(db, "todos", "demo"), {});
+          await ad(col(db, "todos", "demo", "items"), { text:"Pesquisar oportunidades de estágio", due:"", done:true, shared:false, ts:now-86400000 });
+          await ad(col(db, "todos", "demo", "items"), { text:"Preparar apresentação do projeto", due:"2026-06-01", done:false, shared:true, ts:now-3600000 });
+          alert("Dados demo inicializados! ✅");
+        }} style={{ width:"100%", padding:"12px", background:`${CYN}18`, border:`1px solid ${CYN}30`, color:CYN, borderRadius:12, fontWeight:900, fontSize:13, cursor:"pointer" }}>
+          🔄 Inicializar / Resetar Dados Demo
+        </button>
+      </div>
+
+      {/* 0d. PIA — LANÇAR SECÇÕES A TODOS */}
       <div style={CARD}>
         <div style={SL}>🚀 PIA — Lançar Secções</div>
         <div style={{ fontSize:11, color:"#475569", marginBottom:12 }}>

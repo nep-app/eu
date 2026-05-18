@@ -47,7 +47,7 @@ export default function App() {
     const u = uIn.toLowerCase().trim();
     setLErr("");
     if (!u) { setLErr("Introduz o teu username."); return; }
-    if (u !== "admin" && !ALLOWED_USERNAMES.includes(u)) { setLErr("Username não autorizado."); return; }
+    if (u !== "admin" && u !== "demo" && !ALLOWED_USERNAMES.includes(u)) { setLErr("Username não autorizado."); return; }
     try {
       await signInWithEmailAndPassword(auth, u + "@jeep.app", pIn);
     } catch(e) {
