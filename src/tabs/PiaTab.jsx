@@ -35,11 +35,10 @@ export default function PiaTab({ user, data }) {
       history: newHistory,
       weekXp: (uData.weekXp || 0) + (jaEnviou ? 0 : 30),
     }, { merge: true });
-    if (!jaEnviou) {
-      await addDoc(collection(db, "adminNotificacoes"), {
-        tipo: "PIA", jovem: user.username, ts: Date.now(), lida: false
-      });
-    }
+    await addDoc(collection(db, "adminNotificacoes"), {
+      tipo: "PIA", jovem: user.username, ts: Date.now(), lida: false,
+      atualizado: jaEnviou
+    });
     setSending(false);
     alert(jaEnviou ? "PIA atualizado! 🔄" : "PIA enviado à Teresa! 🚀");
   }

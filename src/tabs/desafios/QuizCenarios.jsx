@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, doc, setDoc, updateDoc, increment, arrayUnion, query, orderBy } from "firebase/firestore";
+import { collection, onSnapshot, doc, setDoc, updateDoc, increment, arrayUnion, addDoc, query, orderBy } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, Btn } from "../../theme.jsx";
 import { fmtDate, isOverdue } from "../../data.js";
@@ -45,6 +45,9 @@ export default function QuizCenarios({ user, data }) {
       const field = `mock.${opcaoId}`;
       await updateDoc(doc(db, "quizzes", quiz.id), {
         [field]: increment(1)
+      });
+      await addDoc(collection(db, "adminNotificacoes"), {
+        tipo: "QUIZ", jovem: user.username, quizTitle: quiz.title, ts: Date.now(), lida: false
       });
 
     } catch (e) {

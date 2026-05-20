@@ -232,8 +232,10 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
               <div key={n.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px", background:"rgba(0,0,0,0.2)", borderRadius:12, marginBottom:8 }}>
                 <div style={{ fontSize:13, color: "white" }}>
                   {n.tipo === "AUTOAVALIACAO" ? `📊 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} entregou a autoavaliação.`
-                  : n.tipo === "PIA" ? `📋 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} enviou o PIA.`
+                  : n.tipo === "PIA" ? `📋 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} ${n.atualizado ? "atualizou" : "enviou"} o PIA.`
                   : n.tipo === "MENSAGEM" ? `💬 ${n.anon ? "Mensagem anónima" : (JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem) + " enviou uma mensagem"}: "${n.texto}${n.texto?.length >= 60 ? "…" : ""}"`
+                  : n.tipo === "PERGUNTA" ? `💬 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} respondeu à pergunta semanal.`
+                  : n.tipo === "QUIZ" ? `🧠 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} respondeu ao dilema "${n.quizTitle || ""}".`
                   : `😊 Nova Satisfação Anónima submetida.`}
                 </div>
                 <button onClick={() => markAdminNotifAsRead(n.id)} style={{ background:"none", border:"1px solid #ef4444", color:"#ef4444", borderRadius:8, padding:"4px 8px", fontSize:11, cursor:"pointer" }}>Lido ✓</button>
