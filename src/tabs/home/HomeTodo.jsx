@@ -72,18 +72,24 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
 
   async function aceitarTarefa(id) {
     await updateDoc(doc(db, "todos", user.username, "items", id), { accepted:true, shared:true });
+    await addDoc(collection(db, "adminNotificacoes"), { tipo:"TAREFA_ACEITE", jovem:user.username, ts:Date.now(), lida:false });
   }
 
   async function recusarTarefa(id) {
-    if (window.confirm("Recusar esta sugestão?")) await deleteDoc(doc(db, "todos", user.username, "items", id));
+    if (!window.confirm("Recusar esta sugestão?")) return;
+    await deleteDoc(doc(db, "todos", user.username, "items", id));
+    await addDoc(collection(db, "adminNotificacoes"), { tipo:"TAREFA_RECUSADA", jovem:user.username, ts:Date.now(), lida:false });
   }
 
   async function aceitarEvento(id) {
     await updateDoc(doc(db, "events", id), { accepted: true });
+    await addDoc(collection(db, "adminNotificacoes"), { tipo:"EVENTO_ACEITE", jovem:user.username, ts:Date.now(), lida:false });
   }
 
   async function recusarEvento(id) {
-    if (window.confirm("Recusar este evento?")) await deleteDoc(doc(db, "events", id));
+    if (!window.confirm("Recusar este evento?")) return;
+    await deleteDoc(doc(db, "events", id));
+    await addDoc(collection(db, "adminNotificacoes"), { tipo:"EVENTO_RECUSADO", jovem:user.username, ts:Date.now(), lida:false });
   }
 
   return (

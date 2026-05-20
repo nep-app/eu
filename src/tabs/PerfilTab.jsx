@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { doc, setDoc, collection, getDocs, deleteDoc, query, where } from "firebase/firestore";
+import { doc, setDoc, collection, addDoc, getDocs, deleteDoc, query, where } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../firebase.js";
 import { CARD, SL, CYN, PNK, INP, Btn, SubTabs, RadarChart, BG, TXT_MUT } from "../theme.jsx";
@@ -46,6 +46,11 @@ export default function PerfilTab({ user, data, features = {} }) {
         roda, rodaSaves: newSaves, rodaShared: share, rodaSavedAt: ts,
         history: newH, weekXp: (uData.weekXp || 0) + 20, ...streakUpdate
       }, { merge: true });
+      if (share) {
+        await addDoc(collection(db, "adminNotificacoes"), {
+          tipo: "RODA", jovem: user.username, ts: Date.now(), lida: false
+        });
+      }
       alert(share ? "Roda enviada para a Teresa! 🌸" : "Roda guardada no teu histórico.");
     } catch (e) { alert("Erro ao guardar a roda."); }
   }

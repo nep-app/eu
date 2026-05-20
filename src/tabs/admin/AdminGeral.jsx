@@ -231,12 +231,21 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
             {alertasNaoLidos.slice(0, 10).map(n => (
               <div key={n.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px", background:"rgba(0,0,0,0.2)", borderRadius:12, marginBottom:8 }}>
                 <div style={{ fontSize:13, color: "white" }}>
-                  {n.tipo === "AUTOAVALIACAO" ? `📊 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} entregou a autoavaliação.`
-                  : n.tipo === "PIA" ? `📋 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} ${n.atualizado ? "atualizou" : "enviou"} o PIA.`
-                  : n.tipo === "MENSAGEM" ? `💬 ${n.anon ? "Mensagem anónima" : (JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem) + " enviou uma mensagem"}: "${n.texto}${n.texto?.length >= 60 ? "…" : ""}"`
-                  : n.tipo === "PERGUNTA" ? `💬 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} respondeu à pergunta semanal.`
-                  : n.tipo === "QUIZ" ? `🧠 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} respondeu ao dilema "${n.quizTitle || ""}".`
-                  : `😊 Nova Satisfação Anónima submetida.`}
+                  {(() => {
+                    const nome = JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem;
+                    if (n.tipo === "AUTOAVALIACAO")   return `📊 ${nome} entregou a autoavaliação.`;
+                    if (n.tipo === "PIA")             return `📋 ${nome} ${n.atualizado ? "atualizou" : "enviou"} o PIA.`;
+                    if (n.tipo === "MENSAGEM")        return `💬 ${n.anon ? "Mensagem anónima" : nome + " enviou uma mensagem"}: "${n.texto}${n.texto?.length >= 60 ? "…" : ""}"`;
+                    if (n.tipo === "PERGUNTA")        return `💬 ${nome} respondeu à pergunta semanal${n.texto ? `: "${n.texto}${n.texto.length>=60?"…":""}"` : "."}`;
+                    if (n.tipo === "QUIZ")            return `🧠 ${nome} respondeu ao dilema "${n.quizTitle || ""}".`;
+                    if (n.tipo === "RODA")            return `🌸 ${nome} partilhou a Roda da Vida.`;
+                    if (n.tipo === "FORUM_POST")      return `🌐 ${nome} publicou no fórum (${n.canal})${n.texto ? `: "${n.texto}${n.texto.length>=60?"…":""}"` : "."}`;
+                    if (n.tipo === "TAREFA_ACEITE")   return `✅ ${nome} aceitou uma tarefa proposta.`;
+                    if (n.tipo === "TAREFA_RECUSADA") return `❌ ${nome} recusou uma tarefa proposta.`;
+                    if (n.tipo === "EVENTO_ACEITE")   return `✅ ${nome} aceitou um evento proposto.`;
+                    if (n.tipo === "EVENTO_RECUSADO") return `❌ ${nome} recusou um evento proposto.`;
+                    return `😊 Nova Satisfação Anónima submetida.`;
+                  })()}
                 </div>
                 <button onClick={() => markAdminNotifAsRead(n.id)} style={{ background:"none", border:"1px solid #ef4444", color:"#ef4444", borderRadius:8, padding:"4px 8px", fontSize:11, cursor:"pointer" }}>Lido ✓</button>
               </div>

@@ -51,6 +51,12 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
           date: nowFull()
         });
       }
+      if (forumCollection === "forum") {
+        await addDoc(collection(db, "adminNotificacoes"), {
+          tipo: "FORUM_POST", jovem: user.username, canal: canalAtivo,
+          texto: textoPost.substring(0, 60), ts: Date.now(), lida: false
+        });
+      }
       darXPComStreak("Publicou uma partilha no Fórum");
       setTextoPost(""); setFicheiroMedia(null);
     } catch (e) { alert("Erro ao publicar: " + e.message); }
