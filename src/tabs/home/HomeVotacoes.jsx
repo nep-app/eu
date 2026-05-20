@@ -40,7 +40,7 @@ export default function HomeVotacoes({ user }) {
         <div key={poll.id} style={{ ...CARD, border: `1.5px solid ${CYN}` }}>
           <div style={SL}>🗳️ {poll.title}</div>
           <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 15 }}>
-            {poll.type === "data" ? "Seleciona as datas em que tens disponibilidade:" : "Seleciona a tua opção favorita:"}
+            {poll.type === "data" ? "✅ Seleciona as datas/horas em que tens disponibilidade (podes escolher várias):" : "Seleciona a tua opção favorita:"}
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

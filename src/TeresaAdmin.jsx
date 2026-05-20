@@ -14,6 +14,7 @@ import AdminMissoes from './tabs/admin/AdminMissoes.jsx';
 import AdminMsgs from './tabs/admin/AdminMsgs.jsx';
 import AdminUsers from './tabs/admin/AdminUsers.jsx';
 import AdminVotacoes from './tabs/admin/AdminVotacoes.jsx'; // ADICIONA ESTA LINHA
+import AdminQuizzes from './tabs/admin/AdminQuizzes.jsx';
 export default function TeresaAdmin({ user, onLogout }) {
   const [adminTab, setAdminTab] = useState("geral");
   const [sandboxMode, setSandboxMode] = useState(false);
@@ -82,15 +83,16 @@ export default function TeresaAdmin({ user, onLogout }) {
   const unreadNotifsCount = adminNotifs.filter(n => !n.lida).length;
 
 const ADMIN_TABS = [
-    ["geral", unreadNotifsCount > 0 ? `📊 Geral (${unreadNotifsCount})` : "📊 Geral"],
-    ["mural", "🌐 Fórum"],
-    ["votacoes", "🗳️ Votações"], // ADICIONA ESTA LINHA
+    ["geral",     unreadNotifsCount > 0 ? `📊 Geral (${unreadNotifsCount})` : "📊 Geral"],
+    ["mural",     "🌐 Fórum"],
+    ["votacoes",  "🗳️ Votações"],
+    ["quizzes",   "🧠 Dilemas"],
     ["partilhas", "📂 Partilhas"],
-    ["tasks", "✅ Tarefas"],
-    ["agenda", "📅 Agenda"],
-    ["missoes", "🎯 Missões"],
-    ["msgs", "💬 Msgs"],
-    ["users", "👥 Utilizadores"]
+    ["tasks",     "✅ Tarefas"],
+    ["agenda",    "📅 Agenda"],
+    ["missoes",   "🎯 Missões"],
+    ["msgs",      "💬 Msgs"],
+    ["users",     "👥 Utilizadores"]
   ];
 
   return (
@@ -179,6 +181,7 @@ const ADMIN_TABS = [
         {adminTab === "geral"     && <AdminGeral allShared={allShared} leaderboard={leaderboard} adminNotifs={adminNotifs} activeQ={activeQ} sandboxMode={sandboxMode} />}
         {adminTab === "mural"     && <AdminMural />}
         {adminTab === "votacoes"  && <AdminVotacoes />}
+        {adminTab === "quizzes"   && <AdminQuizzes />}
         {adminTab === "partilhas" && <AdminPartilhas allShared={allShared} />}
         {adminTab === "tasks"     && <AdminTarefas sandboxMode={sandboxMode} />}
         {adminTab === "agenda"    && <AdminAgenda events={events} sandboxMode={sandboxMode} />}

@@ -1,15 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, SL, CYN, PNK, INP, Btn } from "../../theme.jsx";
+import { CARD, SL, CYN, PNK, GRN, INP, Btn } from "../../theme.jsx";
+
+function fmtOpcaoData(date, time) {
+  if (!date) return "";
+  const [y, m, d] = date.split("-");
+  const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  const base = `${parseInt(d)} ${MESES[parseInt(m)-1]}`;
+  return time ? `${base} · ${time}` : base;
+}
 
 export default function AdminVotacoes() {
   const [polls, setPolls] = useState([]);
   const [titulo, setTitulo] = useState("");
-  const [tipo, setTipo] = useState("texto"); // "texto" ou "data"
+  const [tipo, setTipo] = useState("texto");
+  // Para tipo texto: array de strings
   const [opcoes, setOpcoes] = useState(["", ""]);
+  // Para tipo data: array de {date, time}
+  const [opcoesDatas, setOpcoesDatas] = useState([{date:"",time:""},{date:"",time:""}]);
+  const [saving, setSaving] = useState(false);
 
-  // Ouvir as votações da base de dados
   useEffect(() => {
     return onSnapshot(collection(db, "polls"), snap => {
       setPolls(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.ts - a.ts));
@@ -18,30 +29,41 @@ export default function AdminVotacoes() {
 
   async function criarVotacao() {
     if (!titulo.trim()) return alert("Dá um título à votação!");
-    const opcoesValidas = opcoes.filter(o => o.trim() !== "");
-    if (opcoesValidas.length < 2) return alert("Precisas de pelo menos 2 opções!");
 
-    // Preparar o objeto de votos (começam todos a zeros)
-    let votosIniciais = {};
-    opcoesValidas.forEach(op => votosIniciais[op] = []);
+    let opcoesFinais;
+    if (tipo === "data") {
+      opcoesFinais = opcoesDatas
+        .filter(o => o.date.trim())
+        .map(o => fmtOpcaoData(o.date, o.time));
+    } else {
+      opcoesFinais = opcoes.filter(o => o.trim() !== "");
+    }
 
-    await addDoc(collection(db, "polls"), {
-      title: titulo,
-      type: tipo,
-      options: opcoesValidas,
-      votes: votosIniciais,
-      active: true,
-      ts: Date.now()
-    });
+    if (opcoesFinais.length < 2) return alert("Precisas de pelo menos 2 opções!");
 
-    setTitulo(""); setOpcoes(["", ""]);
-    alert("Votação lançada com sucesso! 🚀");
+    const votosIniciais = {};
+    opcoesFinais.forEach(op => { votosIniciais[op] = []; });
+
+    setSaving(true);
+    try {
+      await addDoc(collection(db, "polls"), {
+        title: titulo, type: tipo,
+        options: opcoesFinais, votes: votosIniciais,
+        active: true, ts: Date.now()
+      });
+      setTitulo("");
+      setOpcoes(["", ""]);
+      setOpcoesDatas([{date:"",time:""},{date:"",time:""}]);
+    } catch(e) {
+      alert("Erro ao criar votação: " + e.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function apagarVotacao(id) {
-    if (window.confirm("Queres apagar esta votação definitivamente?")) {
+    if (window.confirm("Apagar esta votação definitivamente?"))
       await deleteDoc(doc(db, "polls", id));
-    }
   }
 
   async function fecharVotacao(id, estadoAtual) {
@@ -52,79 +74,145 @@ export default function AdminVotacoes() {
     <div>
       <div style={CARD}>
         <div style={SL}>Criar Nova Votação / Doodle</div>
-        
-        <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ex: Que dia fazemos o acampamento?" style={INP} />
-        
-        <div style={{ display: "flex", gap: 10, marginBottom: 15 }}>
-          <select value={tipo} onChange={e => setTipo(e.target.value)} style={{ ...INP, marginBottom: 0, flex: 1 }}>
-            <option value="texto">Opções Normais (Atividades, Comida...)</option>
-            <option value="data">Datas / Horários (Estilo Doodle)</option>
-          </select>
+
+        <input value={titulo} onChange={e => setTitulo(e.target.value)}
+          placeholder="Ex: Que dia fazemos o acampamento?" style={INP} />
+
+        {/* Tipo */}
+        <div style={{ display:"flex", gap:8, marginBottom:16 }}>
+          {[
+            { id:"texto", label:"🗳️ Opções", desc:"Atividades, preferências..." },
+            { id:"data",  label:"📅 Doodle", desc:"Escolha de datas/horas" },
+          ].map(t => (
+            <button key={t.id} onClick={() => setTipo(t.id)} style={{
+              flex:1, padding:"9px 6px", borderRadius:11, cursor:"pointer",
+              border: tipo === t.id ? `1.5px solid ${CYN}` : "1.5px solid rgba(255,255,255,0.08)",
+              background: tipo === t.id ? `${CYN}15` : "rgba(255,255,255,0.03)",
+              color: tipo === t.id ? CYN : "#64748b",
+              fontWeight:800, fontSize:11, textAlign:"center",
+            }}>
+              <div>{t.label}</div>
+              <div style={{ fontSize:9, fontWeight:600, marginTop:2, opacity:0.7 }}>{t.desc}</div>
+            </button>
+          ))}
         </div>
 
-        <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8, fontWeight: 800 }}>OPÇÕES DE ESCOLHA:</div>
-        {opcoes.map((op, idx) => (
-          <div key={idx} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-            <input 
-              type={tipo === "data" ? "date" : "text"} 
-              value={op} 
-              onChange={e => {
-                const novas = [...opcoes];
-                novas[idx] = e.target.value;
-                setOpcoes(novas);
-              }} 
-              placeholder={`Opção ${idx + 1}`} 
-              style={{ ...INP, marginBottom: 0, flex: 1 }} 
-            />
-            {idx >= 2 && (
-              <button onClick={() => setOpcoes(opcoes.filter((_, i) => i !== idx))} style={{ background: "none", border: "none", color: "#fb7185", cursor: "pointer", fontWeight: 900 }}>✕</button>
-            )}
-          </div>
-        ))}
-        
-        <button onClick={() => setOpcoes([...opcoes, ""])} style={{ background: "transparent", border: `1px dashed ${CYN}`, color: CYN, padding: "8px 12px", borderRadius: 12, fontSize: 12, fontWeight: 800, cursor: "pointer", width: "100%", marginBottom: 15 }}>
-          + ADICIONAR OPÇÃO
-        </button>
+        {/* Opções texto */}
+        {tipo === "texto" && (
+          <>
+            <div style={{ fontSize:11, color:"#94a3b8", marginBottom:8, fontWeight:800 }}>OPÇÕES:</div>
+            {opcoes.map((op, idx) => (
+              <div key={idx} style={{ display:"flex", gap:8, marginBottom:8 }}>
+                <input value={op} onChange={e => {
+                  const n = [...opcoes]; n[idx] = e.target.value; setOpcoes(n);
+                }} placeholder={`Opção ${idx+1}`} style={{ ...INP, marginBottom:0, flex:1 }} />
+                {idx >= 2 && (
+                  <button onClick={() => setOpcoes(opcoes.filter((_,i) => i !== idx))}
+                    style={{ background:"none", border:"none", color:"#fb7185", cursor:"pointer", fontWeight:900, fontSize:16 }}>✕</button>
+                )}
+              </div>
+            ))}
+            <button onClick={() => setOpcoes([...opcoes, ""])} style={{
+              background:"transparent", border:`1px dashed ${CYN}`, color:CYN,
+              padding:"8px 12px", borderRadius:12, fontSize:12, fontWeight:800,
+              cursor:"pointer", width:"100%", marginBottom:15
+            }}>+ ADICIONAR OPÇÃO</button>
+          </>
+        )}
 
-        <Btn onClick={criarVotacao}>LANÇAR VOTAÇÃO 🗳️</Btn>
+        {/* Opções doodle (data + hora opcional) */}
+        {tipo === "data" && (
+          <>
+            <div style={{ fontSize:11, color:"#94a3b8", marginBottom:8, fontWeight:800 }}>DATAS / HORÁRIOS:</div>
+            {opcoesDatas.map((op, idx) => (
+              <div key={idx} style={{ display:"flex", gap:8, marginBottom:8, alignItems:"center" }}>
+                <input type="date" value={op.date} onChange={e => {
+                  const n = [...opcoesDatas]; n[idx] = {...n[idx], date:e.target.value}; setOpcoesDatas(n);
+                }} style={{ ...INP, marginBottom:0, flex:2 }} />
+                <input type="time" value={op.time} onChange={e => {
+                  const n = [...opcoesDatas]; n[idx] = {...n[idx], time:e.target.value}; setOpcoesDatas(n);
+                }} style={{ ...INP, marginBottom:0, flex:1 }} placeholder="hora (opcional)" />
+                {idx >= 2 && (
+                  <button onClick={() => setOpcoesDatas(opcoesDatas.filter((_,i) => i !== idx))}
+                    style={{ background:"none", border:"none", color:"#fb7185", cursor:"pointer", fontWeight:900, fontSize:16 }}>✕</button>
+                )}
+              </div>
+            ))}
+            <div style={{ fontSize:10, color:"#475569", marginBottom:10 }}>A hora é opcional — deixa em branco se for dia inteiro.</div>
+            <button onClick={() => setOpcoesDatas([...opcoesDatas, {date:"",time:""}])} style={{
+              background:"transparent", border:`1px dashed ${CYN}`, color:CYN,
+              padding:"8px 12px", borderRadius:12, fontSize:12, fontWeight:800,
+              cursor:"pointer", width:"100%", marginBottom:15
+            }}>+ ADICIONAR DATA</button>
+          </>
+        )}
+
+        <button onClick={criarVotacao} disabled={saving} style={{
+          width:"100%", padding:"13px", background: saving ? "rgba(50,199,255,0.3)" : CYN,
+          border:"none", borderRadius:12, fontWeight:900, fontSize:13,
+          cursor: saving ? "wait" : "pointer", color:"#071529",
+        }}>
+          {saving ? "A criar..." : "LANÇAR VOTAÇÃO 🗳️"}
+        </button>
       </div>
 
-      <div style={{ ...SL, marginTop: 30, marginBottom: 15 }}>Resultados das Votações</div>
-      {polls.map(poll => (
-        <div key={poll.id} style={{ ...CARD, borderLeft: poll.active ? `4px solid ${CYN}` : "4px solid #64748b", opacity: poll.active ? 1 : 0.6 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 15 }}>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 900 }}>{poll.title}</div>
-              <div style={{ fontSize: 11, color: poll.active ? CYN : "#94a3b8", fontWeight: 800, marginTop: 4 }}>
-                {poll.active ? "🟢 A DECORRER" : "🔴 ENCERRADA"} • {poll.type === "data" ? "Doodle de Datas" : "Escolha Múltipla"}
+      {/* LISTA DE VOTAÇÕES */}
+      {polls.length > 0 && (
+        <>
+          <div style={{ ...SL, marginTop:24, marginBottom:12 }}>Votações ({polls.length})</div>
+          {polls.map(poll => (
+            <div key={poll.id} style={{ ...CARD, borderLeft: poll.active ? `4px solid ${CYN}` : "4px solid #334155", opacity: poll.active ? 1 : 0.6 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
+                <div>
+                  <div style={{ fontSize:15, fontWeight:900 }}>{poll.title}</div>
+                  <div style={{ fontSize:11, color: poll.active ? CYN : "#64748b", fontWeight:800, marginTop:3 }}>
+                    {poll.active ? "🟢 A DECORRER" : "🔴 ENCERRADA"} · {poll.type === "data" ? "Doodle" : "Escolha múltipla"}
+                  </div>
+                </div>
+                <div style={{ display:"flex", gap:8 }}>
+                  <button onClick={() => fecharVotacao(poll.id, poll.active)} style={{
+                    background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)",
+                    color:"#fff", borderRadius:8, padding:"4px 10px", fontSize:11, cursor:"pointer", fontWeight:700,
+                  }}>{poll.active ? "Fechar" : "Reabrir"}</button>
+                  <button onClick={() => apagarVotacao(poll.id)} style={{
+                    background:"rgba(244,63,94,0.1)", border:"none", color:"#f43f5e",
+                    borderRadius:8, padding:"4px 8px", fontSize:14, cursor:"pointer",
+                  }}>✕</button>
+                </div>
+              </div>
+              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                {poll.options.map(op => {
+                  const votos = poll.votes[op] || [];
+                  const pct = poll.options.reduce((s,o) => s + (poll.votes[o]||[]).length, 0);
+                  const barW = pct > 0 ? Math.round((votos.length/pct)*100) : 0;
+                  return (
+                    <div key={op} style={{ background:"rgba(0,0,0,0.25)", padding:"10px 14px", borderRadius:12 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", fontWeight:800, fontSize:13, marginBottom:6 }}>
+                        <span style={{ color:"#e2e8f0" }}>{op}</span>
+                        <span style={{ color:CYN }}>{votos.length} {votos.length === 1 ? "voto" : "votos"}</span>
+                      </div>
+                      {pct > 0 && (
+                        <div style={{ height:4, background:"rgba(255,255,255,0.07)", borderRadius:4, marginBottom:6 }}>
+                          <div style={{ height:4, width:`${barW}%`, background:CYN, borderRadius:4, transition:"width 0.4s" }} />
+                        </div>
+                      )}
+                      {votos.length > 0 && (
+                        <div style={{ fontSize:11, color:"#64748b" }}>🙋 {votos.join(", ")}</div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => fecharVotacao(poll.id, poll.active)} style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 12 }}>{poll.active ? "Fechar" : "Reabrir"}</button>
-              <button onClick={() => apagarVotacao(poll.id)} style={{ background: "none", border: "none", color: "#fb7185", cursor: "pointer", fontSize: 16 }}>✕</button>
-            </div>
-          </div>
+          ))}
+        </>
+      )}
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {poll.options.map(op => {
-              const votos = poll.votes[op] || [];
-              return (
-                <div key={op} style={{ background: "rgba(0,0,0,0.3)", padding: "10px 14px", borderRadius: 12 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 13, color: "#e2e8f0" }}>
-                    <span>{op}</span>
-                    <span style={{ color: CYN }}>{votos.length} votos</span>
-                  </div>
-                  {votos.length > 0 && (
-                    <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 6 }}>
-                      🙋‍♂️ {votos.join(", ")}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+      {polls.length === 0 && (
+        <div style={{ textAlign:"center", color:"#475569", fontSize:13, padding:"30px 0" }}>
+          Ainda não há votações criadas.
         </div>
-      ))}
+      )}
     </div>
   );
 }
