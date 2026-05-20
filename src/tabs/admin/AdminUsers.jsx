@@ -135,6 +135,17 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
     const totalXp       = (uData.history || []).reduce((s, h) => s + (h.xp || 0), 0);
     const jeep          = JEEP_LIST.find(j => j.username === username);
     const [xpEdit, setXpEdit] = useState(String(uData.weekXp || 0));
+    const [feedbackAuto, setFeedbackAuto] = useState("");
+    const [feedbackPia, setFeedbackPia] = useState("");
+
+    async function enviarFeedback(tipo, texto, setTexto) {
+      if (!texto.trim()) return;
+      await addDoc(collection(db, "notifications", username, "items"), {
+        from: "teresa", text: texto, date: nowLabel(), read: false
+      });
+      setTexto("");
+      alert("Feedback enviado! ✓");
+    }
 
     const BTN_RESET = {
       background:"rgba(244,63,94,0.10)", border:"1.5px dashed rgba(244,63,94,0.4)",
@@ -237,14 +248,18 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
                 }, { merge: true });
               }
               const PIA_SECTIONS_MINI = [
-                { id:"s1", title:"Identificação", icon:"👤" },
-                { id:"s2", title:"Diagnóstico",   icon:"🔍" },
-                { id:"s3", title:"Atributos",      icon:"⭐" },
-                { id:"s4", title:"Projeto",        icon:"🚀" },
-                { id:"s5", title:"Monitorização",  icon:"📈" },
+                { id:"s2", title:"Diagnóstico",    icon:"🔍" },
+                { id:"s3", title:"Atributos",       icon:"⭐" },
+                { id:"s4", title:"Projeto",         icon:"🚀" },
+                { id:"s5", title:"Monitorização",   icon:"📈" },
               ];
               return (
                 <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                  {uData.piaSaved && (
+                    <div style={{ fontSize:10, color:"#4ade80", fontWeight:800, marginBottom:4 }}>
+                      ✓ PIA enviado {uData.piaSavedAt ? `em ${uData.piaSavedAt}` : ""}
+                    </div>
+                  )}
                   {PIA_SECTIONS_MINI.map((sec, idx) => {
                     const isOpen = piaUnlocked[sec.id] || false;
                     const secData = piaData[sec.id] || {};
@@ -267,6 +282,17 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
                       </div>
                     );
                   })}
+                  {uData.piaSaved && (
+                    <div style={{ display:"flex", gap:8, marginTop:4 }}>
+                      <input value={feedbackPia} onChange={e => setFeedbackPia(e.target.value)}
+                        placeholder="Dar feedback ao PIA…"
+                        style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                      <button onClick={() => enviarFeedback("pia", feedbackPia, setFeedbackPia)}
+                        style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
+                        Enviar
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })()}
@@ -457,12 +483,25 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
                 </div>
                 <button onClick={() => resetMissoes(username)} style={BTN_RESET}>Limpar</button>
               </div>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
-                <div>
-                  <div style={{ fontSize:12, fontWeight:800 }}>Autoavaliação</div>
-                  <div style={{ fontSize:10, color:"#64748b" }}>{uData.autoSaved ? `Entregue em ${uData.autoDate||"?"}` : Object.keys(uData.dScores||{}).length > 0 ? "Iniciada (não submetida)" : "Ainda não submetida"}</div>
+              <div style={{ padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: uData.autoSaved ? 10 : 0 }}>
+                  <div>
+                    <div style={{ fontSize:12, fontWeight:800 }}>Autoavaliação</div>
+                    <div style={{ fontSize:10, color:"#64748b" }}>{uData.autoSaved ? `Entregue em ${uData.autoDate||"?"}` : Object.keys(uData.dScores||{}).length > 0 ? "Iniciada (não submetida)" : "Ainda não submetida"}</div>
+                  </div>
+                  {(uData.autoSaved || Object.keys(uData.dScores||{}).length > 0) && <button onClick={() => resetAutoavaliacao(username)} style={BTN_RESET}>Repor</button>}
                 </div>
-                {(uData.autoSaved || Object.keys(uData.dScores||{}).length > 0) && <button onClick={() => resetAutoavaliacao(username)} style={BTN_RESET}>Repor</button>}
+                {uData.autoSaved && (
+                  <div style={{ display:"flex", gap:8 }}>
+                    <input value={feedbackAuto} onChange={e => setFeedbackAuto(e.target.value)}
+                      placeholder="Dar feedback à autoavaliação…"
+                      style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                    <button onClick={() => enviarFeedback("auto", feedbackAuto, setFeedbackAuto)}
+                      style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
+                      Enviar
+                    </button>
+                  </div>
+                )}
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
                 <div>

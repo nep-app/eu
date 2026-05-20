@@ -232,6 +232,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
               <div key={n.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px", background:"rgba(0,0,0,0.2)", borderRadius:12, marginBottom:8 }}>
                 <div style={{ fontSize:13, color: "white" }}>
                   {n.tipo === "AUTOAVALIACAO" ? `📊 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} entregou a autoavaliação.`
+                  : n.tipo === "PIA" ? `📋 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} enviou o PIA.`
                   : n.tipo === "MENSAGEM" ? `💬 ${n.anon ? "Mensagem anónima" : (JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem) + " enviou uma mensagem"}: "${n.texto}${n.texto?.length >= 60 ? "…" : ""}"`
                   : `😊 Nova Satisfação Anónima submetida.`}
                 </div>
