@@ -207,63 +207,55 @@ export const ALL_MEDALS = [
   { id:"superacao",   icon:"🏆", label:"Superação",            desc:"Ultrapassou um obstáculo pessoal ou profissional que parecia impossível." },
 ];
 
+// s1 removido (identificação do jovem não necessária)
+// sub: "diag" = Diagnóstico, "atrib" = Atributos & Raio-X, "proj" = Projeto, "mon" = Monitorização
 export const PIA_SECTIONS = [
   {
-    id: "s1", title: "Identificação do Jovem", icon: "👤",
+    id: "s2", title: "Diagnóstico da Instituição", icon: "🔍", sub: "diag",
     fields: [
-      { key: "nome",       label: "Nome completo",                  ph: "O teu nome completo",              rows: 1 },
-      { key: "idade",      label: "Idade",                          ph: "Ex: 22 anos",                      rows: 1 },
-      { key: "contactos",  label: "Contactos",                      ph: "Email, telefone...",               rows: 1 },
-      { key: "polo",       label: "Polo / Ludoteca de integração",  ph: "Nome do local de integração",      rows: 1 },
-      { key: "dataInicio", label: "Data de início do plano",        ph: "Ex: Janeiro 2025",                 rows: 1 },
-    ]
-  },
-  {
-    id: "s2", title: "Diagnóstico Inicial", icon: "🔍",
-    fields: [
-      { key: "nomeInst",     label: "Nome da instituição",                   ph: "",                                          rows: 1 },
-      { key: "tipoServico",  label: "Tipo de serviço",                       ph: "Ex: ludoteca, polo comunitário",            rows: 1 },
-      { key: "publicoAlvo",  label: "Público-alvo",                          ph: "Faixa etária, perfil...",                   rows: 2 },
-      { key: "missao",       label: "Missão e áreas de intervenção",         ph: "Principais objetivos da instituição...",    rows: 3 },
-      { key: "recHumanos",   label: "Recursos humanos",                      ph: "Técnicos, mediadores, voluntários...",      rows: 3 },
-      { key: "recMateriais", label: "Recursos materiais",                    ph: "Espaços, equipamentos, tecnologia...",      rows: 3 },
+      { key: "nomeInst",     label: "Nome da instituição",                   ph: "",                                                               rows: 1 },
+      { key: "tipoServico",  label: "Tipo de serviço",                       ph: "Ex: ludoteca, polo comunitário",                                 rows: 1 },
+      { key: "publicoAlvo",  label: "Público-alvo",                          ph: "Faixa etária, perfil...",                                        rows: 2 },
+      { key: "missao",       label: "Missão e áreas de intervenção",         ph: "Principais objetivos da instituição...",                         rows: 3 },
+      { key: "recHumanos",   label: "Recursos humanos",                      ph: "Técnicos, mediadores, voluntários...",                           rows: 3 },
+      { key: "recMateriais", label: "Recursos materiais",                    ph: "Espaços, equipamentos, tecnologia...",                           rows: 3 },
       { key: "necInst",      label: "Necessidades — ótica da instituição",   ph: "O que falta? Falta de diversidade, recursos especializados...", rows: 3 },
       { key: "necUsers",     label: "Necessidades — ótica dos jovens",       ph: "Baixa motivação, déficit de competências, carências digitais...", rows: 3 },
     ]
   },
   {
-    id: "s3", title: "Atributos do Candidato", icon: "⭐",
+    id: "s3", title: "Atributos & Raio-X", icon: "⭐", sub: "atrib",
     fields: [
-      { key: "percPessoal",    label: "Percurso pessoal",         ph: "Experiências de vida relevantes, voluntariado...", rows: 3 },
-      { key: "percAcademico",  label: "Percurso académico",       ph: "Cursos concluídos, formações, áreas de interesse...", rows: 3 },
-      { key: "competencias",   label: "Competências formais",     ph: "Competências técnicas (informática, línguas)...", rows: 2 },
-      { key: "personalidade",  label: "Traços de personalidade",  ph: "Comunicação, empatia, criatividade, liderança...", rows: 2 },
-      { key: "hobbies",        label: "Gostos / Hobbies",         ph: "Música, desporto, jogos, atividades culturais...", rows: 2 },
+      { key: "percPessoal",    label: "Percurso pessoal",        ph: "Experiências de vida relevantes, voluntariado...",         rows: 3 },
+      { key: "percAcademico",  label: "Percurso académico",      ph: "Cursos concluídos, formações, áreas de interesse...",      rows: 3 },
+      { key: "competencias",   label: "Competências formais",    ph: "Competências técnicas (informática, línguas)...",          rows: 2 },
+      { key: "personalidade",  label: "Traços de personalidade", ph: "Comunicação, empatia, criatividade, liderança...",        rows: 2 },
+      { key: "hobbies",        label: "Gostos / Hobbies",        ph: "Música, desporto, jogos, atividades culturais...",        rows: 2 },
+      { key: "swotF",    label: "Raio-X — 💪 Pontos Fortes",   ph: 'Ex: "Gosto de cinema e sei escolher bons filmes."',       rows: 2 },
+      { key: "swotFraq", label: "Raio-X — ⚠️ Pontos Fracos",   ph: 'Ex: "Pouca experiência a conduzir debates."',             rows: 2 },
+      { key: "swotOp",   label: "Raio-X — 🌟 Oportunidades",   ph: 'Ex: "Muitos jovens gostam de ver filmes e conversar."',   rows: 2 },
+      { key: "swotR",    label: "Raio-X — 🚨 Ameaças",         ph: 'Ex: "Falta de recursos ou pouca adesão."',               rows: 2 },
     ]
   },
   {
-    id: "s4", title: "Conceção e Planificação do Projeto", icon: "🚀",
+    id: "s4", title: "Conceção do Projeto", icon: "🚀", sub: "proj",
     fields: [
-      { key: "oQue",       label: "O QUÊ — Natureza / Temática",         ph: 'Ex: "Organizar sessões de cinema seguidas de debates sobre temas importantes."', rows: 2 },
-      { key: "fundamento", label: "PORQUÊ — Fundamento",                 ph: 'Ex: "Porque muitos jovens não têm espaço para falar sobre problemas sociais."', rows: 2 },
-      { key: "objetivos",  label: "PARA QUÊ — Objetivos",               ph: 'Ex: "Para promover reflexão, diálogo e consciência social entre os jovens."', rows: 2 },
-      { key: "metas",      label: "QUANTO — Metas concretas",            ph: 'Ex: "Realizar 6 sessões de cinema com debate durante o ano."', rows: 2 },
-      { key: "onde",       label: "ONDE — Localização",                  ph: 'Ex: "Na sala polivalente da ludoteca."', rows: 1 },
-      { key: "atividades", label: "COMO E QUANDO — Atividades e Calendário", ph: 'Ex: "Vou escolher filmes, preparar perguntas e divulgar. Uma sessão a cada dois meses."', rows: 3 },
-      { key: "recursos",   label: "COM O QUÊ — Recursos",               ph: 'Ex: "Projetor, computador, filmes, cadeiras, cartazes."', rows: 2 },
-      { key: "avaliacao",  label: "COMO AVALIAR — Critérios",           ph: 'Ex: "Contar quantos participaram e pedir opiniões."', rows: 2 },
-      { key: "swotF",      label: "SWOT — 💪 Pontos Fortes",            ph: 'Ex: "Gosto de cinema e sei escolher bons filmes."', rows: 2 },
-      { key: "swotFraq",   label: "SWOT — ⚠️ Pontos Fracos",           ph: 'Ex: "Pouca experiência a conduzir debates."', rows: 2 },
-      { key: "swotOp",     label: "SWOT — 🌟 Oportunidades",           ph: 'Ex: "Muitos jovens gostam de ver filmes e conversar."', rows: 2 },
-      { key: "swotR",      label: "SWOT — 🚨 Ameaças",                 ph: 'Ex: "Falta de recursos ou pouca adesão."', rows: 2 },
+      { key: "oQue",       label: "O QUÊ — Natureza / Temática",              ph: 'Ex: "Organizar sessões de cinema seguidas de debates."',                  rows: 2 },
+      { key: "fundamento", label: "PORQUÊ — Fundamento",                      ph: 'Ex: "Porque muitos jovens não têm espaço para falar."',                  rows: 2 },
+      { key: "objetivos",  label: "PARA QUÊ — Objetivos",                     ph: 'Ex: "Para promover reflexão, diálogo e consciência social."',             rows: 2 },
+      { key: "metas",      label: "QUANTO — Metas concretas",                 ph: 'Ex: "Realizar 6 sessões de cinema com debate durante o ano."',            rows: 2 },
+      { key: "onde",       label: "ONDE — Localização",                       ph: 'Ex: "Na sala polivalente da ludoteca."',                                  rows: 1 },
+      { key: "atividades", label: "COMO E QUANDO — Atividades e Calendário",  ph: 'Ex: "Vou escolher filmes, preparar perguntas e divulgar."',              rows: 3 },
+      { key: "recursos",   label: "COM O QUÊ — Recursos",                     ph: 'Ex: "Projetor, computador, filmes, cadeiras, cartazes."',                 rows: 2 },
+      { key: "avaliacao",  label: "COMO AVALIAR — Critérios",                 ph: 'Ex: "Contar quantos participaram e pedir opiniões."',                    rows: 2 },
     ]
   },
   {
-    id: "s5", title: "Monitorização e Revisão", icon: "📈",
+    id: "s5", title: "Monitorização e Revisão", icon: "📈", sub: "mon",
     fields: [
-      { key: "periodicidade",    label: "Periodicidade de revisão",   ph: 'Ex: "Vou verificar todos os meses se as sessões estão a acontecer."', rows: 2 },
-      { key: "registoEvolucao",  label: "Registo de evolução",        ph: 'Ex: "Sessão 1: 10 participantes, debate animado. Melhorar divulgação para próxima."', rows: 4 },
-      { key: "ajustes",          label: "Ajustes ao plano",           ph: 'Ex: "Pouca adesão? Vou convidar amigos e divulgar nas redes sociais."', rows: 3 },
+      { key: "periodicidade",   label: "Periodicidade de revisão", ph: 'Ex: "Vou verificar todos os meses se as sessões estão a acontecer."', rows: 2 },
+      { key: "registoEvolucao", label: "Registo de evolução",      ph: 'Ex: "Sessão 1: 10 participantes, debate animado."',                   rows: 4 },
+      { key: "ajustes",         label: "Ajustes ao plano",         ph: 'Ex: "Pouca adesão? Vou convidar amigos e divulgar nas redes."',       rows: 3 },
     ]
   },
 ];

@@ -180,7 +180,7 @@ const ADMIN_TABS = [
         {/* RENDERIZAÇÃO DAS FATIAS */}
         {adminTab === "geral"     && <AdminGeral allShared={allShared} leaderboard={leaderboard} adminNotifs={adminNotifs} activeQ={activeQ} sandboxMode={sandboxMode} />}
         {adminTab === "mural"     && <AdminMural />}
-        {adminTab === "votacoes"  && <AdminVotacoes />}
+        {adminTab === "votacoes"  && <AdminVotacoes sandboxMode={sandboxMode} />}
         {adminTab === "quizzes"   && <AdminQuizzes />}
         {adminTab === "partilhas" && <AdminPartilhas allShared={allShared} />}
         {adminTab === "tasks"     && <AdminTarefas sandboxMode={sandboxMode} />}

@@ -8,8 +8,10 @@ export default function HomeVotacoes({ user }) {
 
   useEffect(() => {
     return onSnapshot(collection(db, "polls"), snap => {
-      // Mostrar apenas votações ativas aos jovens
-      const ativas = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.active);
+      const isDemo = user.isDemo || false;
+      const ativas = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(p => p.active && (isDemo ? p.demo === true : !p.demo));
       setPolls(ativas.sort((a, b) => b.ts - a.ts));
     });
   }, []);

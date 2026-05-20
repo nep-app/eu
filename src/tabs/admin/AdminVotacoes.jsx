@@ -11,7 +11,7 @@ function fmtOpcaoData(date, time) {
   return time ? `${base} · ${time}` : base;
 }
 
-export default function AdminVotacoes() {
+export default function AdminVotacoes({ sandboxMode = false }) {
   const [polls, setPolls] = useState([]);
   const [titulo, setTitulo] = useState("");
   const [tipo, setTipo] = useState("texto");
@@ -49,7 +49,8 @@ export default function AdminVotacoes() {
       await addDoc(collection(db, "polls"), {
         title: titulo, type: tipo,
         options: opcoesFinais, votes: votosIniciais,
-        active: true, ts: Date.now()
+        active: true, ts: Date.now(),
+        demo: sandboxMode ? true : false,
       });
       setTitulo("");
       setOpcoes(["", ""]);
@@ -75,6 +76,11 @@ export default function AdminVotacoes() {
       <div style={CARD}>
         <div style={SL}>Criar Nova Votação / Doodle</div>
 
+        {sandboxMode && (
+          <div style={{ background:"rgba(251,146,60,0.1)", border:"1px solid rgba(251,146,60,0.25)", borderRadius:10, padding:"8px 12px", marginBottom:12, fontSize:11, color:"#fb923c", fontWeight:800 }}>
+            🎭 Sandbox: a votação vai aparecer apenas no utilizador demo
+          </div>
+        )}
         <input value={titulo} onChange={e => setTitulo(e.target.value)}
           placeholder="Ex: Que dia fazemos o acampamento?" style={INP} />
 

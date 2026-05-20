@@ -53,6 +53,13 @@ export default function HomeExtras({ user, data, setTab }) {
       from: mensagemAnonima ? "Anónimo" : user.username,
       hiddenUser: user.username, date: nowFull(), adminReply: ""
     });
+    await addDoc(collection(db, "adminNotificacoes"), {
+      tipo: "MENSAGEM",
+      anon: mensagemAnonima,
+      jovem: user.username,
+      texto: mensagemTexto.substring(0, 60),
+      ts: Date.now(), lida: false
+    });
     setMensagemTexto(""); setMensagemEnviadaSucesso(true);
     setTimeout(() => setMensagemEnviadaSucesso(false), 3000);
   }

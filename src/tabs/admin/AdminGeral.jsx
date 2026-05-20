@@ -122,8 +122,11 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
   return (
     <div>
       {/* 0. CONTROLO DE FUNCIONALIDADES */}
-      <div style={CARD}>
-        <div style={SL}>🔧 Funcionalidades Ativas</div>
+      <div style={{ ...CARD, opacity: sandboxMode ? 0.5 : 1, pointerEvents: sandboxMode ? "none" : "auto" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div style={SL}>🔧 Funcionalidades Ativas</div>
+          {sandboxMode && <span style={{ fontSize:10, color:"#fb923c", fontWeight:800 }}>🌐 GLOBAL — não sandboxável</span>}
+        </div>
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
           {FEATURES.map(f => {
             const on = !!features[f.key];
@@ -228,7 +231,9 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
             {alertasNaoLidos.slice(0, 10).map(n => (
               <div key={n.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px", background:"rgba(0,0,0,0.2)", borderRadius:12, marginBottom:8 }}>
                 <div style={{ fontSize:13, color: "white" }}>
-                  {n.tipo === "AUTOAVALIACAO" ? `📊 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} entregou a autoavaliação.` : `😊 Nova Satisfação Anónima submetida.`}
+                  {n.tipo === "AUTOAVALIACAO" ? `📊 ${JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem} entregou a autoavaliação.`
+                  : n.tipo === "MENSAGEM" ? `💬 ${n.anon ? "Mensagem anónima" : (JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem) + " enviou uma mensagem"}: "${n.texto}${n.texto?.length >= 60 ? "…" : ""}"`
+                  : `😊 Nova Satisfação Anónima submetida.`}
                 </div>
                 <button onClick={() => markAdminNotifAsRead(n.id)} style={{ background:"none", border:"1px solid #ef4444", color:"#ef4444", borderRadius:8, padding:"4px 8px", fontSize:11, cursor:"pointer" }}>Lido ✓</button>
               </div>
