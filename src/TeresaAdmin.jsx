@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { collection, onSnapshot, doc, getDoc, query, orderBy } from "firebase/firestore";
+import React, { useState, useEffect, useRef } from "react";
+import { collection, onSnapshot, doc, getDoc, setDoc, query, orderBy } from "firebase/firestore";
 import { db } from "./firebase.js";
 import { BG, CYN, AppIcon } from "./theme.jsx";
-import { upd, getWeekKey, ALLOWED_USERNAMES, JEEP_LIST } from "./data.js";
+import { upd, getWeekKey, nowLabel, ALLOWED_USERNAMES, JEEP_LIST } from "./data.js";
 
 // ── IMPORTAÇÃO DAS FATIAS ──
 import AdminGeral from './tabs/admin/AdminGeral.jsx';
@@ -79,6 +79,21 @@ export default function TeresaAdmin({ user, onLogout }) {
       uNotifs(); 
     };
   }, []);
+
+  // Auto-refresh leaderboard whenever any user's XP changes (debounced 3s)
+  const lbTimer = useRef(null);
+  useEffect(() => {
+    if (Object.keys(allShared).length === 0) return;
+    clearTimeout(lbTimer.current);
+    lbTimer.current = setTimeout(() => {
+      const scores = {};
+      JEEP_LIST.forEach(j => {
+        const d = allShared[j.username] || {};
+        scores[j.username] = { name: j.name, xp: d.weekXp || 0, color: j.color };
+      });
+      setDoc(doc(db, "config", "weeklyLeaderboard"), { week: getWeekKey(), scores, lastUpdate: nowLabel() });
+    }, 3000);
+  }, [allShared]);
 
   const unreadNotifsCount = adminNotifs.filter(n => !n.lida).length;
 

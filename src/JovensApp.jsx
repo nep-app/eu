@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { onSnapshot, doc, collection } from "firebase/firestore";
 import { db } from "./firebase.js";
 import { BG, CYN, BLUE, PRP, TXT_MUT } from "./theme.jsx";
-import { getWeekKey } from "./data.js";
 import logoImg from "./logo.png";
 
 import HomeTab     from "./tabs/HomeTab.jsx";
@@ -34,7 +33,7 @@ export default function JovensApp({ user, onLogout }) {
       onSnapshot(collection(db, "events"), s => setAllData(p => ({...p, events: s.docs.map(d=>({id:d.id,...d.data()}))}))),
       onSnapshot(collection(db, "todos", user.username, "items"), s => setAllData(p => ({...p, todos: s.docs.map(d=>({id:d.id,...d.data()}))}))),
       onSnapshot(collection(db, "notifications", user.username, "items"), s => setAllData(p => ({...p, myNotifs: s.docs.map(d=>({id:d.id,...d.data()}))}))),
-      onSnapshot(doc(db, "config", "weeklyLeaderboard"), s => setAllData(p => ({...p, leaderboard: s.exists() && s.data().week === getWeekKey() ? s.data().scores : {}}))),
+      onSnapshot(doc(db, "config", "weeklyLeaderboard"), s => setAllData(p => ({...p, leaderboard: s.exists() ? s.data().scores || {} : {}}))),
       onSnapshot(doc(db, "config", "features"), s => setAllData(p => ({...p, features: s.exists() ? s.data() : {}}))),
       onSnapshot(collection(db, "missions"), s => setAllData(p => ({...p, missions: s.docs.map(d=>({id:d.id,...d.data()}))}))),
       onSnapshot(doc(db, "userData", user.username), s => {

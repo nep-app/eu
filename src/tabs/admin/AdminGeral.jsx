@@ -83,7 +83,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     const scores = {};
     JEEP_LIST.forEach(j => {
       const d = allShared[j.username] || {};
-      scores[j.username] = { name: j.name, xp: d.weekXp || 0 };
+      scores[j.username] = { name: j.name, xp: d.weekXp || 0, color: j.color };
     });
     try {
       await setDoc(doc(db, "config", "weeklyLeaderboard"), { week: getWeekKey(), scores: scores, lastUpdate: nowLabel() });
