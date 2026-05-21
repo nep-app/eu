@@ -96,18 +96,6 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     setFeedbackOpen(p => ({...p, [notif.id]: false}));
   }
 
-  async function refreshLeaderboard() {
-    const scores = {};
-    JEEP_LIST.forEach(j => {
-      const d = allShared[j.username] || {};
-      scores[j.username] = { name: j.name, xp: d.weekXp || 0, color: j.color };
-    });
-    try {
-      await setDoc(doc(db, "config", "weeklyLeaderboard"), { week: getWeekKey(), scores: scores, lastUpdate: nowLabel() });
-      alert("Ranking de XP atualizado! 🏆");
-    } catch (e) { alert("Erro ao atualizar."); }
-  }
-
   async function iniciarNovaSemana(fromMidnight) {
     const ts = fromMidnight
       ? new Date(new Date().toDateString()).getTime() // hoje às 00:00
@@ -359,7 +347,6 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:15 }}>
           <div style={SL}>🏆 XP Semanal</div>
           <div style={{ display:"flex", gap:6 }}>
-            <button onClick={refreshLeaderboard} style={{ background:"rgba(255,255,255,0.08)", color:"#94a3b8", border:"none", padding:"6px 12px", borderRadius:10, fontSize:11, fontWeight:900, cursor:"pointer" }}>🔄</button>
             <button onClick={() => iniciarNovaSemana(true)} style={{ background:"rgba(251,191,36,0.12)", color:"#fbbf24", border:"1px solid rgba(251,191,36,0.3)", padding:"6px 10px", borderRadius:10, fontSize:11, fontWeight:900, cursor:"pointer" }}>🌅 Desde hoje</button>
             <button onClick={() => iniciarNovaSemana(false)} style={{ background:"rgba(244,63,94,0.12)", color:"#f43f5e", border:"1px solid rgba(244,63,94,0.25)", padding:"6px 10px", borderRadius:10, fontSize:11, fontWeight:900, cursor:"pointer" }}>⏱ Agora</button>
           </div>
