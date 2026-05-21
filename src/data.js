@@ -226,15 +226,12 @@ export const PIA_SECTIONS = [
   {
     id: "s3", title: "Atributos & Raio-X", icon: "⭐", sub: "atrib",
     fields: [
-      { key: "percPessoal",    label: "Percurso pessoal",        ph: "Experiências de vida relevantes, voluntariado...",         rows: 3 },
-      { key: "percAcademico",  label: "Percurso académico",      ph: "Cursos concluídos, formações, áreas de interesse...",      rows: 3 },
-      { key: "competencias",   label: "Competências formais",    ph: "Competências técnicas (informática, línguas)...",          rows: 2 },
-      { key: "personalidade",  label: "Traços de personalidade", ph: "Comunicação, empatia, criatividade, liderança...",        rows: 2 },
-      { key: "hobbies",        label: "Gostos / Hobbies",        ph: "Música, desporto, jogos, atividades culturais...",        rows: 2 },
-      { key: "swotF",    label: "Raio-X — 💪 Pontos Fortes",   ph: 'Ex: "Gosto de cinema e sei escolher bons filmes."',       rows: 2 },
-      { key: "swotFraq", label: "Raio-X — ⚠️ Pontos Fracos",   ph: 'Ex: "Pouca experiência a conduzir debates."',             rows: 2 },
-      { key: "swotOp",   label: "Raio-X — 🌟 Oportunidades",   ph: 'Ex: "Muitos jovens gostam de ver filmes e conversar."',   rows: 2 },
-      { key: "swotR",    label: "Raio-X — 🚨 Ameaças",         ph: 'Ex: "Falta de recursos ou pouca adesão."',               rows: 2 },
+      { key: "percPessoal",    label: "Percurso pessoal",        ph: "Experiências de vida relevantes, voluntariado...",         rows: 3, fieldSub: "atrib" },
+      { key: "percAcademico",  label: "Percurso académico",      ph: "Cursos concluídos, formações, áreas de interesse...",      rows: 3, fieldSub: "atrib" },
+      { key: "competencias",   label: "Competências formais",    ph: "Competências técnicas (informática, línguas)...",          rows: 2, fieldSub: "atrib" },
+      { key: "personalidade",  label: "Traços de personalidade", ph: "Comunicação, empatia, criatividade, liderança...",        rows: 2, fieldSub: "atrib" },
+      { key: "hobbies",        label: "Gostos / Hobbies",        ph: "Música, desporto, jogos, atividades culturais...",        rows: 2, fieldSub: "atrib" },
+      { key: "swot",           label: "Raio-X do Projeto",       type: "swot", fieldSub: "raiox" },
     ]
   },
   {

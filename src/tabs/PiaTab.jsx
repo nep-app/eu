@@ -6,10 +6,56 @@ import { PIA_SECTIONS, nowFull, nowLabel } from "../data.js";
 
 const SUB_TABS = [
   { id:"diag",  label:"🔍 Diagnóstico" },
-  { id:"atrib", label:"⭐ Atributos & Raio-X" },
+  { id:"atrib", label:"⭐ Atributos" },
+  { id:"raiox", label:"📊 Raio-X" },
   { id:"proj",  label:"🚀 Projeto" },
   { id:"mon",   label:"📈 Monitorização" },
 ];
+
+function getSectionsForTab(subTab) {
+  if (subTab === "raiox") {
+    return PIA_SECTIONS
+      .filter(s => s.sub === "atrib")
+      .map(s => ({ ...s, fields: s.fields.filter(f => f.fieldSub === "raiox") }))
+      .filter(s => s.fields.length > 0);
+  }
+  if (subTab === "atrib") {
+    return PIA_SECTIONS
+      .filter(s => s.sub === "atrib")
+      .map(s => ({ ...s, fields: s.fields.filter(f => !f.fieldSub || f.fieldSub === "atrib") }))
+      .filter(s => s.fields.length > 0);
+  }
+  return PIA_SECTIONS.filter(s => s.sub === subTab);
+}
+
+function isSwotFilled(secData) {
+  return ["swotF","swotFraq","swotOp","swotR"].some(k => secData[k]?.trim());
+}
+
+function SwotGrid({ secData, onSave }) {
+  const quadrants = [
+    { key:"swotF",    label:"💪 Pontos Fortes",  color:"#22c55e", bg:"rgba(34,197,94,0.08)",  border:"rgba(34,197,94,0.25)",  ph:"O que fazes bem? Quais os teus pontos fortes pessoais e do projeto?" },
+    { key:"swotFraq", label:"⚠️ Pontos Fracos",  color:"#f97316", bg:"rgba(249,115,22,0.08)", border:"rgba(249,115,22,0.25)", ph:"Onde podes melhorar? Que limitações tens de ter em conta?" },
+    { key:"swotOp",   label:"🌟 Oportunidades",  color:CYN,       bg:`${CYN}08`,              border:`${CYN}25`,              ph:"Que oportunidades externas podes aproveitar?" },
+    { key:"swotR",    label:"🚨 Ameaças",         color:"#f43f5e", bg:"rgba(244,63,94,0.08)",  border:"rgba(244,63,94,0.25)",  ph:"Que riscos ou obstáculos externos podes enfrentar?" },
+  ];
+  return (
+    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+      {quadrants.map(q => (
+        <div key={q.key} style={{ background:q.bg, border:`1.5px solid ${q.border}`, borderRadius:14, padding:12 }}>
+          <div style={{ fontSize:11, fontWeight:900, color:q.color, marginBottom:8, letterSpacing:0.3 }}>{q.label}</div>
+          <textarea
+            value={secData[q.key] || ""}
+            onChange={e => onSave(q.key, e.target.value)}
+            placeholder={q.ph}
+            rows={4}
+            style={{ ...INP, resize:"vertical", marginBottom:0, fontSize:12, background:"rgba(0,0,0,0.2)", borderColor:"rgba(255,255,255,0.06)" }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function AtividadesEditor({ list = [], onChange }) {
   function add() {
@@ -85,6 +131,12 @@ function RevisoesEditor({ list = [], onChange }) {
   );
 }
 
+function fieldFilled(f, secData) {
+  if (f.type === "activities" || f.type === "revisoes") return (secData[f.key] || []).length > 0;
+  if (f.type === "swot") return isSwotFilled(secData);
+  return !!secData[f.key]?.trim();
+}
+
 export default function PiaTab({ user, data }) {
   const uData       = data.userData || {};
   const piaUnlocked = uData.piaUnlocked || {};
@@ -118,18 +170,32 @@ export default function PiaTab({ user, data }) {
   }
 
   const unlockedCount = PIA_SECTIONS.filter(s => piaUnlocked[s.id]).length;
-  const totalFields  = PIA_SECTIONS.reduce((s, sec) => piaUnlocked[sec.id] ? s + sec.fields.length : s, 0);
+
+  // For progress: count all unique fields across all sections (deduplicated by sectionId+key)
+  const totalFields = PIA_SECTIONS.reduce((s, sec) => piaUnlocked[sec.id] ? s + sec.fields.length : s, 0);
   const filledFields = PIA_SECTIONS.reduce((s, sec) => {
     if (!piaUnlocked[sec.id]) return s;
     const sd = piaData[sec.id] || {};
-    return s + sec.fields.filter(f => {
-      if (f.type === "activities" || f.type === "revisoes") return (sd[f.key] || []).length > 0;
-      return sd[f.key]?.trim();
-    }).length;
+    return s + sec.fields.filter(f => fieldFilled(f, sd)).length;
   }, 0);
   const progress = totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0;
 
-  const sectionsForTab = PIA_SECTIONS.filter(s => s.sub === subTab);
+  const sectionsForTab = getSectionsForTab(subTab);
+
+  function tabHasUnlocked(tabId) {
+    if (tabId === "raiox") return PIA_SECTIONS.filter(s => s.sub === "atrib").some(s => piaUnlocked[s.id]);
+    if (tabId === "atrib") return PIA_SECTIONS.filter(s => s.sub === "atrib").some(s => piaUnlocked[s.id]);
+    return PIA_SECTIONS.filter(s => s.sub === tabId).some(s => piaUnlocked[s.id]);
+  }
+
+  function tabAllFilled(tabId) {
+    const secs = getSectionsForTab(tabId);
+    return secs.every(sec => {
+      if (!piaUnlocked[sec.id]) return true;
+      const sd = piaData[sec.id] || {};
+      return sec.fields.every(f => fieldFilled(f, sd));
+    });
+  }
 
   return (
     <div style={{ padding:"18px 16px", paddingBottom:100 }}>
@@ -164,13 +230,8 @@ export default function PiaTab({ user, data }) {
           {/* SUB-TABS */}
           <div style={{ display:"flex", gap:6, marginBottom:16, overflowX:"auto", paddingBottom:2 }}>
             {SUB_TABS.map(t => {
-              const secs = PIA_SECTIONS.filter(s => s.sub === t.id);
-              const hasUnlocked = secs.some(s => piaUnlocked[s.id]);
-              const allFilled = secs.every(s => {
-                if (!piaUnlocked[s.id]) return true;
-                const sd = piaData[s.id] || {};
-                return s.fields.every(f => sd[f.key]?.trim());
-              });
+              const hasUnlocked = tabHasUnlocked(t.id);
+              const allFilled = hasUnlocked && tabAllFilled(t.id);
               return (
                 <button key={t.id} onClick={() => setSubTab(t.id)} style={{
                   flexShrink:0, padding:"8px 14px", borderRadius:20, fontSize:12, fontWeight:800,
@@ -189,17 +250,15 @@ export default function PiaTab({ user, data }) {
           </div>
 
           {/* SECTIONS FOR ACTIVE SUB-TAB */}
-          {sectionsForTab.map((sec, idx) => {
+          {sectionsForTab.map((sec) => {
             const unlocked = piaUnlocked[sec.id];
             const secData  = piaData[sec.id] || {};
-            const filled   = sec.fields.filter(f => {
-              if (f.type === "activities" || f.type === "revisoes") return (secData[f.key] || []).length > 0;
-              return secData[f.key]?.trim();
-            }).length;
+            const visibleFields = sec.fields;
+            const filled = visibleFields.filter(f => fieldFilled(f, secData)).length;
 
             if (!unlocked) {
               return (
-                <div key={sec.id} style={{ ...CARD, opacity:0.5, marginBottom:12 }}>
+                <div key={sec.id + subTab} style={{ ...CARD, opacity:0.5, marginBottom:12 }}>
                   <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                     <span style={{ fontSize:28 }}>🔐</span>
                     <div>
@@ -212,23 +271,27 @@ export default function PiaTab({ user, data }) {
             }
 
             return (
-              <div key={sec.id} style={{ ...CARD, marginBottom:12 }}>
+              <div key={sec.id + subTab} style={{ ...CARD, marginBottom:12 }}>
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
                   <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                     <span style={{ fontSize:22 }}>{sec.icon}</span>
                     <div style={{ fontSize:13, fontWeight:900, color:"#f1f5f9" }}>{sec.title}</div>
                   </div>
-                  <div style={{ fontSize:10, fontWeight:900, color: filled === sec.fields.length ? GRN : CYN }}>
-                    {filled}/{sec.fields.length}
+                  <div style={{ fontSize:10, fontWeight:900, color: filled === visibleFields.length ? GRN : CYN }}>
+                    {filled}/{visibleFields.length}
                   </div>
                 </div>
                 <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-                  {sec.fields.map(f => (
+                  {visibleFields.map(f => (
                     <div key={f.key}>
-                      <div style={{ fontSize:11, fontWeight:800, color:"#94a3b8", marginBottom:6, textTransform:"uppercase", letterSpacing:0.6 }}>
-                        {f.label}
-                      </div>
-                      {f.type === "activities" ? (
+                      {f.type !== "swot" && (
+                        <div style={{ fontSize:11, fontWeight:800, color:"#94a3b8", marginBottom:6, textTransform:"uppercase", letterSpacing:0.6 }}>
+                          {f.label}
+                        </div>
+                      )}
+                      {f.type === "swot" ? (
+                        <SwotGrid secData={secData} onSave={(key, val) => saveField(sec.id, key, val)} />
+                      ) : f.type === "activities" ? (
                         <AtividadesEditor list={secData[f.key] || []} onChange={val => saveField(sec.id, f.key, val)} />
                       ) : f.type === "revisoes" ? (
                         <RevisoesEditor list={secData[f.key] || []} onChange={val => saveField(sec.id, f.key, val)} />
