@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { doc, setDoc, addDoc, collection, updateDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, Btn, INP, PNK } from "../../theme.jsx";
-import { nowLabel, getWeekKey, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
+import { nowLabel, fmtDate, getWeekKey, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
 
 export default function AdminGeral({ allShared, leaderboard, adminNotifs, activeQ, sandboxMode = false }) {
   const [features, setFeatures] = useState({});
@@ -27,6 +27,9 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
   ];
   const [launchType, setLaunchType] = useState("auto");
   const [launchTarget, setLaunchTarget] = useState("all");
+  const [launchPrazo, setLaunchPrazo] = useState("");
+  const [feedbackOpen, setFeedbackOpen] = useState({});
+  const [feedbackTexts, setFeedbackTexts] = useState({});
   const [activeQEdit, setActiveQEdit] = useState("");
   
   // Opções para botões
@@ -55,28 +58,42 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
 
   async function launchRequest() {
     let msg = ""; let field = null;
-    
-    // PEDIDOS OBRIGATÓRIOS
-    if (launchType === "auto") { msg = "📊 Nova Autoavaliação pedida!"; field = "autoSaved"; }
-    if (launchType === "satisf") { msg = "😊 Nova Avaliação de Satisfação pedida!"; field = "sSaved"; }
-    if (launchType === "pia") { msg = "📋 Atualização do PIA pedida!"; field = "piaSaved"; }
-    if (launchType === "roda") { msg = "🌸 Nova Roda da Vida pedida!"; field = "rodaSaved"; }
-    if (launchType === "swot") { msg = "🔍 Raio-X do Projeto pedido!"; field = "swotSaved"; }
-    if (launchType === "pergunta") { msg = "💬 Lembrete: Responde à Pergunta da Semana!"; field = "answered"; }
-    
-    // LEMBRETES PUROS
+    if (launchType === "auto")         { msg = "📊 Nova Autoavaliação pedida!"; field = "autoSaved"; }
+    if (launchType === "satisf")       { msg = "😊 Nova Avaliação de Satisfação pedida!"; field = "sSaved"; }
+    if (launchType === "pia")          { msg = "📋 Atualização do PIA pedida!"; field = "piaSaved"; }
+    if (launchType === "roda")         { msg = "🌸 Nova Roda da Vida pedida!"; field = "rodaSaved"; }
+    if (launchType === "swot")         { msg = "🔍 Raio-X do Projeto pedido!"; field = "swotSaved"; }
+    if (launchType === "pergunta")     { msg = "💬 Lembrete: Responde à Pergunta da Semana!"; field = "answered"; }
     if (launchType === "lembreteQuiz") { msg = "🧠 Lembrete: Tens um novo Dilema (Quiz) à tua espera nos Desafios!"; }
-    if (launchType === "lembreteGeral") { msg = "📢 A Teresa tem um aviso para ti. Vai ver as novidades!"; }
+    if (launchType === "lembreteGeral"){ msg = "📢 A Teresa tem um aviso para ti. Vai ver as novidades!"; }
+    if (launchPrazo) msg += ` ⏰ Prazo: ${fmtDate(launchPrazo)}`;
 
     const targets = sandboxMode ? ["demo"] : (launchTarget === "all" ? ALLOWED_USERNAMES : [launchTarget]);
     for (const u of targets) {
       if (field) {
-        await setDoc(doc(db, "userData", u), { [field]: false }, { merge: true });
+        const prazoData = launchPrazo ? { [field + "Prazo"]: launchPrazo } : {};
+        await setDoc(doc(db, "userData", u), { [field]: false, ...prazoData }, { merge: true });
       }
       const isReminder = launchType === "lembreteGeral";
-      await addDoc(collection(db, "notifications", u, "items"), { from: "teresa", text: msg, date: nowLabel(), read: false, ...(!isReminder ? { tipo: "proposta" } : {}) });
+      await addDoc(collection(db, "notifications", u, "items"), { from:"teresa", text:msg, date:nowLabel(), read:false, ...(!isReminder ? { tipo:"proposta" } : {}), ...(launchPrazo ? { prazo:launchPrazo } : {}) });
     }
+    setLaunchPrazo("");
     alert("Pedidos/Lembretes lançados com sucesso!");
+  }
+
+  async function sendFeedback(notif, msg) {
+    if (!msg?.trim() || !ALLOWED_USERNAMES.includes(notif.jovem)) return;
+    const tipoLabel = {
+      PERGUNTA: "resposta à Pergunta da Semana", AUTOAVALIACAO: "Autoavaliação",
+      PIA: "PIA", RODA: "Roda da Vida", QUIZ: "Dilema",
+      FORUM_POST: "publicação no Fórum", MENSAGEM: "mensagem",
+      TAREFA_ACEITE: "tarefa", EVENTO_ACEITE: "participação no evento",
+    }[notif.tipo] || "envio";
+    const text = `Teresa reagiu ao teu ${tipoLabel}: ${msg.trim()}`;
+    await addDoc(collection(db, "notifications", notif.jovem, "items"), { from:"teresa", text, date:nowLabel(), read:false });
+    await updateDoc(doc(db, "adminNotificacoes", notif.id), { feedback: msg.trim(), lida: true });
+    setFeedbackTexts(p => ({...p, [notif.id]: ""}));
+    setFeedbackOpen(p => ({...p, [notif.id]: false}));
   }
 
   async function refreshLeaderboard() {
@@ -235,41 +252,81 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
         ))}
       </div>
 
-      {/* 1. NOTIFICAÇÕES (AGORA DESAPARECEM AO CLICAR EM LIDO) */}
+      {/* 1. NOTIFICAÇÕES */}
       {alertasNaoLidos.length > 0 && (
-        <div style={{ ...CARD, background:"rgba(239, 68, 68, 0.05)", border:`1px solid rgba(239, 68, 68, 0.2)` }}>
+        <div style={{ ...CARD, background:"rgba(239,68,68,0.05)", border:"1px solid rgba(239,68,68,0.2)" }}>
           <div style={{ ...SL, color:"#ef4444" }}>🔔 Alertas Recentes</div>
-          <div style={{ maxHeight:200, overflowY:"auto" }}>
-            {alertasNaoLidos.slice(0, 10).map(n => (
-              <div key={n.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px", background:"rgba(0,0,0,0.2)", borderRadius:12, marginBottom:8 }}>
-                <div style={{ fontSize:13, color: "white" }}>
-                  {(() => {
-                    const nome = JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem;
-                    if (n.tipo === "AUTOAVALIACAO")   return `📊 ${nome} entregou a autoavaliação.`;
-                    if (n.tipo === "PIA")             return `📋 ${nome} ${n.atualizado ? "atualizou" : "enviou"} o PIA.`;
-                    if (n.tipo === "MENSAGEM")        return `💬 ${n.anon ? "Mensagem anónima" : nome + " enviou uma mensagem"}: "${n.texto}${n.texto?.length >= 60 ? "…" : ""}"`;
-                    if (n.tipo === "PERGUNTA")        return `💬 ${nome} respondeu à pergunta semanal${n.texto ? `: "${n.texto}${n.texto.length>=60?"…":""}"` : "."}`;
-                    if (n.tipo === "QUIZ")            return `🧠 ${nome} respondeu ao dilema "${n.quizTitle || ""}".`;
-                    if (n.tipo === "RODA")            return `🌸 ${nome} partilhou a Roda da Vida.`;
-                    if (n.tipo === "FORUM_POST")      return `🌐 ${nome} publicou no fórum (${n.canal})${n.texto ? `: "${n.texto}${n.texto.length>=60?"…":""}"` : "."}`;
-                    if (n.tipo === "TAREFA_ACEITE")   return `✅ ${nome} aceitou uma tarefa proposta.`;
-                    if (n.tipo === "TAREFA_RECUSADA") return `❌ ${nome} recusou uma tarefa proposta.`;
-                    if (n.tipo === "EVENTO_ACEITE")   return `✅ ${nome} aceitou um evento proposto.`;
-                    if (n.tipo === "EVENTO_RECUSADO") return `❌ ${nome} recusou um evento proposto.`;
-                    return `😊 Nova Satisfação Anónima submetida.`;
-                  })()}
+          {alertasNaoLidos.slice(0, 15).map(n => {
+            const nome = JEEP_LIST.find(j=>j.username===n.jovem)?.name || n.jovem;
+            const canReply = ALLOWED_USERNAMES.includes(n.jovem);
+            const isOpen = feedbackOpen[n.id];
+            const texto = (() => {
+              if (n.tipo === "AUTOAVALIACAO")   return `📊 ${nome} entregou a autoavaliação.`;
+              if (n.tipo === "PIA")             return `📋 ${nome} ${n.atualizado ? "atualizou" : "enviou"} o PIA.`;
+              if (n.tipo === "MENSAGEM")        return `💬 ${n.anon ? "Mensagem anónima" : nome + " enviou uma mensagem"}: "${n.texto}${n.texto?.length>=60?"…":""}"`;
+              if (n.tipo === "PERGUNTA")        return `💬 ${nome} respondeu à pergunta semanal${n.texto ? `: "${n.texto}${n.texto.length>=60?"…":""}"` : "."}`;
+              if (n.tipo === "QUIZ")            return `🧠 ${nome} respondeu ao dilema "${n.quizTitle||""}".`;
+              if (n.tipo === "RODA")            return `🌸 ${nome} partilhou a Roda da Vida.`;
+              if (n.tipo === "FORUM_POST")      return `🌐 ${nome} publicou no fórum (${n.canal})${n.texto ? `: "${n.texto}${n.texto.length>=60?"…":""}"` : "."}`;
+              if (n.tipo === "TAREFA_ACEITE")   return `✅ ${nome} aceitou uma tarefa proposta.`;
+              if (n.tipo === "TAREFA_RECUSADA") return `❌ ${nome} recusou uma tarefa proposta.`;
+              if (n.tipo === "EVENTO_ACEITE")   return `✅ ${nome} aceitou um evento proposto.`;
+              if (n.tipo === "EVENTO_RECUSADO") return `❌ ${nome} recusou um evento proposto.`;
+              return `😊 Nova Satisfação Anónima submetida.`;
+            })();
+            return (
+              <div key={n.id} style={{ background:"rgba(0,0,0,0.2)", borderRadius:12, marginBottom:8, overflow:"hidden" }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", padding:"10px 12px" }}>
+                  <div style={{ fontSize:13, color:"white", flex:1, lineHeight:1.5 }}>{texto}</div>
+                  <div style={{ display:"flex", gap:5, flexShrink:0, marginLeft:8 }}>
+                    {canReply && (
+                      <button onClick={() => setFeedbackOpen(p => ({...p, [n.id]: !isOpen}))}
+                        style={{ background: isOpen ? `${CYN}20` : "rgba(255,255,255,0.07)", border: isOpen ? `1px solid ${CYN}40` : "1px solid rgba(255,255,255,0.1)", color: isOpen ? CYN : "#94a3b8", borderRadius:8, padding:"4px 9px", fontSize:11, cursor:"pointer", fontWeight:800 }}>
+                        💬
+                      </button>
+                    )}
+                    <button onClick={() => markAdminNotifAsRead(n.id)}
+                      style={{ background:"none", border:"1px solid #ef4444", color:"#ef4444", borderRadius:8, padding:"4px 8px", fontSize:11, cursor:"pointer" }}>
+                      ✓
+                    </button>
+                  </div>
                 </div>
-                <button onClick={() => markAdminNotifAsRead(n.id)} style={{ background:"none", border:"1px solid #ef4444", color:"#ef4444", borderRadius:8, padding:"4px 8px", fontSize:11, cursor:"pointer" }}>Lido ✓</button>
+                {n.feedback && (
+                  <div style={{ padding:"6px 12px 10px", fontSize:11, color:CYN, borderTop:"1px solid rgba(255,255,255,0.05)" }}>
+                    Feedback enviado: {n.feedback}
+                  </div>
+                )}
+                {isOpen && (
+                  <div style={{ padding:"8px 12px 12px", borderTop:"1px solid rgba(255,255,255,0.07)" }}>
+                    <div style={{ display:"flex", gap:6, marginBottom:8 }}>
+                      {["👏","🔥","⭐","💪","❤️","🙌","👀"].map(emoji => (
+                        <button key={emoji} onClick={() => sendFeedback(n, emoji)}
+                          style={{ background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, padding:"5px 8px", fontSize:16, cursor:"pointer" }}>
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                    <div style={{ display:"flex", gap:6 }}>
+                      <input value={feedbackTexts[n.id]||""} onChange={e => setFeedbackTexts(p => ({...p, [n.id]: e.target.value}))}
+                        onKeyDown={e => e.key === "Enter" && sendFeedback(n, feedbackTexts[n.id])}
+                        placeholder="Escreve um feedback..." style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                      <button onClick={() => sendFeedback(n, feedbackTexts[n.id])}
+                        style={{ background:CYN, color:"#0f172a", border:"none", borderRadius:10, padding:"0 16px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
+                        Enviar
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       )}
 
       {/* 2. LANÇAR PEDIDOS & LEMBRETES */}
       <div style={CARD}>
         <div style={SL}>Lançar Pedidos aos Jovens</div>
-        <div style={{ display:"flex", gap:8, marginBottom:10 }}>
+        <div style={{ display:"flex", gap:8, marginBottom:8 }}>
           <select value={launchType} onChange={e=>setLaunchType(e.target.value)} style={{ flex:1, padding:12, borderRadius:12, background:"rgba(0,0,0,0.3)", color:"white", border:"1px solid rgba(255,255,255,0.1)" }}>
             <optgroup label="Ações Obrigatórias">
               <option value="auto">📊 Autoavaliação</option>
@@ -288,6 +345,12 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
             <option value="all">Todos</option>
             {JEEP_LIST.map(j=><option key={j.username} value={j.username}>{j.name}</option>)}
           </select>
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+          <div style={{ fontSize:11, fontWeight:800, color:"#64748b", flexShrink:0 }}>⏰ Prazo (opcional):</div>
+          <input type="date" value={launchPrazo} onChange={e => setLaunchPrazo(e.target.value)}
+            style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+          {launchPrazo && <button onClick={() => setLaunchPrazo("")} style={{ background:"none", border:"none", color:"#64748b", cursor:"pointer", fontSize:16 }}>✕</button>}
         </div>
         <Btn onClick={launchRequest}>Enviar Pedido / Lembrete 🚀</Btn>
       </div>

@@ -41,13 +41,13 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
   );
 
   let acoesPendentes = [];
-  if (features.perguntaSemanal && !uData.answered)  acoesPendentes.push({ status:"urgent",  icon:"💬", title:"Pergunta da semana",    sub:"A Teresa aguarda a tua reflexão", go:() => { setDesafiosSubTab("pergunta"); setTab("desafios"); } });
-  if (features.autoAvaliacao   && !uData.autoSaved) acoesPendentes.push({ status:"pending", icon:"📊", title:"Autoavaliação mensal",  sub:"Avalia as tuas competências",     go:() => { setDesafiosSubTab("auto");     setTab("desafios"); } });
-  if (features.satisfacao      && !uData.sSaved)    acoesPendentes.push({ status:"new",     icon:"😊", title:"Satisfação",            sub:"Diz-nos como corre o programa",   go:() => { setDesafiosSubTab("satisf");   setTab("desafios"); } });
+  if (features.perguntaSemanal && !uData.answered)  acoesPendentes.push({ status:"urgent",  icon:"💬", title:"Pergunta da semana",    sub:"A Teresa aguarda a tua reflexão", prazo:uData.answeredPrazo,  go:() => { setDesafiosSubTab("pergunta"); setTab("desafios"); } });
+  if (features.autoAvaliacao   && !uData.autoSaved) acoesPendentes.push({ status:"pending", icon:"📊", title:"Autoavaliação mensal",  sub:"Avalia as tuas competências",     prazo:uData.autoSavedPrazo, go:() => { setDesafiosSubTab("auto");     setTab("desafios"); } });
+  if (features.satisfacao      && !uData.sSaved)    acoesPendentes.push({ status:"new",     icon:"😊", title:"Satisfação",            sub:"Diz-nos como corre o programa",   prazo:uData.sSavedPrazo,    go:() => { setDesafiosSubTab("satisf");   setTab("desafios"); } });
   const piaUnlocked = uData.piaUnlocked || {};
   const temPiaAberto = Object.values(piaUnlocked).some(v => v === true);
-  if (temPiaAberto && !uData.piaSaved) acoesPendentes.push({ status:"pending", icon:"🚀", title:"Plano Individual (PIA)", sub:"Desenha o teu projeto", go:() => setTab("pia") });
-  if (temQuizPendente)  acoesPendentes.push({ status:"pending", icon:"🧠", title:"Dilema Pendente",        sub:"Tens um novo quiz para resolver", go:() => { setDesafiosSubTab("quiz");     setTab("desafios"); } });
+  if (temPiaAberto && !uData.piaSaved) acoesPendentes.push({ status:"pending", icon:"🚀", title:"Plano Individual (PIA)", sub:"Desenha o teu projeto", prazo:uData.piaSavedPrazo, go:() => setTab("pia") });
+  if (temQuizPendente) acoesPendentes.push({ status:"pending", icon:"🧠", title:"Dilema Pendente", sub:"Tens um novo quiz para resolver", go:() => { setDesafiosSubTab("quiz"); setTab("desafios"); } });
   const cap  = uData.cap  || {};
   const cap2 = uData.cap2 || {};
   if (cap.unlocked  && !cap.locked)  acoesPendentes.push({ status:"new", icon:"🔒", title:"Cápsula de Dezembro",  sub:"Escreve a tua mensagem para o futuro", go:() => setTab("perfil") });
@@ -114,6 +114,11 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:14, fontWeight:800, color:"#f1f5f9" }}>{item.title}</div>
                 <div style={{ fontSize:11, color:"#94a3b8", marginTop:2 }}>{item.sub}</div>
+                {item.prazo && (
+                  <div style={{ fontSize:10, fontWeight:900, marginTop:4, color: isOverdue(item.prazo) ? "#f43f5e" : "#fbbf24" }}>
+                    ⏰ {isOverdue(item.prazo) ? "Prazo expirado" : `Até ${fmtDatePt(item.prazo)}`}
+                  </div>
+                )}
               </div>
               <div style={{ color:PS[item.status].bc, fontWeight:900, fontSize:18, opacity:0.8 }}>›</div>
             </div>
