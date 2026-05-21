@@ -73,7 +73,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
       if (field) {
         await setDoc(doc(db, "userData", u), { [field]: false }, { merge: true });
       }
-      await addDoc(collection(db, "notifications", u, "items"), { from: "teresa", text: msg, date: nowLabel(), read: false });
+      await addDoc(collection(db, "notifications", u, "items"), { from: "teresa", text: msg, date: nowLabel(), read: false, ...(field ? { tipo: "proposta" } : {}) });
     }
     alert("Pedidos/Lembretes lançados com sucesso!");
   }
@@ -106,7 +106,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     const qTargets = sandboxMode ? ["demo"] : ALLOWED_USERNAMES;
     for (const u of qTargets) {
       await setDoc(doc(db, "userData", u), { answered: false }, { merge: true });
-      await addDoc(collection(db, "notifications", u, "items"), { from:"teresa", text:"💬 Nova pergunta da semana!", date:nowLabel(), read:false });
+      await addDoc(collection(db, "notifications", u, "items"), { from:"teresa", text:"💬 Nova pergunta da semana!", date:nowLabel(), read:false, tipo:"proposta" });
     }
     alert("Pergunta publicada com os modos selecionados!");
     setActiveQEdit(""); setOpt1(""); setOpt2(""); setOpt3("");
