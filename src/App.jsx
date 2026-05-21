@@ -66,7 +66,15 @@ export default function App() {
     try {
       await createUserWithEmailAndPassword(auth, regUser + "@jeep.app", regPw);
       await setDoc(doc(db, "users", regUser), { gdpr:true, gdprDate:nowLabel() });
-    } catch(e) { setRegErr("Erro: " + e.message); }
+    } catch(e) {
+      if (e.code === "auth/email-already-in-use") {
+        setScreen("login");
+        setUIn(regUser);
+        setLErr("Conta já existe — introduz a tua password.");
+        return;
+      }
+      setRegErr("Erro: " + e.message);
+    }
   }
 
   async function doLogout() {
