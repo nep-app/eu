@@ -366,12 +366,20 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
                     </div>
                     {cap1.locked && cap1.sealedAt && <div style={{ fontSize:10, color:"#64748b", marginTop:2 }}>Selada: {cap1.sealedAt}</div>}
                   </div>
-                  <button onClick={() => setDoc(doc(db,"userData",username),{cap:{...cap1,unlocked:!cap1.unlocked}},{merge:true})} style={{
-                    background: cap1.unlocked ? "rgba(244,63,94,0.15)" : "rgba(50,199,255,0.15)",
-                    border: cap1.unlocked ? "1px solid rgba(244,63,94,0.3)" : "1px solid rgba(50,199,255,0.3)",
-                    color: cap1.unlocked ? "#f43f5e" : CYN,
-                    borderRadius:10, padding:"6px 14px", fontWeight:900, fontSize:11, cursor:"pointer",
-                  }}>{cap1.unlocked ? "🔒 Fechar" : "🔓 Abrir"}</button>
+                  <div style={{ display:"flex", gap:6 }}>
+                    {cap1.locked && (
+                      <button onClick={() => { if(window.confirm("Desfazer o selo? O jovem poderá editar de novo.")) setDoc(doc(db,"userData",username),{cap:{...cap1,locked:false,sealedAt:""}},{merge:true}); }} style={{
+                        background:"rgba(251,191,36,0.15)", border:"1px solid rgba(251,191,36,0.35)",
+                        color:"#fbbf24", borderRadius:10, padding:"6px 14px", fontWeight:900, fontSize:11, cursor:"pointer",
+                      }}>✏️ Desfazer selo</button>
+                    )}
+                    <button onClick={() => setDoc(doc(db,"userData",username),{cap:{...cap1,unlocked:!cap1.unlocked}},{merge:true})} style={{
+                      background: cap1.unlocked ? "rgba(244,63,94,0.15)" : "rgba(50,199,255,0.15)",
+                      border: cap1.unlocked ? "1px solid rgba(244,63,94,0.3)" : "1px solid rgba(50,199,255,0.3)",
+                      color: cap1.unlocked ? "#f43f5e" : CYN,
+                      borderRadius:10, padding:"6px 14px", fontWeight:900, fontSize:11, cursor:"pointer",
+                    }}>{cap1.unlocked ? "🔒 Fechar" : "🔓 Abrir"}</button>
+                  </div>
                 </div>
               );
             })()}
@@ -391,7 +399,13 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
                       </div>
                       {cap2.locked && cap2.sealedAt && <div style={{ fontSize:10, color:"#64748b", marginTop:2 }}>Selada: {cap2.sealedAt}</div>}
                     </div>
-                    <div style={{ display:"flex", gap:8 }}>
+                    <div style={{ display:"flex", gap:6, flexWrap:"wrap", justifyContent:"flex-end" }}>
+                      {cap2.locked && (
+                        <button onClick={() => { if(window.confirm("Desfazer o selo? O jovem poderá editar de novo.")) setDoc(doc(db,"userData",username),{cap2:{...cap2,locked:false,sealedAt:""}},{merge:true}); }} style={{
+                          background:"rgba(251,191,36,0.15)", border:"1px solid rgba(251,191,36,0.35)",
+                          color:"#fbbf24", borderRadius:10, padding:"6px 14px", fontWeight:900, fontSize:11, cursor:"pointer",
+                        }}>✏️ Desfazer selo</button>
+                      )}
                       <button onClick={() => setDoc(doc(db,"userData",username),{cap2:{...cap2,unlocked:!cap2.unlocked}},{merge:true})} style={{
                         background: cap2.unlocked ? "rgba(244,63,94,0.15)" : "rgba(50,199,255,0.15)",
                         border: cap2.unlocked ? "1px solid rgba(244,63,94,0.3)" : "1px solid rgba(50,199,255,0.3)",
