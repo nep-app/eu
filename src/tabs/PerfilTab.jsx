@@ -92,6 +92,7 @@ export default function PerfilTab({ user, data, features = {} }) {
     if (window.confirm("🚨 MODO DEV: Queres reverter o estado das avaliações e APAGAR as tarefas/agenda para testar do zero?")) {
       await setDoc(doc(db, "userData", user.username), {
         autoSaved: false, sSaved: false, answered: false, piaSaved: false, completedMissions: [],
+        roda: {}, rodaSaves: [], rodaShared: false,
       }, { merge: true });
       const todosSnap = await getDocs(collection(db, "todos", user.username, "items"));
       todosSnap.forEach(async (d) => { await deleteDoc(d.ref); });
