@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { doc, setDoc, addDoc, collection, deleteDoc } from "firebase/firestore";
+import { doc, setDoc, addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, BLUE, PNK, YLW, INP, Btn, TXT_MUT, GRN } from "../../theme.jsx";
 import { nowFull, getWeekKey, fmtDate, isOverdue, SPECIAL_USERS } from "../../data.js";
@@ -10,7 +10,6 @@ export default function HomeExtras({ user, data, setTab }) {
   const [mensagemEnviadaSucesso, setMensagemEnviadaSucesso] = useState(false);
 
   const uData              = data.userData || {};
-  const notificacoesAdmin  = data.myNotifs || [];
   const rankingDados       = data.leaderboard || {};
   const listaMissoes       = data.missions || [];
   const missoesConcluidas  = data.completedMissions || [];
@@ -69,19 +68,6 @@ export default function HomeExtras({ user, data, setTab }) {
 
   return (
     <>
-      {/* ── NOTIFICAÇÕES DA TERESA ───────────────────────────────────── */}
-      {notificacoesAdmin.length > 0 && (
-        <div style={{ ...CARD, background:"rgba(244,114,182,0.08)", border:`1px solid ${PNK}30` }}>
-          <div style={SL}>📩 Mensagens da Teresa</div>
-          {notificacoesAdmin.map(notif => (
-            <div key={notif.id} style={{ display:"flex", gap:12, padding:"14px 16px", background:"rgba(0,0,0,0.25)", borderRadius:16, marginBottom:10, border:"1px solid rgba(255,255,255,0.04)" }}>
-              <div style={{ flex:1, fontSize:13, lineHeight:1.6, color:"#f1f5f9" }}>{notif.text}</div>
-              <button onClick={() => deleteDoc(doc(db, "notifications", user.username, "items", notif.id))} style={{ background:"none", border:"none", color:"#64748b", fontSize:16, cursor:"pointer", paddingTop:2, flexShrink:0 }}>✕</button>
-            </div>
-          ))}
-        </div>
-      )}
-
 
 
       {/* ── MISSÕES DE CAMPO ─────────────────────────────────────────── */}
