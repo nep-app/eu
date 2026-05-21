@@ -4,7 +4,7 @@ import { db } from "../../firebase.js";
 import { CARD, SL, INP, Btn, CYN, GRN, PNK } from "../../theme.jsx";
 import { JEEP_LIST, ALLOWED_USERNAMES, fmtDate, nowLabel, TASK_TYPES } from "../../data.js";
 
-export default function AdminTarefas({ sandboxMode = false }) {
+export default function AdminTarefas() {
   const [adminTodoUsr, setAdminTodoUsr] = useState("nilton");
   const [adminSuggTxt, setAdminSuggTxt] = useState("");
   const [adminSuggDue, setAdminSuggDue] = useState("");
@@ -32,7 +32,7 @@ export default function AdminTarefas({ sandboxMode = false }) {
   async function addAdminTodo() {
     if (!adminSuggTxt.trim()) return;
     const isForcar = modo === "forcar";
-    const targetUsr = sandboxMode ? "demo" : adminTodoUsr;
+    const targetUsr = adminTodoUsr;
     await addDoc(collection(db, "todos", targetUsr, "items"), {
       text: adminSuggTxt, due: adminSuggDue, done: false,
       shared: true, addedBy: "teresa", type: tipoTarefa,
@@ -74,12 +74,7 @@ export default function AdminTarefas({ sandboxMode = false }) {
         </div>
 
         {/* Selecionar jovem */}
-        {sandboxMode && (
-          <div style={{ background:"rgba(251,146,60,0.1)", border:"1px solid rgba(251,146,60,0.25)", borderRadius:10, padding:"8px 12px", marginBottom:12, fontSize:11, color:"#fb923c", fontWeight:800 }}>
-            🎭 Sandbox: a tarefa vai para o utilizador demo
-          </div>
-        )}
-        <div style={{ display:"flex", gap:8, marginBottom:14, flexWrap:"wrap", opacity: sandboxMode ? 0.35 : 1, pointerEvents: sandboxMode ? "none" : "auto" }}>
+        <div style={{ display:"flex", gap:8, marginBottom:14, flexWrap:"wrap" }}>
           {JEEP_LIST.map(j => (
             <button key={j.name} onClick={() => setAdminTodoUsr(j.username)} style={{
               padding:"8px 16px", borderRadius:20,

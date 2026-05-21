@@ -4,7 +4,7 @@ import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, Btn, INP, PNK } from "../../theme.jsx";
 import { nowLabel, fmtDate, getWeekKey, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
 
-export default function AdminGeral({ allShared, leaderboard, adminNotifs, activeQ, sandboxMode = false }) {
+export default function AdminGeral({ allShared, leaderboard, adminNotifs, activeQ }) {
   const [features, setFeatures] = useState({});
 
   useEffect(() => {
@@ -68,7 +68,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     if (launchType === "lembreteGeral"){ msg = "📢 A Teresa tem um aviso para ti. Vai ver as novidades!"; }
     if (launchPrazo) msg += ` ⏰ Prazo: ${fmtDate(launchPrazo)}`;
 
-    const targets = sandboxMode ? ["demo"] : (launchTarget === "all" ? ALLOWED_USERNAMES : [launchTarget]);
+    const targets = launchTarget === "all" ? ALLOWED_USERNAMES : [launchTarget];
     for (const u of targets) {
       if (field) {
         const prazoData = launchPrazo ? { [field + "Prazo"]: launchPrazo } : {};
@@ -131,7 +131,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
       date: Date.now() 
     });
 
-    const qTargets = sandboxMode ? ["demo"] : ALLOWED_USERNAMES;
+    const qTargets = ALLOWED_USERNAMES;
     for (const u of qTargets) {
       await setDoc(doc(db, "userData", u), { answered: false }, { merge: true });
       await addDoc(collection(db, "notifications", u, "items"), { from:"teresa", text:"💬 Nova pergunta da semana!", date:nowLabel(), read:false, tipo:"proposta" });
@@ -150,10 +150,9 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
   return (
     <div>
       {/* 0. CONTROLO DE FUNCIONALIDADES */}
-      <div style={{ ...CARD, opacity: sandboxMode ? 0.5 : 1, pointerEvents: sandboxMode ? "none" : "auto" }}>
+      <div style={CARD}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div style={SL}>🔧 Funcionalidades Ativas</div>
-          {sandboxMode && <span style={{ fontSize:10, color:"#fb923c", fontWeight:800 }}>🌐 GLOBAL — não sandboxável</span>}
         </div>
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
           {FEATURES.map(f => {
@@ -233,17 +232,17 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
             <div style={{ fontSize:13, fontWeight:800 }}>{sec.icon} {sec.title}</div>
             <div style={{ display:"flex", gap:6 }}>
               <button onClick={async () => {
-                const targets = sandboxMode ? ["demo"] : ALLOWED_USERNAMES;
+                const targets = ALLOWED_USERNAMES;
                 for (const u of targets) await setDoc(doc(db,"userData",u), { piaUnlocked: { [sec.id]: true } }, { merge:true });
-                alert(`Secção "${sec.title}" aberta${sandboxMode ? " (demo)" : " para todos"}!`);
+                alert(`Secção "${sec.title}" aberta para todos!`);
               }} style={{ background:`${GRN}18`, border:`1px solid ${GRN}40`, color:GRN, borderRadius:8, padding:"5px 12px", fontWeight:900, fontSize:11, cursor:"pointer" }}>
-                🔓 {sandboxMode ? "Abrir (demo)" : "Abrir a todos"}
+                🔓 Abrir a todos
               </button>
               <button onClick={async () => {
                 if (!window.confirm(`Fechar "${sec.title}"?`)) return;
-                const targets = sandboxMode ? ["demo"] : ALLOWED_USERNAMES;
+                const targets = ALLOWED_USERNAMES;
                 for (const u of targets) await setDoc(doc(db,"userData",u), { piaUnlocked: { [sec.id]: false } }, { merge:true });
-                alert(`Secção "${sec.title}" fechada${sandboxMode ? " (demo)" : " para todos"}.`);
+                alert(`Secção "${sec.title}" fechada para todos.`);
               }} style={{ background:"rgba(244,63,94,0.1)", border:"1px solid rgba(244,63,94,0.25)", color:"#f43f5e", borderRadius:8, padding:"5px 12px", fontWeight:900, fontSize:11, cursor:"pointer" }}>
                 🔒 Fechar a todos
               </button>
