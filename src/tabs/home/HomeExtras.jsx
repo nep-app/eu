@@ -14,7 +14,10 @@ export default function HomeExtras({ user, data, setTab }) {
   const listaMissoes       = data.missions || [];
   const missoesConcluidas  = data.completedMissions || [];
   const dayStreak          = uData.dayStreak || 0;
-  const weekXp             = uData.weekXp || 0;
+  const weekStartTs        = data.weekStartTs || 0;
+  const weekXp             = weekStartTs > 0
+    ? (data.history || []).filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
+    : (uData.weekXp || 0);
 
   // Top 3 sem ordem de ranking — excluir utilizadores especiais (teste)
   const destaquesXp = Object.entries(rankingDados)

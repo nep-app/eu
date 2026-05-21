@@ -28,6 +28,7 @@ export default function TeresaAdmin({ user, onLogout }) {
   const [leaderboard, setLeaderboard] = useState({});
   const [adminNotifs, setAdminNotifs] = useState([]);
   const [activeQ, setActiveQ] = useState("");
+  const [weekStartTs, setWeekStartTs] = useState(0);
 
   // ── LIGAÇÃO CENTRAL AO FIREBASE ──
   useEffect(() => {
@@ -63,24 +64,30 @@ export default function TeresaAdmin({ user, onLogout }) {
       setAdminNotifs(snap.docs.map(d => ({id:d.id, ...d.data()})));
     });
 
+    const uWS = onSnapshot(doc(db, "config", "weekStart"), snap => {
+      setWeekStartTs(snap.exists() ? snap.data().ts || 0 : 0);
+    });
+
     JEEP_LIST.forEach(j => {
       getDoc(doc(db, "medals", j.username)).then(s => {
         if (s.exists()) setAmMedals(p => upd(p, j.username, s.data()));
       });
     });
     
-    return () => { 
-      unsubs.forEach(u => u()); 
-      uM(); 
-      uE(); 
-      uL(); 
-      uMi(); 
-      uQ(); 
-      uNotifs(); 
+    return () => {
+      unsubs.forEach(u => u());
+      uM();
+      uE();
+      uL();
+      uMi();
+      uQ();
+      uNotifs();
+      uWS();
     };
   }, []);
 
   // Auto-refresh leaderboard whenever any user's XP changes (debounced 3s)
+  // Calculates XP from history entries since weekStartTs (no data reset needed)
   const lbTimer = useRef(null);
   useEffect(() => {
     if (Object.keys(allShared).length === 0) return;
@@ -89,11 +96,15 @@ export default function TeresaAdmin({ user, onLogout }) {
       const scores = {};
       JEEP_LIST.forEach(j => {
         const d = allShared[j.username] || {};
-        scores[j.username] = { name: j.name, xp: d.weekXp || 0, color: j.color };
+        const hist = d.history || [];
+        const xp = weekStartTs > 0
+          ? hist.filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
+          : (d.weekXp || 0);
+        scores[j.username] = { name: j.name, xp, color: j.color };
       });
       setDoc(doc(db, "config", "weeklyLeaderboard"), { week: getWeekKey(), scores, lastUpdate: nowLabel() });
     }, 3000);
-  }, [allShared]);
+  }, [allShared, weekStartTs]);
 
   const unreadNotifsCount = adminNotifs.filter(n => !n.lida).length;
 

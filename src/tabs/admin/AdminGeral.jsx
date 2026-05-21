@@ -91,15 +91,14 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     } catch (e) { alert("Erro ao atualizar."); }
   }
 
-  async function iniciarNovaSemana() {
-    if (!window.confirm("Iniciar nova semana? O XP semanal de todos os jovens será reposto a zero. O XP total não é afetado.")) return;
-    for (const u of ALLOWED_USERNAMES) {
-      await setDoc(doc(db, "userData", u), { weekXp: 0 }, { merge: true });
-    }
-    const scores = {};
-    JEEP_LIST.forEach(j => { scores[j.username] = { name: j.name, xp: 0, color: j.color }; });
-    await setDoc(doc(db, "config", "weeklyLeaderboard"), { week: getWeekKey(), scores, lastUpdate: nowLabel() });
-    alert("Nova semana iniciada! XP semanal reposto a zero. 🆕");
+  async function iniciarNovaSemana(fromMidnight) {
+    const ts = fromMidnight
+      ? new Date(new Date().toDateString()).getTime() // hoje às 00:00
+      : Date.now();
+    const label = fromMidnight ? "hoje à meia-noite" : "agora";
+    if (!window.confirm(`Iniciar semana desde ${label}? Nenhum dado é apagado — o XP semanal passa a contar a partir desse momento.`)) return;
+    await setDoc(doc(db, "config", "weekStart"), { ts, label: nowLabel() });
+    alert(`Semana iniciada desde ${label}! 🆕\nO ranking já está a calcular o XP a partir dessa hora.`);
   }
 
   async function updateActiveQ() {
@@ -298,7 +297,8 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
           <div style={SL}>🏆 XP Semanal</div>
           <div style={{ display:"flex", gap:6 }}>
             <button onClick={refreshLeaderboard} style={{ background:"rgba(255,255,255,0.08)", color:"#94a3b8", border:"none", padding:"6px 12px", borderRadius:10, fontSize:11, fontWeight:900, cursor:"pointer" }}>🔄</button>
-            <button onClick={iniciarNovaSemana} style={{ background:"rgba(244,63,94,0.15)", color:"#f43f5e", border:"1px solid rgba(244,63,94,0.3)", padding:"6px 12px", borderRadius:10, fontSize:11, fontWeight:900, cursor:"pointer" }}>🆕 Nova Semana</button>
+            <button onClick={() => iniciarNovaSemana(true)} style={{ background:"rgba(251,191,36,0.12)", color:"#fbbf24", border:"1px solid rgba(251,191,36,0.3)", padding:"6px 10px", borderRadius:10, fontSize:11, fontWeight:900, cursor:"pointer" }}>🌅 Desde hoje</button>
+            <button onClick={() => iniciarNovaSemana(false)} style={{ background:"rgba(244,63,94,0.12)", color:"#f43f5e", border:"1px solid rgba(244,63,94,0.25)", padding:"6px 10px", borderRadius:10, fontSize:11, fontWeight:900, cursor:"pointer" }}>⏱ Agora</button>
           </div>
         </div>              
         {Object.entries(leaderboard).sort((a,b)=>b[1].xp-a[1].xp).map((e, i) => (

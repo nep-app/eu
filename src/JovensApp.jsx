@@ -24,7 +24,7 @@ export default function JovensApp({ user, onLogout }) {
   const [allData, setAllData] = useState({
     todos: [], events: [], myNotifs: [], leaderboard: {},
     missions: [], completedMissions: [], history: [],
-    userData: {}, medals: [], features: {}
+    userData: {}, medals: [], features: {}, weekStartTs: 0
   });
 
   useEffect(() => {
@@ -35,6 +35,7 @@ export default function JovensApp({ user, onLogout }) {
       onSnapshot(collection(db, "notifications", user.username, "items"), s => setAllData(p => ({...p, myNotifs: s.docs.map(d=>({id:d.id,...d.data()}))}))),
       onSnapshot(doc(db, "config", "weeklyLeaderboard"), s => setAllData(p => ({...p, leaderboard: s.exists() ? s.data().scores || {} : {}}))),
       onSnapshot(doc(db, "config", "features"), s => setAllData(p => ({...p, features: s.exists() ? s.data() : {}}))),
+      onSnapshot(doc(db, "config", "weekStart"), s => setAllData(p => ({...p, weekStartTs: s.exists() ? s.data().ts || 0 : 0}))),
       onSnapshot(collection(db, "missions"), s => setAllData(p => ({...p, missions: s.docs.map(d=>({id:d.id,...d.data()}))}))),
       onSnapshot(doc(db, "userData", user.username), s => {
         if (s.exists()) {
@@ -49,7 +50,10 @@ export default function JovensApp({ user, onLogout }) {
 
   const ud = allData.userData;
   const dayStreak = ud.dayStreak || 0;
-  const weekXp    = ud.weekXp || 0;
+  const weekStartTs = allData.weekStartTs || 0;
+  const weekXp = weekStartTs > 0
+    ? (allData.history || []).filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
+    : (ud.weekXp || 0);
   const notifCount = allData.myNotifs.length;
 
   // Merge global feature flags with per-user overrides (override wins when set)
