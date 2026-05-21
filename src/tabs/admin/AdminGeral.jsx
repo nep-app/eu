@@ -91,6 +91,17 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     } catch (e) { alert("Erro ao atualizar."); }
   }
 
+  async function iniciarNovaSemana() {
+    if (!window.confirm("Iniciar nova semana? O XP semanal de todos os jovens será reposto a zero. O XP total não é afetado.")) return;
+    for (const u of ALLOWED_USERNAMES) {
+      await setDoc(doc(db, "userData", u), { weekXp: 0 }, { merge: true });
+    }
+    const scores = {};
+    JEEP_LIST.forEach(j => { scores[j.username] = { name: j.name, xp: 0, color: j.color }; });
+    await setDoc(doc(db, "config", "weeklyLeaderboard"), { week: getWeekKey(), scores, lastUpdate: nowLabel() });
+    alert("Nova semana iniciada! XP semanal reposto a zero. 🆕");
+  }
+
   async function updateActiveQ() {
     if (!activeQEdit.trim()) return alert("Escreve a pergunta!");
     if (selectedModes.length === 0 && opt1 === "") return alert("Seleciona pelo menos um modo de resposta!");
@@ -284,8 +295,11 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
       {/* 3. RANKING */}
       <div style={CARD}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:15 }}>
-          <div style={SL}>Tabela de XP Semanal</div>
-          <button onClick={refreshLeaderboard} style={{ background:CYN, color:"#0f172a", border:"none", padding:"6px 12px", borderRadius:10, fontSize:11, fontWeight:900, cursor:"pointer" }}>🔄</button>
+          <div style={SL}>🏆 XP Semanal</div>
+          <div style={{ display:"flex", gap:6 }}>
+            <button onClick={refreshLeaderboard} style={{ background:"rgba(255,255,255,0.08)", color:"#94a3b8", border:"none", padding:"6px 12px", borderRadius:10, fontSize:11, fontWeight:900, cursor:"pointer" }}>🔄</button>
+            <button onClick={iniciarNovaSemana} style={{ background:"rgba(244,63,94,0.15)", color:"#f43f5e", border:"1px solid rgba(244,63,94,0.3)", padding:"6px 12px", borderRadius:10, fontSize:11, fontWeight:900, cursor:"pointer" }}>🆕 Nova Semana</button>
+          </div>
         </div>              
         {Object.entries(leaderboard).sort((a,b)=>b[1].xp-a[1].xp).map((e, i) => (
           <div key={e[0]} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
