@@ -246,16 +246,25 @@ export default function PiaTab({ user, data }) {
             );
           })}
 
-          {/* ENVIAR / ATUALIZAR */}
-          <button onClick={enviarTeresa} disabled={sending} style={{
-            width:"100%", padding:"14px", borderRadius:14, marginTop:8,
-            background: uData.piaSaved ? `${GRN}18` : GRN,
-            border: uData.piaSaved ? `1.5px solid ${GRN}50` : "none",
-            color: uData.piaSaved ? GRN : "#071529",
-            fontWeight:900, fontSize:14, cursor:sending ? "default" : "pointer", letterSpacing:0.5,
-          }}>
-            {sending ? "A enviar..." : uData.piaSaved ? "🔄 Atualizar PIA" : "🚀 Enviar PIA à Teresa"}
-          </button>
+          {/* GUARDAR / ENVIAR */}
+          <div style={{ display:"flex", gap:8, marginTop:8 }}>
+            <button onClick={() => alert("✓ Guardado! As tuas respostas estão a ser guardadas automaticamente.")} style={{
+              flex:1, padding:"14px", borderRadius:14,
+              background:"rgba(255,255,255,0.06)", border:"1.5px solid rgba(255,255,255,0.12)",
+              color:"#94a3b8", fontWeight:900, fontSize:13, cursor:"pointer",
+            }}>
+              💾 Guardar Privado
+            </button>
+            <button onClick={enviarTeresa} disabled={sending} style={{
+              flex:2, padding:"14px", borderRadius:14,
+              background: uData.piaSaved ? `${GRN}18` : GRN,
+              border: uData.piaSaved ? `1.5px solid ${GRN}50` : "none",
+              color: uData.piaSaved ? GRN : "#071529",
+              fontWeight:900, fontSize:13, cursor:sending ? "default" : "pointer",
+            }}>
+              {sending ? "A enviar..." : uData.piaSaved ? "🔄 Atualizar PIA" : "🚀 Enviar à Teresa"}
+            </button>
+          </div>
           {uData.piaSaved && uData.piaSavedAt && (
             <div style={{ textAlign:"center", fontSize:10, color:"#475569", marginTop:6 }}>
               Último envio: {uData.piaSavedAt}
