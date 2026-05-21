@@ -11,7 +11,7 @@ function fmtDatePt(str) {
   return `${parseInt(d)} ${MESES[parseInt(m)-1]} ${y}`;
 }
 
-export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, features = {} }) {
+export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, features = {}, notifs = [], onDeleteNotif }) {
   const [novaTarefaTexto, setNovaTarefaTexto]       = useState("");
   const [novaTarefaData, setNovaTarefaData]         = useState("");
   const [partilharTarefaCheck, setPartilharTarefaCheck] = useState(false);
@@ -148,6 +148,22 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                 <button onClick={() => aceitarTarefa(t.id)} style={{ flex:1, background:`${CYN}18`, color:CYN, border:`1px solid ${CYN}30`, padding:"8px", borderRadius:10, fontWeight:800, cursor:"pointer", fontSize:12 }}>ACEITAR</button>
                 <button onClick={() => recusarTarefa(t.id)} style={{ flex:1, background:"rgba(244,63,94,0.08)", color:"#f43f5e", border:"1px solid rgba(244,63,94,0.2)", padding:"8px", borderRadius:10, fontWeight:800, cursor:"pointer", fontSize:12 }}>RECUSAR</button>
               </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── NOTIFICAÇÕES ────────────────────────────────────────────── */}
+      {notifs.length > 0 && (
+        <div style={{ ...CARD, marginBottom:16 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+            <div style={SL}>🔔 Notificações</div>
+            <div style={{ fontSize:11, fontWeight:900, color:CYN, background:`${CYN}18`, borderRadius:20, padding:"3px 10px" }}>{notifs.length}</div>
+          </div>
+          {notifs.map(n => (
+            <div key={n.id} style={{ display:"flex", gap:12, padding:"13px 14px", background:"rgba(0,0,0,0.2)", borderRadius:14, marginBottom:8, border:"1px solid rgba(255,255,255,0.05)" }}>
+              <div style={{ flex:1, fontSize:13, lineHeight:1.6, color:"#f1f5f9" }}>{n.text}</div>
+              <button onClick={() => onDeleteNotif && onDeleteNotif(n.id)} style={{ background:"none", border:"none", color:"#475569", fontSize:16, cursor:"pointer", paddingTop:2, flexShrink:0, lineHeight:1 }}>✕</button>
             </div>
           ))}
         </div>

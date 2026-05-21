@@ -245,7 +245,7 @@ export const PIA_SECTIONS = [
       { key: "objetivos",  label: "PARA QUÊ — Objetivos",                     ph: 'Ex: "Para promover reflexão, diálogo e consciência social."',             rows: 2 },
       { key: "metas",      label: "QUANTO — Metas concretas",                 ph: 'Ex: "Realizar 6 sessões de cinema com debate durante o ano."',            rows: 2 },
       { key: "onde",       label: "ONDE — Localização",                       ph: 'Ex: "Na sala polivalente da ludoteca."',                                  rows: 1 },
-      { key: "atividades", label: "COMO E QUANDO — Atividades e Calendário",  ph: 'Ex: "Vou escolher filmes, preparar perguntas e divulgar."',              rows: 3 },
+      { key: "atividadesList", label: "COMO E QUANDO — Atividades e Calendário", type: "activities" },
       { key: "recursos",   label: "COM O QUÊ — Recursos",                     ph: 'Ex: "Projetor, computador, filmes, cadeiras, cartazes."',                 rows: 2 },
       { key: "avaliacao",  label: "COMO AVALIAR — Critérios",                 ph: 'Ex: "Contar quantos participaram e pedir opiniões."',                    rows: 2 },
     ]
@@ -253,9 +253,8 @@ export const PIA_SECTIONS = [
   {
     id: "s5", title: "Monitorização e Revisão", icon: "📈", sub: "mon",
     fields: [
-      { key: "periodicidade",   label: "Periodicidade de revisão", ph: 'Ex: "Vou verificar todos os meses se as sessões estão a acontecer."', rows: 2 },
-      { key: "registoEvolucao", label: "Registo de evolução",      ph: 'Ex: "Sessão 1: 10 participantes, debate animado."',                   rows: 4 },
-      { key: "ajustes",         label: "Ajustes ao plano",         ph: 'Ex: "Pouca adesão? Vou convidar amigos e divulgar nas redes."',       rows: 3 },
+      { key: "periodicidade",  label: "Periodicidade de revisão", ph: 'Ex: "Vou verificar todos os meses se as sessões estão a acontecer."', rows: 2 },
+      { key: "revisoesList",   label: "REVISÕES — Registo de evolução e ajustes", type: "revisoes" },
     ]
   },
 ];

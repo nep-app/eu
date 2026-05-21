@@ -11,6 +11,80 @@ const SUB_TABS = [
   { id:"mon",   label:"📈 Monitorização" },
 ];
 
+function AtividadesEditor({ list = [], onChange }) {
+  function add() {
+    onChange([...list, { id: Date.now(), titulo:"", data:"", hora:"", local:"", descricao:"", recursos:"" }]);
+  }
+  function upd(idx, key, val) {
+    onChange(list.map((a, i) => i === idx ? { ...a, [key]: val } : a));
+  }
+  function remove(idx) {
+    onChange(list.filter((_, i) => i !== idx));
+  }
+  return (
+    <div>
+      {list.map((atv, idx) => (
+        <div key={atv.id || idx} style={{ background:"rgba(0,0,0,0.25)", borderRadius:14, padding:14, marginBottom:10, border:"1px solid rgba(255,255,255,0.07)" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+            <span style={{ fontSize:11, fontWeight:900, color:CYN, letterSpacing:1 }}>ATIVIDADE {idx+1}</span>
+            <button onClick={() => remove(idx)} style={{ background:"rgba(244,63,94,0.12)", border:"none", color:"#f43f5e", borderRadius:8, padding:"3px 10px", cursor:"pointer", fontSize:11, fontWeight:900 }}>✕</button>
+          </div>
+          <input value={atv.titulo} onChange={e => upd(idx,"titulo",e.target.value)} placeholder="Nome da atividade *" style={{ ...INP, marginBottom:8, fontWeight:700 }} />
+          <div style={{ display:"flex", gap:8, marginBottom:8 }}>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:10, color:"#64748b", fontWeight:800, marginBottom:4 }}>DATA</div>
+              <input type="date" value={atv.data} onChange={e => upd(idx,"data",e.target.value)} style={{ ...INP, marginBottom:0 }} />
+            </div>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:10, color:"#64748b", fontWeight:800, marginBottom:4 }}>HORA</div>
+              <input type="time" value={atv.hora} onChange={e => upd(idx,"hora",e.target.value)} style={{ ...INP, marginBottom:0 }} />
+            </div>
+          </div>
+          <input value={atv.local} onChange={e => upd(idx,"local",e.target.value)} placeholder="Local" style={{ ...INP, marginBottom:8 }} />
+          <textarea value={atv.descricao} onChange={e => upd(idx,"descricao",e.target.value)} placeholder="Descrição — o que vai acontecer" rows={2} style={{ ...INP, resize:"vertical", marginBottom:8 }} />
+          <input value={atv.recursos} onChange={e => upd(idx,"recursos",e.target.value)} placeholder="Recursos necessários" style={{ ...INP, marginBottom:0 }} />
+        </div>
+      ))}
+      <button onClick={add} style={{ width:"100%", padding:"11px", borderRadius:12, background:`${CYN}10`, border:`1.5px dashed ${CYN}35`, color:CYN, fontWeight:900, fontSize:13, cursor:"pointer" }}>
+        + Adicionar Atividade
+      </button>
+    </div>
+  );
+}
+
+function RevisoesEditor({ list = [], onChange }) {
+  function add() {
+    onChange([...list, { id: Date.now(), data: new Date().toISOString().split("T")[0], notas:"", ajustes:"" }]);
+  }
+  function upd(idx, key, val) {
+    onChange(list.map((r, i) => i === idx ? { ...r, [key]: val } : r));
+  }
+  function remove(idx) {
+    if (window.confirm("Apagar esta revisão?")) onChange(list.filter((_, i) => i !== idx));
+  }
+  return (
+    <div>
+      {list.map((rev, idx) => (
+        <div key={rev.id || idx} style={{ background:"rgba(0,0,0,0.25)", borderRadius:14, padding:14, marginBottom:10, border:"1px solid rgba(255,255,255,0.07)" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+            <span style={{ fontSize:11, fontWeight:900, color:"#a78bfa", letterSpacing:1 }}>REVISÃO {idx+1}</span>
+            <button onClick={() => remove(idx)} style={{ background:"rgba(244,63,94,0.12)", border:"none", color:"#f43f5e", borderRadius:8, padding:"3px 10px", cursor:"pointer", fontSize:11, fontWeight:900 }}>✕</button>
+          </div>
+          <div style={{ marginBottom:8 }}>
+            <div style={{ fontSize:10, color:"#64748b", fontWeight:800, marginBottom:4 }}>DATA DA REVISÃO</div>
+            <input type="date" value={rev.data} onChange={e => upd(idx,"data",e.target.value)} style={{ ...INP, marginBottom:0 }} />
+          </div>
+          <textarea value={rev.notas} onChange={e => upd(idx,"notas",e.target.value)} placeholder="O que aconteceu? Como está a correr?" rows={3} style={{ ...INP, resize:"vertical", marginBottom:8 }} />
+          <textarea value={rev.ajustes} onChange={e => upd(idx,"ajustes",e.target.value)} placeholder="Ajustes ao plano — o que vou mudar?" rows={2} style={{ ...INP, resize:"vertical", marginBottom:0 }} />
+        </div>
+      ))}
+      <button onClick={add} style={{ width:"100%", padding:"11px", borderRadius:12, background:"rgba(167,139,250,0.1)", border:"1.5px dashed rgba(167,139,250,0.35)", color:"#a78bfa", fontWeight:900, fontSize:13, cursor:"pointer" }}>
+        + Adicionar Revisão
+      </button>
+    </div>
+  );
+}
+
 export default function PiaTab({ user, data }) {
   const uData       = data.userData || {};
   const piaUnlocked = uData.piaUnlocked || {};
@@ -48,7 +122,10 @@ export default function PiaTab({ user, data }) {
   const filledFields = PIA_SECTIONS.reduce((s, sec) => {
     if (!piaUnlocked[sec.id]) return s;
     const sd = piaData[sec.id] || {};
-    return s + sec.fields.filter(f => sd[f.key]?.trim()).length;
+    return s + sec.fields.filter(f => {
+      if (f.type === "activities" || f.type === "revisoes") return (sd[f.key] || []).length > 0;
+      return sd[f.key]?.trim();
+    }).length;
   }, 0);
   const progress = totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0;
 
@@ -115,7 +192,10 @@ export default function PiaTab({ user, data }) {
           {sectionsForTab.map((sec, idx) => {
             const unlocked = piaUnlocked[sec.id];
             const secData  = piaData[sec.id] || {};
-            const filled   = sec.fields.filter(f => secData[f.key]?.trim()).length;
+            const filled   = sec.fields.filter(f => {
+              if (f.type === "activities" || f.type === "revisoes") return (secData[f.key] || []).length > 0;
+              return secData[f.key]?.trim();
+            }).length;
 
             if (!unlocked) {
               return (
@@ -148,7 +228,11 @@ export default function PiaTab({ user, data }) {
                       <div style={{ fontSize:11, fontWeight:800, color:"#94a3b8", marginBottom:6, textTransform:"uppercase", letterSpacing:0.6 }}>
                         {f.label}
                       </div>
-                      {f.rows === 1 ? (
+                      {f.type === "activities" ? (
+                        <AtividadesEditor list={secData[f.key] || []} onChange={val => saveField(sec.id, f.key, val)} />
+                      ) : f.type === "revisoes" ? (
+                        <RevisoesEditor list={secData[f.key] || []} onChange={val => saveField(sec.id, f.key, val)} />
+                      ) : f.rows === 1 ? (
                         <input value={secData[f.key] || ""} onChange={e => saveField(sec.id, f.key, e.target.value)}
                           placeholder={f.ph} style={{ ...INP, marginBottom:0 }} />
                       ) : (

@@ -67,13 +67,14 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     // LEMBRETES PUROS
     if (launchType === "lembreteQuiz") { msg = "🧠 Lembrete: Tens um novo Dilema (Quiz) à tua espera nos Desafios!"; }
     if (launchType === "lembreteGeral") { msg = "📢 A Teresa tem um aviso para ti. Vai ver as novidades!"; }
-    
+
     const targets = sandboxMode ? ["demo"] : (launchTarget === "all" ? ALLOWED_USERNAMES : [launchTarget]);
     for (const u of targets) {
       if (field) {
         await setDoc(doc(db, "userData", u), { [field]: false }, { merge: true });
       }
-      await addDoc(collection(db, "notifications", u, "items"), { from: "teresa", text: msg, date: nowLabel(), read: false, ...(field ? { tipo: "proposta" } : {}) });
+      const isReminder = launchType === "lembreteGeral";
+      await addDoc(collection(db, "notifications", u, "items"), { from: "teresa", text: msg, date: nowLabel(), read: false, ...(!isReminder ? { tipo: "proposta" } : {}) });
     }
     alert("Pedidos/Lembretes lançados com sucesso!");
   }
