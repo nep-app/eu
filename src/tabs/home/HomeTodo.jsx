@@ -48,6 +48,10 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
   const temPiaAberto = Object.values(piaUnlocked).some(v => v === true);
   if (temPiaAberto && !uData.piaSaved) acoesPendentes.push({ status:"pending", icon:"🚀", title:"Plano Individual (PIA)", sub:"Desenha o teu projeto", go:() => setTab("pia") });
   if (temQuizPendente)  acoesPendentes.push({ status:"pending", icon:"🧠", title:"Dilema Pendente",        sub:"Tens um novo quiz para resolver", go:() => { setDesafiosSubTab("quiz");     setTab("desafios"); } });
+  const cap  = uData.cap  || {};
+  const cap2 = uData.cap2 || {};
+  if (cap.unlocked  && !cap.locked)  acoesPendentes.push({ status:"new", icon:"🔒", title:"Cápsula de Dezembro",  sub:"Escreve a tua mensagem para o futuro", go:() => setTab("perfil") });
+  if (cap2.unlocked && !cap2.locked) acoesPendentes.push({ status:"new", icon:"🔐", title:"Cápsula Final",         sub:"A Teresa desbloqueou a tua cápsula final", go:() => setTab("perfil") });
 
   async function criarNovaTarefa() {
     if (!novaTarefaTexto.trim()) return;
