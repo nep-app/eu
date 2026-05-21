@@ -59,6 +59,12 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
       text: novaTarefaTexto, due: novaTarefaData, done: false,
       shared: partilharTarefaCheck, ts: Date.now()
     });
+    if (partilharTarefaCheck) {
+      await addDoc(collection(db, "adminNotificacoes"), {
+        tipo: "TAREFA_PARTILHADA", jovem: user.username,
+        texto: novaTarefaTexto.substring(0, 60), ts: Date.now(), lida: false,
+      });
+    }
     setNovaTarefaTexto(""); setNovaTarefaData(""); setPartilharTarefaCheck(false);
   }
 

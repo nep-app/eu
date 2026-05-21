@@ -255,6 +255,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
               if (n.tipo === "QUIZ")            return `🧠 ${nome} respondeu ao dilema "${n.quizTitle||""}".`;
               if (n.tipo === "RODA")            return `🌸 ${nome} partilhou a Roda da Vida.`;
               if (n.tipo === "FORUM_POST")      return `🌐 ${nome} publicou no fórum (${n.canal})${n.texto ? `: "${n.texto}${n.texto.length>=60?"…":""}"` : "."}`;
+              if (n.tipo === "TAREFA_PARTILHADA") return `📋 ${nome} partilhou uma tarefa: "${n.texto}${(n.texto||"").length>=60?"…":""}"`;
               if (n.tipo === "TAREFA_ACEITE")   return `✅ ${nome} aceitou uma tarefa proposta.`;
               if (n.tipo === "TAREFA_RECUSADA") return `❌ ${nome} recusou uma tarefa proposta.`;
               if (n.tipo === "EVENTO_ACEITE")   return `✅ ${nome} aceitou um evento proposto.`;
