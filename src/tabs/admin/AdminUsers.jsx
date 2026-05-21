@@ -248,10 +248,11 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
                 }, { merge: true });
               }
               const PIA_SECTIONS_MINI = [
-                { id:"s2", title:"Diagnóstico",    icon:"🔍" },
-                { id:"s3", title:"Atributos",       icon:"⭐" },
-                { id:"s4", title:"Projeto",         icon:"🚀" },
-                { id:"s5", title:"Monitorização",   icon:"📈" },
+                { id:"s2",  title:"Diagnóstico",   icon:"🔍" },
+                { id:"s3",  title:"Atributos",     icon:"⭐" },
+                { id:"s3b", title:"Raio-X",        icon:"📊" },
+                { id:"s4",  title:"Projeto",       icon:"🚀" },
+                { id:"s5",  title:"Monitorização", icon:"📈" },
               ];
               return (
                 <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
@@ -263,7 +264,10 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
                   {PIA_SECTIONS_MINI.map((sec, idx) => {
                     const isOpen = piaUnlocked[sec.id] || false;
                     const secData = piaData[sec.id] || {};
-                    const filled = Object.values(secData).filter(v => v?.trim?.()).length;
+                    const swotKeys = ["swotF","swotFraq","swotOp","swotR"];
+                    const filled = sec.id === "s3b"
+                      ? swotKeys.filter(k => secData[k]?.trim()).length
+                      : Object.values(secData).filter(v => typeof v === "string" && v.trim()).length;
                     return (
                       <div key={sec.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", borderRadius:12, background:"rgba(0,0,0,0.2)", border: isOpen ? `1px solid ${CYN}30` : "1px solid transparent" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:10 }}>

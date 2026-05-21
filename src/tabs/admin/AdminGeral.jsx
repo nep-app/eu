@@ -205,11 +205,12 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
           Abre/fecha secções do PIA para todos os jovens de uma vez. Usa o Dossier individual para controlo por pessoa.
         </div>
         {[
-          { id:"s1", title:"1. Identificação", icon:"👤" },
-          { id:"s2", title:"2. Diagnóstico",   icon:"🔍" },
-          { id:"s3", title:"3. Atributos",      icon:"⭐" },
-          { id:"s4", title:"4. Projeto",        icon:"🚀" },
-          { id:"s5", title:"5. Monitorização",  icon:"📈" },
+          { id:"s1",  title:"1. Identificação", icon:"👤" },
+          { id:"s2",  title:"2. Diagnóstico",   icon:"🔍" },
+          { id:"s3",  title:"3. Atributos",     icon:"⭐" },
+          { id:"s3b", title:"3b. Raio-X",       icon:"📊" },
+          { id:"s4",  title:"4. Projeto",       icon:"🚀" },
+          { id:"s5",  title:"5. Monitorização", icon:"📈" },
         ].map(sec => (
           <div key={sec.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", borderRadius:12, background:"rgba(0,0,0,0.2)", marginBottom:6 }}>
             <div style={{ fontSize:13, fontWeight:800 }}>{sec.icon} {sec.title}</div>
@@ -301,13 +302,21 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
             <button onClick={() => iniciarNovaSemana(false)} style={{ background:"rgba(244,63,94,0.12)", color:"#f43f5e", border:"1px solid rgba(244,63,94,0.25)", padding:"6px 10px", borderRadius:10, fontSize:11, fontWeight:900, cursor:"pointer" }}>⏱ Agora</button>
           </div>
         </div>              
-        {Object.entries(leaderboard).sort((a,b)=>b[1].xp-a[1].xp).map((e, i) => (
-          <div key={e[0]} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-            <span style={{ fontSize:14, fontWeight:800, color:"#94a3b8", width:25 }}>#{i+1}</span>
-            <div style={{ flex:1, fontSize:14, fontWeight:700 }}>{e[1].name}</div>
-            <div style={{ fontSize:14, fontWeight:800, color:CYN }}>{e[1].xp} XP</div>
-          </div>
-        ))}
+        <div style={{ display:"flex", justifyContent:"flex-end", gap:8, marginBottom:8, fontSize:10, fontWeight:900, color:"#475569", paddingRight:2 }}>
+          <span style={{ width:70, textAlign:"right" }}>TOTAL</span>
+          <span style={{ width:70, textAlign:"right" }}>SEMANA</span>
+        </div>
+        {Object.entries(leaderboard).sort((a,b)=>b[1].xp-a[1].xp).map((e, i) => {
+          const totalXp = (allShared[e[0]]?.history || []).reduce((s,h) => s + (h.xp||0), 0);
+          return (
+            <div key={e[0]} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+              <span style={{ fontSize:14, fontWeight:800, color:"#94a3b8", width:22 }}>#{i+1}</span>
+              <div style={{ flex:1, fontSize:14, fontWeight:700 }}>{e[1].name}</div>
+              <div style={{ width:70, textAlign:"right", fontSize:13, fontWeight:700, color:"#64748b" }}>{totalXp} XP</div>
+              <div style={{ width:70, textAlign:"right", fontSize:14, fontWeight:800, color:CYN }}>{e[1].xp} XP</div>
+            </div>
+          );
+        })}
       </div>
 
       {/* 4. PERGUNTA DA SEMANA */}

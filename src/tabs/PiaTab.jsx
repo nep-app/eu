@@ -12,26 +12,6 @@ const SUB_TABS = [
   { id:"mon",   label:"📈 Monitorização" },
 ];
 
-function getSectionsForTab(subTab) {
-  if (subTab === "raiox") {
-    return PIA_SECTIONS
-      .filter(s => s.sub === "atrib")
-      .map(s => ({ ...s, fields: s.fields.filter(f => f.fieldSub === "raiox") }))
-      .filter(s => s.fields.length > 0);
-  }
-  if (subTab === "atrib") {
-    return PIA_SECTIONS
-      .filter(s => s.sub === "atrib")
-      .map(s => ({ ...s, fields: s.fields.filter(f => !f.fieldSub || f.fieldSub === "atrib") }))
-      .filter(s => s.fields.length > 0);
-  }
-  return PIA_SECTIONS.filter(s => s.sub === subTab);
-}
-
-function isSwotFilled(secData) {
-  return ["swotF","swotFraq","swotOp","swotR"].some(k => secData[k]?.trim());
-}
-
 function SwotGrid({ secData, onSave }) {
   const quadrants = [
     { key:"swotF",    label:"💪 Pontos Fortes",  color:"#22c55e", bg:"rgba(34,197,94,0.08)",  border:"rgba(34,197,94,0.25)",  ph:"O que fazes bem? Quais os teus pontos fortes pessoais e do projeto?" },
@@ -133,7 +113,7 @@ function RevisoesEditor({ list = [], onChange }) {
 
 function fieldFilled(f, secData) {
   if (f.type === "activities" || f.type === "revisoes") return (secData[f.key] || []).length > 0;
-  if (f.type === "swot") return isSwotFilled(secData);
+  if (f.type === "swot") return ["swotF","swotFraq","swotOp","swotR"].some(k => secData[k]?.trim());
   return !!secData[f.key]?.trim();
 }
 
@@ -158,6 +138,8 @@ export default function PiaTab({ user, data }) {
       { date: ts, action: jaEnviou ? "Atualizou o PIA 🔄" : "Enviou o Plano Individual de Ação (PIA) à Teresa 🚀", ts: Date.now(), xp: jaEnviou ? 0 : 30 }];
     await setDoc(doc(db, "userData", user.username), {
       piaSaved: true, piaSavedAt: ts,
+      piaSentFilled: filledFields,
+      piaSentTotal: totalFields,
       history: newHistory,
       weekXp: (uData.weekXp || 0) + (jaEnviou ? 0 : 30),
     }, { merge: true });
@@ -171,26 +153,25 @@ export default function PiaTab({ user, data }) {
 
   const unlockedCount = PIA_SECTIONS.filter(s => piaUnlocked[s.id]).length;
 
-  // For progress: count all unique fields across all sections (deduplicated by sectionId+key)
   const totalFields = PIA_SECTIONS.reduce((s, sec) => piaUnlocked[sec.id] ? s + sec.fields.length : s, 0);
   const filledFields = PIA_SECTIONS.reduce((s, sec) => {
     if (!piaUnlocked[sec.id]) return s;
     const sd = piaData[sec.id] || {};
     return s + sec.fields.filter(f => fieldFilled(f, sd)).length;
   }, 0);
-  const progress = totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0;
+  // Progress only reflects what was sent to Teresa, not just filled locally
+  const sentFilled = uData.piaSentFilled || 0;
+  const sentTotal  = uData.piaSentTotal  || totalFields || 1;
+  const progress   = uData.piaSaved ? Math.round((sentFilled / sentTotal) * 100) : 0;
 
-  const sectionsForTab = getSectionsForTab(subTab);
+  const sectionsForTab = PIA_SECTIONS.filter(s => s.sub === subTab);
 
   function tabHasUnlocked(tabId) {
-    if (tabId === "raiox") return PIA_SECTIONS.filter(s => s.sub === "atrib").some(s => piaUnlocked[s.id]);
-    if (tabId === "atrib") return PIA_SECTIONS.filter(s => s.sub === "atrib").some(s => piaUnlocked[s.id]);
     return PIA_SECTIONS.filter(s => s.sub === tabId).some(s => piaUnlocked[s.id]);
   }
 
   function tabAllFilled(tabId) {
-    const secs = getSectionsForTab(tabId);
-    return secs.every(sec => {
+    return PIA_SECTIONS.filter(s => s.sub === tabId).every(sec => {
       if (!piaUnlocked[sec.id]) return true;
       const sd = piaData[sec.id] || {};
       return sec.fields.every(f => fieldFilled(f, sd));
