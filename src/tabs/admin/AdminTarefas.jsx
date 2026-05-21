@@ -42,7 +42,7 @@ export default function AdminTarefas({ sandboxMode = false }) {
       ? `📋 A Teresa adicionou uma tarefa à tua lista: "${adminSuggTxt}"`
       : `📋 A Teresa propôs-te uma tarefa: "${adminSuggTxt}". Vai ao Início para aceitar ou recusar!`;
     await addDoc(collection(db, "notifications", targetUsr, "items"), {
-      from: "teresa", text: notifText, date: nowLabel(), read: false
+      from: "teresa", text: notifText, date: nowLabel(), read: false, tipo: "proposta"
     });
     setAdminSuggTxt(""); setAdminSuggDue("");
     alert(isForcar ? "Tarefa adicionada diretamente!" : "Sugestão de tarefa enviada!");

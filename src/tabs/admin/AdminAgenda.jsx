@@ -50,7 +50,7 @@ export default function AdminAgenda({ events = [], sandboxMode = false }) {
     const targets = sandboxMode ? ["demo"] : (dest === "all" ? ALLOWED_USERNAMES : [dest]);
     for (const u of targets) {
       await addDoc(collection(db, "notifications", u, "items"), {
-        from:"teresa", text:notifText, date:nowLabel(), read:false
+        from:"teresa", text:notifText, date:nowLabel(), read:false, tipo: "proposta"
       });
     }
     setTitulo(""); setHora(""); setShowForm(false);

@@ -8,7 +8,7 @@ import HomeAgenda from './home/HomeAgenda.jsx';
 import HomeExtras from './home/HomeExtras.jsx';
 
 export default function HomeTab({ user, data, setTab, setDesafiosSubTab }) {
-  const notifs = data.myNotifs || [];
+  const notifs = (data.myNotifs || []).filter(n => n.tipo !== "proposta");
 
   return (
     <div style={{ padding: "18px 16px", paddingBottom: "100px" }}>
