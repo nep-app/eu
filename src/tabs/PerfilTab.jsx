@@ -486,29 +486,25 @@ export default function PerfilTab({ user, data, features = {} }) {
               O JEEP EDUCA+ acompanha o teu percurso no programa. Aqui está um resumo rápido de cada área:
             </div>
             {[
-              { icon:"🏠", title:"Início", desc:"O teu painel principal. Vês as ações que precisas de completar (desafios lançados pela Teresa), as tuas tarefas, notificações e eventos." },
-              { icon:"🏆", title:"Desafios", desc:"A Teresa lança desafios periódicos aqui: Pergunta da Semana, Autoavaliação, Satisfação do Programa e Dilemas. Quando há algo novo aparece em Ações Pendentes." },
-              { icon:"🚀", title:"PIA", desc:"O teu Plano Individual de Ação. A Teresa vai desbloqueando secções ao longo do programa — preenche cada uma e envia quando estiver pronta." },
-              { icon:"💬", title:"Fórum", desc:"Espaço para conversares com o grupo. Podes publicar nos canais temáticos e reagir às mensagens dos outros." },
-              { icon:"👤", title:"Perfil", desc:"A tua Roda da Vida, o histórico de atividades, as Cápsulas do Tempo e esta página de info." },
-              { icon:"✅", title:"Tarefas", desc:"Cria e gere a tua lista pessoal de tarefas. Podes partilhar tarefas com a Teresa para ela acompanhar o teu progresso." },
-              { icon:"📅", title:"Eventos", desc:"A Teresa pode agendar eventos no teu calendário ou propor-te datas — aceitas ou recusas diretamente no Início." },
-              { icon:"🔔", title:"Notificações", desc:"Quando a Teresa responde ou reage a algo que enviaste, recebes uma notificação no Início. Não percas!" },
+              { icon:"🏠", title:"Início", desc:"O teu painel principal. Aqui tens tudo de um relance: as Ações Pendentes (desafios que a Teresa lançou e ainda não completaste), as tuas tarefas, notificações recebidas, eventos próximos e muito mais." },
+              { icon:"🏆", title:"Desafios", desc:"A Teresa lança desafios ao longo do programa. Quando há algo novo aparece em Ações Pendentes:\n• Pergunta da Semana — uma reflexão pessoal\n• Autoavaliação — avalias as tuas competências\n• Satisfação — como está a correr o programa\n• Dilemas — situações para pensares e decidires" },
+              { icon:"🚀", title:"PIA — Plano Individual de Ação", desc:"O teu plano pessoal de desenvolvimento. A Teresa vai desbloqueando as secções gradualmente. Preenche cada uma ao teu ritmo e envia quando estiver pronta — só aí fica registada no teu progresso." },
+              { icon:"💬", title:"Fórum", desc:"Espaço de conversa com o grupo. Podes publicar em diferentes canais temáticos, reagir com emojis às mensagens dos outros e responder em thread. É o espaço coletivo do programa." },
+              { icon:"✅", title:"Tarefas", desc:"A tua lista pessoal. Crias as tuas próprias tarefas e podes marcar "Partilhar com a Teresa" para ela acompanhar. A Teresa também pode sugerir-te tarefas (aceitas ou recusas) ou adicioná-las diretamente à tua lista." },
+              { icon:"📅", title:"Eventos e Agenda", desc:"Podes criar os teus próprios eventos e escolher partilhá-los com a Teresa. Ela também pode agendar eventos no teu calendário diretamente, ou propor datas — nesse caso aparece em Ações Pendentes para tu aceitares ou recusares." },
+              { icon:"👤", title:"Perfil", desc:"Tem quatro sub-secções:\n• Roda da Vida — avalia as diferentes áreas da tua vida e envia à Teresa\n• Histórico — registo de tudo o que fizeste e XP ganho\n• Cápsulas — mensagens que trancas para o futuro\n• Info — este guia e exportação dos teus dados" },
+              { icon:"📱", title:"Falar com a Teresa", desc:"No Início, em baixo, podes enviar uma mensagem diretamente à Teresa — dúvidas, sugestões ou desabafos. Podes enviá-la de forma anónima se preferires. Ela pode também ser contactada por WhatsApp ou email." },
+              { icon:"🔔", title:"Notificações", desc:"Quando a Teresa reage ou responde a algo que enviaste (resposta à tua pergunta, feedback ao PIA, etc.), recebes uma notificação no Início. Aparece também quando ela te propõe tarefas ou eventos." },
+              { icon:"⭐", title:"Destaques da Semana", desc:"No Início aparece sempre uma caixa com os 3 jovens mais ativos da semana — determinados pelo XP ganho. A ordem em que aparecem é aleatória e muda a cada vez que abres a app. Só a Teresa sabe a classificação real. Ganhas XP ao completar desafios, tarefas, missões e outras ações." },
             ].map(item => (
               <div key={item.title} style={{ display:"flex", gap:12, padding:"12px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
                 <div style={{ fontSize:22, flexShrink:0, width:28, textAlign:"center" }}>{item.icon}</div>
                 <div>
                   <div style={{ fontSize:13, fontWeight:900, color:"#f1f5f9", marginBottom:3 }}>{item.title}</div>
-                  <div style={{ fontSize:12, color:"#94a3b8", lineHeight:1.5 }}>{item.desc}</div>
+                  <div style={{ fontSize:12, color:"#94a3b8", lineHeight:1.5, whiteSpace:"pre-line" }}>{item.desc}</div>
                 </div>
               </div>
             ))}
-            <div style={{ marginTop:16, padding:"12px 14px", borderRadius:12, background:"rgba(50,199,255,0.07)", border:"1px solid rgba(50,199,255,0.15)" }}>
-              <div style={{ fontSize:11, fontWeight:900, color:CYN, marginBottom:4 }}>DICA</div>
-              <div style={{ fontSize:12, color:"#94a3b8", lineHeight:1.5 }}>
-                Quando completas ações ganhas XP — podes ver o teu ranking semanal no Início em "Destaques da Semana".
-              </div>
-            </div>
           </div>
 
           <div style={CARD}>

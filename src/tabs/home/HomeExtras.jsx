@@ -19,13 +19,13 @@ export default function HomeExtras({ user, data, setTab }) {
     ? (data.history || []).filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
     : (uData.weekXp || 0);
 
-  // Top 3 sem ordem de ranking — excluir utilizadores especiais (teste)
+  // Top 3 por XP semanal, mas apresentados em ordem aleatória (muda a cada render)
   const destaquesXp = Object.entries(rankingDados)
     .map(([username, d]) => ({ username, ...d }))
     .filter(d => !SPECIAL_USERS.includes(d.username) && (d.xp || 0) > 0)
     .sort((a, b) => (b.xp || 0) - (a.xp || 0))
     .slice(0, 3)
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort(() => Math.random() - 0.5);
 
   function getDayStreakUpdate() {
     const today     = new Date().toDateString();
