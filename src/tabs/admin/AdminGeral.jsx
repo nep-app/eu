@@ -258,6 +258,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
               if (n.tipo === "TAREFA_PARTILHADA") return `📋 ${nome} partilhou uma tarefa: "${n.texto}${(n.texto||"").length>=60?"…":""}"`;
               if (n.tipo === "TAREFA_ACEITE")   return `✅ ${nome} aceitou uma tarefa proposta.`;
               if (n.tipo === "TAREFA_RECUSADA") return `❌ ${nome} recusou uma tarefa proposta.`;
+              if (n.tipo === "EVENTO_PARTILHADO") return `📅 ${nome} partilhou um evento: "${n.texto}${(n.texto||"").length>=60?"…":""}"`;
               if (n.tipo === "EVENTO_ACEITE")   return `✅ ${nome} aceitou um evento proposto.`;
               if (n.tipo === "EVENTO_RECUSADO") return `❌ ${nome} recusou um evento proposto.`;
               return `😊 Nova Satisfação Anónima submetida.`;

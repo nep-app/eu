@@ -55,6 +55,12 @@ export default function HomeAgenda({ user, data }) {
       userId: user.username, type: "personal",
       shared: partilhar, ts: Date.now()
     });
+    if (partilhar) {
+      await addDoc(collection(db, "adminNotificacoes"), {
+        tipo: "EVENTO_PARTILHADO", jovem: user.username,
+        texto: novoTitulo.substring(0, 60), ts: Date.now(), lida: false,
+      });
+    }
     setNovoTitulo(""); setNovaHora(""); setPartilhar(false); setShowForm(false);
   }
 

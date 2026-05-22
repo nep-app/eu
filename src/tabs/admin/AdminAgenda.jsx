@@ -75,6 +75,9 @@ export default function AdminAgenda({ events = [] }) {
             {ev.accepted === false && (
               <span style={{ fontSize:9, background:"rgba(245,158,11,0.2)", color:"#f59e0b", padding:"2px 6px", borderRadius:4, marginLeft:6, fontWeight:900 }}>PROPOSTA</span>
             )}
+            {ev.shared && ev.accepted !== false && (
+              <span style={{ fontSize:9, background:"rgba(50,199,255,0.15)", color:"#38bdf8", padding:"2px 6px", borderRadius:4, marginLeft:6, fontWeight:900 }}>PARTILHADO</span>
+            )}
           </div>
           <div style={{ fontSize:11, color: ev.accepted === false ? "#f59e0b" : cor, fontWeight:700, marginTop:2 }}>
             {fmtDatePt(ev.date)}{ev.time ? ` · ${ev.time}` : ""}
