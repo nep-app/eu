@@ -481,6 +481,37 @@ export default function PerfilTab({ user, data, features = {} }) {
       {subTab === "info" && (
         <>
           <div style={CARD}>
+            <div style={SL}>Como Usar a App</div>
+            <div style={{ fontSize:12, color:"#94a3b8", lineHeight:1.6, marginBottom:16 }}>
+              O JEEP EDUCA+ acompanha o teu percurso no programa. Aqui está um resumo rápido de cada área:
+            </div>
+            {[
+              { icon:"🏠", title:"Início", desc:"O teu painel principal. Vês as ações que precisas de completar (desafios lançados pela Teresa), as tuas tarefas, notificações e eventos." },
+              { icon:"🏆", title:"Desafios", desc:"A Teresa lança desafios periódicos aqui: Pergunta da Semana, Autoavaliação, Satisfação do Programa e Dilemas. Quando há algo novo aparece em Ações Pendentes." },
+              { icon:"🚀", title:"PIA", desc:"O teu Plano Individual de Ação. A Teresa vai desbloqueando secções ao longo do programa — preenche cada uma e envia quando estiver pronta." },
+              { icon:"💬", title:"Fórum", desc:"Espaço para conversares com o grupo. Podes publicar nos canais temáticos e reagir às mensagens dos outros." },
+              { icon:"👤", title:"Perfil", desc:"A tua Roda da Vida, o histórico de atividades, as Cápsulas do Tempo e esta página de info." },
+              { icon:"✅", title:"Tarefas", desc:"Cria e gere a tua lista pessoal de tarefas. Podes partilhar tarefas com a Teresa para ela acompanhar o teu progresso." },
+              { icon:"📅", title:"Eventos", desc:"A Teresa pode agendar eventos no teu calendário ou propor-te datas — aceitas ou recusas diretamente no Início." },
+              { icon:"🔔", title:"Notificações", desc:"Quando a Teresa responde ou reage a algo que enviaste, recebes uma notificação no Início. Não percas!" },
+            ].map(item => (
+              <div key={item.title} style={{ display:"flex", gap:12, padding:"12px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+                <div style={{ fontSize:22, flexShrink:0, width:28, textAlign:"center" }}>{item.icon}</div>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:900, color:"#f1f5f9", marginBottom:3 }}>{item.title}</div>
+                  <div style={{ fontSize:12, color:"#94a3b8", lineHeight:1.5 }}>{item.desc}</div>
+                </div>
+              </div>
+            ))}
+            <div style={{ marginTop:16, padding:"12px 14px", borderRadius:12, background:"rgba(50,199,255,0.07)", border:"1px solid rgba(50,199,255,0.15)" }}>
+              <div style={{ fontSize:11, fontWeight:900, color:CYN, marginBottom:4 }}>DICA</div>
+              <div style={{ fontSize:12, color:"#94a3b8", lineHeight:1.5 }}>
+                Quando completas ações ganhas XP — podes ver o teu ranking semanal no Início em "Destaques da Semana".
+              </div>
+            </div>
+          </div>
+
+          <div style={CARD}>
             <div style={SL}>Gestão de Dados</div>
             <div style={{ fontSize:13, color:"#cbd5e1", lineHeight:1.6, marginBottom:20 }}>
               De acordo com o RGPD, tens o direito de descarregar todos os teus dados guardados nesta plataforma.
