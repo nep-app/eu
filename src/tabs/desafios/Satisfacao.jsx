@@ -55,12 +55,12 @@ export default function Satisfacao({ user, data }) {
         ts: Date.now()
       });
 
-      // 2. Marcar no perfil do jovem que já fez e dar XP
-      await setDoc(doc(db, "userData", user.username), { 
-        sSaved: true, 
+      // 2. Marcar como feito e dar XP — label genérico para não quebrar anonimato no dossier
+      await setDoc(doc(db, "userData", user.username), {
+        sSaved: true,
         sDate: nowLabel(),
         weekXp: increment(30),
-        history: arrayUnion({ date: nowLabel(), action: "Submeteu a Avaliação de Satisfação", ts: Date.now(), xp: 30 })
+        history: arrayUnion({ date: nowLabel(), action: "Completou um desafio do programa", ts: Date.now(), xp: 30 })
       }, { merge: true });
 
       // 3. Notificar a Teresa
