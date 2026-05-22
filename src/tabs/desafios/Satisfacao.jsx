@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { doc, setDoc, addDoc, collection, increment } from "firebase/firestore";
+import { doc, setDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, PNK, INP, Btn, CYN } from "../../theme.jsx";
 import { SURVEY_CATS, SEMOJIS, nowLabel } from "../../data.js";
@@ -55,10 +55,12 @@ export default function Satisfacao({ user, data }) {
         ts: Date.now()
       });
 
-      // 2. Marcar como feito — sem entrada no histórico para preservar anonimato total
+      // 2. Marcar como feito e dar XP — private:true esconde do dossier do admin
       await setDoc(doc(db, "userData", user.username), {
         sSaved: true,
         sDate: nowLabel(),
+        weekXp: increment(30),
+        history: arrayUnion({ date: nowLabel(), action: "Submeteste a Avaliação de Satisfação", ts: Date.now(), xp: 30, private: true })
       }, { merge: true });
 
       // 3. Notificar a Teresa
@@ -67,7 +69,7 @@ export default function Satisfacao({ user, data }) {
       });
 
       setLocalSaved(true);
-      alert("Feedback anónimo recebido com sucesso! Obrigado 💖");
+      alert("Feedback anónimo recebido com sucesso! Ganhaste +30 XP 💖");
     } catch (e) { 
       console.error(e);
       alert("Erro ao enviar feedback.");

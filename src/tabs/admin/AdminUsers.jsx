@@ -132,9 +132,10 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
     const weekKey       = getWeekKey();
     const weekMedals    = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
     const allTimeMedals = medalDoc.allTime || [];
-    const totalXp       = (uData.history || []).reduce((s, h) => s + (h.xp || 0), 0);
+    const publicHistory = (uData.history || []).filter(h => !h.private);
+    const totalXp       = publicHistory.reduce((s, h) => s + (h.xp || 0), 0);
     const semanaXp      = weekStartTs > 0
-      ? (uData.history || []).filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
+      ? publicHistory.filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
       : (uData.weekXp || 0);
     const jeep          = JEEP_LIST.find(j => j.username === username);
     const [xpEdit, setXpEdit] = useState(String(uData.weekXp || 0));
@@ -443,7 +444,7 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
             </div>
             <div style={{ maxHeight:400, overflowY:"auto", paddingRight:4 }}>
               {uData.history?.length > 0 ? (
-                [...(uData.history)].reverse().map((h, i) => (
+                [...(uData.history)].reverse().filter(h => !h.private).map((h, i) => (
                   <div key={h.ts ?? i} style={{ padding:"10px 0", borderBottom:"1px solid rgba(255,255,255,0.05)", display:"flex", alignItems:"center", gap:10 }}>
                     <button onClick={() => deleteHistoryEntry(username, h)} style={{
                       background:"rgba(244,63,94,0.12)", border:"none", color:"#f43f5e",
@@ -554,9 +555,10 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
         const wMedals     = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
         const atMedals    = medalDoc.allTime || [];
         const uData       = allShared[j.username] || {};
-        const totalXpCard  = (uData.history || []).reduce((s, h) => s + (h.xp || 0), 0);
+        const pubHistory   = (uData.history || []).filter(h => !h.private);
+        const totalXpCard  = pubHistory.reduce((s, h) => s + (h.xp || 0), 0);
         const semanaXpCard = weekStartTs > 0
-          ? (uData.history || []).filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
+          ? pubHistory.filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
           : (uData.weekXp || 0);
 
         return (
