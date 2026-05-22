@@ -31,7 +31,14 @@ export default function AdminAgenda({ events = [] }) {
     { id:"personal", label:"Pessoal",  icon:"📌" },
   ];
 
-  const sorted   = [...events].sort((a, b) => a.date.localeCompare(b.date) || (a.time||"").localeCompare(b.time||""));
+  // Eventos criados pela admin têm sempre o campo "accepted" (true ou false).
+  // Eventos criados pelo próprio jovem na agenda pessoal têm "shared" mas não "accepted".
+  // Só mostrar: eventos da admin + eventos que o jovem explicitamente partilhou.
+  const visiveis = events.filter(e =>
+    e.accepted !== undefined ||   // criado pela admin (forçado ou proposta)
+    e.shared === true             // criado pelo jovem mas partilhado voluntariamente
+  );
+  const sorted   = [...visiveis].sort((a, b) => a.date.localeCompare(b.date) || (a.time||"").localeCompare(b.time||""));
   const futuros  = sorted.filter(e => e.date >= hoje);
   const passados = sorted.filter(e => e.date <  hoje);
 
