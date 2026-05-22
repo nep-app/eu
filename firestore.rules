@@ -86,6 +86,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Satisfação anónima (qualquer autenticado cria, só admin lê)
+    match /satisfacao/{docId} {
+      allow create: if request.auth != null;
+      allow read: if isAdmin();
+    }
+
     // Fórum demo (isolado do fórum real)
     match /forum_demo/{channel}/posts/{postId} {
       allow read, write: if request.auth != null;
