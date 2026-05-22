@@ -50,7 +50,10 @@ export default function JovensApp({ user, onLogout }) {
 
   const ud = allData.userData;
   const dayStreak = ud.dayStreak || 0;
-  const totalXp = (allData.history || []).reduce((s, h) => s + (h.xp || 0), 0);
+  const weekStartTs = allData.weekStartTs || 0;
+  const weekXp = weekStartTs > 0
+    ? (allData.history || []).filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
+    : (ud.weekXp || 0);
   const notifCount = allData.myNotifs.length;
 
   // Merge global feature flags with per-user overrides (override wins when set)
@@ -87,7 +90,7 @@ export default function JovensApp({ user, onLogout }) {
               )}
               <div style={{ fontSize:10, background:"rgba(50,199,255,0.12)", border:"1px solid rgba(50,199,255,0.28)",
                 borderRadius:20, padding:"3px 10px", fontWeight:800, color:CYN }}>
-                ⚡ {totalXp} XP
+                ⚡ {weekXp} XP
               </div>
             </div>
           </div>

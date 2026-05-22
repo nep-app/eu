@@ -4,7 +4,7 @@ import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PRP, GRN, RadarChart, INP } from "../../theme.jsx";
 import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, PIA_FIELDS, getWeekKey } from "../../data.js";
 
-export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
+export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStartTs = 0 }) {
   const [userSelecionado, setUserSelecionado] = useState(null);
   const [medalModal, setMedalModal]           = useState(null);
   const [medalMsg,   setMedalMsg]             = useState("");
@@ -133,6 +133,9 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
     const weekMedals    = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
     const allTimeMedals = medalDoc.allTime || [];
     const totalXp       = (uData.history || []).reduce((s, h) => s + (h.xp || 0), 0);
+    const semanaXp      = weekStartTs > 0
+      ? (uData.history || []).filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
+      : (uData.weekXp || 0);
     const jeep          = JEEP_LIST.find(j => j.username === username);
     const [xpEdit, setXpEdit] = useState(String(uData.weekXp || 0));
     const [feedbackAuto, setFeedbackAuto] = useState("");
@@ -162,7 +165,7 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
             <div>
               <h2 style={{ margin:0, fontSize:20 }}>{jeep.name}</h2>
               <div style={{ fontSize:11, color:CYN, fontWeight:800 }}>
-                {totalXp} XP total · {allTimeMedals.length} medalhas histórico · {uData.weekXp||0} XP esta semana
+                {totalXp} XP total · {allTimeMedals.length} medalhas histórico · {semanaXp} XP esta semana
               </div>
             </div>
           </div>
@@ -551,13 +554,16 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared }) {
         const wMedals     = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
         const atMedals    = medalDoc.allTime || [];
         const uData       = allShared[j.username] || {};
-        const totalXpCard = (uData.history || []).reduce((s, h) => s + (h.xp || 0), 0);
+        const totalXpCard  = (uData.history || []).reduce((s, h) => s + (h.xp || 0), 0);
+        const semanaXpCard = weekStartTs > 0
+          ? (uData.history || []).filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
+          : (uData.weekXp || 0);
 
         return (
           <div key={j.username} style={{ ...CARD, textAlign:"center", padding:"20px 15px" }}>
             <div style={{ width:12, height:12, borderRadius:"50%", background:j.color, margin:"0 auto 8px" }} />
             <div style={{ fontWeight:800, fontSize:15, marginBottom:2 }}>{j.name}</div>
-            <div style={{ fontSize:10, color:CYN, fontWeight:900 }}>{uData.weekXp||0} XP semana</div>
+            <div style={{ fontSize:10, color:CYN, fontWeight:900 }}>{semanaXpCard} XP semana</div>
             <div style={{ fontSize:9, color:"#5a7a9a", fontWeight:700, marginBottom:10 }}>{totalXpCard} XP total</div>
             {wMedals.length > 0 && (
               <div style={{ display:"flex", gap:3, justifyContent:"center", marginBottom:6, flexWrap:"wrap" }}>
