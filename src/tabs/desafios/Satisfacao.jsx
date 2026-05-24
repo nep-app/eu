@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { doc, setDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, PNK, INP, Btn, CYN } from "../../theme.jsx";
-import { SURVEY_CATS, SEMOJIS, nowLabel } from "../../data.js";
+import { SURVEY_CATS, SEMOJIS, nowLabel, SPECIAL_USERS } from "../../data.js";
 
 export default function Satisfacao({ user, data }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,10 +50,13 @@ export default function Satisfacao({ user, data }) {
       }));
 
       // 1. Guardar na coleção "satisfacao" (TOTALMENTE ANÓNIMO)
-      await addDoc(collection(db, "satisfacao"), {
-        respostas: arrayRespostas,
-        ts: Date.now()
-      });
+      // Utilizadores especiais (teste) não contam para os resultados reais
+      if (!SPECIAL_USERS.includes(user.username)) {
+        await addDoc(collection(db, "satisfacao"), {
+          respostas: arrayRespostas,
+          ts: Date.now()
+        });
+      }
 
       // 2. Marcar como feito e dar XP — private:true esconde do dossier do admin
       await setDoc(doc(db, "userData", user.username), {
