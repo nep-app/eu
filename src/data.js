@@ -214,6 +214,7 @@ export const ALL_MEDALS = [
   { id:"madrugador",    icon:"🌅", label:"Madrugador/a",            desc:"Foi dos primeiros a responder ou agir — não espera que as coisas aconteçam." },
   { id:"feras",         icon:"🦁", label:"Encantador/a de Feras",   desc:"Tem um jeito especial para lidar com pessoas difíceis ou situações tensas." },
   { id:"arrumado",      icon:"🧹", label:"Arrumadinho/a",           desc:"Deixa sempre os espaços melhor do que os encontrou — respeito pelo comum." },
+  { id:"aviso",         icon:"🚨", label:"Aviso Prévio",            desc:"Avisou atempadamente de um imprevisto em vez de simplesmente não aparecer — responsabilidade e respeito pelos outros." },
 ];
 
 // s1 removido (identificação do jovem não necessária)
