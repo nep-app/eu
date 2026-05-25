@@ -13,7 +13,8 @@ import AdminAgenda from './tabs/admin/AdminAgenda.jsx';
 import AdminMissoes from './tabs/admin/AdminMissoes.jsx';
 import AdminMsgs from './tabs/admin/AdminMsgs.jsx';
 import AdminUsers from './tabs/admin/AdminUsers.jsx';
-import AdminVotacoes from './tabs/admin/AdminVotacoes.jsx'; // ADICIONA ESTA LINHA
+import AdminVotacoes from './tabs/admin/AdminVotacoes.jsx';
+import AdminQuizzes from './tabs/admin/AdminQuizzes.jsx';
 import AdminSatisfacao from './tabs/admin/AdminSatisfacao.jsx';
 export default function TeresaAdmin({ user, onLogout }) {
   const [adminTab, setAdminTab] = useState("geral");
