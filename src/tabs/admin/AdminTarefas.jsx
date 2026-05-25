@@ -132,15 +132,34 @@ export default function AdminTarefas() {
             const nomeJovem = jInfo ? jInfo.name : t.userId;
             const corJovem  = jInfo ? jInfo.color : CYN;
             return (
-              <div key={t.id} style={{ padding:"12px 0", borderBottom:"1px solid rgba(255,255,255,0.05)", display:"flex", alignItems:"center", gap:10 }}>
-                <div style={{ width:16, height:16, borderRadius:4, border:`2px solid ${t.done ? "#4ade80" : "#64748b"}`, background:t.done ? "#4ade80" : "transparent" }} />
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:14, color:"#fff", textDecoration:t.done?"line-through":"none", opacity:t.done?0.5:1 }}>{t.text}</div>
-                  <div style={{ fontSize:11, color:"#94a3b8", marginTop:4 }}>
-                    <span style={{ color:corJovem, fontWeight:800 }}>{nomeJovem}</span>
-                    {t.due && ` • Limite: ${fmtDate(t.due)}`}
+              <div key={t.id} style={{ padding:"12px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+                {editId === t.id ? (
+                  <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                    <input value={editText} onChange={e => setEditText(e.target.value)}
+                      style={{ ...INP, marginBottom:0 }} />
+                    <input type="date" value={editDue} onChange={e => setEditDue(e.target.value)}
+                      style={{ ...INP, marginBottom:0, fontSize:12 }} />
+                    <div style={{ display:"flex", gap:8 }}>
+                      <button onClick={() => guardarEdicao(t)} style={{ background:"rgba(50,199,255,0.15)", border:"1px solid rgba(50,199,255,0.3)", color:CYN, borderRadius:8, padding:"6px 12px", fontSize:12, fontWeight:800, cursor:"pointer" }}>✓ Guardar</button>
+                      <button onClick={() => setEditId(null)} style={{ background:"none", border:"1px solid rgba(255,255,255,0.1)", color:"#64748b", borderRadius:8, padding:"6px 12px", fontSize:12, cursor:"pointer" }}>✕ Cancelar</button>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                    <div style={{ width:16, height:16, borderRadius:4, border:`2px solid ${t.done ? "#4ade80" : "#64748b"}`, background:t.done ? "#4ade80" : "transparent", flexShrink:0 }} />
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:14, color:"#fff", textDecoration:t.done?"line-through":"none", opacity:t.done?0.5:1 }}>{t.text}</div>
+                      <div style={{ fontSize:11, color:"#94a3b8", marginTop:4 }}>
+                        <span style={{ color:corJovem, fontWeight:800 }}>{nomeJovem}</span>
+                        {t.due && ` • Limite: ${fmtDate(t.due)}`}
+                        {t.addedBy === "teresa" && <span style={{ marginLeft:6, color:CYN, fontWeight:800 }}>·admin</span>}
+                      </div>
+                    </div>
+                    {t.addedBy === "teresa" && (
+                      <button onClick={() => { setEditId(t.id); setEditText(t.text); setEditDue(t.due || ""); }} style={{ background:"none", border:"none", color:"#64748b", fontSize:13, cursor:"pointer", padding:"2px 4px" }}>✏️</button>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })
