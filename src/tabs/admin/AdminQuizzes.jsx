@@ -124,7 +124,7 @@ export default function AdminQuizzes() {
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 10, fontWeight: 900, color: CYN }}>{q.badge}</div>
             <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{q.title}</div>
-            <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>{q.scenario.substring(0, 60)}...</div>
+            <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>{(q.scenario || "").substring(0, 60)}...</div>
           </div>
           <button 
             onClick={() => apagarQuiz(q.id)}
