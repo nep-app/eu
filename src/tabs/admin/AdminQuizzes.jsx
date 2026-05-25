@@ -5,9 +5,10 @@ import { CARD, SL, CYN, Btn, INP } from "../../theme.jsx";
 
 export default function AdminQuizzes() {
   const [quizzes, setQuizzes] = useState([]);
+  const [erro, setErro] = useState(null);
   const [novo, setNovo] = useState({
     title: "",
-    badge: "D1 — Geral",
+    badge: "D1 — Comunicação",
     scenario: "",
     prazo: "",
     optA: "", revA: "",
@@ -15,18 +16,27 @@ export default function AdminQuizzes() {
     optC: "", revC: ""
   });
 
-  // 1. Carregar Quizzes existentes da Firebase
   useEffect(() => {
-    const q = query(collection(db, "quizzes"), orderBy("ts", "desc"));
-    return onSnapshot(q, (snap) => {
-      setQuizzes(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    try {
+      const q = query(collection(db, "quizzes"), orderBy("ts", "desc"));
+      return onSnapshot(q,
+        (snap) => {
+          setQuizzes(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+          setErro(null);
+        },
+        (err) => {
+          console.error("Quizzes snapshot error:", err);
+          setErro(err.message);
+        }
+      );
+    } catch (e) {
+      console.error(e);
+      setErro(e.message);
+    }
   }, []);
 
-  // 2. Gravar novo Quiz
   async function salvarQuiz() {
     if (!novo.title || !novo.scenario || !novo.optA) return alert("Preenche os campos básicos!");
-
     try {
       await addDoc(collection(db, "quizzes"), {
         title: novo.title,
@@ -40,16 +50,13 @@ export default function AdminQuizzes() {
           { id: "B", text: novo.optB, reveal: novo.revB },
           { id: "C", text: novo.optC, reveal: novo.revC }
         ],
-        // Iniciamos com votos fictícios para o gráfico não estar vazio
         mock: { A: 1, B: 1, C: 1 }
       });
-
-      // Limpar formulário
-      setNovo({ title: "", badge: "D1 — Geral", scenario: "", prazo: "", optA: "", revA: "", optB: "", revB: "", optC: "", revC: "" });
+      setNovo({ title: "", badge: "D1 — Comunicação", scenario: "", prazo: "", optA: "", revA: "", optB: "", revB: "", optC: "", revC: "" });
       alert("Novo Dilema publicado com sucesso! 🚀");
     } catch (e) {
       console.error(e);
-      alert("Erro ao salvar.");
+      alert("Erro ao salvar: " + e.message);
     }
   }
 
@@ -59,79 +66,89 @@ export default function AdminQuizzes() {
     }
   }
 
+  if (erro) return (
+    <div style={{ ...CARD, color: "#f43f5e" }}>
+      ⚠️ Erro ao carregar dilemas: {erro}
+    </div>
+  );
+
   return (
     <div style={{ paddingBottom: 50 }}>
-      
+
       {/* FORMULÁRIO DE CRIAÇÃO */}
       <div style={CARD}>
         <div style={SL}>Criar Novo Dilema (Quiz)</div>
-        
+
         <div style={{ marginBottom: 15 }}>
-          <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>TÍTULO E CATEGORIA</label>
-          <input 
-            style={INP} placeholder="Ex: O Problema do Atraso" 
-            value={novo.title} onChange={e => setNovo({...novo, title: e.target.value})} 
+          <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>TÍTULO</label>
+          <input
+            style={INP} placeholder="Ex: O Problema do Atraso"
+            value={novo.title} onChange={e => setNovo({...novo, title: e.target.value})}
           />
-          <select 
+          <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>CATEGORIA</label>
+          <select
             style={{ ...INP, background: "rgba(0,0,0,0.3)" }}
             value={novo.badge} onChange={e => setNovo({...novo, badge: e.target.value})}
           >
-            <option value="D1 — Comunicação">D1 — Comunicação</option>
-            <option value="D2 — Resiliência">D2 — Resiliência</option>
-            <option value="D3 — Proatividade">D3 — Proatividade</option>
-            <option value="D4 — Autoconhecimento">D4 — Autoconhecimento</option>
-            <option value="D5 — Digital">D5 — Digital</option>
-            <option value="D6 — Intervenção">D6 — Intervenção</option>
+            <option>D1 — Comunicação</option>
+            <option>D2 — Resiliência</option>
+            <option>D3 — Proatividade</option>
+            <option>D4 — Autoconhecimento</option>
+            <option>D5 — Digital</option>
+            <option>D6 — Intervenção</option>
           </select>
         </div>
 
         <div style={{ marginBottom: 15 }}>
           <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>CENÁRIO / PERGUNTA</label>
-          <textarea 
-            style={{ ...INP, height: 80 }} placeholder="Descreve a situação desafiante..." 
+          <textarea
+            style={{ ...INP, height: 80 }} placeholder="Descreve a situação desafiante..."
             value={novo.scenario} onChange={e => setNovo({...novo, scenario: e.target.value})}
           />
         </div>
 
-        {/* OPÇÕES E REVELAÇÕES */}
         {['A', 'B', 'C'].map(letter => (
           <div key={letter} style={{ background: "rgba(255,255,255,0.03)", padding: 10, borderRadius: 12, marginBottom: 10, border: "1px solid rgba(255,255,255,0.05)" }}>
             <label style={{ fontSize: 10, color: "#94a3b8" }}>OPÇÃO {letter}</label>
-            <input 
+            <input
               style={{ ...INP, marginBottom: 5 }} placeholder={`Texto da opção ${letter}`}
               value={novo[`opt${letter}`]} onChange={e => setNovo({...novo, [`opt${letter}`]: e.target.value})}
             />
-            <input 
+            <input
               style={{ ...INP, fontSize: 12, color: CYN }} placeholder="Explicação após responder (Reveal)"
               value={novo[`rev${letter}`]} onChange={e => setNovo({...novo, [`rev${letter}`]: e.target.value})}
             />
           </div>
         ))}
 
-        <div style={{ marginBottom:14 }}>
-          <label style={{ fontSize:11, color:CYN, fontWeight:800 }}>PRAZO PARA RESPONDER (opcional)</label>
-          <input type="date" style={{ ...INP, marginTop:6 }}
+        <div style={{ marginBottom: 14 }}>
+          <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>PRAZO (opcional)</label>
+          <input type="date" style={{ ...INP, marginTop: 6 }}
             value={novo.prazo} onChange={e => setNovo({...novo, prazo: e.target.value})} />
         </div>
 
         <Btn onClick={salvarQuiz}>Publicar Dilema 🚩</Btn>
       </div>
 
-      {/* LISTA DE QUIZZES ATIVOS */}
+      {/* LISTA */}
       <div style={SL}>Dilemas na Base de Dados ({quizzes.length})</div>
+      {quizzes.length === 0 && (
+        <div style={{ ...CARD, color: "#475569", textAlign: "center" }}>Ainda não há dilemas criados.</div>
+      )}
       {quizzes.map(q => (
         <div key={q.id} style={{ ...CARD, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 10, fontWeight: 900, color: CYN }}>{q.badge}</div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{q.title}</div>
-            <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>{(q.scenario || "").substring(0, 60)}...</div>
+            <div style={{ fontSize: 10, fontWeight: 900, color: CYN }}>{q.badge || "—"}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{q.title || "Sem título"}</div>
+            <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
+              {(q.scenario || "").substring(0, 80)}{(q.scenario || "").length > 80 ? "…" : ""}
+            </div>
+            {q.prazo && <div style={{ fontSize: 10, color: "#f59e0b", marginTop: 4 }}>⏰ Prazo: {q.prazo}</div>}
           </div>
-          <button 
+          <button
             onClick={() => apagarQuiz(q.id)}
-            style={{ background: "none", border: "none", color: "#f43f5e", fontSize: 18, cursor: "pointer", marginLeft: 10 }}
-          >
-            ✕
-          </button>
+            style={{ background: "none", border: "none", color: "#f43f5e", fontSize: 18, cursor: "pointer", marginLeft: 10, flexShrink: 0 }}
+          >✕</button>
         </div>
       ))}
     </div>
