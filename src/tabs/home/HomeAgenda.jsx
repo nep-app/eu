@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { addDoc, collection, deleteDoc, doc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, BLUE, INP, TXT_MUT } from "../../theme.jsx";
 import { EVT_COLORS, EVT_ICONS } from "../../data.js";
@@ -32,6 +32,10 @@ export default function HomeAgenda({ user, data }) {
   const [novaHora,   setNovaHora]   = useState("");
   const [partilhar,  setPartilhar]  = useState(false);
   const [showForm,   setShowForm]   = useState(false);
+  const [editId,     setEditId]     = useState(null);
+  const [editTitulo, setEditTitulo] = useState("");
+  const [editData,   setEditData]   = useState("");
+  const [editHora,   setEditHora]   = useState("");
 
   const meusEventos = (data.events || [])
     .filter(ev => ev.userId === user.username || ev.userId === "all")
@@ -66,6 +70,12 @@ export default function HomeAgenda({ user, data }) {
 
   async function removerEvento(id) {
     if (window.confirm("Remover este evento?")) await deleteDoc(doc(db, "events", id));
+  }
+
+  async function guardarEdicao(id) {
+    if (!editTitulo.trim()) return;
+    await updateDoc(doc(db, "events", id), { title: editTitulo, date: editData, time: editHora });
+    setEditId(null);
   }
 
   return (
@@ -125,23 +135,45 @@ export default function HomeAgenda({ user, data }) {
                 const icone = EVT_ICONS[ev.type] || "📌";
                 return (
                   <div key={ev.id} style={{
-                    display:"flex", alignItems:"center", gap:12, padding:"11px 14px",
-                    borderRadius:14, background:"rgba(0,0,0,0.18)",
+                    padding:"11px 14px", borderRadius:14, background:"rgba(0,0,0,0.18)",
                     borderLeft:`3px solid ${cor}`,
                   }}>
-                    <span style={{ fontSize:16, flexShrink:0 }}>{icone}</span>
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontSize:13, fontWeight:800, color:"#f1f5f9" }}>{ev.title}</div>
-                      <div style={{ fontSize:11, color:cor, fontWeight:700, marginTop:2 }}>
-                        {fmtDatePtShort(ev.date)}{ev.time ? ` · ${ev.time}` : ""}
-                        {ev.userId === "all" && <span style={{ color:"#475569" }}> · Geral</span>}
+                    {editId === ev.id ? (
+                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                        <input value={editTitulo} onChange={e => setEditTitulo(e.target.value)}
+                          placeholder="Título do evento..."
+                          style={{ ...INP, marginBottom:0, padding:"8px 12px", fontSize:13 }} />
+                        <div style={{ display:"flex", gap:8 }}>
+                          <input type="date" value={editData} onChange={e => setEditData(e.target.value)}
+                            style={{ ...INP, flex:1, marginBottom:0, padding:"8px 12px", fontSize:13 }} />
+                          <input type="time" value={editHora} onChange={e => setEditHora(e.target.value)}
+                            style={{ ...INP, flex:1, marginBottom:0, padding:"8px 12px", fontSize:13 }} />
+                        </div>
+                        <div style={{ display:"flex", gap:8 }}>
+                          <button onClick={() => guardarEdicao(ev.id)} style={{ background:"rgba(50,199,255,0.15)", border:"1px solid rgba(50,199,255,0.3)", color:CYN, borderRadius:8, padding:"6px 12px", fontSize:12, fontWeight:800, cursor:"pointer" }}>✓ Guardar</button>
+                          <button onClick={() => setEditId(null)} style={{ background:"none", border:"1px solid rgba(255,255,255,0.1)", color:"#64748b", borderRadius:8, padding:"6px 12px", fontSize:12, cursor:"pointer" }}>✕ Cancelar</button>
+                        </div>
                       </div>
-                    </div>
-                    {ev.userId === user.username && (
-                      <button onClick={() => removerEvento(ev.id)} style={{
-                        background:"none", border:"none", color:"#475569", fontSize:13,
-                        cursor:"pointer", opacity:0.6, padding:0,
-                      }}>✕</button>
+                    ) : (
+                      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                        <span style={{ fontSize:16, flexShrink:0 }}>{icone}</span>
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontSize:13, fontWeight:800, color:"#f1f5f9" }}>{ev.title}</div>
+                          <div style={{ fontSize:11, color:cor, fontWeight:700, marginTop:2 }}>
+                            {fmtDatePtShort(ev.date)}{ev.time ? ` · ${ev.time}` : ""}
+                            {ev.userId === "all" && <span style={{ color:"#475569" }}> · Geral</span>}
+                          </div>
+                        </div>
+                        {ev.userId === user.username && (
+                          <>
+                            <button onClick={() => { setEditId(ev.id); setEditTitulo(ev.title); setEditData(ev.date); setEditHora(ev.time || ""); }} style={{ background:"none", border:"none", color:"#64748b", fontSize:13, cursor:"pointer", padding:"2px 4px" }}>✏️</button>
+                            <button onClick={() => removerEvento(ev.id)} style={{
+                              background:"none", border:"none", color:"#475569", fontSize:13,
+                              cursor:"pointer", opacity:0.6, padding:0,
+                            }}>✕</button>
+                          </>
+                        )}
+                      </div>
                     )}
                   </div>
                 );

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { addDoc, collection, deleteDoc, doc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, INP, CYN, GRN, TXT_MUT } from "../../theme.jsx";
 import { JEEP_LIST, ALLOWED_USERNAMES, EVT_COLORS, EVT_ICONS, nowLabel } from "../../data.js";
@@ -23,6 +23,10 @@ export default function AdminAgenda({ events = [] }) {
   const [tipo,      setTipo]      = useState("group");
   const [modo,      setModo]      = useState("forcar"); // "propor" | "forcar"
   const [showForm,  setShowForm]  = useState(false);
+  const [editId,    setEditId]    = useState(null);
+  const [editTitulo, setEditTitulo] = useState("");
+  const [editData,  setEditData]  = useState("");
+  const [editHora,  setEditHora]  = useState("");
 
   const TIPOS = [
     { id:"group",    label:"Grupo",    icon:"👥" },
@@ -68,36 +72,67 @@ export default function AdminAgenda({ events = [] }) {
     if (window.confirm("Remover este evento?")) await deleteDoc(doc(db, "events", id));
   }
 
+  async function guardarEdicao(id) {
+    if (!editTitulo.trim()) return;
+    await updateDoc(doc(db, "events", id), { title: editTitulo, date: editData, time: editHora });
+    setEditId(null);
+  }
+
   function EventRow({ ev }) {
     const cor   = EVT_COLORS[ev.type] || CYN;
     const icone = EVT_ICONS[ev.type]  || "📌";
     const jeep  = JEEP_LIST.find(j => j.username === ev.userId);
     return (
-      <div style={{ display:"flex", alignItems:"center", gap:12, padding:"11px 14px",
-        borderRadius:14, background:"rgba(0,0,0,0.18)", borderLeft:`3px solid ${ev.accepted === false ? "#f59e0b" : cor}`, marginBottom:6 }}>
-        <span style={{ fontSize:16, flexShrink:0 }}>{ev.accepted === false ? "⏳" : icone}</span>
-        <div style={{ flex:1 }}>
-          <div style={{ fontSize:13, fontWeight:800, color:"#f1f5f9" }}>
-            {ev.title}
-            {ev.accepted === false && (
-              <span style={{ fontSize:9, background:"rgba(245,158,11,0.2)", color:"#f59e0b", padding:"2px 6px", borderRadius:4, marginLeft:6, fontWeight:900 }}>PROPOSTA</span>
-            )}
-            {ev.shared && ev.accepted !== false && (
-              <span style={{ fontSize:9, background:"rgba(50,199,255,0.15)", color:"#38bdf8", padding:"2px 6px", borderRadius:4, marginLeft:6, fontWeight:900 }}>PARTILHADO</span>
-            )}
+      <div style={{ padding:"11px 14px", borderRadius:14, background:"rgba(0,0,0,0.18)",
+        borderLeft:`3px solid ${ev.accepted === false ? "#f59e0b" : cor}`, marginBottom:6 }}>
+        {editId === ev.id ? (
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            <input value={editTitulo} onChange={e => setEditTitulo(e.target.value)}
+              placeholder="Título do evento..." style={{ ...INP, marginBottom:0 }} />
+            <div style={{ display:"flex", gap:8 }}>
+              <input type="date" value={editData} onChange={e => setEditData(e.target.value)}
+                style={{ ...INP, flex:1, marginBottom:0 }} />
+              <input type="time" value={editHora} onChange={e => setEditHora(e.target.value)}
+                style={{ ...INP, flex:1, marginBottom:0 }} />
+            </div>
+            <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+              <button onClick={() => guardarEdicao(ev.id)} style={{ background:"rgba(50,199,255,0.15)", border:"1px solid rgba(50,199,255,0.3)", color:CYN, borderRadius:8, padding:"6px 12px", fontSize:12, fontWeight:800, cursor:"pointer" }}>✓ Guardar</button>
+              <button onClick={() => setEditId(null)} style={{ background:"none", border:"1px solid rgba(255,255,255,0.1)", color:"#64748b", borderRadius:8, padding:"6px 12px", fontSize:12, cursor:"pointer" }}>✕ Cancelar</button>
+              <div style={{ flex:1 }} />
+              <button onClick={() => remover(ev.id)} style={{
+                background:"rgba(244,63,94,0.12)", border:"none", color:"#f43f5e",
+                borderRadius:6, padding:"4px 8px", cursor:"pointer", fontSize:11, fontWeight:900,
+              }}>✕</button>
+            </div>
           </div>
-          <div style={{ fontSize:11, color: ev.accepted === false ? "#f59e0b" : cor, fontWeight:700, marginTop:2 }}>
-            {fmtDatePt(ev.date)}{ev.time ? ` · ${ev.time}` : ""}
-            {" · "}
-            <span style={{ color: jeep ? jeep.color : TXT_MUT }}>
-              {ev.userId === "all" ? "Todos" : jeep?.name || ev.userId}
-            </span>
+        ) : (
+          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <span style={{ fontSize:16, flexShrink:0 }}>{ev.accepted === false ? "⏳" : icone}</span>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:13, fontWeight:800, color:"#f1f5f9" }}>
+                {ev.title}
+                {ev.accepted === false && (
+                  <span style={{ fontSize:9, background:"rgba(245,158,11,0.2)", color:"#f59e0b", padding:"2px 6px", borderRadius:4, marginLeft:6, fontWeight:900 }}>PROPOSTA</span>
+                )}
+                {ev.shared && ev.accepted !== false && (
+                  <span style={{ fontSize:9, background:"rgba(50,199,255,0.15)", color:"#38bdf8", padding:"2px 6px", borderRadius:4, marginLeft:6, fontWeight:900 }}>PARTILHADO</span>
+                )}
+              </div>
+              <div style={{ fontSize:11, color: ev.accepted === false ? "#f59e0b" : cor, fontWeight:700, marginTop:2 }}>
+                {fmtDatePt(ev.date)}{ev.time ? ` · ${ev.time}` : ""}
+                {" · "}
+                <span style={{ color: jeep ? jeep.color : TXT_MUT }}>
+                  {ev.userId === "all" ? "Todos" : jeep?.name || ev.userId}
+                </span>
+              </div>
+            </div>
+            <button onClick={() => { setEditId(ev.id); setEditTitulo(ev.title); setEditData(ev.date); setEditHora(ev.time || ""); }} style={{ background:"none", border:"none", color:"#64748b", fontSize:13, cursor:"pointer", padding:"2px 4px" }}>✏️</button>
+            <button onClick={() => remover(ev.id)} style={{
+              background:"rgba(244,63,94,0.12)", border:"none", color:"#f43f5e",
+              borderRadius:6, padding:"4px 8px", cursor:"pointer", fontSize:11, fontWeight:900,
+            }}>✕</button>
           </div>
-        </div>
-        <button onClick={() => remover(ev.id)} style={{
-          background:"rgba(244,63,94,0.12)", border:"none", color:"#f43f5e",
-          borderRadius:6, padding:"4px 8px", cursor:"pointer", fontSize:11, fontWeight:900,
-        }}>✕</button>
+        )}
       </div>
     );
   }

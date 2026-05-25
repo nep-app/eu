@@ -16,6 +16,9 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
   const [novaTarefaData, setNovaTarefaData]         = useState("");
   const [partilharTarefaCheck, setPartilharTarefaCheck] = useState(false);
   const [temQuizPendente, setTemQuizPendente]       = useState(false);
+  const [editTarefaId,    setEditTarefaId]    = useState(null);
+  const [editTarefaTexto, setEditTarefaTexto] = useState("");
+  const [editTarefaData,  setEditTarefaData]  = useState("");
 
   const uData        = data.userData || {};
   const listaTarefas = data.todos    || [];
@@ -78,6 +81,12 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
 
   async function removerTarefa(id) {
     if (window.confirm("Apagar esta tarefa?")) await deleteDoc(doc(db, "todos", user.username, "items", id));
+  }
+
+  async function guardarEdicaoTarefa(id) {
+    if (!editTarefaTexto.trim()) return;
+    await updateDoc(doc(db, "todos", user.username, "items", id), { text: editTarefaTexto, due: editTarefaData });
+    setEditTarefaId(null);
   }
 
   async function aceitarTarefa(id) {
@@ -213,24 +222,42 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
           <div style={{ textAlign:"center", color:TXT_MUT, fontSize:13, padding:"14px 0" }}>Sem tarefas pendentes 🎉</div>
         ) : (
           minhasTarefas.sort((a,b) => (b.ts||0)-(a.ts||0)).map(tarefa => (
-            <div key={tarefa.id} style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 0", borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
-              <div onClick={() => alternarEstadoTarefa(tarefa)} style={{
-                width:24, height:24, borderRadius:8, flexShrink:0, cursor:"pointer",
-                border:`2px solid ${tarefa.done ? "#4ade80" : "rgba(255,255,255,0.15)"}`,
-                background: tarefa.done ? "#4ade80" : "transparent",
-                display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.2s",
-              }}>
-                {tarefa.done && <span style={{ color:"#070b14", fontWeight:900, fontSize:12 }}>✓</span>}
-              </div>
-              <div style={{ flex:1, opacity:tarefa.done ? 0.35 : 1 }}>
-                <div style={{ fontSize:13, fontWeight:700, color:"#f1f5f9", textDecoration:tarefa.done?"line-through":"none" }}>
-                  {(() => { const tt = TASK_TYPES.find(t => t.id === tarefa.type); return tt && tt.id !== "geral" ? <span style={{ marginRight:5 }}>{tt.icon}</span> : null; })()}
-                  {tarefa.text}
-                  {tarefa.shared && <span style={{ fontSize:9, background:CYN, color:"#000", padding:"2px 5px", borderRadius:4, marginLeft:7, verticalAlign:"middle", fontWeight:900 }}>PARTILHADO</span>}
+            <div key={tarefa.id} style={{ padding:"12px 0", borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
+              {editTarefaId === tarefa.id ? (
+                <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                  <input value={editTarefaTexto} onChange={e => setEditTarefaTexto(e.target.value)}
+                    style={{ ...INP, marginBottom:0 }} />
+                  <input type="date" value={editTarefaData} onChange={e => setEditTarefaData(e.target.value)}
+                    style={{ ...INP, marginBottom:0, fontSize:12 }} />
+                  <div style={{ display:"flex", gap:8 }}>
+                    <button onClick={() => guardarEdicaoTarefa(tarefa.id)} style={{ background:"rgba(50,199,255,0.15)", border:"1px solid rgba(50,199,255,0.3)", color:CYN, borderRadius:8, padding:"6px 12px", fontSize:12, fontWeight:800, cursor:"pointer" }}>✓ Guardar</button>
+                    <button onClick={() => setEditTarefaId(null)} style={{ background:"none", border:"1px solid rgba(255,255,255,0.1)", color:"#64748b", borderRadius:8, padding:"6px 12px", fontSize:12, cursor:"pointer" }}>✕</button>
+                  </div>
                 </div>
-                {tarefa.due && <div style={{ fontSize:11, color:isOverdue(tarefa.due) ? "#f43f5e" : TXT_MUT, marginTop:2, fontWeight:700 }}>{fmtDate(tarefa.due)}</div>}
-              </div>
-              <button onClick={() => removerTarefa(tarefa.id)} style={{ background:"none", border:"none", color:"rgba(244,63,94,0.5)", fontSize:17, cursor:"pointer", padding:"2px 4px" }}>✕</button>
+              ) : (
+                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                  <div onClick={() => alternarEstadoTarefa(tarefa)} style={{
+                    width:24, height:24, borderRadius:8, flexShrink:0, cursor:"pointer",
+                    border:`2px solid ${tarefa.done ? "#4ade80" : "rgba(255,255,255,0.15)"}`,
+                    background: tarefa.done ? "#4ade80" : "transparent",
+                    display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.2s",
+                  }}>
+                    {tarefa.done && <span style={{ color:"#070b14", fontWeight:900, fontSize:12 }}>✓</span>}
+                  </div>
+                  <div style={{ flex:1, opacity:tarefa.done ? 0.35 : 1 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:"#f1f5f9", textDecoration:tarefa.done?"line-through":"none" }}>
+                      {(() => { const tt = TASK_TYPES.find(t => t.id === tarefa.type); return tt && tt.id !== "geral" ? <span style={{ marginRight:5 }}>{tt.icon}</span> : null; })()}
+                      {tarefa.text}
+                      {tarefa.shared && <span style={{ fontSize:9, background:CYN, color:"#000", padding:"2px 5px", borderRadius:4, marginLeft:7, verticalAlign:"middle", fontWeight:900 }}>PARTILHADO</span>}
+                    </div>
+                    {tarefa.due && <div style={{ fontSize:11, color:isOverdue(tarefa.due) ? "#f43f5e" : TXT_MUT, marginTop:2, fontWeight:700 }}>{fmtDate(tarefa.due)}</div>}
+                  </div>
+                  {!tarefa.done && (
+                    <button onClick={() => { setEditTarefaId(tarefa.id); setEditTarefaTexto(tarefa.text); setEditTarefaData(tarefa.due || ""); }} style={{ background:"none", border:"none", color:"#64748b", fontSize:13, cursor:"pointer", padding:"2px 4px" }}>✏️</button>
+                  )}
+                  <button onClick={() => removerTarefa(tarefa.id)} style={{ background:"none", border:"none", color:"rgba(244,63,94,0.5)", fontSize:17, cursor:"pointer", padding:"2px 4px" }}>✕</button>
+                </div>
+              )}
             </div>
           ))
         )}

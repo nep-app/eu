@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, onSnapshot, query } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, query, updateDoc, doc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, INP, Btn, CYN, GRN, PNK } from "../../theme.jsx";
 import { JEEP_LIST, ALLOWED_USERNAMES, fmtDate, nowLabel, TASK_TYPES } from "../../data.js";
@@ -11,6 +11,9 @@ export default function AdminTarefas() {
   const [tipoTarefa,   setTipoTarefa]   = useState("geral");
   const [modo, setModo] = useState("propor"); // "propor" | "forcar"
   const [tarefasPartilhadas, setTarefasPartilhadas] = useState([]);
+  const [editId,   setEditId]   = useState(null);
+  const [editText, setEditText] = useState("");
+  const [editDue,  setEditDue]  = useState("");
 
   useEffect(() => {
     let unsubs = [];
@@ -20,7 +23,7 @@ export default function AdminTarefas() {
       const unsub = onSnapshot(q, (snap) => {
         const tarefasDoUser = snap.docs
           .map(d => ({ id: d.id, userId: uname, ...d.data() }))
-          .filter(t => t.shared === true && t.addedBy !== "teresa");
+          .filter(t => t.shared === true);
         todasTarefas = todasTarefas.filter(t => t.userId !== uname).concat(tarefasDoUser);
         setTarefasPartilhadas([...todasTarefas].sort((a, b) => b.ts - a.ts));
       });
@@ -28,6 +31,11 @@ export default function AdminTarefas() {
     });
     return () => unsubs.forEach(u => u());
   }, []);
+
+  async function guardarEdicao(tarefa) {
+    await updateDoc(doc(db, "todos", tarefa.userId, "items", tarefa.id), { text: editText, due: editDue });
+    setEditId(null);
+  }
 
   async function addAdminTodo() {
     if (!adminSuggTxt.trim()) return;
