@@ -204,7 +204,16 @@ export const ALL_MEDALS = [
   { id:"presenca",    icon:"🌟", label:"Presença Marcante",    desc:"A tua energia e atitude positiva elevou o grupo esta semana." },
   { id:"curiosidade", icon:"🔍", label:"Curiosidade",          desc:"Fez perguntas, investigou e foi além do que foi pedido para aprender mais." },
   { id:"comunicacao", icon:"🗣", label:"Comunicação",          desc:"Comunicou de forma clara, assertiva e empática em situações difíceis." },
-  { id:"superacao",   icon:"🏆", label:"Superação",            desc:"Ultrapassou um obstáculo pessoal ou profissional que parecia impossível." },
+  { id:"superacao",     icon:"🏆", label:"Superação",              desc:"Ultrapassou um obstáculo pessoal ou profissional que parecia impossível." },
+  { id:"persistencia",  icon:"🐢", label:"Persistente",             desc:"Não desistiu mesmo quando foi difícil — continuou em frente com determinação." },
+  { id:"resolver",      icon:"🧗", label:"Resolução de Problemas",  desc:"Identificou um problema e encontrou uma solução em vez de ficar à espera." },
+  { id:"organizado",    icon:"🗂️", label:"Organizado/a",            desc:"Demonstrou ordem, método e cuidado na gestão das suas tarefas e compromissos." },
+  { id:"positivo",      icon:"☀️", label:"Positivo/a",              desc:"Manteve uma atitude construtiva e animou o grupo mesmo nos momentos mais difíceis." },
+  { id:"zen",           icon:"🧘", label:"Mestre Zen",              desc:"Manteve a calma e o equilíbrio numa situação de pressão ou conflito." },
+  { id:"techguru",      icon:"💻", label:"Tech Guru",               desc:"Mostrou aptidão e vontade de ajudar os outros com ferramentas digitais." },
+  { id:"madrugador",    icon:"🌅", label:"Madrugador/a",            desc:"Foi dos primeiros a responder ou agir — não espera que as coisas aconteçam." },
+  { id:"feras",         icon:"🦁", label:"Encantador/a de Feras",   desc:"Tem um jeito especial para lidar com pessoas difíceis ou situações tensas." },
+  { id:"arrumado",      icon:"🧹", label:"Arrumadinho/a",           desc:"Deixa sempre os espaços melhor do que os encontrou — respeito pelo comum." },
 ];
 
 // s1 removido (identificação do jovem não necessária)
