@@ -18,7 +18,10 @@ const NAV = [
   ["perfil",   "👤", "Perfil"],
 ];
 
+const LIGHT_BG = "#dde4ef";
+
 export default function JovensApp({ user, onLogout }) {
+  const light = user.username === "teresa";
   const [tab, setTab] = useState("home");
   const [desafiosSubTab, setDesafiosSubTab] = useState("pergunta");
   const [allData, setAllData] = useState({
@@ -66,12 +69,14 @@ export default function JovensApp({ user, onLogout }) {
   );
 
   return (
-    <div style={{ minHeight:"100vh", background:BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif" }}>
+    <div style={{ minHeight:"100vh", background: light ? LIGHT_BG : BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif" }}>
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       <div style={{ position:"relative", padding:"18px 20px 16px", overflow:"hidden",
-        background:"linear-gradient(160deg, rgba(24,62,112,0.88) 0%, rgba(16,44,84,0.84) 100%)",
-        borderBottom:"1px solid rgba(50,199,255,0.12)" }}>
+        background: light
+          ? "linear-gradient(160deg, rgba(30,58,100,0.90) 0%, rgba(22,44,80,0.88) 100%)"
+          : "linear-gradient(160deg, rgba(24,62,112,0.88) 0%, rgba(16,44,84,0.84) 100%)",
+        borderBottom: light ? "1px solid rgba(30,100,180,0.18)" : "1px solid rgba(50,199,255,0.12)" }}>
 
         <div style={{ position:"absolute", top:-40, left:-20, width:160, height:160, borderRadius:"50%",
           background:`radial-gradient(circle, ${user.color}14, transparent 70%)`, pointerEvents:"none" }}/>
@@ -130,8 +135,8 @@ export default function JovensApp({ user, onLogout }) {
       {/* ── NAV BAR ────────────────────────────────────────────────────── */}
       <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
         width:"100%", maxWidth:420, zIndex:100,
-        background:"rgba(7,21,41,0.97)", backdropFilter:"blur(24px)",
-        borderTop:"1px solid rgba(255,255,255,0.06)",
+        background: light ? "rgba(221,228,239,0.97)" : "rgba(7,21,41,0.97)", backdropFilter:"blur(24px)",
+        borderTop: light ? "1px solid rgba(0,0,0,0.10)" : "1px solid rgba(255,255,255,0.06)",
         display:"flex", padding:"12px 0 28px" }}>
         {NAV.map(([id, icon, label]) => {
           const active = tab === id;
@@ -140,7 +145,7 @@ export default function JovensApp({ user, onLogout }) {
             <button key={id} onClick={() => setTab(id)} style={{
               flex:1, background:"none", border:"none", cursor:"pointer",
               display:"flex", flexDirection:"column", alignItems:"center", gap:3,
-              color: active ? CYN : TXT_MUT,
+              color: active ? CYN : light ? "#64748b" : TXT_MUT,
               transition:"all 0.2s", position:"relative",
             }}>
               {/* Indicador activo */}

@@ -27,11 +27,11 @@ export default function PerfilTab({ user, data, features = {} }) {
   const light = user.username === "teresa";
   const thm = {
     card: light ? {
-      background: "#ffffff",
+      background: "#f1f5f9",
       borderRadius: 18,
       padding: "16px 18px",
       marginBottom: 14,
-      boxShadow: "0 2px 14px rgba(15,23,42,0.09)",
+      boxShadow: "0 2px 10px rgba(15,23,42,0.10)",
       border: "1px solid rgba(0,0,0,0.07)",
     } : CARD,
     sl: light ? {
@@ -46,7 +46,7 @@ export default function PerfilTab({ user, data, features = {} }) {
     sub:     light ? "#64748b"               : "#64748b",
     divider: light ? "1px solid rgba(0,0,0,0.07)" : "1px solid rgba(255,255,255,0.05)",
     rowBg:   light ? "rgba(0,0,0,0.03)"      : "rgba(0,0,0,0.18)",
-    inp:     light ? { ...INP, background: "#f1f5f9", color: "#1e293b", border: "1px solid rgba(0,0,0,0.14)" } : INP,
+    inp:     light ? { ...INP, background: "#e2e8f0", color: "#1e293b", border: "1px solid rgba(0,0,0,0.14)" } : INP,
     medal:   light ? { background:"rgba(50,199,255,0.08)", border:`1px solid ${CYN}40` }
                    : { background:`${CYN}10`, border:`1px solid ${CYN}30` },
   };
@@ -356,7 +356,7 @@ export default function PerfilTab({ user, data, features = {} }) {
   return (
     <div style={{
       padding: "18px 16px",
-      background: light ? "#edf2f7" : "transparent",
+      background: light ? "#dde4ef" : "transparent",
       minHeight: "100vh",
     }}>
 
