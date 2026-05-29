@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { doc, setDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, PNK, INP, Btn, CYN } from "../../theme.jsx";
 import { SURVEY_CATS, SEMOJIS, nowLabel, SPECIAL_USERS } from "../../data.js";
+import { ThemeCtx } from "../../JovensApp.jsx";
 
 export default function Satisfacao({ user, data }) {
   const [isSubmitting, setIsSubmitting] = useState(false);

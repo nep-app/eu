@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { onSnapshot, doc, collection } from "firebase/firestore";
 import { db } from "./firebase.js";
 import { BG, CYN, BLUE, PRP, TXT_MUT } from "./theme.jsx";
 import logoImg from "./logo.png";
+
+export const ThemeCtx = React.createContext(false);
 
 import HomeTab     from "./tabs/HomeTab.jsx";
 import DesafiosTab from "./tabs/DesafiosTab.jsx";
@@ -86,6 +88,7 @@ export default function JovensApp({ user, onLogout }) {
   );
 
   return (
+    <ThemeCtx.Provider value={light}>
     <div style={{ minHeight:"100vh", background: light ? LIGHT_GRAD : BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif" }}>
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
@@ -186,5 +189,6 @@ export default function JovensApp({ user, onLogout }) {
         })}
       </div>
     </div>
+    </ThemeCtx.Provider>
   );
 }

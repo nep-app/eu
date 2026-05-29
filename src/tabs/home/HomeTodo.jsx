@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { doc, setDoc, addDoc, collection, deleteDoc, updateDoc, getDocs } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP, PS, TXT_MUT } from "../../theme.jsx";
 import { nowLabel, fmtDate, isOverdue, TASK_TYPES } from "../../data.js";
+import { ThemeCtx } from "../../JovensApp.jsx";
 
 function fmtDatePt(str) {
   if (!str) return "";
@@ -12,6 +13,7 @@ function fmtDatePt(str) {
 }
 
 export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, features = {}, notifs = [], onDeleteNotif }) {
+  const light = useContext(ThemeCtx);
   const [novaTarefaTexto, setNovaTarefaTexto]       = useState("");
   const [novaTarefaData, setNovaTarefaData]         = useState("");
   const [partilharTarefaCheck, setPartilharTarefaCheck] = useState(false);
@@ -116,19 +118,22 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
       {/* ── AÇÕES PENDENTES ─────────────────────────────────────────── */}
       {acoesPendentes.length > 0 && (
         <div style={{ marginBottom:20 }}>
-          <div style={SL}>Ações Pendentes</div>
-          {acoesPendentes.map((item, idx) => (
+          <div style={{ ...SL, color: light ? "#334155" : undefined }}>Ações Pendentes</div>
+          {acoesPendentes.map((item, idx) => {
+            const rawBg = PS[item.status].bg;
+            const cardBg = light ? rawBg.replace("0.10)", "0.25)") : rawBg;
+            return (
             <div key={idx} onClick={item.go} style={{
               display:"flex", alignItems:"center", gap:14, padding:"14px 16px",
               borderRadius:18, marginBottom:10, cursor:"pointer", transition:"all 0.18s",
-              background: PS[item.status].bg,
+              background: cardBg,
               border:`1px solid ${PS[item.status].bl}`,
               borderLeft:`3px solid ${PS[item.status].bc}`,
             }}>
               <div style={{ fontSize:22, lineHeight:1, flexShrink:0 }}>{item.icon}</div>
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:14, fontWeight:800, color:"#f1f5f9" }}>{item.title}</div>
-                <div style={{ fontSize:11, color:"#94a3b8", marginTop:2 }}>{item.sub}</div>
+                <div style={{ fontSize:14, fontWeight:800, color: light ? "#1e293b" : "#f1f5f9" }}>{item.title}</div>
+                <div style={{ fontSize:11, color: light ? "#475569" : "#94a3b8", marginTop:2 }}>{item.sub}</div>
                 {item.prazo && (
                   <div style={{ fontSize:10, fontWeight:900, marginTop:4, color: isOverdue(item.prazo) ? "#f43f5e" : "#fbbf24" }}>
                     ⏰ {isOverdue(item.prazo) ? "Prazo expirado" : `Até ${fmtDatePt(item.prazo)}`}
@@ -137,7 +142,8 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
               </div>
               <div style={{ color:PS[item.status].bc, fontWeight:900, fontSize:18, opacity:0.8 }}>›</div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
