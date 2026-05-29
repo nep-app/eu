@@ -18,7 +18,8 @@ const NAV = [
   ["perfil",   "👤", "Perfil"],
 ];
 
-const LIGHT_BG = "#3730a3";
+const LIGHT_BG = "#1a3a8a";
+const LIGHT_GRAD = "linear-gradient(160deg, #1a2f7a 0%, #2d1b69 50%, #1a3a8a 100%)";
 
 export default function JovensApp({ user, onLogout }) {
   const light = user.username === "teresa";
@@ -56,8 +57,7 @@ export default function JovensApp({ user, onLogout }) {
     if (!light) return;
     document.body.style.backgroundColor = LIGHT_BG;
     document.body.style.backgroundImage = `
-      linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px)
+      linear-gradient(160deg, #1a2f7a 0%, #2d1b69 50%, #1a3a8a 100%)
     `;
     return () => {
       document.body.style.backgroundColor = "#071529";
@@ -86,14 +86,14 @@ export default function JovensApp({ user, onLogout }) {
   );
 
   return (
-    <div style={{ minHeight:"100vh", background: light ? LIGHT_BG : BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif" }}>
+    <div style={{ minHeight:"100vh", background: light ? LIGHT_GRAD : BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif" }}>
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       <div style={{ position:"relative", padding:"18px 20px 16px", overflow:"hidden",
         background: light
-          ? "linear-gradient(160deg, rgba(55,48,163,0.95) 0%, rgba(44,36,140,0.95) 100%)"
+          ? "linear-gradient(160deg, rgba(26,47,122,0.92) 0%, rgba(45,27,105,0.88) 100%)"
           : "linear-gradient(160deg, rgba(24,62,112,0.88) 0%, rgba(16,44,84,0.84) 100%)",
-        borderBottom: light ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(50,199,255,0.12)" }}>
+        borderBottom: light ? "1px solid rgba(255,255,255,0.14)" : "1px solid rgba(50,199,255,0.12)" }}>
 
         <div style={{ position:"absolute", top:-40, left:-20, width:160, height:160, borderRadius:"50%",
           background:`radial-gradient(circle, ${user.color}14, transparent 70%)`, pointerEvents:"none" }}/>
@@ -152,8 +152,8 @@ export default function JovensApp({ user, onLogout }) {
       {/* ── NAV BAR ────────────────────────────────────────────────────── */}
       <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
         width:"100%", maxWidth:420, zIndex:100,
-        background: light ? "rgba(30,25,100,0.97)" : "rgba(7,21,41,0.97)", backdropFilter:"blur(24px)",
-        borderTop: light ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(255,255,255,0.06)",
+        background: light ? "rgba(20,15,80,0.96)" : "rgba(7,21,41,0.97)", backdropFilter:"blur(24px)",
+        borderTop: light ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(255,255,255,0.06)",
         display:"flex", padding:"12px 0 28px" }}>
         {NAV.map(([id, icon, label]) => {
           const active = tab === id;
