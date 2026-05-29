@@ -25,30 +25,17 @@ export default function PerfilTab({ user, data, features = {} }) {
 
   // ── LIGHT THEME (só para teresa) ──
   const light = user.username === "teresa";
+  // Cards mantêm-se escuros; só o wrapper muda de cor
   const thm = {
-    card: light ? {
-      background: "#f1f5f9",
-      borderRadius: 18,
-      padding: "16px 18px",
-      marginBottom: 14,
-      boxShadow: "0 2px 10px rgba(15,23,42,0.10)",
-      border: "1px solid rgba(0,0,0,0.07)",
-    } : CARD,
-    sl: light ? {
-      fontSize: 13,
-      fontWeight: 900,
-      letterSpacing: 0.4,
-      marginBottom: 14,
-      color: "#1e293b",
-    } : SL,
-    text:    light ? "#1e293b"               : "#f1f5f9",
-    muted:   light ? "#475569"               : "#94a3b8",
-    sub:     light ? "#64748b"               : "#64748b",
-    divider: light ? "1px solid rgba(0,0,0,0.07)" : "1px solid rgba(255,255,255,0.05)",
-    rowBg:   light ? "rgba(0,0,0,0.03)"      : "rgba(0,0,0,0.18)",
-    inp:     light ? { ...INP, background: "#e2e8f0", color: "#1e293b", border: "1px solid rgba(0,0,0,0.14)" } : INP,
-    medal:   light ? { background:"rgba(50,199,255,0.08)", border:`1px solid ${CYN}40` }
-                   : { background:`${CYN}10`, border:`1px solid ${CYN}30` },
+    card:    CARD,
+    sl:      SL,
+    text:    "#f1f5f9",
+    muted:   "#94a3b8",
+    sub:     "#64748b",
+    divider: "1px solid rgba(255,255,255,0.05)",
+    rowBg:   "rgba(0,0,0,0.18)",
+    inp:     INP,
+    medal:   { background:`${CYN}10`, border:`1px solid ${CYN}30` },
   };
 
   function formatarDataHora(ts, dataAntiga) {
@@ -356,7 +343,7 @@ export default function PerfilTab({ user, data, features = {} }) {
   return (
     <div style={{
       padding: "18px 16px",
-      background: light ? "#dde4ef" : "transparent",
+      background: light ? "#d4dce8" : "transparent",
       minHeight: "100vh",
     }}>
 
@@ -478,7 +465,7 @@ export default function PerfilTab({ user, data, features = {} }) {
       {/* ── DUAS CÁPSULAS ── */}
       {subTab === "cap" && (
         <div>
-          <div style={{ ...thm.card, background: light ? "#f8fafc" : "rgba(0,0,0,0.2)", marginBottom:20 }}>
+          <div style={{ ...thm.card, marginBottom:20 }}>
             <div style={{ fontSize:24, marginBottom:10 }}>⏳</div>
             <div style={{ fontSize:15, fontWeight:900, color:thm.text, marginBottom:8 }}>Cápsulas do Tempo</div>
             <div style={{ fontSize:12, color:thm.muted, lineHeight:1.6 }}>
@@ -543,9 +530,9 @@ export default function PerfilTab({ user, data, features = {} }) {
           </div>
 
           {user.username === "teresa" && (
-            <div style={{ ...thm.card, background: light ? "rgba(244,63,94,0.06)" : "rgba(244,63,94,0.1)", border:"2px dashed #f43f5e", marginTop:20 }}>
+            <div style={{ ...thm.card, background:"rgba(244,63,94,0.1)", border:"2px dashed #f43f5e", marginTop:20 }}>
               <div style={{ ...thm.sl, color:"#f43f5e" }}>🔧 Ferramentas de Teste</div>
-              <p style={{ fontSize:"12px", color: light ? "#64748b" : "#cbd5e1", marginTop:0, marginBottom:"15px" }}>
+              <p style={{ fontSize:"12px", color:"#cbd5e1", marginTop:0, marginBottom:"15px" }}>
                 Como és a conta de testes, podes limpar o teu progresso para veres as "Ações Pendentes" novamente na Home.
               </p>
               <button onClick={limparTudoDev} style={{ width:"100%", padding:"12px", background:"#f43f5e", color:"white", fontWeight:"900", border:"none", borderRadius:"12px", cursor:"pointer", fontSize:"13px" }}>
