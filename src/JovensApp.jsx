@@ -18,7 +18,7 @@ const NAV = [
   ["perfil",   "👤", "Perfil"],
 ];
 
-const LIGHT_BG = "#110d2e";
+const LIGHT_BG = "#3730a3";
 
 export default function JovensApp({ user, onLogout }) {
   const light = user.username === "teresa";
@@ -56,8 +56,8 @@ export default function JovensApp({ user, onLogout }) {
     if (!light) return;
     document.body.style.backgroundColor = LIGHT_BG;
     document.body.style.backgroundImage = `
-      linear-gradient(rgba(139,92,246,0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(139,92,246,0.06) 1px, transparent 1px)
+      linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px)
     `;
     return () => {
       document.body.style.backgroundColor = "#071529";
@@ -91,9 +91,9 @@ export default function JovensApp({ user, onLogout }) {
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       <div style={{ position:"relative", padding:"18px 20px 16px", overflow:"hidden",
         background: light
-          ? "linear-gradient(160deg, rgba(60,20,120,0.90) 0%, rgba(40,10,90,0.88) 100%)"
+          ? "linear-gradient(160deg, rgba(55,48,163,0.95) 0%, rgba(44,36,140,0.95) 100%)"
           : "linear-gradient(160deg, rgba(24,62,112,0.88) 0%, rgba(16,44,84,0.84) 100%)",
-        borderBottom: light ? "1px solid rgba(139,92,246,0.20)" : "1px solid rgba(50,199,255,0.12)" }}>
+        borderBottom: light ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(50,199,255,0.12)" }}>
 
         <div style={{ position:"absolute", top:-40, left:-20, width:160, height:160, borderRadius:"50%",
           background:`radial-gradient(circle, ${user.color}14, transparent 70%)`, pointerEvents:"none" }}/>
@@ -152,8 +152,8 @@ export default function JovensApp({ user, onLogout }) {
       {/* ── NAV BAR ────────────────────────────────────────────────────── */}
       <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
         width:"100%", maxWidth:420, zIndex:100,
-        background: light ? "rgba(25,10,60,0.97)" : "rgba(7,21,41,0.97)", backdropFilter:"blur(24px)",
-        borderTop: light ? "1px solid rgba(139,92,246,0.18)" : "1px solid rgba(255,255,255,0.06)",
+        background: light ? "rgba(30,25,100,0.97)" : "rgba(7,21,41,0.97)", backdropFilter:"blur(24px)",
+        borderTop: light ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(255,255,255,0.06)",
         display:"flex", padding:"12px 0 28px" }}>
         {NAV.map(([id, icon, label]) => {
           const active = tab === id;
