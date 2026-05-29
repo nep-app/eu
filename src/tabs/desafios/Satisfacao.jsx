@@ -6,6 +6,7 @@ import { SURVEY_CATS, SEMOJIS, nowLabel, SPECIAL_USERS } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
 
 export default function Satisfacao({ user, data }) {
+  const light = useContext(ThemeCtx);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localSaved, setLocalSaved] = useState(false);
   
@@ -92,8 +93,8 @@ export default function Satisfacao({ user, data }) {
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
-        <div style={SL}>Avaliação de Satisfação</div>
-        <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.5 }}>Responde com sinceridade. Nenhuma destas respostas está ligada ao teu nome, a Teresa apenas vê os resultados gerais da equipa para poder ajudar-vos melhor.</p>
+        <div style={{ ...SL, color: light ? "#334155" : undefined }}>Avaliação de Satisfação</div>
+        <p style={{ fontSize: 13, color: light ? "#475569" : "#94a3b8", lineHeight: 1.5 }}>Responde com sinceridade. Nenhuma destas respostas está ligada ao teu nome, a Teresa apenas vê os resultados gerais da equipa para poder ajudar-vos melhor.</p>
       </div>
 
       {SURVEY_CATS.map(cat => {
