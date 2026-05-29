@@ -18,7 +18,7 @@ const NAV = [
   ["perfil",   "👤", "Perfil"],
 ];
 
-const LIGHT_BG = "#dde4ef";
+const LIGHT_BG = "#1e3a5f";
 
 export default function JovensApp({ user, onLogout }) {
   const light = user.username === "teresa";
@@ -135,8 +135,8 @@ export default function JovensApp({ user, onLogout }) {
       {/* ── NAV BAR ────────────────────────────────────────────────────── */}
       <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
         width:"100%", maxWidth:420, zIndex:100,
-        background: light ? "rgba(221,228,239,0.97)" : "rgba(7,21,41,0.97)", backdropFilter:"blur(24px)",
-        borderTop: light ? "1px solid rgba(0,0,0,0.10)" : "1px solid rgba(255,255,255,0.06)",
+        background: light ? "rgba(20,46,82,0.97)" : "rgba(7,21,41,0.97)", backdropFilter:"blur(24px)",
+        borderTop: light ? "1px solid rgba(50,199,255,0.10)" : "1px solid rgba(255,255,255,0.06)",
         display:"flex", padding:"12px 0 28px" }}>
         {NAV.map(([id, icon, label]) => {
           const active = tab === id;
@@ -145,7 +145,7 @@ export default function JovensApp({ user, onLogout }) {
             <button key={id} onClick={() => setTab(id)} style={{
               flex:1, background:"none", border:"none", cursor:"pointer",
               display:"flex", flexDirection:"column", alignItems:"center", gap:3,
-              color: active ? CYN : light ? "#64748b" : TXT_MUT,
+              color: active ? CYN : TXT_MUT,
               transition:"all 0.2s", position:"relative",
             }}>
               {/* Indicador activo */}

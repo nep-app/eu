@@ -343,7 +343,7 @@ export default function PerfilTab({ user, data, features = {} }) {
   return (
     <div style={{
       padding: "18px 16px",
-      background: light ? "#d4dce8" : "transparent",
+      background: "transparent",
       minHeight: "100vh",
     }}>
 
