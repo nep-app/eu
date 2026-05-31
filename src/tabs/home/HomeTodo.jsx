@@ -47,7 +47,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
 
   let acoesPendentes = [];
   if (features.perguntaSemanal && !uData.answered)  acoesPendentes.push({ status:"urgent",  icon:"💬", title:"Pergunta da semana",    sub:"A Teresa aguarda a tua reflexão", prazo:uData.answeredPrazo,  go:() => { setDesafiosSubTab("pergunta"); setTab("desafios"); } });
-  if (features.autoAvaliacao   && !uData.autoSaved) acoesPendentes.push({ status:"pending", icon:"📊", title:"Autoavaliação mensal",  sub:"Avalia as tuas competências",     prazo:uData.autoSavedPrazo, go:() => { setDesafiosSubTab("auto");     setTab("desafios"); } });
+  if (features.autoAvaliacao   && (!uData.autoSaved || uData.autoNewRound)) acoesPendentes.push({ status:"pending", icon:"📊", title:"Autoavaliação mensal",  sub:"Avalia as tuas competências",     prazo:uData.autoSavedPrazo, go:() => { setDesafiosSubTab("auto");     setTab("desafios"); } });
   if (features.satisfacao      && !uData.sSaved)    acoesPendentes.push({ status:"new",     icon:"😊", title:"Satisfação",            sub:"Diz-nos como corre o programa",   prazo:uData.sSavedPrazo,    go:() => { setDesafiosSubTab("satisf");   setTab("desafios"); } });
   const piaUnlocked = uData.piaUnlocked || {};
   const temPiaAberto = Object.values(piaUnlocked).some(v => v === true);

@@ -11,19 +11,21 @@ export default function AutoAvaliacao({ user, data }) {
   const [localSaved, setLocalSaved] = useState(false);
   const uData = data.userData || {};
 
+  const alreadyDone = (uData.autoSaved && !uData.autoNewRound) || localSaved;
+
   async function submit() {
-    if (uData.autoSaved || localSaved || isSubmitting) return;
+    if (alreadyDone || isSubmitting) return;
     setIsSubmitting(true);
     setLocalSaved(true);
 
     try {
       const date = nowLabel();
-      const newHistory = [...(data.history || []), { 
-        date, action: `Concluiu a Autoavaliação com a Teresa`, ts: Date.now(), xp: 30 
+      const newHistory = [...(data.history || []), {
+        date, action: `Concluiu a Autoavaliação com a Teresa`, ts: Date.now(), xp: 30
       }];
 
-      await setDoc(doc(db, "userData", user.username), { 
-        autoSaved: true, autoDate: date, history: newHistory, weekXp: increment(30) 
+      await setDoc(doc(db, "userData", user.username), {
+        autoSaved: true, autoDate: date, autoNewRound: false, history: newHistory, weekXp: increment(30)
       }, { merge: true });
 
       await addDoc(collection(db, "adminNotificacoes"), {
@@ -47,7 +49,7 @@ export default function AutoAvaliacao({ user, data }) {
 
   return (
     <div style={{ paddingBottom: "40px" }}>
-      {uData.autoSaved || localSaved ? (
+      {alreadyDone ? (
         <div style={{ ...CARD, textAlign: "center", padding: "40px 20px" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>✅</div>
           <div style={{ fontWeight: 900, color: CYN, fontSize: 18 }}>AVALIAÇÃO ENTREGUE!</div>

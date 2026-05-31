@@ -58,7 +58,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
 
   async function launchRequest() {
     let msg = ""; let field = null;
-    if (launchType === "auto")         { msg = "📊 Nova Autoavaliação pedida!"; field = "autoSaved"; }
+    if (launchType === "auto")         { msg = "📊 Nova Autoavaliação pedida!"; field = "autoNewRound"; }
     if (launchType === "satisf")       { msg = "😊 Nova Avaliação de Satisfação pedida!"; field = "sSaved"; }
     if (launchType === "pia")          { msg = "📋 Atualização do PIA pedida!"; field = "piaSaved"; }
     if (launchType === "roda")         { msg = "🌸 Nova Roda da Vida pedida!"; field = "rodaSaved"; }
@@ -72,7 +72,8 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     for (const u of targets) {
       if (field) {
         const prazoData = launchPrazo ? { [field + "Prazo"]: launchPrazo } : {};
-        await setDoc(doc(db, "userData", u), { [field]: false, ...prazoData }, { merge: true });
+        const fieldVal = field === "autoNewRound" ? true : false;
+        await setDoc(doc(db, "userData", u), { [field]: fieldVal, ...prazoData }, { merge: true });
       }
       const isReminder = launchType === "lembreteGeral";
       await addDoc(collection(db, "notifications", u, "items"), { from:"teresa", text:msg, date:nowLabel(), read:false, ...(!isReminder ? { tipo:"proposta" } : {}), ...(launchPrazo ? { prazo:launchPrazo } : {}) });
