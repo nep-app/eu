@@ -89,7 +89,7 @@ export default function AutoAvaliacao({ user, data }) {
                   {isSet && <div style={{ fontSize:10, fontWeight:900, color:status[1], background:`${status[1]}15`, border:`1px solid ${status[1]}40`, padding:"2px 8px", borderRadius:6 }}>{status[0].toUpperCase()}</div>}
                 </div>
                 <div style={{ fontWeight: 900, fontSize: 14, color: "#fff", marginBottom: 6 }}>{dim.label}</div>
-                <div style={{ fontSize: 12, color: light ? "#475569" : "#94a3b8", marginBottom: 20, lineHeight: 1.5 }}>{dim.desc}</div>
+                <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 20, lineHeight: 1.5 }}>{dim.desc}</div>
 
                 {/* Slider 1-10 */}
                 <input type="range" min="1" max="10" value={isSet ? val : 1}
@@ -122,7 +122,9 @@ export default function AutoAvaliacao({ user, data }) {
                 )}
 
                 {/* Notas em Texto */}
+                {light && <style>{`textarea.auto-nota::placeholder { color: rgba(255,255,255,0.35) !important; }`}</style>}
                 <textarea
+                  className="auto-nota"
                   value={uData.dNotas?.[dim.id] || ""}
                   onChange={async (e) => {
                     const nN = { ...(uData.dNotas || {}), [dim.id]: e.target.value };

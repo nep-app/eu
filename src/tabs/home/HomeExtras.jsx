@@ -79,7 +79,7 @@ export default function HomeExtras({ user, data, setTab }) {
       {missoesSemana.length > 0 && (
         <div style={CARD}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-            <div style={{ ...SL, color: light ? "#334155" : SL.color }}>🎯 Missões de Campo</div>
+            <div style={SL}>🎯 Missões de Campo</div>
             <div style={{ fontSize:11, fontWeight:800, color: missoesDone === missoesSemana.length ? GRN : CYN }}>
               {missoesDone}/{missoesSemana.length}
             </div>
@@ -148,7 +148,7 @@ export default function HomeExtras({ user, data, setTab }) {
 
       {/* ── MENSAGEM À TERESA ────────────────────────────────────────── */}
       <div style={CARD}>
-        <div style={{ ...SL, color: light ? "#334155" : SL.color }}>📱 Falar com a Teresa</div>
+        <div style={SL}>📱 Falar com a Teresa</div>
         <div style={{ display:"flex", gap:10, marginBottom:16 }}>
           <a href="https://wa.me/351916025666" target="_blank" rel="noreferrer" style={{
             flex:1, background: light ? "rgba(37,211,102,0.12)" : "rgba(14,36,68,0.9)", color: light ? "#15803d" : "#B8C7DA",
