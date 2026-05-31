@@ -375,6 +375,7 @@ export default function PerfilTab({ user, data, features = {} }) {
       <SubTabs
         options={[["roda","🌸 Roda"],["hist","📜 Hist."],["cap","💌 Cápsula"],["info","📤 Info"]]}
         active={subTab} onChange={setSubTab} color={PNK}
+        wrapStyle={light ? { background:"rgba(255,255,255,0.55)", border:"1px solid rgba(0,0,0,0.10)" } : {}}
       />
 
       {/* ── RODA DA VIDA ── */}
@@ -401,18 +402,22 @@ export default function PerfilTab({ user, data, features = {} }) {
           {RODA_DIMS.map(dim => {
             const isOpen = expandedDim === dim.id;
             const val = roda[dim.id];
+            const dimCard  = light ? { ...CARD, background:"rgba(255,255,255,0.85)", boxShadow:"0 2px 12px rgba(0,0,0,0.08)" } : thm.card;
+            const dimText  = light ? "#1e293b" : thm.text;
+            const dimSub   = light ? "#64748b" : thm.sub;
+            const dimMuted = light ? "#64748b" : thm.muted;
             return (
-              <div key={dim.id} style={{ ...thm.card, padding:"16px 18px" }}>
+              <div key={dim.id} style={{ ...dimCard, padding:"16px 18px" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                   <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                     <span style={{ fontSize:22 }}>{dim.icon}</span>
-                    <span style={{ fontWeight:900, fontSize:14, color:thm.text }}>{dim.label}</span>
+                    <span style={{ fontWeight:900, fontSize:14, color:dimText }}>{dim.label}</span>
                   </div>
                   <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                     <span style={{ fontWeight:900, color:PNK, fontSize:22 }}>{val}</span>
                     <button onClick={() => setExpandedDim(isOpen ? null : dim.id)} style={{
                       background:"none", border:"none", cursor:"pointer",
-                      fontSize:10, color:thm.sub, fontWeight:700, padding:0,
+                      fontSize:10, color:dimSub, fontWeight:700, padding:0,
                     }}>
                       {isOpen ? "▲ fechar" : "▼ o que é isto?"}
                     </button>
@@ -421,12 +426,12 @@ export default function PerfilTab({ user, data, features = {} }) {
 
                 {isOpen && (
                   <div className="fade-up" style={{ marginTop:14 }}>
-                    <div style={{ fontSize:13, color:thm.muted, lineHeight:1.6, marginBottom:14 }}>{dim.desc}</div>
+                    <div style={{ fontSize:13, color:dimMuted, lineHeight:1.6, marginBottom:14 }}>{dim.desc}</div>
                     <input type="range" min="0" max="10" value={val}
                       onChange={(e) => updateRoda(dim.id, Number(e.target.value))}
                       style={{ width:"100%", accentColor:PNK }}
                     />
-                    <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:thm.sub, marginTop:4 }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:dimSub, marginTop:4 }}>
                       <span>0 Muito mal</span>
                       <span>10 Óptimo</span>
                     </div>

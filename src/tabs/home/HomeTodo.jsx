@@ -121,8 +121,8 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
           <div style={{ ...SL, color: light ? "#334155" : undefined }}>Ações Pendentes</div>
           {acoesPendentes.map((item, idx) => {
             const rawBg = PS[item.status].bg;
-            const cardBg = light ? "rgba(0,0,0,0.08)" : rawBg;
-            const cardBorder = light ? `1px solid ${PS[item.status].bc}40` : `1px solid ${PS[item.status].bl}`;
+            const cardBg = light ? "rgba(255,255,255,0.90)" : rawBg;
+            const cardBorder = light ? `1px solid ${PS[item.status].bc}70` : `1px solid ${PS[item.status].bl}`;
             return (
             <div key={idx} onClick={item.go} style={{
               display:"flex", alignItems:"center", gap:14, padding:"14px 16px",

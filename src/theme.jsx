@@ -167,9 +167,9 @@ export function AppIcon({ size = 70 }) {
 }
 
 // ── SUB-TABS ─────────────────────────────────────────────────────────────────
-export function SubTabs({ options, active, onChange, color = CYN }) {
+export function SubTabs({ options, active, onChange, color = CYN, wrapStyle = {} }) {
   return (
-    <div style={{ display:"flex", gap:4, marginBottom:18, padding:4, background:"rgba(7,21,41,0.6)", borderRadius:16, overflowX:"auto", border:"1px solid rgba(50,199,255,0.10)" }}>
+    <div style={{ display:"flex", gap:4, marginBottom:18, padding:4, background:"rgba(7,21,41,0.6)", borderRadius:16, overflowX:"auto", border:"1px solid rgba(50,199,255,0.10)", ...wrapStyle }}>
       {options.map(opt => {
         const isA = active === opt[0];
         return (
