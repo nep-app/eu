@@ -121,7 +121,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
           <div style={{ ...SL, color: light ? "#334155" : undefined }}>Ações Pendentes</div>
           {acoesPendentes.map((item, idx) => {
             const rawBg = PS[item.status].bg;
-            const LIGHT_CARD_BG = { urgent:"#be123c", pending:"#c2410c", new:"#7c3aed" };
+            const LIGHT_CARD_BG = { urgent:"#db2777", pending:"#2563eb", new:"#7c3aed" };
             const cardBg = light ? LIGHT_CARD_BG[item.status] : rawBg;
             const cardBorder = light ? "none" : `1px solid ${PS[item.status].bl}`;
             return (
