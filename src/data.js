@@ -7,6 +7,14 @@ export function scoreLabel(v) {
   if (v <= 9) return ["Muito Bom","#a855f7"];
   return ["Excelente","#22d3ee"];
 }
+// Escala 1-5 usada na Satisfação
+export function satisfLabel(v) {
+  if (v <= 1) return ["Muito Insatisfeito","#f43f5e"];
+  if (v <= 2) return ["Insatisfeito","#fb923c"];
+  if (v <= 3) return ["Neutro","#fbbf24"];
+  if (v <= 4) return ["Satisfeito","#60a5fa"];
+  return ["Muito Satisfeito","#4ade80"];
+}
 
 // ── REGRA DE OURO: Mapear nota (1-10) para o texto certo (a-f) ──
 export function getDimDesc(dim, v) {

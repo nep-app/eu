@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK } from "../../theme.jsx";
-import { SURVEY_CATS, scoreLabel, SEMOJIS } from "../../data.js";
+import { SURVEY_CATS, satisfLabel, SEMOJIS } from "../../data.js";
 
 export default function AdminSatisfacao() {
   const [respostas, setRespostas] = useState([]);
@@ -64,7 +64,7 @@ export default function AdminSatisfacao() {
           {SURVEY_CATS.map(cat => {
             const data = stats[cat.id] || { totalScore:0, count:0, comments:[], allChips:[] };
             const media = data.count > 0 ? (data.totalScore / data.count).toFixed(1) : 0;
-            const [label, color] = scoreLabel(parseFloat(media));
+            const [label, color] = satisfLabel(parseFloat(media));
             return (
               <div key={cat.id} style={CARD}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:15 }}>
@@ -107,6 +107,7 @@ export default function AdminSatisfacao() {
           })}
           <div style={{ textAlign:"center", fontSize:11, color:"#475569", marginTop:10 }}>
             Total de formulários: {respostas.length}
+            {respostas.length > 0 && <div style={{ fontSize:10, color:"#374151", marginTop:4 }}>⚠️ Pode incluir submissões antigas de contas de teste (teresa/ricardo/demo) feitas antes do filtro existir — elimina-as diretamente no Firebase Console se necessário.</div>}
           </div>
         </>
       ) : (
@@ -122,7 +123,7 @@ export default function AdminSatisfacao() {
               </div>
               {(resp.respostas || []).map((r, i) => {
                 const cat = SURVEY_CATS.find(c => c.id === r.catId);
-                const [label, color] = scoreLabel(r.score);
+                const [label, color] = satisfLabel(r.score);
                 return (
                   <div key={i} style={{ padding:"10px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
