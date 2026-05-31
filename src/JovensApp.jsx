@@ -94,7 +94,7 @@ export default function JovensApp({ user, onLogout }) {
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       <div style={{ position:"relative", padding:"18px 20px 16px", overflow:"hidden",
         background: light
-          ? "linear-gradient(160deg, rgba(24,62,112,0.92) 0%, rgba(16,44,84,0.90) 100%)"
+          ? "#252228"
           : "linear-gradient(160deg, rgba(24,62,112,0.88) 0%, rgba(16,44,84,0.84) 100%)",
         borderBottom:"1px solid rgba(50,199,255,0.12)" }}>
 
