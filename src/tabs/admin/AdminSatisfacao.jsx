@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, query, orderBy, doc } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, doc, deleteDoc, setDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, GRN } from "../../theme.jsx";
 import { SURVEY_CATS, satisfLabel, SEMOJIS, USERS } from "../../data.js";
@@ -67,6 +67,15 @@ export default function AdminSatisfacao() {
     return USERS.find(u => u.username === username)?.realName || username;
   }
 
+  async function apagarResposta(id, username) {
+    if (!confirm(`Apagar resposta${username ? " de " + getUserName(username) : " anónima"}?`)) return;
+    await deleteDoc(doc(db, "satisfacao", id));
+    // Se tinha username, repõe sSaved=false para que a pessoa possa voltar a submeter
+    if (username) {
+      await setDoc(doc(db, "userData", username), { sSaved: false }, { merge: true });
+    }
+  }
+
   const confirmados = Object.values(participacao).filter(Boolean).length;
   const respostasReais = respostas.filter(r => r.username && !["teresa","ricardo"].includes(r.username));
   const respostasAntigas = respostas.filter(r => !r.username);
@@ -81,7 +90,7 @@ export default function AdminSatisfacao() {
         </div>
         {respostasAntigas.length > 0 && (
           <div style={{ fontSize:10, color:"#fbbf24", marginBottom:10 }}>
-            ⚠️ {respostasAntigas.length} resposta{respostasAntigas.length>1?"s":""} anónima{respostasAntigas.length>1?"s":""} antiga{respostasAntigas.length>1?"s":""} na base de dados (apaga no Firebase Console)
+            ⚠️ {respostasAntigas.length} resposta{respostasAntigas.length>1?"s":""} sem identificação — apaga em "Individuais"
           </div>
         )}
         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
@@ -171,7 +180,13 @@ export default function AdminSatisfacao() {
               <div key={resp.id} style={{ ...CARD, borderLeft:`3px solid ${uColor}`, marginBottom:12 }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
                   <div style={{ fontSize:13, fontWeight:900, color:uColor }}>{getUserName(resp.username)}</div>
-                  <div style={{ fontSize:11, color:"#475569" }}>{fmtTs(resp.ts)}</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <div style={{ fontSize:11, color:"#475569" }}>{fmtTs(resp.ts)}</div>
+                    <button onClick={() => apagarResposta(resp.id, resp.username)} style={{
+                      background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.25)",
+                      color:"#f87171", borderRadius:8, padding:"3px 9px", fontSize:11, cursor:"pointer", fontWeight:700
+                    }}>🗑 Apagar</button>
+                  </div>
                 </div>
                 {(resp.respostas || []).map((r, i) => {
                   const cat = SURVEY_CATS.find(c => c.id === r.catId);
@@ -208,13 +223,19 @@ export default function AdminSatisfacao() {
             );
           })}
           {/* Respostas antigas sem username */}
-          {respostasAntigas.length > 0 && (
-            <div style={{ ...CARD, border:"1px solid rgba(251,191,36,0.2)", marginTop:8 }}>
-              <div style={{ fontSize:11, color:"#fbbf24", fontWeight:700 }}>
-                ⚠️ {respostasAntigas.length} resposta{respostasAntigas.length>1?"s":""} antiga{respostasAntigas.length>1?"s":""} sem identificação — apaga no Firebase Console
+          {respostasAntigas.map((resp, idx) => (
+            <div key={resp.id} style={{ ...CARD, border:"1px solid rgba(251,191,36,0.2)", marginBottom:8 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <div style={{ fontSize:11, color:"#fbbf24", fontWeight:700 }}>
+                  ⚠️ Resposta anónima antiga #{idx+1} — {fmtTs(resp.ts)}
+                </div>
+                <button onClick={() => apagarResposta(resp.id, null)} style={{
+                  background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.25)",
+                  color:"#f87171", borderRadius:8, padding:"3px 9px", fontSize:11, cursor:"pointer", fontWeight:700
+                }}>🗑 Apagar</button>
               </div>
             </div>
-          )}
+          ))}
         </>
       )}
     </div>
