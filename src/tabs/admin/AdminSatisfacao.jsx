@@ -1,22 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, SL, CYN, PNK } from "../../theme.jsx";
-import { SURVEY_CATS, satisfLabel, SEMOJIS } from "../../data.js";
+import { CARD, SL, CYN, PNK, GRN } from "../../theme.jsx";
+import { SURVEY_CATS, satisfLabel, SEMOJIS, USERS } from "../../data.js";
+
+const JOVENS = USERS.filter(u => !["teresa","ricardo","demo"].includes(u.username));
 
 export default function AdminSatisfacao() {
   const [respostas, setRespostas] = useState([]);
   const [stats, setStats] = useState({});
   const [vista, setVista] = useState("media"); // "media" | "individuais"
+  const [participacao, setParticipacao] = useState({}); // { username: true/false }
 
   useEffect(() => {
     const q = query(collection(db, "satisfacao"), orderBy("ts", "desc"));
     return onSnapshot(q, (snap) => {
       const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setRespostas(docs);
-      // Médias só contam respostas verdadeiramente anónimas (sem username)
       calcularEstatisticas(docs.filter(d => !d.username));
     });
+  }, []);
+
+  useEffect(() => {
+    async function carregarParticipacao() {
+      const resultado = {};
+      await Promise.all(JOVENS.map(async (u) => {
+        const snap = await getDoc(doc(db, "userData", u.username));
+        resultado[u.username] = snap.exists() ? (snap.data().sSaved === true) : false;
+      }));
+      setParticipacao(resultado);
+    }
+    carregarParticipacao();
   }, []);
 
   function calcularEstatisticas(lista) {
@@ -45,6 +59,29 @@ export default function AdminSatisfacao() {
 
   return (
     <div style={{ paddingBottom: 50 }}>
+      {/* Painel de participação */}
+      <div style={{ ...CARD, marginBottom:18 }}>
+        <div style={{ ...SL, marginBottom:12 }}>
+          Participação — {Object.values(participacao).filter(Boolean).length}/{JOVENS.length} responderam
+        </div>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+          {JOVENS.map(u => {
+            const fez = participacao[u.username];
+            return (
+              <div key={u.username} style={{
+                display:"flex", alignItems:"center", gap:6,
+                padding:"6px 12px", borderRadius:20,
+                background: fez ? `${GRN}15` : "rgba(255,255,255,0.04)",
+                border: `1px solid ${fez ? GRN+"40" : "rgba(255,255,255,0.08)"}`,
+              }}>
+                <span style={{ fontSize:11 }}>{fez ? "✅" : "⏳"}</span>
+                <span style={{ fontSize:12, fontWeight:700, color: fez ? GRN : "#64748b" }}>{u.realName}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Toggle vista */}
       <div style={{ display:"flex", gap:8, marginBottom:18 }}>
         {[["media","📊 Médias"],["individuais","📋 Individuais"]].map(([v,l]) => (
