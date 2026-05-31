@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, arrayUnion } from "firebase/firestore";
 import { auth, db } from "./firebase.js";
 import { AppIcon, BG, CYN } from "./theme.jsx";
 import { ALLOWED_USERNAMES, USERS, nowLabel, GDPR_TEXT } from "./data.js";
@@ -33,7 +33,10 @@ export default function App() {
         const f = USERS.find(u => u.username === uname);
         if (f) {
           setUser(f); setScreen("app");
-          setDoc(doc(db, "users", uname), { lastLogin: new Date().toISOString() }, { merge:true });
+          setDoc(doc(db, "users", uname), {
+            lastLogin: new Date().toISOString(),
+            loginHistory: arrayUnion(Date.now())
+          }, { merge:true });
         } else {
           signOut(auth);
         }

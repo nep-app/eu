@@ -13,6 +13,7 @@ export default function AdminSatisfacao() {
   const [vista, setVista] = useState("media");
   const [participacao, setParticipacao] = useState({});
   const [teresaTs, setTeresaTs] = useState(null);
+  const [logins, setLogins] = useState({});
 
   useEffect(() => {
     const q = query(collection(db, "satisfacao"), orderBy("ts", "desc"));
@@ -34,6 +35,18 @@ export default function AdminSatisfacao() {
       })
     );
     return () => unsubs.forEach(u => u());
+  }, []);
+
+  useEffect(() => {
+    // Buscar histórico de logins de todos os jovens reais
+    JOVENS_REAIS.forEach(u => {
+      getDoc(doc(db, "users", u.username)).then(snap => {
+        if (snap.exists()) {
+          const hist = snap.data().loginHistory || [];
+          setLogins(prev => ({ ...prev, [u.username]: hist.sort((a,b) => b-a) }));
+        }
+      });
+    });
   }, []);
 
   useEffect(() => {
@@ -137,14 +150,30 @@ export default function AdminSatisfacao() {
         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
           {JOVENS_REAIS.map(u => {
             const fez = participacao[u.username];
+            const uLogins = logins[u.username] || [];
             return (
               <div key={u.username} style={{
-                display:"flex", alignItems:"center", gap:6, padding:"6px 12px", borderRadius:20,
-                background: fez ? `${GRN}15` : "rgba(255,255,255,0.04)",
-                border:`1px solid ${fez ? GRN+"40" : "rgba(255,255,255,0.08)"}`,
+                padding:"8px 12px", borderRadius:12, width:"100%",
+                background: fez ? `${GRN}10` : "rgba(255,255,255,0.03)",
+                border:`1px solid ${fez ? GRN+"30" : "rgba(255,255,255,0.07)"}`,
+                marginBottom:4,
               }}>
-                <span style={{ fontSize:11 }}>{fez ? "✅" : "⏳"}</span>
-                <span style={{ fontSize:12, fontWeight:700, color: fez ? GRN : "#64748b" }}>{u.realName}</span>
+                <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom: uLogins.length ? 5 : 0 }}>
+                  <span style={{ fontSize:11 }}>{fez ? "✅" : "⏳"}</span>
+                  <span style={{ fontSize:12, fontWeight:700, color: fez ? GRN : "#64748b" }}>{u.realName}</span>
+                </div>
+                {uLogins.length > 0 && (
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
+                    {uLogins.slice(0,8).map((ts,i) => (
+                      <span key={i} style={{ fontSize:9, background:"rgba(255,255,255,0.05)", padding:"2px 6px", borderRadius:6, color:"#64748b" }}>
+                        {fmtTs(ts)}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {uLogins.length === 0 && (
+                  <div style={{ fontSize:9, color:"#475569" }}>sem histórico de logins ainda</div>
+                )}
               </div>
             );
           })}
