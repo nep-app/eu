@@ -59,8 +59,8 @@ export default function Satisfacao({ user, data }) {
         comment: resps[cat.id]?.comment || ""
       }));
 
-      // 1. Guardar na coleção "satisfacao" com username (demo excluído)
-      if (user.username !== "demo") {
+      // 1. Guardar na coleção "satisfacao" — exclui teresa, ricardo e demo
+      if (!["teresa", "ricardo", "demo"].includes(user.username)) {
         await addDoc(collection(db, "satisfacao"), {
           respostas: arrayRespostas,
           ts: Date.now(),
