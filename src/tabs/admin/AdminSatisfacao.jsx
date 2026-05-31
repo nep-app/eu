@@ -14,7 +14,8 @@ export default function AdminSatisfacao() {
     return onSnapshot(q, (snap) => {
       const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setRespostas(docs);
-      calcularEstatisticas(docs);
+      // Médias só contam respostas verdadeiramente anónimas (sem username)
+      calcularEstatisticas(docs.filter(d => !d.username));
     });
   }, []);
 
@@ -105,10 +106,41 @@ export default function AdminSatisfacao() {
               </div>
             );
           })}
-          <div style={{ textAlign:"center", fontSize:11, color:"#475569", marginTop:10 }}>
-            Total de formulários: {respostas.length}
-            {respostas.length > 0 && <div style={{ fontSize:10, color:"#374151", marginTop:4 }}>⚠️ Pode incluir submissões antigas de contas de teste (teresa/ricardo/demo) feitas antes do filtro existir — elimina-as diretamente no Firebase Console se necessário.</div>}
+          <div style={{ textAlign:"center", fontSize:11, color:"#475569", marginTop:10, marginBottom:16 }}>
+            {respostas.filter(r => !r.username).length} respostas anónimas contabilizadas
           </div>
+
+          {/* Respostas identificadas (teresa, ricardo) */}
+          {respostas.filter(r => r.username).length > 0 && (
+            <div style={{ marginTop:8 }}>
+              <div style={{ ...SL, marginBottom:12 }}>👤 Respostas Identificadas</div>
+              {respostas.filter(r => r.username).map((resp) => (
+                <div key={resp.id} style={{ ...CARD, borderLeft:`3px solid ${PNK}`, marginBottom:10 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+                    <div style={{ fontSize:13, fontWeight:900, color:PNK }}>{resp.username}</div>
+                    <div style={{ fontSize:11, color:"#475569" }}>{fmtTs(resp.ts)}</div>
+                  </div>
+                  {(resp.respostas || []).map((r, i) => {
+                    const cat = SURVEY_CATS.find(c => c.id === r.catId);
+                    const [label, color] = satisfLabel(r.score);
+                    return (
+                      <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"7px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                          <span style={{ fontSize:14 }}>{cat?.icon}</span>
+                          <span style={{ fontSize:12, color:"#e2e8f0" }}>{cat?.label}</span>
+                        </div>
+                        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                          <span style={{ fontSize:14 }}>{SEMOJIS[r.score] || ""}</span>
+                          <span style={{ fontSize:13, fontWeight:900, color }}>{r.score}</span>
+                          <span style={{ fontSize:9, color:"#64748b" }}>{label}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          )}
         </>
       ) : (
         <>
