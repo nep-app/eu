@@ -79,13 +79,13 @@ export default function HomeExtras({ user, data, setTab }) {
       {missoesSemana.length > 0 && (
         <div style={CARD}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-            <div style={SL}>🎯 Missões de Campo</div>
+            <div style={{ ...SL, color: light ? "#334155" : SL.color }}>🎯 Missões de Campo</div>
             <div style={{ fontSize:11, fontWeight:800, color: missoesDone === missoesSemana.length ? GRN : CYN }}>
               {missoesDone}/{missoesSemana.length}
             </div>
           </div>
           {/* Barra de progresso das missões */}
-          <div style={{ height:3, background:"rgba(255,255,255,0.06)", borderRadius:3, marginBottom:16, overflow:"hidden" }}>
+          <div style={{ height:3, background: light ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.06)", borderRadius:3, marginBottom:16, overflow:"hidden" }}>
             <div style={{ height:"100%", width:`${(missoesDone/missoesSemana.length)*100}%`, background:`linear-gradient(90deg,${CYN},${GRN})`, transition:"width 0.5s ease", borderRadius:3 }}/>
           </div>
           {missoesSemana.map(missao => {
@@ -148,7 +148,7 @@ export default function HomeExtras({ user, data, setTab }) {
 
       {/* ── MENSAGEM À TERESA ────────────────────────────────────────── */}
       <div style={CARD}>
-        <div style={SL}>📱 Falar com a Teresa</div>
+        <div style={{ ...SL, color: light ? "#334155" : SL.color }}>📱 Falar com a Teresa</div>
         <div style={{ display:"flex", gap:10, marginBottom:16 }}>
           <a href="https://wa.me/351916025666" target="_blank" rel="noreferrer" style={{
             flex:1, background: light ? "rgba(37,211,102,0.12)" : "rgba(14,36,68,0.9)", color: light ? "#15803d" : "#B8C7DA",
@@ -180,7 +180,7 @@ export default function HomeExtras({ user, data, setTab }) {
               style={{ ...INP, minHeight:80, resize:"none", marginBottom:10 }}
               placeholder="Dúvida, sugestão ou desabafo..." />
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-              <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:12, color:"#94a3b8", cursor:"pointer" }}>
+              <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:12, color: light ? "#475569" : "#94a3b8", cursor:"pointer" }}>
                 <input type="checkbox" checked={mensagemAnonima} onChange={() => setMensagemAnonima(!mensagemAnonima)} style={{ accentColor:PNK, width:16, height:16 }} />
                 Anónimo
               </label>

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { doc, setDoc, addDoc, collection } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { CARD, SL, INP, CYN, GRN, TXT_MUT, PNK } from "../theme.jsx";
 import { PIA_SECTIONS, nowFull, nowLabel } from "../data.js";
+import { ThemeCtx } from "../JovensApp.jsx";
 
 const SUB_TABS = [
   { id:"diag",  label:"🔍 Diagnóstico" },
@@ -118,6 +119,7 @@ function fieldFilled(f, secData) {
 }
 
 export default function PiaTab({ user, data }) {
+  const light = useContext(ThemeCtx);
   const uData       = data.userData || {};
   const piaUnlocked = uData.piaUnlocked || {};
   const piaData     = uData.piaData     || {};
@@ -193,7 +195,7 @@ export default function PiaTab({ user, data }) {
               <div style={{ height:"100%", width:`${progress}%`, background:`linear-gradient(90deg, ${CYN}, ${GRN})`, borderRadius:4, transition:"width 0.5s" }} />
             </div>
             <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, fontWeight:800 }}>
-              <span style={{ color:TXT_MUT }}>PROGRESSO GLOBAL</span>
+              <span style={{ color: light ? "#475569" : TXT_MUT }}>PROGRESSO GLOBAL</span>
               <span style={{ color:CYN }}>{progress}% ({filledFields}/{totalFields})</span>
             </div>
           </>
@@ -217,9 +219,9 @@ export default function PiaTab({ user, data }) {
                 <button key={t.id} onClick={() => setSubTab(t.id)} style={{
                   flexShrink:0, padding:"8px 14px", borderRadius:20, fontSize:12, fontWeight:800,
                   cursor:"pointer", transition:"all 0.18s",
-                  border: subTab === t.id ? `1.5px solid ${CYN}` : "1.5px solid rgba(255,255,255,0.08)",
-                  background: subTab === t.id ? `${CYN}18` : "rgba(255,255,255,0.03)",
-                  color: subTab === t.id ? CYN : hasUnlocked ? "#94a3b8" : "#334155",
+                  border: subTab === t.id ? `1.5px solid ${CYN}` : (light ? "1.5px solid rgba(0,0,0,0.12)" : "1.5px solid rgba(255,255,255,0.08)"),
+                  background: subTab === t.id ? `${CYN}18` : (light ? "rgba(0,0,0,0.04)" : "rgba(255,255,255,0.03)"),
+                  color: subTab === t.id ? CYN : hasUnlocked ? (light ? "#334155" : "#94a3b8") : "#334155",
                   position:"relative",
                 }}>
                   {t.label}
@@ -266,7 +268,7 @@ export default function PiaTab({ user, data }) {
                   {visibleFields.map(f => (
                     <div key={f.key}>
                       {f.type !== "swot" && (
-                        <div style={{ fontSize:11, fontWeight:800, color:"#94a3b8", marginBottom:6, textTransform:"uppercase", letterSpacing:0.6 }}>
+                        <div style={{ fontSize:11, fontWeight:800, color: light ? "#334155" : "#94a3b8", marginBottom:6, textTransform:"uppercase", letterSpacing:0.6 }}>
                           {f.label}
                         </div>
                       )}
@@ -294,8 +296,9 @@ export default function PiaTab({ user, data }) {
           <div style={{ display:"flex", gap:8, marginTop:8 }}>
             <button onClick={() => alert("✓ Guardado! As tuas respostas estão a ser guardadas automaticamente.")} style={{
               flex:1, padding:"14px", borderRadius:14,
-              background:"rgba(255,255,255,0.06)", border:"1.5px solid rgba(255,255,255,0.12)",
-              color:"#94a3b8", fontWeight:900, fontSize:13, cursor:"pointer",
+              background: light ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)",
+              border: light ? "1.5px solid rgba(0,0,0,0.15)" : "1.5px solid rgba(255,255,255,0.12)",
+              color: light ? "#334155" : "#94a3b8", fontWeight:900, fontSize:13, cursor:"pointer",
             }}>
               💾 Guardar Privado
             </button>
@@ -310,7 +313,7 @@ export default function PiaTab({ user, data }) {
             </button>
           </div>
           {uData.piaSaved && uData.piaSavedAt && (
-            <div style={{ textAlign:"center", fontSize:10, color:"#475569", marginTop:6 }}>
+            <div style={{ textAlign:"center", fontSize:10, color: light ? "#334155" : "#475569", marginTop:6 }}>
               Último envio: {uData.piaSavedAt}
             </div>
           )}

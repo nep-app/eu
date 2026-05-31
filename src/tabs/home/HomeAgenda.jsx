@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { addDoc, collection, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, BLUE, INP, TXT_MUT } from "../../theme.jsx";
 import { EVT_COLORS, EVT_ICONS } from "../../data.js";
+import { ThemeCtx } from "../../JovensApp.jsx";
 
 function toDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -26,6 +27,7 @@ function fmtDatePtShort(str) {
 }
 
 export default function HomeAgenda({ user, data }) {
+  const light = useContext(ThemeCtx);
   const hoje = toDateStr(new Date());
   const [novoTitulo, setNovoTitulo] = useState("");
   const [novaData,   setNovaData]   = useState(hoje);
@@ -81,7 +83,7 @@ export default function HomeAgenda({ user, data }) {
   return (
     <div style={CARD}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-        <div style={SL}>📅 Agenda</div>
+        <div style={{ ...SL, color: light ? "#334155" : SL.color }}>📅 Agenda</div>
         <button onClick={() => setShowForm(!showForm)} style={{
           background: showForm ? "rgba(50,199,255,0.12)" : "rgba(255,255,255,0.06)",
           border: showForm ? `1px solid ${CYN}40` : "1px solid rgba(255,255,255,0.1)",
@@ -126,7 +128,7 @@ export default function HomeAgenda({ user, data }) {
         groups.map(g => (
           <div key={g.label} style={{ marginBottom:14 }}>
             <div style={{ fontSize:10, fontWeight:900, letterSpacing:1.5, textTransform:"uppercase",
-              color: g.label === "Hoje" ? CYN : TXT_MUT, marginBottom:8 }}>
+              color: g.label === "Hoje" ? CYN : light ? "#475569" : TXT_MUT, marginBottom:8 }}>
               {g.label}
             </div>
             <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
@@ -158,7 +160,7 @@ export default function HomeAgenda({ user, data }) {
                       <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                         <span style={{ fontSize:16, flexShrink:0 }}>{icone}</span>
                         <div style={{ flex:1 }}>
-                          <div style={{ fontSize:13, fontWeight:800, color:"#f1f5f9" }}>{ev.title}</div>
+                          <div style={{ fontSize:13, fontWeight:800, color: light ? "#1e293b" : "#f1f5f9" }}>{ev.title}</div>
                           <div style={{ fontSize:11, color:cor, fontWeight:700, marginTop:2 }}>
                             {fmtDatePtShort(ev.date)}{ev.time ? ` · ${ev.time}` : ""}
                             {ev.userId === "all" && <span style={{ color:"#475569" }}> · Geral</span>}

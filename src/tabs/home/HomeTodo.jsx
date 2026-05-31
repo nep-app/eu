@@ -202,7 +202,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
 
       {/* ── TO-DO LIST ──────────────────────────────────────────────── */}
       <div style={CARD}>
-        <div style={SL}>✅ A Minha Lista</div>
+        <div style={{ ...SL, color: light ? "#334155" : SL.color }}>✅ A Minha Lista</div>
 
         {/* Novo item */}
         <div style={{ marginBottom:16, paddingBottom:16, borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
