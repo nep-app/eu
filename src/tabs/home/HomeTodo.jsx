@@ -121,8 +121,9 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
           <div style={{ ...SL, color: light ? "#334155" : undefined }}>Ações Pendentes</div>
           {acoesPendentes.map((item, idx) => {
             const rawBg = PS[item.status].bg;
-            const cardBg = light ? "rgba(255,255,255,0.92)" : rawBg;
-            const cardBorder = light ? `1px solid ${PS[item.status].bc}30` : `1px solid ${PS[item.status].bl}`;
+            const LIGHT_CARD_BG = { urgent:"#be123c", pending:"#c2410c", new:"#7c3aed" };
+            const cardBg = light ? LIGHT_CARD_BG[item.status] : rawBg;
+            const cardBorder = light ? "none" : `1px solid ${PS[item.status].bl}`;
             return (
             <div key={idx} onClick={item.go} style={{
               display:"flex", alignItems:"center", gap:14, padding:"14px 16px",
@@ -133,15 +134,15 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
             }}>
               <div style={{ fontSize:22, lineHeight:1, flexShrink:0 }}>{item.icon}</div>
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:14, fontWeight:800, color: light ? "#1e293b" : "#f1f5f9" }}>{item.title}</div>
-                <div style={{ fontSize:11, color: light ? "#64748b" : "#94a3b8", marginTop:2 }}>{item.sub}</div>
+                <div style={{ fontSize:14, fontWeight:800, color: light ? "#ffffff" : "#f1f5f9" }}>{item.title}</div>
+                <div style={{ fontSize:11, color: light ? "rgba(255,255,255,0.75)" : "#94a3b8", marginTop:2 }}>{item.sub}</div>
                 {item.prazo && (
                   <div style={{ fontSize:10, fontWeight:900, marginTop:4, color: isOverdue(item.prazo) ? "#f43f5e" : "#fbbf24" }}>
                     ⏰ {isOverdue(item.prazo) ? "Prazo expirado" : `Até ${fmtDatePt(item.prazo)}`}
                   </div>
                 )}
               </div>
-              <div style={{ color:PS[item.status].bc, fontWeight:900, fontSize:18, opacity:0.8 }}>›</div>
+              <div style={{ color: light ? "rgba(255,255,255,0.70)" : PS[item.status].bc, fontWeight:900, fontSize:18 }}>›</div>
             </div>
             );
           })}
