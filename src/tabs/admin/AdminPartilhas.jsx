@@ -17,7 +17,8 @@ export default function AdminPartilhas({ allShared }) {
               <div style={{ width:12, height:12, borderRadius:"50%", background:jInfo?jInfo.color:"#94a3b8" }}/>
               <div style={{ flex:1, fontSize:15, fontWeight:800 }}>{jInfo?jInfo.name:uname}</div>
               <div style={{ display:"flex", gap:5 }}>
-                {d.autoSaved && <span style={{ fontSize:9, background:"#ef4444", color:"#fff", padding:"2px 6px", borderRadius:6 }}>AUTO</span>}
+                {d.autoSaved && <span style={{ fontSize:9, background:"#ef4444", color:"#fff", padding:"2px 6px", borderRadius:6 }}>AUTO ✓</span>}
+                {!d.autoSaved && Object.keys(d.dScores||{}).length > 0 && <span style={{ fontSize:9, background:"#f97316", color:"#fff", padding:"2px 6px", borderRadius:6 }}>AUTO (não entregue)</span>}
                 {d.piaShared && <span style={{ fontSize:9, background:PNK, color:"#fff", padding:"2px 6px", borderRadius:6 }}>PIA</span>}
                 {d.swotShared && <span style={{ fontSize:9, background:CYN, color:"#0f172a", padding:"2px 6px", borderRadius:6 }}>SWOT</span>}
               </div>
@@ -28,9 +29,9 @@ export default function AdminPartilhas({ allShared }) {
               <div style={{ marginTop:15, borderTop:"1px solid rgba(255,255,255,0.05)", paddingTop:15 }}>
                 
                 {/* AUTOAVALIAÇÃO */}
-                {d.autoSaved && d.dScores && (
+                {Object.keys(d.dScores||{}).length > 0 && (
                   <div style={{ marginBottom:20, background:"rgba(0,0,0,0.2)", padding:15, borderRadius:12 }}>
-                     <div style={{ ...SL, color:"#ef4444", fontSize:11 }}>📊 Autoavaliação Mensal</div>
+                     <div style={{ ...SL, color:"#ef4444", fontSize:11 }}>📊 Autoavaliação Mensal{!d.autoSaved ? " — não entregue ainda" : ""}</div>
                      {Object.keys(d.dScores).map(dimId => (
                        <div key={dimId} style={{ marginBottom:10, borderBottom:"1px solid rgba(255,255,255,0.05)", paddingBottom:5 }}>
                          <div style={{ fontSize:12, fontWeight:800, color:CYN }}>{dimId.toUpperCase()}</div>
