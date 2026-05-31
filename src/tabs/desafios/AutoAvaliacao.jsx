@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { doc, setDoc, addDoc, collection, increment } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, CYN, INP, Btn } from "../../theme.jsx";
 import { scoreLabel, getDimDesc, DIMS, nowLabel } from "../../data.js";
+import { ThemeCtx } from "../../JovensApp.jsx";
 
 export default function AutoAvaliacao({ user, data }) {
+  const light = useContext(ThemeCtx);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localSaved, setLocalSaved] = useState(false);
   const uData = data.userData || {};
@@ -60,14 +62,14 @@ export default function AutoAvaliacao({ user, data }) {
       ) : (
         <>
           {/* CABEÇALHO DE SEGURANÇA */}
-          <div style={{ background: "rgba(0,0,0,0.25)", borderRadius: "24px", padding: "20px", marginBottom: "20px", border: "1px solid rgba(255,255,255,0.10)" }}>
-            <div style={{ fontSize: 15, fontWeight: 900, color: "white", display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+          <div style={{ background: light ? "rgba(0,0,0,0.08)" : "rgba(0,0,0,0.25)", borderRadius: "24px", padding: "20px", marginBottom: "20px", border: light ? "1px solid rgba(0,0,0,0.12)" : "1px solid rgba(255,255,255,0.10)" }}>
+            <div style={{ fontSize: 15, fontWeight: 900, color: light ? "#1e293b" : "white", display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               🔒 NINGUÉM VAI VER ISTO.
             </div>
-            <div style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.6, marginBottom: 10 }}>
+            <div style={{ fontSize: 13, color: light ? "#334155" : "#cbd5e1", lineHeight: 1.6, marginBottom: 10 }}>
               Só tu e eu (Teresa) temos acesso. Não serve para te avaliar — serve para percebermos <strong>juntos</strong> se estás a evoluir.
             </div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: "#f1f5f9", lineHeight: 1.6 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: light ? "#1e293b" : "#f1f5f9", lineHeight: 1.6 }}>
               Sê honesto/a. Ninguém é perfeito em tudo e não é suposto ser. Se deres tudo 10 não há margem para crescer. 🌱
             </div>
           </div>
@@ -87,7 +89,7 @@ export default function AutoAvaliacao({ user, data }) {
                   {isSet && <div style={{ fontSize:10, fontWeight:900, color:status[1], background:`${status[1]}15`, border:`1px solid ${status[1]}40`, padding:"2px 8px", borderRadius:6 }}>{status[0].toUpperCase()}</div>}
                 </div>
                 <div style={{ fontWeight: 900, fontSize: 14, color: "#fff", marginBottom: 6 }}>{dim.label}</div>
-                <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 20, lineHeight: 1.5 }}>{dim.desc}</div>
+                <div style={{ fontSize: 12, color: light ? "#475569" : "#94a3b8", marginBottom: 20, lineHeight: 1.5 }}>{dim.desc}</div>
 
                 {/* Slider 1-10 */}
                 <input type="range" min="1" max="10" value={isSet ? val : 1}
