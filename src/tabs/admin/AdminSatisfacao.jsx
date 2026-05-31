@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, query, orderBy, doc, deleteDoc, setDoc } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, doc, deleteDoc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, GRN } from "../../theme.jsx";
 import { SURVEY_CATS, satisfLabel, SEMOJIS, USERS } from "../../data.js";
@@ -12,6 +12,7 @@ export default function AdminSatisfacao() {
   const [stats, setStats] = useState({});
   const [vista, setVista] = useState("media");
   const [participacao, setParticipacao] = useState({});
+  const [teresaTs, setTeresaTs] = useState(null);
 
   useEffect(() => {
     const q = query(collection(db, "satisfacao"), orderBy("ts", "desc"));
@@ -33,6 +34,16 @@ export default function AdminSatisfacao() {
       })
     );
     return () => unsubs.forEach(u => u());
+  }, []);
+
+  useEffect(() => {
+    // Buscar timestamp exato de quando teresa submeteu, pelo histórico
+    getDoc(doc(db, "userData", "teresa")).then(snap => {
+      if (!snap.exists()) return;
+      const hist = snap.data().history || [];
+      const entry = hist.filter(h => h.action === "Submeteste a Avaliação de Satisfação").sort((a,b) => b.ts - a.ts)[0];
+      if (entry) setTeresaTs(entry.ts);
+    });
   }, []);
 
   function calcularEstatisticas(lista) {
@@ -75,6 +86,10 @@ export default function AdminSatisfacao() {
     }
   }
 
+  async function atribuirA(id, username) {
+    await updateDoc(doc(db, "satisfacao", id), { username });
+  }
+
   async function resetCompleto() {
     if (!confirm(`Apagar TODAS as ${respostas.length} respostas e libertar toda a gente para re-submeter?\nAs respostas antigas (anónimas) serão perdidas.`)) return;
     // Apagar todos os docs de satisfacao
@@ -85,13 +100,17 @@ export default function AdminSatisfacao() {
   }
 
   const confirmados = Object.values(participacao).filter(Boolean).length;
-  const respostasReais = respostas.filter(r => r.username && !["teresa","ricardo"].includes(r.username));
   const respostasAntigas = respostas.filter(r => !r.username);
 
   // Utilizadores com mais de uma resposta
   const contagens = {};
   respostas.filter(r => r.username).forEach(r => { contagens[r.username] = (contagens[r.username] || 0) + 1; });
   const duplicados = Object.entries(contagens).filter(([,n]) => n > 1);
+
+  // Identificar resposta de teresa pelo timestamp mais próximo
+  const teresaDocId = teresaTs && respostasAntigas.length > 0
+    ? respostasAntigas.reduce((best, r) => Math.abs(r.ts - teresaTs) < Math.abs(best.ts - teresaTs) ? r : best).id
+    : null;
 
   return (
     <div style={{ paddingBottom:50 }}>
@@ -249,19 +268,41 @@ export default function AdminSatisfacao() {
             );
           })}
           {/* Respostas antigas sem username */}
-          {respostasAntigas.map((resp, idx) => (
-            <div key={resp.id} style={{ ...CARD, border:"1px solid rgba(251,191,36,0.2)", marginBottom:8 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                <div style={{ fontSize:11, color:"#fbbf24", fontWeight:700 }}>
-                  ⚠️ Resposta anónima antiga #{idx+1} — {fmtTs(resp.ts)}
+          {respostasAntigas.map((resp, idx) => {
+            const isTeresa = resp.id === teresaDocId;
+            return (
+              <div key={resp.id} style={{ ...CARD, border:`1px solid ${isTeresa ? "rgba(168,85,247,0.4)" : "rgba(251,191,36,0.2)"}`, marginBottom:8 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: isTeresa ? 8 : 0 }}>
+                  <div style={{ fontSize:11, color: isTeresa ? "#a855f7" : "#fbbf24", fontWeight:700 }}>
+                    {isTeresa ? "🔍 Provável resposta de Teresa" : `⚠️ Anónima #${idx+1}`} — {fmtTs(resp.ts)}
+                  </div>
+                  <div style={{ display:"flex", gap:6 }}>
+                    {isTeresa && (
+                      <button onClick={() => apagarResposta(resp.id, null)} style={{
+                        background:"rgba(168,85,247,0.15)", border:"1px solid rgba(168,85,247,0.35)",
+                        color:"#a855f7", borderRadius:8, padding:"3px 9px", fontSize:11, cursor:"pointer", fontWeight:700
+                      }}>🗑 Apagar</button>
+                    )}
+                    {!isTeresa && (
+                      <>
+                        <select onChange={e => e.target.value && atribuirA(resp.id, e.target.value)} defaultValue="" style={{
+                          background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.15)",
+                          color:"#94a3b8", borderRadius:8, padding:"3px 8px", fontSize:11, cursor:"pointer"
+                        }}>
+                          <option value="">Atribuir a...</option>
+                          {JOVENS_REAIS.map(u => <option key={u.username} value={u.username}>{u.realName}</option>)}
+                        </select>
+                        <button onClick={() => apagarResposta(resp.id, null)} style={{
+                          background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.25)",
+                          color:"#f87171", borderRadius:8, padding:"3px 9px", fontSize:11, cursor:"pointer", fontWeight:700
+                        }}>🗑</button>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <button onClick={() => apagarResposta(resp.id, null)} style={{
-                  background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.25)",
-                  color:"#f87171", borderRadius:8, padding:"3px 9px", fontSize:11, cursor:"pointer", fontWeight:700
-                }}>🗑 Apagar</button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </>
       )}
     </div>
