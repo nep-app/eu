@@ -4,25 +4,27 @@ import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, GRN } from "../../theme.jsx";
 import { SURVEY_CATS, satisfLabel, SEMOJIS, USERS } from "../../data.js";
 
-const JOVENS = USERS.filter(u => !["teresa","ricardo","demo"].includes(u.username));
+const JOVENS = USERS.filter(u => !["demo"].includes(u.username));
+const JOVENS_REAIS = USERS.filter(u => !["teresa","ricardo","demo"].includes(u.username));
 
 export default function AdminSatisfacao() {
   const [respostas, setRespostas] = useState([]);
   const [stats, setStats] = useState({});
-  const [vista, setVista] = useState("media"); // "media" | "individuais"
-  const [participacao, setParticipacao] = useState({}); // { username: true/false }
+  const [vista, setVista] = useState("media");
+  const [participacao, setParticipacao] = useState({});
 
   useEffect(() => {
     const q = query(collection(db, "satisfacao"), orderBy("ts", "desc"));
     return onSnapshot(q, (snap) => {
       const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setRespostas(docs);
-      calcularEstatisticas(docs.filter(d => !d.username));
+      // Médias excluem teresa e ricardo
+      calcularEstatisticas(docs.filter(d => !["teresa","ricardo"].includes(d.username)));
     });
   }, []);
 
   useEffect(() => {
-    const unsubs = JOVENS.map(u =>
+    const unsubs = JOVENS_REAIS.map(u =>
       onSnapshot(doc(db, "userData", u.username), snap => {
         setParticipacao(prev => ({
           ...prev,
@@ -36,10 +38,10 @@ export default function AdminSatisfacao() {
   function calcularEstatisticas(lista) {
     const s = {};
     SURVEY_CATS.forEach(cat => {
-      s[cat.id] = { totalScore: 0, count: 0, comments: [], allChips: [] };
+      s[cat.id] = { totalScore:0, count:0, comments:[], allChips:[] };
     });
     lista.forEach(resp => {
-      resp.respostas.forEach(r => {
+      resp.respostas?.forEach(r => {
         if (s[r.catId]) {
           s[r.catId].totalScore += r.score;
           s[r.catId].count += 1;
@@ -57,35 +59,39 @@ export default function AdminSatisfacao() {
     return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
   }
 
+  function getUserColor(username) {
+    return USERS.find(u => u.username === username)?.color || CYN;
+  }
+
+  function getUserName(username) {
+    return USERS.find(u => u.username === username)?.realName || username;
+  }
+
+  const confirmados = Object.values(participacao).filter(Boolean).length;
+  const respostasReais = respostas.filter(r => r.username && !["teresa","ricardo"].includes(r.username));
+  const respostasAntigas = respostas.filter(r => !r.username);
+
   return (
-    <div style={{ paddingBottom: 50 }}>
-      {/* Painel de participação */}
+    <div style={{ paddingBottom:50 }}>
+
+      {/* Participação */}
       <div style={{ ...CARD, marginBottom:18 }}>
-        {(() => {
-          const confirmados = Object.values(participacao).filter(Boolean).length;
-          const anonimas = respostas.filter(r => !r.username).length;
-          const diff = anonimas - confirmados;
-          return (
-            <div style={{ marginBottom:12 }}>
-              <div style={{ ...SL, marginBottom:4 }}>
-                Participação — {confirmados}/{JOVENS.length} confirmados
-              </div>
-              <div style={{ fontSize:11, color:"#64748b" }}>
-                {anonimas} respostas anónimas na base de dados
-                {diff > 0 && <span style={{ color:"#fbbf24", marginLeft:6 }}>⚠️ {diff} extra{diff>1?"s":""} (provavelmente submissões antigas de contas de teste — apaga no Firebase Console)</span>}
-              </div>
-            </div>
-          );
-        })()}
+        <div style={{ ...SL, marginBottom:4 }}>
+          Participação — {confirmados}/{JOVENS_REAIS.length} responderam
+        </div>
+        {respostasAntigas.length > 0 && (
+          <div style={{ fontSize:10, color:"#fbbf24", marginBottom:10 }}>
+            ⚠️ {respostasAntigas.length} resposta{respostasAntigas.length>1?"s":""} anónima{respostasAntigas.length>1?"s":""} antiga{respostasAntigas.length>1?"s":""} na base de dados (apaga no Firebase Console)
+          </div>
+        )}
         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-          {JOVENS.map(u => {
+          {JOVENS_REAIS.map(u => {
             const fez = participacao[u.username];
             return (
               <div key={u.username} style={{
-                display:"flex", alignItems:"center", gap:6,
-                padding:"6px 12px", borderRadius:20,
+                display:"flex", alignItems:"center", gap:6, padding:"6px 12px", borderRadius:20,
                 background: fez ? `${GRN}15` : "rgba(255,255,255,0.04)",
-                border: `1px solid ${fez ? GRN+"40" : "rgba(255,255,255,0.08)"}`,
+                border:`1px solid ${fez ? GRN+"40" : "rgba(255,255,255,0.08)"}`,
               }}>
                 <span style={{ fontSize:11 }}>{fez ? "✅" : "⏳"}</span>
                 <span style={{ fontSize:12, fontWeight:700, color: fez ? GRN : "#64748b" }}>{u.realName}</span>
@@ -95,21 +101,20 @@ export default function AdminSatisfacao() {
         </div>
       </div>
 
-      {/* Toggle vista */}
+      {/* Toggle */}
       <div style={{ display:"flex", gap:8, marginBottom:18 }}>
         {[["media","📊 Médias"],["individuais","📋 Individuais"]].map(([v,l]) => (
           <button key={v} onClick={() => setVista(v)} style={{
             flex:1, padding:"10px 8px", borderRadius:12, border:"none", cursor:"pointer",
             background: vista === v ? `${CYN}20` : "rgba(255,255,255,0.04)",
-            color: vista === v ? CYN : "#94a3b8",
-            fontWeight:800, fontSize:12,
+            color: vista === v ? CYN : "#94a3b8", fontWeight:800, fontSize:12,
             boxShadow: vista === v ? `0 0 0 1px ${CYN}35` : "none",
           }}>{l}</button>
         ))}
       </div>
 
       {respostas.length === 0 ? (
-        <div style={CARD}>Ainda não existem respostas submetidas.</div>
+        <div style={CARD}>Ainda não existem respostas.</div>
       ) : vista === "media" ? (
         <>
           {SURVEY_CATS.map(cat => {
@@ -132,7 +137,7 @@ export default function AdminSatisfacao() {
                   </div>
                 </div>
                 <div style={{ width:"100%", height:6, background:"rgba(255,255,255,0.05)", borderRadius:3, marginBottom:20 }}>
-                  <div style={{ width:`${media*10}%`, height:"100%", background:color, borderRadius:3, transition:"0.5s" }}/>
+                  <div style={{ width:`${media*20}%`, height:"100%", background:color, borderRadius:3, transition:"0.5s" }}/>
                 </div>
                 {data.allChips.length > 0 && (
                   <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:15 }}>
@@ -156,86 +161,60 @@ export default function AdminSatisfacao() {
               </div>
             );
           })}
-          <div style={{ textAlign:"center", fontSize:11, color:"#475569", marginTop:10, marginBottom:16 }}>
-            {respostas.filter(r => !r.username).length} respostas anónimas contabilizadas
-          </div>
-
-          {/* Respostas identificadas (teresa, ricardo) */}
-          {respostas.filter(r => r.username).length > 0 && (
-            <div style={{ marginTop:8 }}>
-              <div style={{ ...SL, marginBottom:12 }}>👤 Respostas Identificadas</div>
-              {respostas.filter(r => r.username).map((resp) => (
-                <div key={resp.id} style={{ ...CARD, borderLeft:`3px solid ${PNK}`, marginBottom:10 }}>
-                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-                    <div style={{ fontSize:13, fontWeight:900, color:PNK }}>{resp.username}</div>
-                    <div style={{ fontSize:11, color:"#475569" }}>{fmtTs(resp.ts)}</div>
-                  </div>
-                  {(resp.respostas || []).map((r, i) => {
-                    const cat = SURVEY_CATS.find(c => c.id === r.catId);
-                    const [label, color] = satisfLabel(r.score);
-                    return (
-                      <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"7px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+        </>
+      ) : (
+        <>
+          {/* Respostas identificadas */}
+          {respostas.filter(r => r.username).map(resp => {
+            const uColor = getUserColor(resp.username);
+            return (
+              <div key={resp.id} style={{ ...CARD, borderLeft:`3px solid ${uColor}`, marginBottom:12 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+                  <div style={{ fontSize:13, fontWeight:900, color:uColor }}>{getUserName(resp.username)}</div>
+                  <div style={{ fontSize:11, color:"#475569" }}>{fmtTs(resp.ts)}</div>
+                </div>
+                {(resp.respostas || []).map((r, i) => {
+                  const cat = SURVEY_CATS.find(c => c.id === r.catId);
+                  const [label, color] = satisfLabel(r.score);
+                  return (
+                    <div key={i} style={{ padding:"8px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                           <span style={{ fontSize:14 }}>{cat?.icon}</span>
                           <span style={{ fontSize:12, color:"#e2e8f0" }}>{cat?.label}</span>
                         </div>
                         <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                          <span style={{ fontSize:14 }}>{SEMOJIS[r.score] || ""}</span>
+                          <span style={{ fontSize:15 }}>{SEMOJIS[r.score] || ""}</span>
                           <span style={{ fontSize:13, fontWeight:900, color }}>{r.score}</span>
                           <span style={{ fontSize:9, color:"#64748b" }}>{label}</span>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              ))}
+                      {r.chips?.length > 0 && (
+                        <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginTop:5, marginLeft:22 }}>
+                          {r.chips.map((c,j) => (
+                            <span key={j} style={{ fontSize:9, background:"rgba(255,255,255,0.06)", padding:"2px 7px", borderRadius:6, color:"#94a3b8" }}>{c}</span>
+                          ))}
+                        </div>
+                      )}
+                      {r.comment && (
+                        <div style={{ marginTop:5, marginLeft:22, fontSize:11, color:"#94a3b8", fontStyle:"italic", paddingLeft:8, borderLeft:`2px solid ${color}50` }}>
+                          "{r.comment}"
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+          {/* Respostas antigas sem username */}
+          {respostasAntigas.length > 0 && (
+            <div style={{ ...CARD, border:"1px solid rgba(251,191,36,0.2)", marginTop:8 }}>
+              <div style={{ fontSize:11, color:"#fbbf24", fontWeight:700 }}>
+                ⚠️ {respostasAntigas.length} resposta{respostasAntigas.length>1?"s":""} antiga{respostasAntigas.length>1?"s":""} sem identificação — apaga no Firebase Console
+              </div>
             </div>
           )}
-        </>
-      ) : (
-        <>
-          <div style={{ fontSize:11, color:"#475569", marginBottom:14, textAlign:"center" }}>
-            {respostas.length} resposta{respostas.length !== 1 ? "s" : ""} anónima{respostas.length !== 1 ? "s" : ""}
-          </div>
-          {respostas.map((resp, idx) => (
-            <div key={resp.id} style={{ ...CARD, marginBottom:12 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-                <div style={{ fontSize:12, fontWeight:900, color:CYN }}>Resposta #{respostas.length - idx}</div>
-                <div style={{ fontSize:11, color:"#475569" }}>{fmtTs(resp.ts)}</div>
-              </div>
-              {(resp.respostas || []).map((r, i) => {
-                const cat = SURVEY_CATS.find(c => c.id === r.catId);
-                const [label, color] = satisfLabel(r.score);
-                return (
-                  <div key={i} style={{ padding:"10px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                        <span style={{ fontSize:16 }}>{cat?.icon}</span>
-                        <span style={{ fontSize:12, fontWeight:700, color:"#e2e8f0" }}>{cat?.label}</span>
-                      </div>
-                      <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                        <span style={{ fontSize:16 }}>{SEMOJIS[r.score] || ""}</span>
-                        <span style={{ fontSize:14, fontWeight:900, color }}>{r.score}</span>
-                        <span style={{ fontSize:9, color:"#64748b", fontWeight:700 }}>{label}</span>
-                      </div>
-                    </div>
-                    {r.chips?.length > 0 && (
-                      <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginTop:4, marginLeft:24 }}>
-                        {r.chips.map((c,j) => (
-                          <span key={j} style={{ fontSize:9, background:"rgba(255,255,255,0.06)", padding:"2px 7px", borderRadius:6, color:"#94a3b8" }}>{c}</span>
-                        ))}
-                      </div>
-                    )}
-                    {r.comment && (
-                      <div style={{ marginTop:6, marginLeft:24, fontSize:11, color:"#94a3b8", fontStyle:"italic", paddingLeft:8, borderLeft:`2px solid ${color}50` }}>
-                        "{r.comment}"
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
         </>
       )}
     </div>

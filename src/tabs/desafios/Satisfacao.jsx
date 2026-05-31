@@ -51,14 +51,12 @@ export default function Satisfacao({ user, data }) {
         comment: resps[cat.id]?.comment || ""
       }));
 
-      // 1. Guardar na coleção "satisfacao"
-      // demo: excluído. teresa/ricardo: guardados com username identificado. Restantes: anónimos.
+      // 1. Guardar na coleção "satisfacao" com username (demo excluído)
       if (user.username !== "demo") {
-        const isIdentified = ["teresa","ricardo"].includes(user.username);
         await addDoc(collection(db, "satisfacao"), {
           respostas: arrayRespostas,
           ts: Date.now(),
-          ...(isIdentified ? { username: user.username } : {})
+          username: user.username,
         });
       }
 
