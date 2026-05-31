@@ -123,10 +123,11 @@ export default function JovensApp({ user, onLogout }) {
           {/* Right: logo + Sair */}
           <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6, flexShrink:0 }}>
             <img src={logoImg} alt="JEEP" style={{ width:68, height:68, objectFit:"cover", opacity:0.95, borderRadius: light ? 14 : 0 }} />
-            <button onClick={onLogout} style={{ background:"none", border:"none",
-              color:"#5a7a9a", fontSize:10, cursor:"pointer", fontWeight:600, padding:0, letterSpacing:0.2 }}>
-              Sair →
-            </button>
+            <button onClick={onLogout} style={{
+              background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.2)",
+              color:"white", padding:"7px 16px", borderRadius:20, fontSize:12,
+              cursor:"pointer", fontWeight:600
+            }}>Sair</button>
           </div>
         </div>
       </div>

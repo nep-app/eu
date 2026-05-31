@@ -87,7 +87,7 @@ if (typeof document !== 'undefined') {
 
 // ── CARTÕES ───────────────────────────────────────────────────────────────────
 export const CARD = {
-  background: "rgba(14, 36, 68, 0.82)",
+  background: "rgba(7, 21, 41, 0.85)",
   backdropFilter: "blur(20px)",
   WebkitBackdropFilter: "blur(20px)",
   borderRadius: "20px",
@@ -139,7 +139,7 @@ export const INP = {
   width: "100%",
   padding: "13px 16px",
   borderRadius: 14,
-  background: "rgba(7,21,41,0.7)",
+  background: "rgba(14,36,68,0.75)",
   border: "1px solid rgba(50,199,255,0.15)",
   color: "#ffffff",
   fontSize: "14px",

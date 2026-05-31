@@ -1,28 +1,17 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { doc, setDoc, addDoc, collection, increment, arrayUnion, query, where, getDocs, deleteDoc } from "firebase/firestore";
+import React, { useState, useContext } from 'react';
+import { doc, setDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, PNK, INP, Btn, CYN } from "../../theme.jsx";
-import { SURVEY_CATS, SEMOJIS, nowLabel, SPECIAL_USERS } from "../../data.js";
+import { SURVEY_CATS, SEMOJIS, nowLabel } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
 
 export default function Satisfacao({ user, data }) {
   const light = useContext(ThemeCtx);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localSaved, setLocalSaved] = useState(false);
-  
-  // Guardar respostas localmente antes de submeter
-  // Estrutura: { "ludoteca": { score: 4, chips: ["Boa equipa"], comment: "" } }
   const [resps, setResps] = useState({});
-  const [myDocIds, setMyDocIds] = useState([]);
 
   const uData = data.userData || {};
-
-  useEffect(() => {
-    if (!uData.sSaved || user.username === "demo") return;
-    // Buscar IDs dos documentos desta pessoa para poder apagar
-    getDocs(query(collection(db, "satisfacao"), where("username", "==", user.username)))
-      .then(snap => setMyDocIds(snap.docs.map(d => d.id)));
-  }, [uData.sSaved, user.username]);
 
   function handleScore(catId, score) {
     setResps(prev => ({ ...prev, [catId]: { ...prev[catId], score } }));
@@ -42,16 +31,13 @@ export default function Satisfacao({ user, data }) {
   }
 
   async function submit() {
-    // Validar se todas as categorias têm um score base
     const faltam = SURVEY_CATS.filter(c => !resps[c.id]?.score);
     if (faltam.length > 0) {
       return alert("Por favor, avalia todas as categorias com as carinhas antes de submeter!");
     }
-
     if (uData.sSaved || localSaved || isSubmitting) return;
     setIsSubmitting(true);
     try {
-      // Formatar as respostas para a base de dados anónima
       const arrayRespostas = SURVEY_CATS.map(cat => ({
         catId: cat.id,
         score: resps[cat.id]?.score || 0,
@@ -59,16 +45,13 @@ export default function Satisfacao({ user, data }) {
         comment: resps[cat.id]?.comment || ""
       }));
 
-      // 1. Guardar na coleção "satisfacao" — exclui teresa, ricardo e demo
-      if (!["teresa", "ricardo", "demo"].includes(user.username)) {
+      if (user.username !== "demo") {
         await addDoc(collection(db, "satisfacao"), {
           respostas: arrayRespostas,
           ts: Date.now(),
-          username: user.username,
         });
       }
 
-      // 2. Marcar como feito e dar XP — private:true esconde do dossier do admin
       await setDoc(doc(db, "userData", user.username), {
         sSaved: true,
         sDate: nowLabel(),
@@ -76,42 +59,24 @@ export default function Satisfacao({ user, data }) {
         history: arrayUnion({ date: nowLabel(), action: "Submeteste a Avaliação de Satisfação", ts: Date.now(), xp: 30, private: true })
       }, { merge: true });
 
-      // 3. Notificar a Teresa
       await addDoc(collection(db, "adminNotificacoes"), {
         tipo: "SATISFACAO_ANONIMA", jovem: "Anónimo", data: nowLabel(), ts: Date.now(), lida: false
       });
 
       setLocalSaved(true);
       alert("Feedback anónimo recebido com sucesso! Ganhaste +30 XP 💖");
-    } catch (e) { 
+    } catch (e) {
       console.error(e);
       alert("Erro ao enviar feedback.");
     }
     setIsSubmitting(false);
   }
 
-  async function apagarERepor() {
-    if (!confirm("Apagar a tua resposta e voltar a preencher?")) return;
-    for (const id of myDocIds) {
-      await deleteDoc(doc(db, "satisfacao", id));
-    }
-    await setDoc(doc(db, "userData", user.username), { sSaved: false }, { merge: true });
-    setMyDocIds([]);
-    setLocalSaved(false);
-  }
-
   if (uData.sSaved || localSaved) return (
     <div style={{ ...CARD, textAlign: "center", padding: "40px 20px", borderLeft: `4px solid ${PNK}` }}>
       <div style={{ fontSize: 40, marginBottom: 15 }}>💖</div>
       <div style={{ fontSize: 16, fontWeight: 900, color: "#fff" }}>FEEDBACK ENVIADO!</div>
-      <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 10, marginBottom: 20 }}>Obrigado por ajudares a melhorar o programa.</div>
-      {user.username !== "demo" && (
-        <button onClick={apagarERepor} style={{
-          background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.25)",
-          color: "#f87171", borderRadius: 10, padding: "8px 18px", fontSize: 12,
-          cursor: "pointer", fontWeight: 700
-        }}>🗑 Apagar e voltar a preencher</button>
-      )}
+      <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 10 }}>Obrigado por ajudares a melhorar o programa.<br/>As tuas respostas são 100% anónimas.</div>
     </div>
   );
 
@@ -137,22 +102,17 @@ export default function Satisfacao({ user, data }) {
               </div>
             </div>
 
-            {/* AVALIAÇÃO COM EMOJIS */}
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 15, background: "rgba(0,0,0,0.2)", padding: 10, borderRadius: 16 }}>
               {[1, 2, 3, 4, 5].map(n => (
-                <button key={n} 
-                  onClick={() => handleScore(cat.id, n)}
-                  style={{ 
-                    fontSize: 26, cursor: "pointer", transition: "0.2s",
-                    opacity: score === n ? 1 : (score === 0 ? 0.5 : 0.2), 
-                    background: "none", border: "none",
-                    transform: score === n ? "scale(1.2)" : "scale(1)"
-                  }}
-                >{SEMOJIS[n]}</button>
+                <button key={n} onClick={() => handleScore(cat.id, n)} style={{
+                  fontSize: 26, cursor: "pointer", transition: "0.2s",
+                  opacity: score === n ? 1 : (score === 0 ? 0.5 : 0.2),
+                  background: "none", border: "none",
+                  transform: score === n ? "scale(1.2)" : "scale(1)"
+                }}>{SEMOJIS[n]}</button>
               ))}
             </div>
 
-            {/* FRASES PRÉ-FEITAS (CHIPS) */}
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 800, letterSpacing: 1.5, marginBottom: 8, textTransform: "uppercase" }}>
                 O que destacas? <span style={{ opacity: 0.6 }}>(opcional)</span>
@@ -168,15 +128,12 @@ export default function Satisfacao({ user, data }) {
                       background: isSel ? `${PNK}22` : "rgba(255,255,255,0.04)",
                       color: isSel ? PNK : "#94a3b8",
                       transform: isSel ? "scale(1.04)" : "scale(1)",
-                    }}>
-                      {chip}
-                    </button>
+                    }}>{chip}</button>
                   );
                 })}
               </div>
             </div>
 
-            {/* COMENTÁRIO LIVRE - só aparece depois de seleccionar uma nota */}
             {score > 0 && (
               <div className="fade-up">
                 <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 800, letterSpacing: 1.5, marginBottom: 6, textTransform: "uppercase" }}>
@@ -192,9 +149,9 @@ export default function Satisfacao({ user, data }) {
               </div>
             )}
           </div>
-        )
+        );
       })}
-      
+
       <Btn color={PNK} onClick={submit} disabled={isSubmitting || localSaved}>
         {isSubmitting ? "A ENVIAR..." : "SUBMETER FEEDBACK ANÓNIMO"}
       </Btn>
