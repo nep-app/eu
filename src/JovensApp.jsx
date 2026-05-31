@@ -20,7 +20,7 @@ const NAV = [
   ["perfil",   "👤", "Perfil"],
 ];
 
-const LIGHT_GRAD = "#dde4ef";
+const LIGHT_GRAD = "linear-gradient(160deg, #eef2ff 0%, #f3f0ff 100%)";
 
 export default function JovensApp({ user, onLogout }) {
   const light = user.username === "teresa";
@@ -56,11 +56,8 @@ export default function JovensApp({ user, onLogout }) {
   // Tema roxo para teresa — muda body bg + grid
   useEffect(() => {
     if (!light) return;
-    document.body.style.backgroundColor = "#dde4ef";
-    document.body.style.backgroundImage = `
-      linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px)
-    `;
+    document.body.style.backgroundColor = "#eef2ff";
+    document.body.style.backgroundImage = "none";
     return () => {
       document.body.style.backgroundColor = "#071529";
       document.body.style.backgroundImage = `
@@ -89,7 +86,16 @@ export default function JovensApp({ user, onLogout }) {
 
   return (
     <ThemeCtx.Provider value={light}>
-    <div style={{ minHeight:"100vh", background: light ? LIGHT_GRAD : BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif" }}>
+    <div style={{ minHeight:"100vh", background: light ? LIGHT_GRAD : BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif",
+      ...(light && {
+        "--card-bg": "rgba(255,255,255,0.88)",
+        "--card-text": "#0f172a",
+        "--card-border": "rgba(0,0,0,0.07)",
+        "--card-shadow": "0 2px 20px rgba(0,0,0,0.06)",
+        "--inp-bg": "rgba(0,0,0,0.05)",
+        "--inp-border": "rgba(0,0,0,0.12)",
+      })
+    }}>
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       <div style={{ position:"relative", padding:"18px 20px 16px", overflow:"hidden",

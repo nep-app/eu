@@ -93,19 +93,19 @@ export default function HomeExtras({ user, data, setTab }) {
             return (
               <div key={missao.id} onClick={() => !concluida && concluirMissaoSemanal(missao)} style={{
                 display:"flex", alignItems:"center", gap:14, padding:"14px 16px", borderRadius:16,
-                background: concluida ? "rgba(74,222,128,0.06)" : "rgba(255,255,255,0.03)",
-                marginBottom:8, border: concluida ? "1px solid rgba(74,222,128,0.15)" : "1px solid rgba(255,255,255,0.05)",
+                background: concluida ? (light ? "rgba(74,222,128,0.10)" : "rgba(74,222,128,0.06)") : (light ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.03)"),
+                marginBottom:8, border: concluida ? "1px solid rgba(74,222,128,0.25)" : (light ? "1px solid rgba(0,0,0,0.06)" : "1px solid rgba(255,255,255,0.05)"),
                 cursor: concluida ? "default" : "pointer", transition:"all 0.2s",
               }}>
                 <div style={{ width:24, height:24, borderRadius:8, flexShrink:0,
-                  background: concluida ? GRN : "rgba(255,255,255,0.06)",
-                  border: concluida ? "none" : "1.5px solid rgba(255,255,255,0.1)",
+                  background: concluida ? GRN : (light ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.06)"),
+                  border: concluida ? "none" : (light ? "1.5px solid rgba(0,0,0,0.18)" : "1.5px solid rgba(255,255,255,0.1)"),
                   display:"flex", alignItems:"center", justifyContent:"center" }}>
                   {concluida && <span style={{ color:"#070b14", fontWeight:900, fontSize:13 }}>✓</span>}
                 </div>
                 <div style={{ flex:1 }}>
                   <div style={{ fontSize:13, fontWeight:600,
-                    color: concluida ? "#64748b" : "#f1f5f9",
+                    color: concluida ? "#64748b" : (light ? "#0f172a" : "#f1f5f9"),
                     textDecoration: concluida ? "line-through" : "none" }}>
                     {missao.text}
                   </div>

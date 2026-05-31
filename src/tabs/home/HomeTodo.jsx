@@ -120,29 +120,31 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
         <div style={{ marginBottom:20 }}>
           <div style={{ ...SL, color: light ? "#334155" : undefined }}>Ações Pendentes</div>
           {acoesPendentes.map((item, idx) => {
-            const rawBg = PS[item.status].bg;
-            const LIGHT_CARD_BG = { urgent:"#dc2626", pending:"#1d4ed8", new:"#059669" };
-            const cardBg = light ? LIGHT_CARD_BG[item.status] : rawBg;
-            const cardBorder = light ? "none" : `1px solid ${PS[item.status].bl}`;
+            const LS = {
+              urgent: { bg:"#fff1f2", border:"#fca5a5", dot:"#e11d48", text:"#9f1239", sub:"#be123c99" },
+              pending: { bg:"#eff6ff", border:"#93c5fd", dot:"#2563eb", text:"#1e3a8a", sub:"#1e40af99" },
+              new:     { bg:"#f0fdf4", border:"#86efac", dot:"#16a34a", text:"#14532d", sub:"#15803d99" },
+            };
+            const ls = light ? LS[item.status] : null;
             return (
             <div key={idx} onClick={item.go} style={{
               display:"flex", alignItems:"center", gap:14, padding:"14px 16px",
               borderRadius:18, marginBottom:10, cursor:"pointer", transition:"all 0.18s",
-              background: cardBg,
-              border: cardBorder,
-              borderLeft:`4px solid ${PS[item.status].bc}`,
+              background: ls ? ls.bg : PS[item.status].bg,
+              border: ls ? `1px solid ${ls.border}` : `1px solid ${PS[item.status].bl}`,
+              borderLeft: `4px solid ${ls ? ls.dot : PS[item.status].bc}`,
             }}>
               <div style={{ fontSize:22, lineHeight:1, flexShrink:0 }}>{item.icon}</div>
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:14, fontWeight:800, color: light ? "#ffffff" : "#f1f5f9" }}>{item.title}</div>
-                <div style={{ fontSize:11, color: light ? "rgba(255,255,255,0.75)" : "#94a3b8", marginTop:2 }}>{item.sub}</div>
+                <div style={{ fontSize:14, fontWeight:800, color: ls ? ls.text : "#f1f5f9" }}>{item.title}</div>
+                <div style={{ fontSize:11, color: ls ? ls.sub : "#94a3b8", marginTop:2 }}>{item.sub}</div>
                 {item.prazo && (
-                  <div style={{ fontSize:10, fontWeight:900, marginTop:4, color: isOverdue(item.prazo) ? "#f43f5e" : "#fbbf24" }}>
+                  <div style={{ fontSize:10, fontWeight:900, marginTop:4, color: isOverdue(item.prazo) ? "#e11d48" : (light ? "#b45309" : "#fbbf24") }}>
                     ⏰ {isOverdue(item.prazo) ? "Prazo expirado" : `Até ${fmtDatePt(item.prazo)}`}
                   </div>
                 )}
               </div>
-              <div style={{ color: light ? "rgba(255,255,255,0.70)" : PS[item.status].bc, fontWeight:900, fontSize:18 }}>›</div>
+              <div style={{ color: ls ? ls.dot : PS[item.status].bc, fontWeight:900, fontSize:18 }}>›</div>
             </div>
             );
           })}
@@ -155,7 +157,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
           <div style={{ ...SL, color:"#f59e0b" }}>📅 Eventos Propostos</div>
           {eventosProposta.map(ev => (
             <div key={ev.id} style={{ background:"rgba(245,158,11,0.05)", padding:14, borderRadius:14, marginBottom:10, border:"1px solid rgba(245,158,11,0.12)" }}>
-              <div style={{ fontSize:14, fontWeight:700, color:"#f1f5f9", marginBottom:2 }}>{ev.title}</div>
+              <div style={{ fontSize:14, fontWeight:700, color: light ? "#0f172a" : "#f1f5f9", marginBottom:2 }}>{ev.title}</div>
               <div style={{ fontSize:11, color:"#f59e0b", fontWeight:800, marginBottom:12 }}>
                 {fmtDatePt(ev.date)}{ev.time ? ` · ${ev.time}` : ""}
               </div>
@@ -174,7 +176,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
           <div style={SL}>📩 Sugestões da Teresa</div>
           {tarefasSugestao.map(t => (
             <div key={t.id} style={{ background:"rgba(56,189,248,0.04)", padding:14, borderRadius:14, marginBottom:10, border:"1px solid rgba(56,189,248,0.1)" }}>
-              <div style={{ fontSize:14, fontWeight:700, color:"#f1f5f9", marginBottom:4 }}>{t.text}</div>
+              <div style={{ fontSize:14, fontWeight:700, color: light ? "#0f172a" : "#f1f5f9", marginBottom:4 }}>{t.text}</div>
               <div style={{ fontSize:11, color:CYN, fontWeight:800, marginBottom:12 }}>Prazo: {fmtDate(t.due)}</div>
               <div style={{ display:"flex", gap:8 }}>
                 <button onClick={() => aceitarTarefa(t.id)} style={{ flex:1, background:`${CYN}18`, color:CYN, border:`1px solid ${CYN}30`, padding:"8px", borderRadius:10, fontWeight:800, cursor:"pointer", fontSize:12 }}>ACEITAR</button>
@@ -193,8 +195,8 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
             <div style={{ fontSize:11, fontWeight:900, color:CYN, background:`${CYN}18`, borderRadius:20, padding:"3px 10px" }}>{notifs.length}</div>
           </div>
           {notifs.map(n => (
-            <div key={n.id} style={{ display:"flex", gap:12, padding:"13px 14px", background:"rgba(0,0,0,0.2)", borderRadius:14, marginBottom:8, border:"1px solid rgba(255,255,255,0.05)" }}>
-              <div style={{ flex:1, fontSize:13, lineHeight:1.6, color:"#f1f5f9" }}>{n.text}</div>
+            <div key={n.id} style={{ display:"flex", gap:12, padding:"13px 14px", background: light ? "rgba(0,0,0,0.04)" : "rgba(0,0,0,0.2)", borderRadius:14, marginBottom:8, border: light ? "1px solid rgba(0,0,0,0.06)" : "1px solid rgba(255,255,255,0.05)" }}>
+              <div style={{ flex:1, fontSize:13, lineHeight:1.6, color: light ? "#0f172a" : "#f1f5f9" }}>{n.text}</div>
               <button onClick={() => onDeleteNotif && onDeleteNotif(n.id)} style={{ background:"none", border:"none", color:"#475569", fontSize:16, cursor:"pointer", paddingTop:2, flexShrink:0, lineHeight:1 }}>✕</button>
             </div>
           ))}
@@ -206,7 +208,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
         <div style={SL}>✅ A Minha Lista</div>
 
         {/* Novo item */}
-        <div style={{ marginBottom:16, paddingBottom:16, borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+        <div style={{ marginBottom:16, paddingBottom:16, borderBottom: light ? "1px solid rgba(0,0,0,0.07)" : "1px solid rgba(255,255,255,0.05)" }}>
           <input value={novaTarefaTexto} onChange={e => setNovaTarefaTexto(e.target.value)}
             onKeyDown={e => e.key === "Enter" && criarNovaTarefa()}
             style={INP} placeholder="O que precisas de fazer?" />
@@ -227,10 +229,10 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
 
         {/* Lista */}
         {minhasTarefas.length === 0 ? (
-          <div style={{ textAlign:"center", color:TXT_MUT, fontSize:13, padding:"14px 0" }}>Sem tarefas pendentes 🎉</div>
+          <div style={{ textAlign:"center", color: light ? "#94a3b8" : TXT_MUT, fontSize:13, padding:"14px 0" }}>Sem tarefas pendentes 🎉</div>
         ) : (
           minhasTarefas.sort((a,b) => (b.ts||0)-(a.ts||0)).map(tarefa => (
-            <div key={tarefa.id} style={{ padding:"12px 0", borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
+            <div key={tarefa.id} style={{ padding:"12px 0", borderBottom: light ? "1px solid rgba(0,0,0,0.06)" : "1px solid rgba(255,255,255,0.04)" }}>
               {editTarefaId === tarefa.id ? (
                 <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                   <input value={editTarefaTexto} onChange={e => setEditTarefaTexto(e.target.value)}
@@ -246,19 +248,19 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                 <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                   <div onClick={() => alternarEstadoTarefa(tarefa)} style={{
                     width:24, height:24, borderRadius:8, flexShrink:0, cursor:"pointer",
-                    border:`2px solid ${tarefa.done ? "#4ade80" : "rgba(255,255,255,0.15)"}`,
+                    border:`2px solid ${tarefa.done ? "#4ade80" : light ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.15)"}`,
                     background: tarefa.done ? "#4ade80" : "transparent",
                     display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.2s",
                   }}>
                     {tarefa.done && <span style={{ color:"#070b14", fontWeight:900, fontSize:12 }}>✓</span>}
                   </div>
                   <div style={{ flex:1, opacity:tarefa.done ? 0.35 : 1 }}>
-                    <div style={{ fontSize:13, fontWeight:700, color:"#f1f5f9", textDecoration:tarefa.done?"line-through":"none" }}>
+                    <div style={{ fontSize:13, fontWeight:700, color: light ? "#0f172a" : "#f1f5f9", textDecoration:tarefa.done?"line-through":"none" }}>
                       {(() => { const tt = TASK_TYPES.find(t => t.id === tarefa.type); return tt && tt.id !== "geral" ? <span style={{ marginRight:5 }}>{tt.icon}</span> : null; })()}
                       {tarefa.text}
                       {tarefa.shared && <span style={{ fontSize:9, background:CYN, color:"#000", padding:"2px 5px", borderRadius:4, marginLeft:7, verticalAlign:"middle", fontWeight:900 }}>PARTILHADO</span>}
                     </div>
-                    {tarefa.due && <div style={{ fontSize:11, color:isOverdue(tarefa.due) ? "#f43f5e" : TXT_MUT, marginTop:2, fontWeight:700 }}>{fmtDate(tarefa.due)}</div>}
+                    {tarefa.due && <div style={{ fontSize:11, color:isOverdue(tarefa.due) ? "#e11d48" : (light ? "#64748b" : TXT_MUT), marginTop:2, fontWeight:700 }}>{fmtDate(tarefa.due)}</div>}
                   </div>
                   {!tarefa.done && (
                     <button onClick={() => { setEditTarefaId(tarefa.id); setEditTarefaTexto(tarefa.text); setEditTarefaData(tarefa.due || ""); }} style={{ background:"none", border:"none", color:"#64748b", fontSize:13, cursor:"pointer", padding:"2px 4px" }}>✏️</button>
