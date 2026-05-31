@@ -80,6 +80,11 @@ export default function AdminSatisfacao() {
   const respostasReais = respostas.filter(r => r.username && !["teresa","ricardo"].includes(r.username));
   const respostasAntigas = respostas.filter(r => !r.username);
 
+  // Utilizadores com mais de uma resposta
+  const contagens = {};
+  respostas.filter(r => r.username).forEach(r => { contagens[r.username] = (contagens[r.username] || 0) + 1; });
+  const duplicados = Object.entries(contagens).filter(([,n]) => n > 1);
+
   return (
     <div style={{ paddingBottom:50 }}>
 
@@ -89,8 +94,13 @@ export default function AdminSatisfacao() {
           Participação — {confirmados}/{JOVENS_REAIS.length} responderam
         </div>
         {respostasAntigas.length > 0 && (
-          <div style={{ fontSize:10, color:"#fbbf24", marginBottom:10 }}>
+          <div style={{ fontSize:10, color:"#fbbf24", marginBottom:6 }}>
             ⚠️ {respostasAntigas.length} resposta{respostasAntigas.length>1?"s":""} sem identificação — apaga em "Individuais"
+          </div>
+        )}
+        {duplicados.length > 0 && (
+          <div style={{ fontSize:10, color:"#f87171", marginBottom:10 }}>
+            ⚠️ Respostas duplicadas: {duplicados.map(([u,n]) => `${getUserName(u)} (${n}×)`).join(", ")} — apaga as antigas em "Individuais"
           </div>
         )}
         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
@@ -176,10 +186,14 @@ export default function AdminSatisfacao() {
           {/* Respostas identificadas */}
           {respostas.filter(r => r.username).map(resp => {
             const uColor = getUserColor(resp.username);
+            const isDup = (contagens[resp.username] || 0) > 1;
             return (
-              <div key={resp.id} style={{ ...CARD, borderLeft:`3px solid ${uColor}`, marginBottom:12 }}>
+              <div key={resp.id} style={{ ...CARD, borderLeft:`3px solid ${isDup ? "#f87171" : uColor}`, marginBottom:12 }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-                  <div style={{ fontSize:13, fontWeight:900, color:uColor }}>{getUserName(resp.username)}</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                    <span style={{ fontSize:13, fontWeight:900, color:isDup ? "#f87171" : uColor }}>{getUserName(resp.username)}</span>
+                    {isDup && <span style={{ fontSize:9, background:"rgba(239,68,68,0.15)", color:"#f87171", border:"1px solid rgba(239,68,68,0.3)", borderRadius:6, padding:"2px 6px", fontWeight:800 }}>DUPLICADO</span>}
+                  </div>
                   <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                     <div style={{ fontSize:11, color:"#475569" }}>{fmtTs(resp.ts)}</div>
                     <button onClick={() => apagarResposta(resp.id, resp.username)} style={{

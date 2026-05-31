@@ -1,5 +1,5 @@
-import React, { useState, useContext } from 'react';
-import { doc, setDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";
+import React, { useState, useContext, useEffect } from 'react';
+import { doc, setDoc, addDoc, collection, increment, arrayUnion, query, where, getDocs, deleteDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, PNK, INP, Btn, CYN } from "../../theme.jsx";
 import { SURVEY_CATS, SEMOJIS, nowLabel, SPECIAL_USERS } from "../../data.js";
@@ -13,8 +13,16 @@ export default function Satisfacao({ user, data }) {
   // Guardar respostas localmente antes de submeter
   // Estrutura: { "ludoteca": { score: 4, chips: ["Boa equipa"], comment: "" } }
   const [resps, setResps] = useState({});
+  const [myDocIds, setMyDocIds] = useState([]);
 
   const uData = data.userData || {};
+
+  useEffect(() => {
+    if (!uData.sSaved || user.username === "demo") return;
+    // Buscar IDs dos documentos desta pessoa para poder apagar
+    getDocs(query(collection(db, "satisfacao"), where("username", "==", user.username)))
+      .then(snap => setMyDocIds(snap.docs.map(d => d.id)));
+  }, [uData.sSaved, user.username]);
 
   function handleScore(catId, score) {
     setResps(prev => ({ ...prev, [catId]: { ...prev[catId], score } }));
@@ -82,11 +90,28 @@ export default function Satisfacao({ user, data }) {
     setIsSubmitting(false);
   }
 
+  async function apagarERepor() {
+    if (!confirm("Apagar a tua resposta e voltar a preencher?")) return;
+    for (const id of myDocIds) {
+      await deleteDoc(doc(db, "satisfacao", id));
+    }
+    await setDoc(doc(db, "userData", user.username), { sSaved: false }, { merge: true });
+    setMyDocIds([]);
+    setLocalSaved(false);
+  }
+
   if (uData.sSaved || localSaved) return (
     <div style={{ ...CARD, textAlign: "center", padding: "40px 20px", borderLeft: `4px solid ${PNK}` }}>
       <div style={{ fontSize: 40, marginBottom: 15 }}>💖</div>
       <div style={{ fontSize: 16, fontWeight: 900, color: "#fff" }}>FEEDBACK ENVIADO!</div>
-      <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 10 }}>Obrigado por ajudares a melhorar o programa.<br/>As tuas respostas são 100% anónimas.</div>
+      <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 10, marginBottom: 20 }}>Obrigado por ajudares a melhorar o programa.</div>
+      {user.username !== "demo" && (
+        <button onClick={apagarERepor} style={{
+          background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.25)",
+          color: "#f87171", borderRadius: 10, padding: "8px 18px", fontSize: 12,
+          cursor: "pointer", fontWeight: 700
+        }}>🗑 Apagar e voltar a preencher</button>
+      )}
     </div>
   );
 
