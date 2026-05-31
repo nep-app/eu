@@ -94,9 +94,9 @@ export default function JovensApp({ user, onLogout }) {
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       <div style={{ position:"relative", padding:"18px 20px 16px", overflow:"hidden",
         background: light
-          ? "#252228"
+          ? "#2c2830"
           : "linear-gradient(160deg, rgba(24,62,112,0.88) 0%, rgba(16,44,84,0.84) 100%)",
-        borderBottom:"1px solid rgba(50,199,255,0.12)" }}>
+        borderBottom: light ? "none" : "1px solid rgba(50,199,255,0.12)" }}>
 
         <div style={{ position:"absolute", top:-40, left:-20, width:160, height:160, borderRadius:"50%",
           background:`radial-gradient(circle, ${user.color}14, transparent 70%)`, pointerEvents:"none" }}/>
@@ -122,7 +122,7 @@ export default function JovensApp({ user, onLogout }) {
 
           {/* Right: logo + Sair */}
           <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6, flexShrink:0 }}>
-            <img src={logoImg} alt="JEEP" style={{ width:68, height:68, objectFit:"contain", opacity:0.95 }} />
+            <img src={logoImg} alt="JEEP" style={{ width:68, height:68, objectFit:"cover", opacity:0.95, borderRadius: light ? 14 : 0 }} />
             <button onClick={onLogout} style={{ background:"none", border:"none",
               color:"#5a7a9a", fontSize:10, cursor:"pointer", fontWeight:600, padding:0, letterSpacing:0.2 }}>
               Sair →

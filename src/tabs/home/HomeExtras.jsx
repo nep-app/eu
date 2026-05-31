@@ -124,12 +124,12 @@ export default function HomeExtras({ user, data, setTab }) {
       )}
 
       {/* ── DESTAQUES DA SEMANA ───────────────────────────────────── */}
-      <div style={{ ...CARD, background: light ? "rgba(0,0,0,0.10)" : "rgba(14,36,68,0.6)", border:"1px solid rgba(50,199,255,0.10)" }}>
-        <div style={{ fontSize:10, fontWeight:800, letterSpacing:2, color: light ? "#334155" : "#5a7a9a", textTransform:"uppercase", marginBottom:12 }}>
+      <div style={{ ...CARD, background: light ? "rgba(14,36,68,0.72)" : "rgba(14,36,68,0.6)", border:"1px solid rgba(50,199,255,0.10)" }}>
+        <div style={{ fontSize:10, fontWeight:800, letterSpacing:2, color:"#5a7a9a", textTransform:"uppercase", marginBottom:12 }}>
           ⭐ Destaques da semana
         </div>
         {destaquesXp.length > 0 ? (
-          <div style={{ fontSize:16, fontWeight:800, lineHeight:1.8, color: light ? "#1e293b" : "#94a3b8" }}>
+          <div style={{ fontSize:16, fontWeight:800, lineHeight:1.8, color:"#94a3b8" }}>
             {destaquesXp.map((jovem, i) => (
               <span key={jovem.username}>
                 <span style={{ color:jovem.color, fontWeight:900 }}>{jovem.name}</span>
@@ -140,7 +140,7 @@ export default function HomeExtras({ user, data, setTab }) {
             <span style={{ fontSize:18, marginLeft:6 }}>✨</span>
           </div>
         ) : (
-          <div style={{ fontSize:13, color:"#475569", fontStyle:"italic" }}>
+          <div style={{ fontSize:13, color:"#94a3b8", fontStyle:"italic" }}>
             Esta semana ainda não temos destaques — vai lá ganhar XP! 🚀
           </div>
         )}
@@ -180,7 +180,7 @@ export default function HomeExtras({ user, data, setTab }) {
               style={{ ...INP, minHeight:80, resize:"none", marginBottom:10 }}
               placeholder="Dúvida, sugestão ou desabafo..." />
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-              <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:12, color: light ? "#475569" : "#94a3b8", cursor:"pointer" }}>
+              <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:12, color:"#94a3b8", cursor:"pointer" }}>
                 <input type="checkbox" checked={mensagemAnonima} onChange={() => setMensagemAnonima(!mensagemAnonima)} style={{ accentColor:PNK, width:16, height:16 }} />
                 Anónimo
               </label>
