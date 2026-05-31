@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, query, orderBy, doc, getDoc } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, doc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, GRN } from "../../theme.jsx";
 import { SURVEY_CATS, satisfLabel, SEMOJIS, USERS } from "../../data.js";
@@ -22,15 +22,15 @@ export default function AdminSatisfacao() {
   }, []);
 
   useEffect(() => {
-    async function carregarParticipacao() {
-      const resultado = {};
-      await Promise.all(JOVENS.map(async (u) => {
-        const snap = await getDoc(doc(db, "userData", u.username));
-        resultado[u.username] = snap.exists() ? (snap.data().sSaved === true) : false;
-      }));
-      setParticipacao(resultado);
-    }
-    carregarParticipacao();
+    const unsubs = JOVENS.map(u =>
+      onSnapshot(doc(db, "userData", u.username), snap => {
+        setParticipacao(prev => ({
+          ...prev,
+          [u.username]: snap.exists() ? (snap.data().sSaved === true) : false
+        }));
+      })
+    );
+    return () => unsubs.forEach(u => u());
   }, []);
 
   function calcularEstatisticas(lista) {
@@ -61,9 +61,22 @@ export default function AdminSatisfacao() {
     <div style={{ paddingBottom: 50 }}>
       {/* Painel de participação */}
       <div style={{ ...CARD, marginBottom:18 }}>
-        <div style={{ ...SL, marginBottom:12 }}>
-          Participação — {Object.values(participacao).filter(Boolean).length}/{JOVENS.length} responderam
-        </div>
+        {(() => {
+          const confirmados = Object.values(participacao).filter(Boolean).length;
+          const anonimas = respostas.filter(r => !r.username).length;
+          const diff = anonimas - confirmados;
+          return (
+            <div style={{ marginBottom:12 }}>
+              <div style={{ ...SL, marginBottom:4 }}>
+                Participação — {confirmados}/{JOVENS.length} confirmados
+              </div>
+              <div style={{ fontSize:11, color:"#64748b" }}>
+                {anonimas} respostas anónimas na base de dados
+                {diff > 0 && <span style={{ color:"#fbbf24", marginLeft:6 }}>⚠️ {diff} extra{diff>1?"s":""} (provavelmente submissões antigas de contas de teste — apaga no Firebase Console)</span>}
+              </div>
+            </div>
+          );
+        })()}
         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
           {JOVENS.map(u => {
             const fez = participacao[u.username];
