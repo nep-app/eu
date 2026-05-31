@@ -70,10 +70,18 @@ export default function AdminSatisfacao() {
   async function apagarResposta(id, username) {
     if (!confirm(`Apagar resposta${username ? " de " + getUserName(username) : " anónima"}?`)) return;
     await deleteDoc(doc(db, "satisfacao", id));
-    // Se tinha username, repõe sSaved=false para que a pessoa possa voltar a submeter
     if (username) {
       await setDoc(doc(db, "userData", username), { sSaved: false }, { merge: true });
     }
+  }
+
+  async function resetCompleto() {
+    if (!confirm(`Apagar TODAS as ${respostas.length} respostas e libertar toda a gente para re-submeter?\nAs respostas antigas (anónimas) serão perdidas.`)) return;
+    // Apagar todos os docs de satisfacao
+    await Promise.all(respostas.map(r => deleteDoc(doc(db, "satisfacao", r.id))));
+    // Repor sSaved=false para todos (incluindo teresa/ricardo)
+    const todos = USERS.filter(u => u.username !== "demo");
+    await Promise.all(todos.map(u => setDoc(doc(db, "userData", u.username), { sSaved: false }, { merge: true })));
   }
 
   const confirmados = Object.values(participacao).filter(Boolean).length;
@@ -90,8 +98,12 @@ export default function AdminSatisfacao() {
 
       {/* Participação */}
       <div style={{ ...CARD, marginBottom:18 }}>
-        <div style={{ ...SL, marginBottom:4 }}>
-          Participação — {confirmados}/{JOVENS_REAIS.length} responderam
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+          <div style={SL}>Participação — {confirmados}/{JOVENS_REAIS.length} responderam</div>
+          <button onClick={resetCompleto} style={{
+            background:"rgba(239,68,68,0.10)", border:"1px solid rgba(239,68,68,0.25)",
+            color:"#f87171", borderRadius:8, padding:"4px 10px", fontSize:10, cursor:"pointer", fontWeight:800
+          }}>🗑 Reset tudo</button>
         </div>
         {respostasAntigas.length > 0 && (
           <div style={{ fontSize:10, color:"#fbbf24", marginBottom:6 }}>
