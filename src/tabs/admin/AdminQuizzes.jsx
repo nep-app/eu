@@ -8,6 +8,7 @@ export default function AdminQuizzes() {
   const [notifRespostas, setNotifRespostas] = useState([]); // fallback para respostas antigas
   const [erro, setErro] = useState(null);
   const [resetInputs, setResetInputs] = useState({});
+  const [expandido, setExpandido] = useState({});
   const [novo, setNovo] = useState({
     title: "", badge: "D1 — Comunicação", scenario: "", prazo: "",
     optA: "", revA: "", optB: "", revB: "", optC: "", revC: ""
@@ -138,17 +139,43 @@ export default function AdminQuizzes() {
         return (
           <div key={quiz.id} style={CARD}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setExpandido(p => ({ ...p, [quiz.id]: !p[quiz.id] }))}>
                 <div style={{ fontSize: 10, fontWeight: 900, color: CYN }}>{quiz.badge}</div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{quiz.title}</div>
-                <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
-                  {(quiz.scenario || "").substring(0, 80)}{(quiz.scenario || "").length > 80 ? "…" : ""}
-                </div>
+                {!expandido[quiz.id] && (
+                  <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
+                    {(quiz.scenario || "").substring(0, 80)}{(quiz.scenario || "").length > 80 ? "…" : ""}
+                  </div>
+                )}
                 {quiz.prazo && <div style={{ fontSize: 10, color: "#f59e0b", marginTop: 4 }}>⏰ Prazo: {quiz.prazo}</div>}
               </div>
-              <button onClick={() => apagarQuiz(quiz.id)}
-                style={{ background: "none", border: "none", color: "#f43f5e", fontSize: 18, cursor: "pointer", marginLeft: 10 }}>✕</button>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginLeft: 10, flexShrink: 0 }}>
+                <button onClick={() => setExpandido(p => ({ ...p, [quiz.id]: !p[quiz.id] }))}
+                  style={{ background: "none", border: "none", color: "#94a3b8", fontSize: 16, cursor: "pointer", padding: 4 }}>
+                  {expandido[quiz.id] ? "▲" : "▼"}
+                </button>
+                <button onClick={() => apagarQuiz(quiz.id)}
+                  style={{ background: "none", border: "none", color: "#f43f5e", fontSize: 18, cursor: "pointer", padding: 4 }}>✕</button>
+              </div>
             </div>
+
+            {/* Conteúdo expandido: cenário + opções + reveals */}
+            {expandido[quiz.id] && (
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <p style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.6, marginBottom: 14 }}>{quiz.scenario}</p>
+                {(quiz.opts || []).map(opt => (
+                  <div key={opt.id} style={{ marginBottom: 8 }}>
+                    <div style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <span style={{ color: CYN, fontWeight: 900, fontSize: 12, flexShrink: 0 }}>{opt.id}</span>
+                      <div>
+                        <div style={{ fontSize: 13, color: "#f1f5f9" }}>{opt.text}</div>
+                        {opt.reveal && <div style={{ fontSize: 11, color: "#64748b", marginTop: 4, fontStyle: "italic" }}>💡 {opt.reveal}</div>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Distribuição de votos */}
             {totalVotos > 0 ? (
