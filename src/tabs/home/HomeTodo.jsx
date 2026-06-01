@@ -120,12 +120,16 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
         <div style={{ marginBottom:20 }}>
           <div style={{ ...SL, color: light ? "#334155" : undefined }}>Ações Pendentes</div>
           {acoesPendentes.map((item, idx) => {
-            const LS = {
-              urgent: { bg:"#fff1f2", border:"#fca5a5", dot:"#e11d48", text:"#9f1239", sub:"#be123c99" },
-              pending: { bg:"#eff6ff", border:"#93c5fd", dot:"#2563eb", text:"#1e3a8a", sub:"#1e40af99" },
-              new:     { bg:"#f0fdf4", border:"#86efac", dot:"#16a34a", text:"#14532d", sub:"#15803d99" },
+            const ICON_C = {
+              "💬": { bg:"rgba(99,102,241,0.10)",  border:"rgba(99,102,241,0.28)",  dot:"#5254b3", text:"#2e318a", sub:"#4042a099" },
+              "📊": { bg:"rgba(71,111,155,0.10)",  border:"rgba(71,111,155,0.28)",  dot:"#3d6b9e", text:"#1a3558", sub:"#2a5a8899" },
+              "😊": { bg:"rgba(20,163,148,0.10)",  border:"rgba(20,163,148,0.28)",  dot:"#0f9988", text:"#0c4f48", sub:"#107d7099" },
+              "🚀": { bg:"rgba(210,140,60,0.10)",  border:"rgba(210,140,60,0.28)",  dot:"#c2820e", text:"#7a4e00", sub:"#a0680a99" },
+              "🧠": { bg:"rgba(234,120,50,0.10)",  border:"rgba(234,120,50,0.28)",  dot:"#d06020", text:"#7a2c00", sub:"#b05010a0" },
+              "🔒": { bg:"rgba(139,114,198,0.10)", border:"rgba(139,114,198,0.28)", dot:"#7c52c8", text:"#3e1a80", sub:"#6640aa99" },
+              "🔐": { bg:"rgba(139,114,198,0.10)", border:"rgba(139,114,198,0.28)", dot:"#7c52c8", text:"#3e1a80", sub:"#6640aa99" },
             };
-            const ls = light ? LS[item.status] : null;
+            const ls = light ? (ICON_C[item.icon] || { bg:"#eff6ff", border:"rgba(99,102,241,0.28)", dot:"#6366f1", text:"#1e3a8a", sub:"#1e40af99" }) : null;
             return (
             <div key={idx} onClick={item.go} style={{
               display:"flex", alignItems:"center", gap:14, padding:"14px 16px",
