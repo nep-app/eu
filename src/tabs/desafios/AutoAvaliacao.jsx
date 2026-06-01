@@ -53,7 +53,7 @@ export default function AutoAvaliacao({ user, data }) {
         <div style={{ ...CARD, textAlign: "center", padding: "40px 20px" }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>✅</div>
           <div style={{ fontWeight: 900, color: CYN, fontSize: 18 }}>AVALIAÇÃO ENTREGUE!</div>
-          <p style={{ color: "#94a3b8", fontSize: 14 }}>A Teresa já recebeu a tua reflexão.</p>
+          <p style={{ color: light ? "#475569" : "#94a3b8", fontSize: 14 }}>A Teresa já recebeu a tua reflexão.</p>
           
           {user.username === "teresa" && (
             <button onClick={limparTeste} style={{ marginTop: "25px", background: "rgba(244, 63, 94, 0.15)", border: "1.5px dashed #f43f5e", color: "#f43f5e", padding: "10px 20px", borderRadius: "14px", fontWeight: "900", cursor: "pointer", fontSize: "12px" }}>
@@ -111,7 +111,7 @@ export default function AutoAvaliacao({ user, data }) {
                 {isSet && (
                   <>
                     <div style={{ display:"flex", alignItems:"center", gap:12, margin:"16px 0", padding:"14px 18px", borderRadius:16, background:`${status[1]}12`, border:`1px solid ${status[1]}30` }}>
-                      <span style={{ fontSize:40, fontWeight:900, color:"#ffffff", lineHeight:1 }}>{val}</span>
+                      <span style={{ fontSize:40, fontWeight:900, color: light ? "#1e293b" : "#ffffff", lineHeight:1 }}>{val}</span>
                       <div>
                         <div style={{ fontSize:13, fontWeight:900, color:status[1], textTransform:"uppercase", letterSpacing:0.5 }}>{status[0]}</div>
                         <div style={{ fontSize:10, color: light ? "#94a3b8" : "rgba(255,255,255,0.4)", marginTop:2 }}>em 10 possíveis</div>
