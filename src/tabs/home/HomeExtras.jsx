@@ -21,7 +21,7 @@ export default function HomeExtras({ user, data, setTab }) {
     ? (data.history || []).filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
     : (uData.weekXp || 0);
 
-  // Top 3 por XP semanal, mas apresentados em ordem aleatória (muda a cada render)
+  // Top 3 por XP semanal, apresentados em ordem aleatória
   const destaquesXp = Object.entries(rankingDados)
     .map(([username, d]) => ({ username, ...d }))
     .filter(d => !SPECIAL_USERS.includes(d.username) && (d.xp || 0) > 0)
