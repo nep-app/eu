@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { doc, setDoc, getDoc, addDoc, collection } from "firebase/firestore";
+import { doc, setDoc, getDoc, addDoc, collection, updateDoc, deleteField } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PRP, GRN, RadarChart, INP } from "../../theme.jsx";
 import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, PIA_FIELDS, getWeekKey } from "../../data.js";
@@ -321,9 +321,11 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
                 { key:"rodaVida",        label:"🌸 Roda da Vida" },
               ];
               async function setOverride(key, val) {
-                const next = { ...overrides };
-                if (val === null) delete next[key]; else next[key] = val;
-                await setDoc(doc(db, "userData", username), { featureOverrides: next }, { merge: true });
+                if (val === null) {
+                  await updateDoc(doc(db, "userData", username), { [`featureOverrides.${key}`]: deleteField() });
+                } else {
+                  await updateDoc(doc(db, "userData", username), { [`featureOverrides.${key}`]: val });
+                }
               }
               return (
                 <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
