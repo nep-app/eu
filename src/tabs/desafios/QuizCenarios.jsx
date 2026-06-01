@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, doc, setDoc, updateDoc, increment, arrayUnion, addDoc, query, orderBy } from "firebase/firestore";
+import { collection, onSnapshot, doc, setDoc, increment, arrayUnion, addDoc, query, orderBy } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, INP, Btn } from "../../theme.jsx";
 import { fmtDate, isOverdue, nowLabel } from "../../data.js";
@@ -34,6 +34,7 @@ export default function QuizCenarios({ user, data }) {
     const quiz = quizzes.find(q => q.id === currentQuizId);
     if (!quiz) return;
     setSubmitted(true);
+    // 1. Guardar em userData (user tem sempre permissão sobre os seus próprios dados)
     try {
       await setDoc(doc(db, "userData", user.username), {
         weekXp: increment(10),
@@ -42,19 +43,20 @@ export default function QuizCenarios({ user, data }) {
         ...(nota.trim() ? { quizNotes: { [quiz.id]: nota.trim() } } : {}),
         history: arrayUnion({ date: nowLabel(), action: `Respondeu ao dilema: ${quiz.title}`, ts: Date.now(), xp: 10 })
       }, { merge: true });
+    } catch (e) {
+      console.error("Erro ao guardar resposta:", e);
+      setSubmitted(false);
+      return;
+    }
 
-      await updateDoc(doc(db, "quizzes", quiz.id), {
-        [`responses.${user.username}`]: { opcaoId: selectedOpt, nota: nota.trim(), ts: Date.now() },
-        [`mock.${selectedOpt}`]: increment(1)
-      });
-
+    // 2. Notificação ao admin — try/catch independente, não reverte o submit
+    try {
       await addDoc(collection(db, "adminNotificacoes"), {
         tipo: "QUIZ", jovem: user.username, quizTitle: quiz.title,
         quizId: quiz.id, opcaoId: selectedOpt, nota: nota.trim(), ts: Date.now(), lida: false
       });
     } catch (e) {
-      console.error("Erro ao submeter:", e);
-      setSubmitted(false);
+      console.warn("Erro ao notificar admin:", e);
     }
   }
 
