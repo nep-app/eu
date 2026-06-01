@@ -13,6 +13,7 @@ export default function QuizCenarios({ user, data }) {
   const uData = data.userData || {};
   const feitos = uData.completedQuizzes || [];
   const quizNotes = uData.quizNotes || {};
+  const quizResponses = uData.quizResponses || {}; // { [quizId]: optId }
 
   useEffect(() => {
     const q = query(collection(db, "quizzes"), orderBy("ts", "desc"));
@@ -22,6 +23,11 @@ export default function QuizCenarios({ user, data }) {
     });
   }, []);
 
+  // Reset nota draft when quiz changes
+  useEffect(() => {
+    setNota("");
+  }, [answered?.quizId]);
+
   async function escolherOpcao(quiz, opcaoId) {
     if (feitos.includes(quiz.id)) return;
     setAnswered({ quizId: quiz.id, optId: opcaoId });
@@ -29,13 +35,15 @@ export default function QuizCenarios({ user, data }) {
       await setDoc(doc(db, "userData", user.username), {
         weekXp: increment(10),
         completedQuizzes: arrayUnion(quiz.id),
+        quizResponses: { [quiz.id]: opcaoId },
         history: arrayUnion({
           date: nowLabel(), action: `Respondeu ao dilema: ${quiz.title}`, ts: Date.now(), xp: 10
         })
       }, { merge: true });
       await updateDoc(doc(db, "quizzes", quiz.id), { [`mock.${opcaoId}`]: increment(1) });
       await addDoc(collection(db, "adminNotificacoes"), {
-        tipo: "QUIZ", jovem: user.username, quizTitle: quiz.title, ts: Date.now(), lida: false
+        tipo: "QUIZ", jovem: user.username, quizTitle: quiz.title,
+        quizId: quiz.id, opcaoId, ts: Date.now(), lida: false
       });
     } catch (e) {
       console.error("Erro ao gravar resposta:", e);
@@ -82,6 +90,8 @@ export default function QuizCenarios({ user, data }) {
   if (!q) return null;
 
   const jaRespondeu = answered?.quizId === q.id || feitos.includes(q.id);
+  // Chosen option: from local state (just answered) or from saved quizResponses (after reload)
+  const chosenOpt = answered?.quizId === q.id ? answered.optId : quizResponses[q.id];
 
   return (
     <div style={{ ...CARD, borderLeft: `4px solid ${CYN}` }}>
@@ -95,14 +105,13 @@ export default function QuizCenarios({ user, data }) {
         {q.scenario}
       </p>
 
-      {/* Disclaimer */}
       <div style={{ fontSize: 11, color: "#94a3b8", fontStyle: "italic", marginBottom: 16, padding: "8px 12px", borderRadius: 10, background: "rgba(255,255,255,0.04)", borderLeft: "2px solid rgba(50,199,255,0.3)" }}>
         💡 Isto não é para te avaliar — é para te fazer pensar.
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {q.opts.map((opt) => {
-          const isSelected = answered?.quizId === q.id && answered?.optId === opt.id;
+          const isChosen = opt.id === chosenOpt;
 
           return (
             <div key={opt.id}>
@@ -112,22 +121,26 @@ export default function QuizCenarios({ user, data }) {
                 style={{
                   width: "100%", padding: "14px 16px", borderRadius: 14, border: "none",
                   textAlign: "left", cursor: jaRespondeu ? "default" : "pointer",
-                  background: isSelected ? CYN : (jaRespondeu ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.05)"),
-                  color: isSelected ? "#000" : "#fff",
-                  fontWeight: isSelected ? 800 : 500,
+                  background: isChosen ? CYN : (jaRespondeu ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.05)"),
+                  color: isChosen ? "#000" : "#fff",
+                  fontWeight: isChosen ? 800 : 500,
                   transition: "0.2s"
                 }}
               >
                 <span style={{ marginRight: 10, opacity: 0.5 }}>{opt.id}</span>
                 {opt.text}
+                {isChosen && <span style={{ marginLeft: 8, fontSize: 12 }}>✓</span>}
               </button>
 
-              {jaRespondeu && isSelected && opt.reveal && (
+              {/* After answering, show reveal for ALL options */}
+              {jaRespondeu && opt.reveal && (
                 <div style={{
-                  marginTop: 8, padding: 12, borderRadius: 12, background: "rgba(34,211,238,0.10)",
-                  fontSize: 12, color: CYN, border: `1px solid ${CYN}30`, lineHeight: 1.5
+                  marginTop: 6, padding: 12, borderRadius: 12, lineHeight: 1.5, fontSize: 12,
+                  background: isChosen ? "rgba(34,211,238,0.12)" : "rgba(255,255,255,0.03)",
+                  color: isChosen ? CYN : "#94a3b8",
+                  border: `1px solid ${isChosen ? CYN + "30" : "rgba(255,255,255,0.06)"}`,
                 }}>
-                  💡 {opt.reveal}
+                  {isChosen ? "✅" : "💡"} {opt.reveal}
                 </div>
               )}
             </div>
@@ -135,13 +148,13 @@ export default function QuizCenarios({ user, data }) {
         })}
       </div>
 
-      {/* Notes field — always visible */}
+      {/* Notes field */}
       <div style={{ marginTop: 20, paddingTop: 15, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
         <div style={{ fontSize: 10, fontWeight: 800, color: "#94a3b8", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
           As tuas notas
         </div>
         <textarea
-          value={nota || quizNotes[q.id] || ""}
+          value={nota !== "" ? nota : (quizNotes[q.id] || "")}
           onChange={e => setNota(e.target.value)}
           placeholder="Escreve aqui os teus pensamentos sobre este dilema..."
           style={{ ...INP, minHeight: 72, resize: "none", fontSize: 13 }}
@@ -150,7 +163,7 @@ export default function QuizCenarios({ user, data }) {
           onClick={() => guardarNota(q.id)}
           style={{
             background: notaSalva ? "rgba(74,222,128,0.15)" : "rgba(50,199,255,0.12)",
-            border: `1px solid ${notaSalva ? "rgba(74,222,128,0.4)" : `${CYN}30`}`,
+            border: `1px solid ${notaSalva ? "rgba(74,222,128,0.4)" : CYN + "30"}`,
             color: notaSalva ? "#4ade80" : CYN,
             padding: "8px 18px", borderRadius: 10, fontSize: 11, fontWeight: 800,
             cursor: "pointer", transition: "all 0.2s"
