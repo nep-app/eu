@@ -143,7 +143,7 @@ export default function PerguntaSemanal({ user, data }) {
         {opcoesBotao.length > 0 ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {opcoesBotao.map((opt, i) => (
-              <button key={i} onClick={() => submitAnswer(opt)} style={{ padding: 15, borderRadius: 12, background: "rgba(255,255,255,0.05)", border: `1px solid ${CYN}40`, color: "#fff", fontWeight: 700, cursor: "pointer" }}>{opt}</button>
+              <button key={i} onClick={() => submitAnswer(opt)} style={{ padding: 15, borderRadius: 12, background: light ? "rgba(100,120,200,0.08)" : "rgba(255,255,255,0.05)", border: `1px solid ${CYN}40`, color: light ? "#1e293b" : "#fff", fontWeight: 700, cursor: "pointer" }}>{opt}</button>
             ))}
           </div>
         ) : (
@@ -165,8 +165,8 @@ export default function PerguntaSemanal({ user, data }) {
                 {[1,2,3,4,5].map(n => (
                   <button key={n} onClick={()=>setRatingSemana(n)} style={{ 
                     width: 45, height: 45, borderRadius: "50%", border: "none", fontSize: 20, cursor: "pointer",
-                    background: ratingSemana >= n ? CYN : "rgba(255,255,255,0.05)", 
-                    color: ratingSemana >= n ? "#000" : "rgba(255,255,255,0.3)" 
+                    background: ratingSemana >= n ? CYN : (light ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.05)"),
+                    color: ratingSemana >= n ? "#000" : (light ? "#64748b" : "rgba(255,255,255,0.3)")
                   }}>⭐</button>
                 ))}
               </div>
@@ -188,7 +188,7 @@ export default function PerguntaSemanal({ user, data }) {
                 {["🔥", "❤️", "🚀", "💪", "💡", "🎉", "😴", "🤯"].map(m => (
                   <button key={m} onClick={()=>setATxt(m)} style={{ 
                     width: 50, height: 50, borderRadius: "50%", border: "none", fontSize: 24, cursor: "pointer", transition: "0.2s",
-                    background: aTxt === m ? CYN : "rgba(255,255,255,0.05)", 
+                    background: aTxt === m ? CYN : (light ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.05)"),
                     transform: aTxt === m ? "scale(1.1)" : "scale(1)"
                   }}>{m}</button>
                 ))}

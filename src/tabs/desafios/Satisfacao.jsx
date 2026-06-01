@@ -75,8 +75,8 @@ export default function Satisfacao({ user, data }) {
   if (uData.sSaved || localSaved) return (
     <div style={{ ...CARD, textAlign: "center", padding: "40px 20px", borderLeft: `4px solid ${PNK}` }}>
       <div style={{ fontSize: 40, marginBottom: 15 }}>💖</div>
-      <div style={{ fontSize: 16, fontWeight: 900, color: "#fff" }}>FEEDBACK ENVIADO!</div>
-      <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 10 }}>Obrigado por ajudares a melhorar o programa.<br/>As tuas respostas são 100% anónimas.</div>
+      <div style={{ fontSize: 16, fontWeight: 900, color: light ? "#1e293b" : "#fff" }}>FEEDBACK ENVIADO!</div>
+      <div style={{ fontSize: 13, color: light ? "#475569" : "#94a3b8", marginTop: 10 }}>Obrigado por ajudares a melhorar o programa.<br/>As tuas respostas são 100% anónimas.</div>
     </div>
   );
 
@@ -98,11 +98,11 @@ export default function Satisfacao({ user, data }) {
               <div style={{ fontSize: 24 }}>{cat.icon}</div>
               <div>
                 <div style={{ fontSize: 11, color: PNK, fontWeight: 900 }}>{cat.label.toUpperCase()}</div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: "#fff", marginTop: 2 }}>{cat.q}</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: light ? "#1e293b" : "#fff", marginTop: 2 }}>{cat.q}</div>
               </div>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 15, background: "rgba(0,0,0,0.2)", padding: 10, borderRadius: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 15, background: light ? "rgba(0,0,0,0.04)" : "rgba(0,0,0,0.2)", padding: 10, borderRadius: 16 }}>
               {[1, 2, 3, 4, 5].map(n => (
                 <button key={n} onClick={() => handleScore(cat.id, n)} style={{
                   fontSize: 26, cursor: "pointer", transition: "0.2s",
@@ -114,7 +114,7 @@ export default function Satisfacao({ user, data }) {
             </div>
 
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 800, letterSpacing: 1.5, marginBottom: 8, textTransform: "uppercase" }}>
+              <div style={{ fontSize: 10, color: light ? "#475569" : "#94a3b8", fontWeight: 800, letterSpacing: 1.5, marginBottom: 8, textTransform: "uppercase" }}>
                 O que destacas? <span style={{ opacity: 0.6 }}>(opcional)</span>
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
@@ -124,9 +124,9 @@ export default function Satisfacao({ user, data }) {
                     <button key={chip} onClick={() => toggleChip(cat.id, chip)} style={{
                       padding: "7px 13px", borderRadius: 20, fontSize: 12, fontWeight: 700,
                       cursor: "pointer", transition: "all 0.18s",
-                      border: isSel ? `1.5px solid ${PNK}` : "1.5px solid rgba(255,255,255,0.10)",
-                      background: isSel ? `${PNK}22` : "rgba(255,255,255,0.04)",
-                      color: isSel ? PNK : "#94a3b8",
+                      border: isSel ? `1.5px solid ${PNK}` : (light ? "1.5px solid rgba(0,0,0,0.10)" : "1.5px solid rgba(255,255,255,0.10)"),
+                      background: isSel ? `${PNK}22` : (light ? "rgba(0,0,0,0.04)" : "rgba(255,255,255,0.04)"),
+                      color: isSel ? PNK : (light ? "#64748b" : "#94a3b8"),
                       transform: isSel ? "scale(1.04)" : "scale(1)",
                     }}>{chip}</button>
                   );
@@ -136,13 +136,13 @@ export default function Satisfacao({ user, data }) {
 
             {score > 0 && (
               <div className="fade-up">
-                <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 800, letterSpacing: 1.5, marginBottom: 6, textTransform: "uppercase" }}>
+                <div style={{ fontSize: 10, color: light ? "#475569" : "#94a3b8", fontWeight: 800, letterSpacing: 1.5, marginBottom: 6, textTransform: "uppercase" }}>
                   Tens mais alguma coisa a dizer? <span style={{ opacity: 0.6 }}>(opcional)</span>
                 </div>
                 <textarea
                   value={myR.comment || ""}
                   onChange={(e) => handleComment(cat.id, e.target.value)}
-                  style={{ ...INP, marginBottom: 0, fontSize: 13, background: "rgba(0,0,0,0.15)", resize: "none" }}
+                  style={{ ...INP, marginBottom: 0, fontSize: 13, background: light ? "rgba(100,120,180,0.08)" : "rgba(0,0,0,0.15)", resize: "none" }}
                   rows={2}
                   placeholder="Escreve aqui outros comentários..."
                 />

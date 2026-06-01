@@ -114,7 +114,7 @@ export default function AutoAvaliacao({ user, data }) {
                       <span style={{ fontSize:40, fontWeight:900, color: light ? "#1e293b" : "#ffffff", lineHeight:1 }}>{val}</span>
                       <div>
                         <div style={{ fontSize:13, fontWeight:900, color:status[1], textTransform:"uppercase", letterSpacing:0.5 }}>{status[0]}</div>
-                        <div style={{ fontSize:10, color: light ? "#94a3b8" : "rgba(255,255,255,0.4)", marginTop:2 }}>em 10 possíveis</div>
+                        <div style={{ fontSize:10, color: light ? "#64748b" : "rgba(255,255,255,0.4)", marginTop:2 }}>em 10 possíveis</div>
                       </div>
                     </div>
                     <div style={{ background: light ? "rgba(100,120,180,0.10)" : "rgba(15,23,42,0.4)", padding:"16px", borderRadius:"16px", fontSize:13, color: light ? "#1e293b" : "#e2e8f0", lineHeight:1.6, borderLeft:`4px solid ${status[1]}`, marginBottom:15 }}>
