@@ -1,13 +1,11 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { collection, addDoc, doc, updateDoc, increment, arrayUnion } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
 import { CARD, SL, CYN, INP, TXT_MUT } from "../../theme.jsx";
 import { nowFull } from "../../data.js";
-import { ThemeCtx } from "../../JovensApp.jsx";
 
 export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollection = "forum" }) {
-  const light = useContext(ThemeCtx);
   const [textoPost,     setTextoPost]     = useState("");
   const [ficheiroMedia, setFicheiroMedia] = useState(null);
   const [estaAEnviar,   setEstaAEnviar]   = useState(false);
@@ -94,7 +92,7 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
         </div>
 
         <button onClick={publicarPost} disabled={estaAEnviar} style={{
-          background: estaAEnviar ? (light ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)") : CYN,
+          background: estaAEnviar ? "rgba(255,255,255,0.05)" : CYN,
           color: estaAEnviar ? TXT_MUT : "#0f172a",
           border:"none", borderRadius:14, padding:"11px 26px",
           fontWeight:900, cursor: estaAEnviar ? "default" : "pointer",

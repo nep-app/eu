@@ -29,13 +29,13 @@ export default function PerfilTab({ user, data, features = {} }) {
   const thm = {
     card:    CARD,
     sl:      SL,
-    text:    light ? "#1e293b" : "#f1f5f9",
-    muted:   light ? "#475569" : "#94a3b8",
-    sub:     light ? "#64748b" : "#64748b",
-    divider: light ? "1px solid rgba(0,0,0,0.07)" : "1px solid rgba(255,255,255,0.05)",
-    rowBg:   light ? "rgba(0,0,0,0.04)" : "rgba(0,0,0,0.18)",
+    text:    "#f1f5f9",
+    muted:   "#94a3b8",
+    sub:     "#64748b",
+    divider: "1px solid rgba(255,255,255,0.05)",
+    rowBg:   "rgba(0,0,0,0.18)",
     inp:     INP,
-    medal:   { background: light ? `${CYN}18` : `${CYN}10`, border:`1px solid ${CYN}30` },
+    medal:   { background:`${CYN}10`, border:`1px solid ${CYN}30` },
   };
 
   function formatarDataHora(ts, dataAntiga) {
@@ -537,7 +537,7 @@ export default function PerfilTab({ user, data, features = {} }) {
           {user.username === "teresa" && (
             <div style={{ ...thm.card, background:"rgba(244,63,94,0.1)", border:"2px dashed #f43f5e", marginTop:20 }}>
               <div style={{ ...thm.sl, color:"#f43f5e" }}>🔧 Ferramentas de Teste</div>
-              <p style={{ fontSize:"12px", color: light ? "#475569" : "#cbd5e1", marginTop:0, marginBottom:"15px" }}>
+              <p style={{ fontSize:"12px", color:"#cbd5e1", marginTop:0, marginBottom:"15px" }}>
                 Como és a conta de testes, podes limpar o teu progresso para veres as "Ações Pendentes" novamente na Home.
               </p>
               <button onClick={limparTudoDev} style={{ width:"100%", padding:"12px", background:"#f43f5e", color:"white", fontWeight:"900", border:"none", borderRadius:"12px", cursor:"pointer", fontSize:"13px" }}>

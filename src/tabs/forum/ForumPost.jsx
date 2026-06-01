@@ -1,12 +1,10 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { doc, updateDoc, deleteDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, CYN, INP, TXT_MUT, PRP } from "../../theme.jsx";
 import { nowFull, FORUM_REACTIONS, ALL_MEDALS } from "../../data.js";
-import { ThemeCtx } from "../../JovensApp.jsx";
 
 export default function ForumPost({ post, user, canalAtivo, forumCollection = "forum", authorMedals = [] }) {
-  const light = useContext(ThemeCtx);
   const [responderA,        setResponderA]        = useState(false);
   const [textoResposta,     setTextoResposta]      = useState("");
   const [editando,          setEditando]           = useState(false);
@@ -130,7 +128,7 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
               <span style={{ fontSize:10, color:TXT_MUT, flexShrink:0 }}>{post.time}</span>
               {(post.username === user.username || (!post.username && post.user === user.realName)) && (
                 <>
-                  <button onClick={() => setEditando(!editando)} style={{ background: editando ? "rgba(50,199,255,0.12)" : (light ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)"), border:"none", cursor:"pointer", fontSize:12, padding:"3px 8px", borderRadius:8, color: editando ? "#32C7FF" : (light ? "#475569" : "#8ba3be") }}>✏️</button>
+                  <button onClick={() => setEditando(!editando)} style={{ background: editando ? "rgba(50,199,255,0.12)" : "rgba(255,255,255,0.06)", border:"none", cursor:"pointer", fontSize:12, padding:"3px 8px", borderRadius:8, color: editando ? "#32C7FF" : "#8ba3be" }}>✏️</button>
                   <button onClick={handleApagarPost} style={{ background:"rgba(244,63,94,0.1)", border:"none", cursor:"pointer", fontSize:12, padding:"3px 8px", borderRadius:8, color:"#f43f5e" }}>🗑️</button>
                 </>
               )}
@@ -145,7 +143,7 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
               <button onClick={handleGuardarEdicao} style={{ background:CYN, border:"none", borderRadius:10, padding:"0 14px", fontWeight:900, cursor:"pointer", color:"#0f172a", fontSize:13 }}>OK</button>
             </div>
           ) : (
-            <div style={{ fontSize:14, color: light ? "#1e293b" : "#e2e8f0", lineHeight:1.6, whiteSpace:"pre-wrap", marginBottom:post.media ? 10 : 0 }}>
+            <div style={{ fontSize:14, color:"#e2e8f0", lineHeight:1.6, whiteSpace:"pre-wrap", marginBottom:post.media ? 10 : 0 }}>
               {post.text}
             </div>
           )}
@@ -164,8 +162,8 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
                 <button key={r.id} onClick={() => handleReagir(r.id)} style={{
                   display:"flex", alignItems:"center", gap:4, padding:"4px 10px",
                   borderRadius:20, border:"none", cursor:"pointer", transition:"all 0.15s",
-                  background: mine ? `${CYN}15` : (light ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.04)"),
-                  color: mine ? CYN : (light ? "#64748b" : TXT_MUT), fontSize:12,
+                  background: mine ? `${CYN}15` : "rgba(255,255,255,0.04)",
+                  color: mine ? CYN : TXT_MUT, fontSize:12,
                   boxShadow: mine ? `0 0 0 1px ${CYN}30` : "none",
                 }}>
                   <span>{r.icon}</span>
@@ -186,10 +184,10 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
 
       {/* ── THREAD ────────────────────────────────────────────────── */}
       {(post.replies?.length > 0 || responderA) && (
-        <div style={{ marginTop:14, marginLeft:52, borderLeft: light ? "2px solid rgba(0,0,0,0.10)" : "2px solid rgba(255,255,255,0.05)", paddingLeft:14 }}>
+        <div style={{ marginTop:14, marginLeft:52, borderLeft:"2px solid rgba(255,255,255,0.05)", paddingLeft:14 }}>
 
           {post.replies?.map(reply => (
-            <div key={reply.id} style={{ marginBottom:12, padding:"10px 12px", borderRadius:12, background: light ? "rgba(0,0,0,0.04)" : "rgba(255,255,255,0.02)" }}>
+            <div key={reply.id} style={{ marginBottom:12, padding:"10px 12px", borderRadius:12, background:"rgba(255,255,255,0.02)" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                   <span style={{ fontSize:12, fontWeight:800, color:reply.color }}>{reply.user}</span>
@@ -198,7 +196,7 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
                 {reply.username === user.username && (
                   <div style={{ display:"flex", gap:6 }}>
                     <button onClick={() => { setEditandoReplyId(reply.id); setTextoEditadoReply(reply.text); }}
-                      style={{ background: light ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)", border:"none", fontSize:11, cursor:"pointer", padding:"2px 6px", borderRadius:6, color: light ? "#475569" : "#8ba3be" }}>✏️</button>
+                      style={{ background:"rgba(255,255,255,0.06)", border:"none", fontSize:11, cursor:"pointer", padding:"2px 6px", borderRadius:6, color:"#8ba3be" }}>✏️</button>
                     <button onClick={() => apagarReply(reply.id)}
                       style={{ background:"rgba(244,63,94,0.1)", border:"none", fontSize:11, cursor:"pointer", padding:"2px 6px", borderRadius:6, color:"#f43f5e" }}>🗑️</button>
                   </div>
@@ -213,7 +211,7 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
                     style={{ background:CYN, border:"none", borderRadius:8, padding:"0 10px", fontWeight:900, cursor:"pointer", fontSize:11, color:"#0f172a" }}>OK</button>
                 </div>
               ) : (
-                <div style={{ fontSize:13, color: light ? "#1e293b" : "#cbd5e1", lineHeight:1.5 }}>{reply.text}</div>
+                <div style={{ fontSize:13, color:"#cbd5e1", lineHeight:1.5 }}>{reply.text}</div>
               )}
             </div>
           ))}

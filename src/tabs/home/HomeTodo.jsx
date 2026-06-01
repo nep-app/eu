@@ -121,8 +121,8 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
           <div style={{ ...SL, color: light ? "#4a5568" : undefined, marginBottom:10 }}>Ações Pendentes</div>
           {acoesPendentes.map((item, idx) => {
             const ICON_C = {
-              "💬": { bg:"#7b90cc", border:"#6070aa", dot:"#4a5890", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
-              "📊": { bg:"#7b90cc", border:"#6070aa", dot:"#4a5890", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
+              "💬": { bg:"#7860c8", border:"#5a40a8", dot:"#3e2888", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
+              "📊": { bg:"#4a78c8", border:"#3060a8", dot:"#1e4888", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
               "😊": { bg:"#4aada0", border:"#388a7e", dot:"#286a60", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
               "🚀": { bg:"#c8a06a", border:"#a87e48", dot:"#886020", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
               "🧠": { bg:"#c07848", border:"#a05828", dot:"#804010", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },

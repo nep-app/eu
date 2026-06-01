@@ -88,14 +88,14 @@ export default function JovensApp({ user, onLogout }) {
     <ThemeCtx.Provider value={light}>
     <div style={{ minHeight:"100vh", background: light ? LIGHT_GRAD : BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif",
       ...(light && {
-        "--card-bg": "rgba(220,226,252,0.82)",
-        "--card-text": "#1e293b",
-        "--card-border": "rgba(100,120,200,0.18)",
-        "--card-shadow": "0 2px 16px rgba(80,100,180,0.10)",
-        "--inp-bg": "rgba(255,255,255,0.70)",
-        "--inp-border": "rgba(100,120,200,0.22)",
-        "--sl-color": "#5c6b80",
-        "--subtabs-bg": "rgba(200,210,240,0.60)",
+        "--card-bg": "rgba(18,42,82,0.92)",
+        "--card-text": "#f1f5f9",
+        "--card-border": "rgba(50,120,255,0.18)",
+        "--card-shadow": "0 4px 24px rgba(0,0,0,0.30), inset 0 1px 0 rgba(80,140,255,0.08)",
+        "--inp-bg": "rgba(10,25,60,0.80)",
+        "--inp-border": "rgba(50,199,255,0.18)",
+        "--sl-color": "#8898b4",
+        "--subtabs-bg": "rgba(10,25,60,0.65)",
       })
     }}>
 
