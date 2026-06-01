@@ -64,11 +64,11 @@ export default function AutoAvaliacao({ user, data }) {
       ) : (
         <>
           {/* CABEÇALHO DE SEGURANÇA */}
-          <div style={{ background: light ? "rgba(0,0,0,0.08)" : "rgba(0,0,0,0.25)", borderRadius: "24px", padding: "20px", marginBottom: "20px", border: light ? "1px solid rgba(0,0,0,0.12)" : "1px solid rgba(255,255,255,0.10)" }}>
+          <div style={{ background: light ? "rgba(100,120,180,0.12)" : "rgba(0,0,0,0.25)", borderRadius: "24px", padding: "20px", marginBottom: "20px", border: light ? "1px solid rgba(100,120,180,0.18)" : "1px solid rgba(255,255,255,0.10)" }}>
             <div style={{ fontSize: 15, fontWeight: 900, color: light ? "#1e293b" : "white", display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               🔒 NINGUÉM VAI VER ISTO.
             </div>
-            <div style={{ fontSize: 13, color: light ? "#334155" : "#cbd5e1", lineHeight: 1.6, marginBottom: 10 }}>
+            <div style={{ fontSize: 13, color: light ? "#1e293b" : "#cbd5e1", lineHeight: 1.6, marginBottom: 10 }}>
               Só tu e eu (Teresa) temos acesso. Não serve para te avaliar — serve para percebermos <strong>juntos</strong> se estás a evoluir.
             </div>
             <div style={{ fontSize: 13, fontWeight: 800, color: light ? "#1e293b" : "#f1f5f9", lineHeight: 1.6 }}>
@@ -90,8 +90,8 @@ export default function AutoAvaliacao({ user, data }) {
                   <div style={{ fontSize:9, fontWeight:900, color:"#64748b", letterSpacing:1.5 }}>{dim.id}</div>
                   {isSet && <div style={{ fontSize:10, fontWeight:900, color:status[1], background:`${status[1]}15`, border:`1px solid ${status[1]}40`, padding:"2px 8px", borderRadius:6 }}>{status[0].toUpperCase()}</div>}
                 </div>
-                <div style={{ fontWeight: 900, fontSize: 14, color: "#fff", marginBottom: 6 }}>{dim.label}</div>
-                <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 20, lineHeight: 1.5 }}>{dim.desc}</div>
+                <div style={{ fontWeight: 900, fontSize: 14, color: light ? "#1e293b" : "#fff", marginBottom: 6 }}>{dim.label}</div>
+                <div style={{ fontSize: 12, color: light ? "#475569" : "#94a3b8", marginBottom: 20, lineHeight: 1.5 }}>{dim.desc}</div>
 
                 {/* Slider 1-10 */}
                 <input type="range" min="1" max="10" value={isSet ? val : 1}
@@ -114,17 +114,17 @@ export default function AutoAvaliacao({ user, data }) {
                       <span style={{ fontSize:40, fontWeight:900, color:"#ffffff", lineHeight:1 }}>{val}</span>
                       <div>
                         <div style={{ fontSize:13, fontWeight:900, color:status[1], textTransform:"uppercase", letterSpacing:0.5 }}>{status[0]}</div>
-                        <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)", marginTop:2 }}>em 10 possíveis</div>
+                        <div style={{ fontSize:10, color: light ? "#94a3b8" : "rgba(255,255,255,0.4)", marginTop:2 }}>em 10 possíveis</div>
                       </div>
                     </div>
-                    <div style={{ background:"rgba(15,23,42,0.4)", padding:"16px", borderRadius:"16px", fontSize:13, color:"#e2e8f0", lineHeight:1.6, borderLeft:`4px solid ${status[1]}`, marginBottom:15 }}>
+                    <div style={{ background: light ? "rgba(100,120,180,0.10)" : "rgba(15,23,42,0.4)", padding:"16px", borderRadius:"16px", fontSize:13, color: light ? "#1e293b" : "#e2e8f0", lineHeight:1.6, borderLeft:`4px solid ${status[1]}`, marginBottom:15 }}>
                       {textoEspecifico}
                     </div>
                   </>
                 )}
 
                 {/* Notas em Texto */}
-                {light && <style>{`textarea.auto-nota::placeholder { color: rgba(255,255,255,0.35) !important; }`}</style>}
+                {light && <style>{`textarea.auto-nota::placeholder { color: #94a3b8 !important; }`}</style>}
                 <textarea
                   className="auto-nota"
                   value={uData.dNotas?.[dim.id] || ""}
@@ -132,7 +132,7 @@ export default function AutoAvaliacao({ user, data }) {
                     const nN = { ...(uData.dNotas || {}), [dim.id]: e.target.value };
                     await setDoc(doc(db, "userData", user.username), { dNotas: nN }, { merge: true });
                   }}
-                  style={{ ...INP, fontSize:12, background:"rgba(0,0,0,0.2)" }}
+                  style={{ ...INP, fontSize:12, background: light ? "rgba(255,255,255,0.70)" : "rgba(0,0,0,0.2)" }}
                   placeholder="Queres dar um exemplo ou explicar esta nota à Teresa?"
                   rows={2}
                 />

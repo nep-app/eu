@@ -1,11 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { doc, setDoc, getDoc, updateDoc, increment, arrayUnion, addDoc, collection } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
 import { CARD, SL, CYN, INP, Btn, PNK } from "../../theme.jsx";
 import { nowFull, fmtDate, isOverdue } from "../../data.js";
+import { ThemeCtx } from "../../JovensApp.jsx";
 
 export default function PerguntaSemanal({ user, data }) {
+  const light = useContext(ThemeCtx);
   const [perguntaDB, setPerguntaDB] = useState(null);
   const [activeTab, setActiveTab] = useState("");
   
@@ -119,7 +121,7 @@ export default function PerguntaSemanal({ user, data }) {
         <div style={{ fontSize:10, fontWeight:800, letterSpacing:2, textTransform:"uppercase", color:"#5a7a9a" }}>Pergunta da Semana</div>
         {perguntaDB.prazo && <div style={{ fontSize:10, fontWeight:800, color: isOverdue(perguntaDB.prazo) ? "#f43f5e" : "#fbbf24" }}>⏰ Até {fmtDate(perguntaDB.prazo)}</div>}
       </div>
-      <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 20, padding: "15px", background: "rgba(0,0,0,0.3)", borderRadius: 16, borderLeft: `4px solid ${CYN}` }}>
+      <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 20, padding: "15px", background: light ? "rgba(100,120,200,0.10)" : "rgba(0,0,0,0.3)", borderRadius: 16, borderLeft: `4px solid ${CYN}`, color: light ? "#1e293b" : undefined }}>
         {perguntaDB.text}
       </div>
 
@@ -128,8 +130,8 @@ export default function PerguntaSemanal({ user, data }) {
           {modosAtivos.map(m => (
             <button key={m} onClick={() => setActiveTab(m)} style={{ 
               padding: "6px 12px", borderRadius: 10, border: "none", fontSize: 11, fontWeight: 800, whiteSpace: "nowrap", cursor: "pointer",
-              background: activeTab === m ? CYN : "rgba(255,255,255,0.05)",
-              color: activeTab === m ? "#000" : "#94a3b8"
+              background: activeTab === m ? CYN : (light ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)"),
+              color: activeTab === m ? "#000" : (light ? "#475569" : "#94a3b8")
             }}>
               {getTabLabel(m)}
             </button>

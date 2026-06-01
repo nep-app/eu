@@ -118,18 +118,18 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
       {/* ── AÇÕES PENDENTES ─────────────────────────────────────────── */}
       {acoesPendentes.length > 0 && (
         <div style={{ marginBottom:20 }}>
-          <div style={{ ...SL, color: light ? "#334155" : undefined }}>Ações Pendentes</div>
+          <div style={{ ...SL, color: light ? "#4a5568" : undefined, marginBottom:10 }}>Ações Pendentes</div>
           {acoesPendentes.map((item, idx) => {
             const ICON_C = {
-              "💬": { bg:"#dce0f5", border:"#9da6e0", dot:"#5560c8", text:"#2a3190", sub:"#5060aa" },
-              "📊": { bg:"#d8e5f5", border:"#90b0d8", dot:"#3a6aaa", text:"#1a3d6e", sub:"#305890" },
-              "😊": { bg:"#c8ede8", border:"#70c0b0", dot:"#28968a", text:"#0e524a", sub:"#267a6e" },
-              "🚀": { bg:"#f5e4c0", border:"#ddb870", dot:"#b07820", text:"#6e4400", sub:"#9a6010" },
-              "🧠": { bg:"#f5dcc0", border:"#e0a870", dot:"#c06020", text:"#6e2c00", sub:"#a05010" },
-              "🔒": { bg:"#e8d8f8", border:"#b898e0", dot:"#7840c8", text:"#3c1878", sub:"#6030aa" },
-              "🔐": { bg:"#e8d8f8", border:"#b898e0", dot:"#7840c8", text:"#3c1878", sub:"#6030aa" },
+              "💬": { bg:"#7b90cc", border:"#6070aa", dot:"#4a5890", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
+              "📊": { bg:"#7b90cc", border:"#6070aa", dot:"#4a5890", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
+              "😊": { bg:"#4aada0", border:"#388a7e", dot:"#286a60", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
+              "🚀": { bg:"#c8a06a", border:"#a87e48", dot:"#886020", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
+              "🧠": { bg:"#c07848", border:"#a05828", dot:"#804010", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
+              "🔒": { bg:"#9878c8", border:"#7858a8", dot:"#584088", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
+              "🔐": { bg:"#9878c8", border:"#7858a8", dot:"#584088", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
             };
-            const ls = light ? (ICON_C[item.icon] || { bg:"#dce0f5", border:"#9da6e0", dot:"#5560c8", text:"#2a3190", sub:"#5060aa" }) : null;
+            const ls = light ? (ICON_C[item.icon] || ICON_C["💬"]) : null;
             return (
             <div key={idx} onClick={item.go} style={{
               display:"flex", alignItems:"center", gap:14, padding:"14px 16px",
@@ -233,7 +233,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
 
         {/* Lista */}
         {minhasTarefas.length === 0 ? (
-          <div style={{ textAlign:"center", color: light ? "#94a3b8" : TXT_MUT, fontSize:13, padding:"14px 0" }}>Sem tarefas pendentes 🎉</div>
+          <div style={{ textAlign:"center", color: light ? "#64748b" : TXT_MUT, fontSize:13, padding:"14px 0" }}>Sem tarefas pendentes 🎉</div>
         ) : (
           minhasTarefas.sort((a,b) => (b.ts||0)-(a.ts||0)).map(tarefa => (
             <div key={tarefa.id} style={{ padding:"12px 0", borderBottom: light ? "1px solid rgba(0,0,0,0.06)" : "1px solid rgba(255,255,255,0.04)" }}>
@@ -264,7 +264,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                       {tarefa.text}
                       {tarefa.shared && <span style={{ fontSize:9, background:CYN, color:"#000", padding:"2px 5px", borderRadius:4, marginLeft:7, verticalAlign:"middle", fontWeight:900 }}>PARTILHADO</span>}
                     </div>
-                    {tarefa.due && <div style={{ fontSize:11, color:isOverdue(tarefa.due) ? "#e11d48" : (light ? "#64748b" : TXT_MUT), marginTop:2, fontWeight:700 }}>{fmtDate(tarefa.due)}</div>}
+                    {tarefa.due && <div style={{ fontSize:11, color:isOverdue(tarefa.due) ? "#e11d48" : (light ? "#475569" : TXT_MUT), marginTop:2, fontWeight:700 }}>{fmtDate(tarefa.due)}</div>}
                   </div>
                   {!tarefa.done && (
                     <button onClick={() => { setEditTarefaId(tarefa.id); setEditTarefaTexto(tarefa.text); setEditTarefaData(tarefa.due || ""); }} style={{ background:"none", border:"none", color:"#64748b", fontSize:13, cursor:"pointer", padding:"2px 4px" }}>✏️</button>

@@ -20,7 +20,7 @@ const NAV = [
   ["perfil",   "👤", "Perfil"],
 ];
 
-const LIGHT_GRAD = "linear-gradient(160deg, #eef2ff 0%, #f3f0ff 100%)";
+const LIGHT_GRAD = "linear-gradient(160deg, #dde4ff 0%, #e8e0ff 100%)";
 
 export default function JovensApp({ user, onLogout }) {
   const light = user.username === "teresa";
@@ -88,12 +88,14 @@ export default function JovensApp({ user, onLogout }) {
     <ThemeCtx.Provider value={light}>
     <div style={{ minHeight:"100vh", background: light ? LIGHT_GRAD : BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif",
       ...(light && {
-        "--card-bg": "rgba(255,255,255,0.88)",
-        "--card-text": "#0f172a",
-        "--card-border": "rgba(0,0,0,0.07)",
-        "--card-shadow": "0 2px 20px rgba(0,0,0,0.06)",
-        "--inp-bg": "rgba(0,0,0,0.05)",
-        "--inp-border": "rgba(0,0,0,0.12)",
+        "--card-bg": "rgba(220,226,252,0.82)",
+        "--card-text": "#1e293b",
+        "--card-border": "rgba(100,120,200,0.18)",
+        "--card-shadow": "0 2px 16px rgba(80,100,180,0.10)",
+        "--inp-bg": "rgba(255,255,255,0.70)",
+        "--inp-border": "rgba(100,120,200,0.22)",
+        "--sl-color": "#5c6b80",
+        "--subtabs-bg": "rgba(200,210,240,0.60)",
       })
     }}>
 
