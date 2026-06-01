@@ -7,13 +7,11 @@ import { nowLabel } from "../../data.js";
 
 export default function QuizCenarios({ user, data }) {
   const [quizzes, setQuizzes] = useState([]);
-  const [selecionado, setSelecionado] = useState(null); // Guarda o ID do quiz que o jovem está a ver
-  const [respondidoId, setRespondidoId] = useState(null); // Guarda qual opção ele escolheu
-  
-  const uData = data.userData || {};
-  const feitos = uData.completedQuizzes || []; // Lista de IDs de quizzes já respondidos pelo jovem
+  const [answered, setAnswered] = useState(null); // { quizId, optId }
 
-  // 1. Carregar Quizzes do Firebase
+  const uData = data.userData || {};
+  const feitos = uData.completedQuizzes || [];
+
   useEffect(() => {
     const q = query(collection(db, "quizzes"), orderBy("ts", "desc"));
     return onSnapshot(q, (snap) => {
@@ -22,40 +20,26 @@ export default function QuizCenarios({ user, data }) {
     });
   }, []);
 
-  // 2. Função para responder e ganhar XP
   async function escolherOpcao(quiz, opcaoId) {
-    if (feitos.includes(quiz.id)) return; // Evita responder duas vezes
-
-    setRespondidoId(opcaoId);
-
+    if (feitos.includes(quiz.id)) return;
+    setAnswered({ quizId: quiz.id, optId: opcaoId });
     try {
-      // Atualiza o perfil do jovem: ganha XP e marca como feito
       await setDoc(doc(db, "userData", user.username), {
-        weekXp: increment(10), // Ganha 10 XP por participar no dilema
+        weekXp: increment(10),
         completedQuizzes: arrayUnion(quiz.id),
-        history: arrayUnion({ 
-          date: nowLabel(), 
-          action: `Respondeu ao dilema: ${quiz.title}`, 
-          ts: Date.now(), 
-          xp: 10 
+        history: arrayUnion({
+          date: nowLabel(), action: `Respondeu ao dilema: ${quiz.title}`, ts: Date.now(), xp: 10
         })
       }, { merge: true });
-
-      // Atualiza as estatísticas do quiz (Firestore) para outros verem
-      const field = `mock.${opcaoId}`;
-      await updateDoc(doc(db, "quizzes", quiz.id), {
-        [field]: increment(1)
-      });
+      await updateDoc(doc(db, "quizzes", quiz.id), { [`mock.${opcaoId}`]: increment(1) });
       await addDoc(collection(db, "adminNotificacoes"), {
         tipo: "QUIZ", jovem: user.username, quizTitle: quiz.title, ts: Date.now(), lida: false
       });
-
     } catch (e) {
       console.error("Erro ao gravar resposta:", e);
     }
   }
 
-  // Se não houver quizzes
   if (quizzes.length === 0) {
     return (
       <div style={{ textAlign: "center", padding: 30, color: "#94a3b8", fontSize: 14 }}>
@@ -64,11 +48,14 @@ export default function QuizCenarios({ user, data }) {
     );
   }
 
-  // Filtrar quizzes que o jovem ainda NÃO fez
   const disponiveis = quizzes.filter(q => !feitos.includes(q.id));
 
-  // Se já fez todos
-  if (disponiveis.length === 0 && !respondidoId) {
+  // Determinar qual quiz mostrar: o que acabou de ser respondido, ou o primeiro disponível
+  const q = answered
+    ? quizzes.find(item => item.id === answered.quizId)
+    : disponiveis[0];
+
+  if (!q && disponiveis.length === 0) {
     return (
       <div style={CARD}>
         <div style={SL}>🎯 Missão Cumprida</div>
@@ -79,14 +66,9 @@ export default function QuizCenarios({ user, data }) {
     );
   }
 
-  // Quiz atual (o primeiro da lista dos disponíveis ou o que acabou de responder)
-  const q = respondidoId 
-    ? quizzes.find(item => item.id === quizzes.find(curr => !feitos.includes(curr.id) || curr.id === respondidoId)?.id)
-    : disponiveis[0];
-
   if (!q) return null;
 
-  return (
+  const jaRespondeu = answered?.quizId === q.id || feitos.includes(q.id);
     <div style={{ ...CARD, borderLeft: `4px solid ${CYN}` }}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5 }}>
         <div style={{ fontSize:10, fontWeight:900, color:CYN }}>{q.badge}</div>
@@ -100,8 +82,7 @@ export default function QuizCenarios({ user, data }) {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {q.opts.map((opt) => {
-          const isSelected = respondidoId === opt.id;
-          const jaRespondeu = feitos.includes(q.id) || respondidoId;
+          const isSelected = answered?.quizId === q.id && answered?.optId === opt.id;
 
           return (
             <div key={opt.id}>
@@ -111,7 +92,7 @@ export default function QuizCenarios({ user, data }) {
                 style={{
                   width: "100%", padding: "14px 16px", borderRadius: 14, border: "none",
                   textAlign: "left", cursor: jaRespondeu ? "default" : "pointer",
-                  background: isSelected ? CYN : "rgba(255,255,255,0.05)",
+                  background: isSelected ? CYN : (jaRespondeu ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.05)"),
                   color: isSelected ? "#000" : "#fff",
                   fontWeight: isSelected ? 800 : 500,
                   transition: "0.2s"
@@ -121,13 +102,13 @@ export default function QuizCenarios({ user, data }) {
                 {opt.text}
               </button>
 
-              {/* REVEAL: Só aparece depois de responder */}
-              {jaRespondeu && (isSelected || (feitos.includes(q.id) && !respondidoId)) && (
-                <div style={{ 
-                  marginTop: 8, padding: 12, borderRadius: 12, background: "rgba(34, 211, 238, 0.1)", 
-                  fontSize: 12, color: CYN, border: `1px solid ${CYN}30`, lineHeight: 1.4 
+              {/* REVEAL: aparece para a opção escolhida após responder */}
+              {jaRespondeu && isSelected && opt.reveal && (
+                <div style={{
+                  marginTop: 8, padding: 12, borderRadius: 12, background: "rgba(34,211,238,0.10)",
+                  fontSize: 12, color: CYN, border: `1px solid ${CYN}30`, lineHeight: 1.5
                 }}>
-                  <strong>💡 Feedback:</strong> {opt.reveal}
+                  💡 {opt.reveal}
                 </div>
               )}
             </div>
@@ -135,15 +116,16 @@ export default function QuizCenarios({ user, data }) {
         })}
       </div>
 
-      {/* FOOTER DO CARD */}
-      {(respondidoId || feitos.includes(q.id)) && (
+      {jaRespondeu && (
         <div style={{ marginTop: 20, paddingTop: 15, borderTop: "1px solid rgba(255,255,255,0.05)", textAlign: "center" }}>
           <div style={{ fontSize: 11, color: "#94a3b8" }}>
             XP ganho: <span style={{ color: CYN, fontWeight: 900 }}>+10 XP</span>
           </div>
-          <Btn variant="dark" style={{ marginTop: 10, fontSize: 11 }} onClick={() => setRespondidoId(null)}>
-            Próximo Dilema →
-          </Btn>
+          {disponiveis.filter(dq => dq.id !== q.id).length > 0 && (
+            <Btn variant="dark" style={{ marginTop: 10, fontSize: 11 }} onClick={() => setAnswered(null)}>
+              Próximo Dilema →
+            </Btn>
+          )}
         </div>
       )}
     </div>
