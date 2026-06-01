@@ -81,10 +81,10 @@ export const DIMS = [
     s:{
       a:"Tenho muita dificuldade em comunicar com a equipa e com as crianças. Evito pedir ajuda e não me sinto à vontade para receber observações sobre o meu trabalho.",
       b:"Às vezes comunico mal, uso o tom errado ou evito conversas difíceis. Prefiro trabalhar sozinho/a e tenho dificuldade em aceitar críticas sem me defender.",
-      c:"Consigo comunicar nas situações do dia a dia sem grandes problemas. Sou respeitoso/a com a equipa e as crianças. Aceito feedback, embora me custe um pouco. Só peço ajuda quando mesmo preciso.",
-      d:"Consigo adaptar a forma como comunico consoante com quem estou. Trabalho bem em equipa, partilho responsabilidades e peço ajuda quando preciso. Recebo feedback de forma tranquila.",
-      e:"Comunico bem mesmo quando as situações são difíceis. Apoio os colegas, peço feedback regularmente e uso-o para melhorar. Contribuo para um ambiente de equipa positivo.",
-      f:"Sinto que sou uma referência na comunicação dentro da equipa. Ajudo a resolver situações de tensão, apoio os colegas e contribuo para que o espaço seja melhor para todos."
+      c:"Consigo comunicar nas situações do dia a dia sem grandes problemas. Sou respeitoso/a com a equipa e as crianças. Aceito feedback, embora me custe um pouco. Só peço ajuda quando preciso mesmo.",
+      d:"Adapto a forma como comunico consoante com quem estou. Trabalho bem em equipa, partilho responsabilidades e recebo feedback de forma construtiva. Peço apoio quando preciso.",
+      e:"Comunico de forma assertiva mesmo em situações difíceis ou de tensão. Apoio ativamente a dinâmica da equipa e peço feedback por iniciativa própria, sem esperar que mo deem.",
+      f:"A forma como comunico tem impacto visível no espaço — colegas e crianças procuram-me quando há tensão ou dificuldade. Contribuo para que a equipa funcione melhor e o ambiente seja mais positivo, e isso é reconhecido sem que eu precise de o dizer."
     }
   },
   {
@@ -95,9 +95,9 @@ export const DIMS = [
       a:"Quando as coisas não correm bem, bloqueio, desisto ou fico muito agitado/a. Tenho muita dificuldade em lidar com imprevistos ou situações de stress.",
       b:"Às vezes as dificuldades afetam demasiado o meu estado de espírito e isso nota-se no trabalho. Tenho dificuldade em manter a calma quando as coisas não correm como esperava.",
       c:"Consigo manter-me estável na maior parte das situações do dia a dia. Quando há imprevistos, fico desconfortável, mas consigo continuar.",
-      d:"Quando surgem dificuldades ou imprevistos, consigo manter-me calmo/a e encontrar formas de continuar. Não desisto à primeira e consigo adaptar-me quando o plano muda.",
-      e:"Lido bem com situações difíceis: mantenho-me focado/a e encontro alternativas. A minha estabilidade ajuda os que estão à minha volta.",
-      f:"Sinto que sou uma referência de calma para a equipa. Mesmo nas situações mais difíceis, mantenho o equilíbrio, apoio os colegas e transformo os problemas em oportunidades de crescimento."
+      d:"Mantenho a calma em situações de tensão ou mudança e adapto-me a imprevistos sem comprometer o meu trabalho. Recupero com relativa facilidade quando as coisas correm mal.",
+      e:"Enfrento situações difíceis com maturidade e serenidade. Mesmo quando está tudo a correr mal, mantenho uma postura estável que transmite segurança aos que estão à minha volta.",
+      f:"Mesmo nas situações mais difíceis, mantenho um equilíbrio visível que ajuda a estabilizar os que estão à minha volta. A forma como lido com os problemas tem impacto na forma como a equipa responde às dificuldades."
     }
   },
   {
@@ -108,9 +108,9 @@ export const DIMS = [
       a:"Preciso que me digam sempre o que fazer. Não tenho iniciativa própria e nem sempre consigo cumprir o que me comprometo a fazer.",
       b:"Faço o que me pedem, mas não costumo agir por iniciativa própria. Preciso de orientação frequente e nem sempre consigo cumprir os compromissos até ao fim.",
       c:"Consigo trabalhar de forma autónoma nas tarefas habituais. Não preciso que me estejam sempre a orientar e cumpro o que me comprometo a fazer.",
-      d:"Trabalho de forma autónoma e às vezes antecipo o que precisa de ser feito sem que me peçam. Cumpro o que me comprometo e termino o que começo.",
-      e:"Costumo identificar o que precisa de ser feito antes que me digam. Proponho, tomo iniciativa e cumpro os compromissos que assumo com rigor.",
-      f:"Sinto que a minha iniciativa faz diferença no espaço. A equipa conta comigo sem precisar de me acompanhar. Proponho, executo e cumpro, e isso nota-se no dia a dia."
+      d:"Trabalho de forma autónoma e às vezes antecipo o que precisa de ser feito sem que me peçam. Cumpro os compromissos de forma consistente e concluo o que começo.",
+      e:"Identifico regularmente o que precisa de ser feito antes que me digam. Proponho e executo melhorias sem precisar de validação. Cumpro os compromissos com qualidade e regularidade.",
+      f:"A minha iniciativa tem impacto visível no espaço — coisas que antes ficavam por fazer agora acontecem porque eu as identifico e executo. A equipa conta comigo de forma autónoma e isso nota-se no funcionamento do dia a dia."
     }
   },
   {
@@ -121,9 +121,9 @@ export const DIMS = [
       a:"Não penso muito sobre o que faço bem ou mal. Não tenho objetivos claros para o futuro nem sei o que fazer para lá chegar.",
       b:"Tenho alguma noção das minhas limitações, mas custa-me admiti-las. Tenho ideias para o futuro, mas são vagas e não sei como concretizá-las.",
       c:"Sei, de forma geral, o que faço bem e o que preciso de melhorar. Tenho alguns objetivos para o futuro, mas ainda não tenho um plano claro.",
-      d:"Conheço bem as minhas competências e limitações. Defino objetivos concretos e sei o que preciso de fazer para os atingir. Quando falho, assumo e procuro melhorar.",
-      e:"Reflito regularmente sobre o meu desempenho. Tenho um projeto de vida concreto, sei os passos que preciso de dar e estou a trabalhar nisso ativamente.",
-      f:"Conheço-me a um nível profundo. Esse autoconhecimento guia as minhas decisões, o meu projeto de vida e a forma como me relaciono com os outros e com o trabalho."
+      d:"Conheço bem as minhas competências e limitações e consigo falar sobre elas com honestidade. Defino objetivos concretos, sei os passos para os atingir e uso o feedback para ajustar o meu percurso.",
+      e:"Identifico padrões no meu comportamento e trabalho ativamente nas minhas limitações. Tenho um projeto de vida concreto — não só planeado, mas em execução.",
+      f:"O meu autoconhecimento traduz-se em decisões concretas e consistentes — nas escolhas que faço, na forma como lido com os outros e na forma como avanço no meu projeto de vida. Não é só saber quem sou, é agir de acordo com isso de forma visível e consistente."
     }
   },
   {
@@ -134,9 +134,9 @@ export const DIMS = [
       a:"Tenho muita dificuldade com tecnologia e com processos burocráticos. Não consigo usar ferramentas digitais básicas nem tratar dos meus assuntos de forma autónoma.",
       b:"Consigo usar algumas ferramentas digitais, mas com dificuldade. Preciso frequentemente de ajuda para tratar de assuntos burocráticos ou usar ferramentas de trabalho online.",
       c:"Consigo usar as ferramentas digitais básicas no dia a dia. Trato dos meus assuntos administrativos simples de forma autónoma.",
-      d:"Uso bem as ferramentas digitais no trabalho. Consigo tratar de processos burocráticos de forma autónoma e sei onde procurar informação quando preciso.",
-      e:"Uso a tecnologia de forma proativa para melhorar o meu trabalho. Tenho facilidade com processos burocráticos, mesmo os mais complexos, e às vezes ajudo outros a navegá-los.",
-      f:"Tenho uma literacia digital e burocrática que faz diferença no espaço. Resolvo situações que outros não sabem tratar e sou um recurso para a equipa nesta área."
+      d:"Navego ferramentas digitais e processos burocráticos com facilidade. Conheço os meus direitos e sei como exercê-los. Trato das minhas responsabilidades cívicas e administrativas de forma autónoma.",
+      e:"Uso a tecnologia de forma proativa para melhorar o meu trabalho e navego processos complexos com autonomia. Quando alguém à minha volta precisa de ajuda nestas áreas, apoio-os.",
+      f:"A minha literacia digital e burocrática tem impacto direto no espaço — resolvo situações que outros não sabem tratar e sou a pessoa a quem recorrem quando há um problema deste tipo. Essa competência tem valor concreto e reconhecível para a equipa."
     }
   },
   {
@@ -147,9 +147,9 @@ export const DIMS = [
       a:"Tenho muita dificuldade em fazer atividades adequadas para o grupo. Não me identifico com as regras e rotinas do espaço e não tenho clareza sobre o meu papel aqui.",
       b:"As atividades que faço ainda não estão bem ajustadas ao grupo. A minha postura profissional é inconsistente e tenho dificuldade em corresponder regularmente ao que é esperado.",
       c:"Consigo fazer atividades básicas adaptadas ao grupo. Cumpro as regras e rotinas e percebo o que é esperado de mim.",
-      d:"Faço atividades adaptadas ao grupo e às suas necessidades. Tenho uma postura profissional adequada e identifico-me com os objetivos do espaço.",
-      e:"As atividades que faço têm impacto real no grupo e reflito sobre como melhorá-las. Tenho uma postura profissional que me orgulha e vou além do que é apenas esperado.",
-      f:"A qualidade do meu trabalho tem impacto real e duradouro no grupo. Sou uma referência para a equipa na conceção de atividades e a minha presença faz diferença no espaço."
+      d:"Faço atividades relevantes e ajustadas às necessidades do grupo. Tenho uma postura profissional adequada e consistente e alinho-me com os objetivos do espaço.",
+      e:"As atividades que faço têm impacto visível no grupo. Reflito sobre o que correu bem e menos bem e ajusto o que faço a seguir. A minha postura vai além do que é apenas esperado.",
+      f:"A qualidade do meu trabalho é reconhecível no espaço — as atividades que faço ficam na memória do grupo, a minha presença muda a dinâmica do local, e a equipa reconhece o valor do que trago sem que precise de o demonstrar."
     }
   }
 ];
