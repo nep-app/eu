@@ -144,6 +144,21 @@ export default function AdminQuizzes() {
               {(q.scenario || "").substring(0, 80)}{(q.scenario || "").length > 80 ? "…" : ""}
             </div>
             {q.prazo && <div style={{ fontSize: 10, color: "#f59e0b", marginTop: 4 }}>⏰ Prazo: {q.prazo}</div>}
+            {q.mock && (
+              <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+                {(q.opts || []).map(opt => {
+                  const votes = (q.mock[opt.id] || 1) - 1;
+                  const total = Object.values(q.mock).reduce((s, v) => s + v, 0) - Object.keys(q.mock).length;
+                  const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
+                  return (
+                    <div key={opt.id} style={{ background: "rgba(50,199,255,0.08)", border: "1px solid rgba(50,199,255,0.15)", borderRadius: 8, padding: "4px 10px", fontSize: 11 }}>
+                      <span style={{ color: CYN, fontWeight: 900 }}>{opt.id}</span>
+                      <span style={{ color: "#94a3b8", marginLeft: 4 }}>{votes} resp. ({pct}%)</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
           <button
             onClick={() => apagarQuiz(q.id)}
