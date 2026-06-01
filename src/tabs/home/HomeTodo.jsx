@@ -121,15 +121,15 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
           <div style={{ ...SL, color: light ? "#334155" : undefined }}>Ações Pendentes</div>
           {acoesPendentes.map((item, idx) => {
             const ICON_C = {
-              "💬": { bg:"rgba(99,102,241,0.10)",  border:"rgba(99,102,241,0.28)",  dot:"#5254b3", text:"#2e318a", sub:"#4042a099" },
-              "📊": { bg:"rgba(71,111,155,0.10)",  border:"rgba(71,111,155,0.28)",  dot:"#3d6b9e", text:"#1a3558", sub:"#2a5a8899" },
-              "😊": { bg:"rgba(20,163,148,0.10)",  border:"rgba(20,163,148,0.28)",  dot:"#0f9988", text:"#0c4f48", sub:"#107d7099" },
-              "🚀": { bg:"rgba(210,140,60,0.10)",  border:"rgba(210,140,60,0.28)",  dot:"#c2820e", text:"#7a4e00", sub:"#a0680a99" },
-              "🧠": { bg:"rgba(234,120,50,0.10)",  border:"rgba(234,120,50,0.28)",  dot:"#d06020", text:"#7a2c00", sub:"#b05010a0" },
-              "🔒": { bg:"rgba(139,114,198,0.10)", border:"rgba(139,114,198,0.28)", dot:"#7c52c8", text:"#3e1a80", sub:"#6640aa99" },
-              "🔐": { bg:"rgba(139,114,198,0.10)", border:"rgba(139,114,198,0.28)", dot:"#7c52c8", text:"#3e1a80", sub:"#6640aa99" },
+              "💬": { bg:"#dce0f5", border:"#9da6e0", dot:"#5560c8", text:"#2a3190", sub:"#5060aa" },
+              "📊": { bg:"#d8e5f5", border:"#90b0d8", dot:"#3a6aaa", text:"#1a3d6e", sub:"#305890" },
+              "😊": { bg:"#c8ede8", border:"#70c0b0", dot:"#28968a", text:"#0e524a", sub:"#267a6e" },
+              "🚀": { bg:"#f5e4c0", border:"#ddb870", dot:"#b07820", text:"#6e4400", sub:"#9a6010" },
+              "🧠": { bg:"#f5dcc0", border:"#e0a870", dot:"#c06020", text:"#6e2c00", sub:"#a05010" },
+              "🔒": { bg:"#e8d8f8", border:"#b898e0", dot:"#7840c8", text:"#3c1878", sub:"#6030aa" },
+              "🔐": { bg:"#e8d8f8", border:"#b898e0", dot:"#7840c8", text:"#3c1878", sub:"#6030aa" },
             };
-            const ls = light ? (ICON_C[item.icon] || { bg:"#eff6ff", border:"rgba(99,102,241,0.28)", dot:"#6366f1", text:"#1e3a8a", sub:"#1e40af99" }) : null;
+            const ls = light ? (ICON_C[item.icon] || { bg:"#dce0f5", border:"#9da6e0", dot:"#5560c8", text:"#2a3190", sub:"#5060aa" }) : null;
             return (
             <div key={idx} onClick={item.go} style={{
               display:"flex", alignItems:"center", gap:14, padding:"14px 16px",

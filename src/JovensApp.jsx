@@ -99,7 +99,7 @@ export default function JovensApp({ user, onLogout }) {
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       {light ? (
-        /* Teresa — header claro com grid e logo texto */
+        /* Teresa — header claro com grid e logo original integrado */
         <div style={{ position:"relative", padding:"20px 20px 18px", overflow:"hidden",
           background:"#ffffff", borderBottom:"1px solid rgba(0,0,0,0.08)" }}>
           {/* Grid pattern */}
@@ -126,15 +126,9 @@ export default function JovensApp({ user, onLogout }) {
               </div>
             </div>
 
-            {/* Right: edu ca+ + Sair */}
-            <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:10, flexShrink:0 }}>
-              <div style={{ fontFamily:"Georgia,'Palatino Linotype',Palatino,serif", fontStyle:"italic",
-                lineHeight:0.92, userSelect:"none", textAlign:"right" }}>
-                <div style={{ fontSize:38, fontWeight:700, color:"#8a6f4e", letterSpacing:-1 }}>edu</div>
-                <div style={{ fontSize:38, fontWeight:700, color:"#3c6e63", letterSpacing:-1 }}>
-                  ca<span style={{ fontSize:24, verticalAlign:"super", lineHeight:0, letterSpacing:0 }}>+</span>
-                </div>
-              </div>
+            {/* Right: logo image integrado + Sair */}
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:8, flexShrink:0 }}>
+              <img src={logoImg} alt="edu ca+" style={{ width:90, height:90, objectFit:"contain", opacity:0.92 }} />
               <button onClick={onLogout} style={{
                 background:"rgba(0,0,0,0.05)", border:"1px solid rgba(0,0,0,0.12)",
                 color:"#475569", padding:"7px 18px", borderRadius:20, fontSize:12,
