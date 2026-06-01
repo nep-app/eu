@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, arrayRemove, query, orderBy } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, arrayRemove, deleteField, query, orderBy } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, Btn, INP } from "../../theme.jsx";
 
 export default function AdminQuizzes() {
   const [quizzes, setQuizzes] = useState([]);
-  const [respostas, setRespostas] = useState([]); // adminNotificacoes tipo QUIZ
+  const [notifRespostas, setNotifRespostas] = useState([]); // fallback para respostas antigas
   const [erro, setErro] = useState(null);
-  const [resetInputs, setResetInputs] = useState({}); // { [quizId]: username }
+  const [resetInputs, setResetInputs] = useState({});
   const [novo, setNovo] = useState({
     title: "", badge: "D1 — Comunicação", scenario: "", prazo: "",
     optA: "", revA: "", optB: "", revB: "", optC: "", revC: ""
@@ -18,20 +18,17 @@ export default function AdminQuizzes() {
       const q = query(collection(db, "quizzes"), orderBy("ts", "desc"));
       return onSnapshot(q,
         (snap) => { setQuizzes(snap.docs.map(d => ({ id: d.id, ...d.data() }))); setErro(null); },
-        (err) => { setErro(err.message); }
+        (err) => setErro(err.message)
       );
     } catch (e) { setErro(e.message); }
   }, []);
 
   useEffect(() => {
-    // Load all quiz notifications, filter in JS (avoids needing composite index)
+    // Carregar notificações antigas (respostas sem quiz.responses)
     const q = query(collection(db, "adminNotificacoes"), orderBy("ts", "desc"));
-    return onSnapshot(q, (snap) => {
-      setRespostas(snap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .filter(d => d.tipo === "QUIZ")
-      );
-    });
+    return onSnapshot(q, (snap) =>
+      setNotifRespostas(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => d.tipo === "QUIZ"))
+    );
   }, []);
 
   async function salvarQuiz() {
@@ -45,7 +42,8 @@ export default function AdminQuizzes() {
           { id: "B", text: novo.optB, reveal: novo.revB },
           { id: "C", text: novo.optC, reveal: novo.revC }
         ],
-        mock: { A: 0, B: 0, C: 0 }
+        mock: { A: 0, B: 0, C: 0 },
+        responses: {}
       });
       setNovo({ title: "", badge: "D1 — Comunicação", scenario: "", prazo: "", optA: "", revA: "", optB: "", revB: "", optC: "", revC: "" });
       alert("Novo Dilema publicado! 🚀");
@@ -57,13 +55,15 @@ export default function AdminQuizzes() {
   }
 
   async function resetarResposta(quizId, jovem) {
-    const nome = jovem || resetInputs[quizId];
-    if (!nome?.trim()) return alert("Escreve o username primeiro.");
-    if (!window.confirm(`Apagar a resposta de "${nome}" a este dilema?`)) return;
+    const nome = jovem || resetInputs[quizId]?.trim();
+    if (!nome) return alert("Escreve o username primeiro.");
+    if (!window.confirm(`Apagar a resposta de "${nome}"?`)) return;
     try {
-      await updateDoc(doc(db, "userData", nome.trim()), { completedQuizzes: arrayRemove(quizId) });
+      await updateDoc(doc(db, "userData", nome), { completedQuizzes: arrayRemove(quizId) });
+      // Remover também do quiz.responses se existir
+      try { await updateDoc(doc(db, "quizzes", quizId), { [`responses.${nome}`]: deleteField() }); } catch (_) {}
       setResetInputs(p => ({ ...p, [quizId]: "" }));
-      alert(`Resposta de "${nome}" removida. Pode voltar a responder.`);
+      alert(`"${nome}" pode voltar a responder.`);
     } catch (e) { alert("Erro: " + e.message); }
   }
 
@@ -118,34 +118,42 @@ export default function AdminQuizzes() {
         <div style={{ ...CARD, color: "#475569", textAlign: "center" }}>Ainda não há dilemas criados.</div>
       )}
 
-      {quizzes.map(q => {
-        // Match by quizId (new) or quizTitle (old notifications without quizId)
-        const qRespostas = respostas.filter(r => r.quizId === q.id || (!r.quizId && r.quizTitle === q.title));
+      {quizzes.map(quiz => {
+        // Fonte primária: quiz.responses (guardado no doc do quiz)
+        const docResps = Object.entries(quiz.responses || {}).map(([jovem, d]) => ({ jovem, ...d }));
 
-        // Count votes from actual notifications (reliable), not mock seeds
+        // Fonte secundária: adminNotificacoes (respostas antigas sem quiz.responses)
+        const notifResps = notifRespostas.filter(r =>
+          (r.quizId === quiz.id || (!r.quizId && r.quizTitle === quiz.title)) &&
+          !docResps.find(d => d.jovem === r.jovem) // não duplicar
+        );
+
+        const todasRespostas = [...docResps, ...notifResps];
+        const totalVotos = todasRespostas.length;
+
+        // Contagem por opção
         const votosReais = {};
-        qRespostas.forEach(r => { if (r.opcaoId) votosReais[r.opcaoId] = (votosReais[r.opcaoId] || 0) + 1; });
-        const totalVotos = qRespostas.length;
+        todasRespostas.forEach(r => { if (r.opcaoId) votosReais[r.opcaoId] = (votosReais[r.opcaoId] || 0) + 1; });
 
         return (
-          <div key={q.id} style={CARD}>
+          <div key={quiz.id} style={CARD}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 10, fontWeight: 900, color: CYN }}>{q.badge || "—"}</div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{q.title}</div>
+                <div style={{ fontSize: 10, fontWeight: 900, color: CYN }}>{quiz.badge}</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{quiz.title}</div>
                 <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
-                  {(q.scenario || "").substring(0, 80)}{(q.scenario || "").length > 80 ? "…" : ""}
+                  {(quiz.scenario || "").substring(0, 80)}{(quiz.scenario || "").length > 80 ? "…" : ""}
                 </div>
-                {q.prazo && <div style={{ fontSize: 10, color: "#f59e0b", marginTop: 4 }}>⏰ Prazo: {q.prazo}</div>}
+                {quiz.prazo && <div style={{ fontSize: 10, color: "#f59e0b", marginTop: 4 }}>⏰ Prazo: {quiz.prazo}</div>}
               </div>
-              <button onClick={() => apagarQuiz(q.id)}
+              <button onClick={() => apagarQuiz(quiz.id)}
                 style={{ background: "none", border: "none", color: "#f43f5e", fontSize: 18, cursor: "pointer", marginLeft: 10 }}>✕</button>
             </div>
 
-            {/* Votos reais (baseado em notificações, não em mock) */}
+            {/* Distribuição de votos */}
             {totalVotos > 0 ? (
               <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap", alignItems: "center" }}>
-                {(q.opts || []).map(opt => {
+                {(quiz.opts || []).map(opt => {
                   const v = votosReais[opt.id] || 0;
                   const pct = totalVotos > 0 ? Math.round((v / totalVotos) * 100) : 0;
                   return (
@@ -161,38 +169,46 @@ export default function AdminQuizzes() {
               <div style={{ fontSize: 11, color: "#475569", marginTop: 8, fontStyle: "italic" }}>Sem respostas ainda.</div>
             )}
 
-            {/* Quem respondeu o quê */}
-            {qRespostas.length > 0 && (
-              <div style={{ marginTop: 10, borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 10 }}>
-                {qRespostas.map(r => (
-                  <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
-                    <div style={{ fontSize: 12, color: "#f1f5f9" }}>
-                      <span style={{ fontWeight: 700 }}>{r.jovem}</span>
-                      {r.opcaoId
-                        ? <span style={{ marginLeft: 8, background: "rgba(50,199,255,0.15)", color: CYN, padding: "1px 8px", borderRadius: 6, fontSize: 11, fontWeight: 900 }}>{r.opcaoId}</span>
-                        : <span style={{ marginLeft: 8, color: "#64748b", fontSize: 11 }}>(opção não registada)</span>
-                      }
+            {/* Lista de respostas individuais */}
+            {todasRespostas.length > 0 && (
+              <div style={{ marginTop: 12, borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 10 }}>
+                {todasRespostas.sort((a, b) => (b.ts || 0) - (a.ts || 0)).map((r, i) => (
+                  <div key={r.jovem + i} style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div style={{ fontSize: 13, color: "#f1f5f9" }}>
+                        <span style={{ fontWeight: 800 }}>{r.jovem}</span>
+                        {r.opcaoId
+                          ? <span style={{ marginLeft: 8, background: "rgba(50,199,255,0.15)", color: CYN, padding: "2px 9px", borderRadius: 6, fontSize: 12, fontWeight: 900 }}>{r.opcaoId}</span>
+                          : <span style={{ marginLeft: 8, color: "#64748b", fontSize: 11 }}>(opção não registada)</span>
+                        }
+                      </div>
+                      <button onClick={() => resetarResposta(quiz.id, r.jovem)}
+                        style={{ background: "none", border: "1px solid rgba(244,63,94,0.35)", color: "#f43f5e", fontSize: 10, padding: "2px 8px", borderRadius: 6, cursor: "pointer", fontWeight: 700 }}>
+                        reset
+                      </button>
                     </div>
-                    <button onClick={() => resetarResposta(q.id, r.jovem)}
-                      style={{ background: "none", border: "1px solid rgba(244,63,94,0.35)", color: "#f43f5e", fontSize: 10, padding: "2px 8px", borderRadius: 6, cursor: "pointer", fontWeight: 700 }}>
-                      reset
-                    </button>
+                    {/* Nota do jovem */}
+                    {r.nota && (
+                      <div style={{ marginTop: 6, padding: "8px 10px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", fontSize: 12, color: "#cbd5e1", fontStyle: "italic", lineHeight: 1.5 }}>
+                        "{r.nota}"
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Reset manual por username (funciona sempre) */}
-            <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.04)", display: "flex", gap: 8 }}>
+            {/* Reset manual por username */}
+            <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
               <input
                 style={{ ...INP, margin: 0, flex: 1, fontSize: 12, padding: "8px 12px" }}
                 placeholder="username para resetar..."
-                value={resetInputs[q.id] || ""}
-                onChange={e => setResetInputs(p => ({ ...p, [q.id]: e.target.value }))}
+                value={resetInputs[quiz.id] || ""}
+                onChange={e => setResetInputs(p => ({ ...p, [quiz.id]: e.target.value }))}
               />
               <button
-                onClick={() => resetarResposta(q.id, null)}
-                style={{ background: "rgba(244,63,94,0.12)", border: "1px solid rgba(244,63,94,0.35)", color: "#f43f5e", fontSize: 11, padding: "8px 14px", borderRadius: 10, cursor: "pointer", fontWeight: 800, whiteSpace: "nowrap" }}>
+                onClick={() => resetarResposta(quiz.id, null)}
+                style={{ background: "rgba(244,63,94,0.10)", border: "1px solid rgba(244,63,94,0.35)", color: "#f43f5e", fontSize: 11, padding: "8px 14px", borderRadius: 10, cursor: "pointer", fontWeight: 800, whiteSpace: "nowrap" }}>
                 Reset
               </button>
             </div>
