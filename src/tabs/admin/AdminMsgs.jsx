@@ -13,11 +13,13 @@ export default function AdminMsgs() {
   const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
-    const q = query(collection(db, "messages"), orderBy("ts", "desc"));
     const unsub = onSnapshot(
-      q,
+      collection(db, "messages"),
       (snap) => {
-        setMsgs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const lista = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (b.ts || 0) - (a.ts || 0));
+        setMsgs(lista);
         setLoadErr(null);
       },
       (err) => {
