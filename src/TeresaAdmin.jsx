@@ -194,7 +194,7 @@ const ADMIN_TABS = [
         {adminTab === "agenda"    && <AdminAgenda events={events} />}
         {adminTab === "missoes" && <AdminMissoes missions={missions} />}
         {adminTab === "satisfacao" && <AdminSatisfacao />}
-        {adminTab === "msgs" && <AdminMsgs msgs={msgs} />}
+        {adminTab === "msgs" && <AdminMsgs />}
         {adminTab === "users" && <AdminUsers amMedals={amMedals} setAmMedals={setAmMedals} allShared={allShared} weekStartTs={weekStartTs} />}
       </div>
       

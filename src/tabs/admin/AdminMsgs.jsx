@@ -1,18 +1,36 @@
-import React, { useState } from 'react';
-import { doc, updateDoc, collection, addDoc } from "firebase/firestore";
+import React, { useState, useEffect } from 'react';
+import { doc, updateDoc, collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
 import { nowLabel, JEEP_LIST, ALLOWED_USERNAMES } from "../../data.js";
 
-export default function AdminMsgs({ msgs }) {
+export default function AdminMsgs() {
+  const [msgs, setMsgs] = useState([]);
+  const [loadErr, setLoadErr] = useState(null);
   const [adminReplyTxt, setAdminReplyTxt] = useState({});
   const [novaMsgTexto, setNovaMsgTexto] = useState("");
   const [novaMsgDest, setNovaMsgDest] = useState("all");
   const [enviando, setEnviando] = useState(false);
 
+  useEffect(() => {
+    const q = query(collection(db, "messages"), orderBy("ts", "desc"));
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        setMsgs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setLoadErr(null);
+      },
+      (err) => {
+        console.error("Erro ao carregar mensagens:", err);
+        setLoadErr(err.message);
+      }
+    );
+    return unsub;
+  }, []);
+
   async function replyToMsg(msgId, hiddenUser) {
     const replyText = adminReplyTxt[msgId];
-    if (!replyText || !replyText.trim()) return;
+    if (!replyText?.trim()) return;
     await updateDoc(doc(db, "messages", msgId), { adminReply: replyText });
     if (hiddenUser) {
       await addDoc(collection(db, "notifications", hiddenUser, "items"), {
@@ -20,7 +38,6 @@ export default function AdminMsgs({ msgs }) {
       });
     }
     setAdminReplyTxt({ ...adminReplyTxt, [msgId]: "" });
-    alert("Resposta enviada com sucesso!");
   }
 
   async function enviarNovaMsg() {
@@ -64,13 +81,24 @@ export default function AdminMsgs({ msgs }) {
       </div>
 
       {/* MENSAGENS RECEBIDAS */}
-      {msgs.length === 0 && (
-        <div style={{ textAlign:"center", padding:"30px 20px", color:"#475569", fontSize:13 }}>Sem mensagens recebidas.</div>
+      {loadErr && (
+        <div style={{ ...CARD, color:"#f43f5e", fontSize:13 }}>
+          ⚠️ Erro ao carregar mensagens: {loadErr}
+        </div>
       )}
-      {msgs.slice().reverse().map(m => (
-        <div key={m.id} style={{ ...CARD, borderLeft:m.adminReply ? "1px solid rgba(255,255,255,0.1)" : `4px solid ${PNK}` }}>
+
+      {!loadErr && msgs.length === 0 && (
+        <div style={{ textAlign:"center", padding:"30px 20px", color:"#475569", fontSize:13 }}>
+          Sem mensagens recebidas.
+        </div>
+      )}
+
+      {msgs.map(m => (
+        <div key={m.id} style={{ ...CARD, borderLeft: m.adminReply ? "1px solid rgba(255,255,255,0.1)" : `4px solid ${PNK}` }}>
           <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
-            <span style={{ fontSize:12, fontWeight:800, color:m.anon?PNK:CYN }}>{m.anon?"🔒 ANÓNIMO":m.from.toUpperCase()}</span>
+            <span style={{ fontSize:12, fontWeight:800, color: m.anon ? PNK : CYN }}>
+              {m.anon ? "🔒 ANÓNIMO" : m.from?.toUpperCase()}
+            </span>
             <span style={{ fontSize:11, color:"#94a3b8" }}>{m.date}</span>
           </div>
           <div style={{ fontSize:14, lineHeight:1.5, color:"#fff", marginBottom:12 }}>{m.text}</div>
@@ -83,7 +111,10 @@ export default function AdminMsgs({ msgs }) {
             <div style={{ display:"flex", gap:8 }}>
               <input value={adminReplyTxt[m.id] || ""} onChange={e => setAdminReplyTxt({...adminReplyTxt, [m.id]: e.target.value})}
                 placeholder="Escreve uma resposta..." style={{ ...INP, flex:1, marginBottom:0, fontSize:12 }} />
-              <button onClick={() => replyToMsg(m.id, m.hiddenUser)} style={{ background:CYN, color:"#0f172a", border:"none", borderRadius:12, padding:"0 20px", fontWeight:800, cursor:"pointer" }}>Enviar</button>
+              <button onClick={() => replyToMsg(m.id, m.hiddenUser)}
+                style={{ background:CYN, color:"#0f172a", border:"none", borderRadius:12, padding:"0 20px", fontWeight:800, cursor:"pointer" }}>
+                Enviar
+              </button>
             </div>
           )}
         </div>

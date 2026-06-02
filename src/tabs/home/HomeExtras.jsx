@@ -52,17 +52,18 @@ export default function HomeExtras({ user, data, setTab }) {
 
   async function enviarMensagemTeresa() {
     if (!mensagemTexto.trim()) return;
+    const ts = Date.now();
     await addDoc(collection(db, "messages"), {
       text: mensagemTexto, anon: mensagemAnonima,
       from: mensagemAnonima ? "Anónimo" : user.username,
-      hiddenUser: user.username, date: nowFull(), adminReply: ""
+      hiddenUser: user.username, date: nowFull(), ts, adminReply: ""
     });
     await addDoc(collection(db, "adminNotificacoes"), {
       tipo: "MENSAGEM",
       anon: mensagemAnonima,
       jovem: user.username,
       texto: mensagemTexto.substring(0, 60),
-      ts: Date.now(), lida: false
+      ts, lida: false
     });
     setMensagemTexto(""); setMensagemEnviadaSucesso(true);
     setTimeout(() => setMensagemEnviadaSucesso(false), 3000);
