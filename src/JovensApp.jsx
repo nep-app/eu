@@ -20,7 +20,7 @@ const NAV = [
   ["perfil",   "👤", "Perfil"],
 ];
 
-const TERESA_BG  = "#0d0f1a";
+const TERESA_BG  = "#ebe6f7";
 const TERESA_ACC = "#a78bfa"; // soft violet
 
 export default function JovensApp({ user, onLogout }) {
@@ -60,8 +60,8 @@ export default function JovensApp({ user, onLogout }) {
     if (!isTeresa) return;
     document.body.style.backgroundColor = TERESA_BG;
     document.body.style.backgroundImage = `
-      linear-gradient(rgba(139,92,246,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(139,92,246,0.04) 1px, transparent 1px)
+      linear-gradient(rgba(139,92,246,0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(139,92,246,0.07) 1px, transparent 1px)
     `;
     document.body.style.backgroundSize = "32px 32px";
     return () => {
@@ -94,7 +94,7 @@ export default function JovensApp({ user, onLogout }) {
     <ThemeCtx.Provider value={light}>
     <div style={{ minHeight:"100vh", background: isTeresa ? TERESA_BG : BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif",
       ...(isTeresa && {
-        "--card-bg": "rgba(16,14,32,0.90)",
+        "--card-bg": "rgba(16,14,32,0.96)",
         "--card-text": "#e8e4f8",
         "--card-border": "rgba(139,92,246,0.14)",
         "--card-shadow": "0 4px 24px rgba(0,0,0,0.60), inset 0 1px 0 rgba(139,92,246,0.08)",
