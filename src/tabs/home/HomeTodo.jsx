@@ -129,7 +129,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
               "🔒": { bg:"#9878c8", border:"#7858a8", dot:"#584088", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
               "🔐": { bg:"#9878c8", border:"#7858a8", dot:"#584088", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
             };
-            const ls = light ? (ICON_C[item.icon] || ICON_C["💬"]) : null;
+            const ls = ICON_C[item.icon] || ICON_C["💬"];
             return (
             <div key={idx} onClick={item.go} style={{
               display:"flex", alignItems:"center", gap:14, padding:"14px 16px",
@@ -203,13 +203,13 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
             return (
               <div key={n.id} onClick={isForumNotif ? () => setTab("forum") : undefined}
                 style={{ display:"flex", gap:12, padding:"13px 14px",
-                  background: light ? "rgba(139,92,246,0.07)" : "rgba(0,0,0,0.2)",
+                  background:"rgba(0,0,0,0.2)",
                   borderRadius:14, marginBottom:8,
-                  border: light ? "1px solid rgba(139,92,246,0.15)" : "1px solid rgba(255,255,255,0.05)",
+                  border:"1px solid rgba(255,255,255,0.05)",
                   cursor: isForumNotif ? "pointer" : "default",
                   transition:"all 0.15s",
                 }}>
-                <div style={{ flex:1, fontSize:13, lineHeight:1.6, color: light ? "#1e1b3a" : "#f1f5f9" }}>
+                <div style={{ flex:1, fontSize:13, lineHeight:1.6, color:"#f1f5f9" }}>
                   {n.text}
                   {isForumNotif && <span style={{ fontSize:10, fontWeight:800, color:"#7c5cbf", marginLeft:8 }}>→ ver no fórum</span>}
                 </div>
