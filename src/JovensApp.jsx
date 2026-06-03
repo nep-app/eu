@@ -25,7 +25,7 @@ const TERESA_ACC = "#a78bfa"; // soft violet
 
 export default function JovensApp({ user, onLogout }) {
   const isTeresa = user.username === "teresa";
-  const light = false; // all users dark mode; isTeresa drives teresa-specific styles
+  const light = isTeresa; // true for teresa → light mode context for child components
   const [tab, setTab] = useState("home");
   const [desafiosSubTab, setDesafiosSubTab] = useState("pergunta");
   const [allData, setAllData] = useState({
@@ -94,14 +94,14 @@ export default function JovensApp({ user, onLogout }) {
     <ThemeCtx.Provider value={light}>
     <div style={{ minHeight:"100vh", background: isTeresa ? TERESA_BG : BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif",
       ...(isTeresa && {
-        "--card-bg": "rgba(16,14,32,0.96)",
-        "--card-text": "#e8e4f8",
-        "--card-border": "rgba(139,92,246,0.14)",
-        "--card-shadow": "0 4px 24px rgba(0,0,0,0.60), inset 0 1px 0 rgba(139,92,246,0.08)",
-        "--inp-bg": "rgba(10,8,24,0.82)",
-        "--inp-border": "rgba(139,92,246,0.20)",
-        "--sl-color": "#9490b8",
-        "--subtabs-bg": "rgba(10,8,24,0.68)",
+        "--card-bg": "rgba(255,255,255,0.75)",
+        "--card-text": "#1e1b3a",
+        "--card-border": "rgba(139,92,246,0.18)",
+        "--card-shadow": "0 4px 20px rgba(139,92,246,0.10), inset 0 1px 0 rgba(255,255,255,0.9)",
+        "--inp-bg": "rgba(255,255,255,0.88)",
+        "--inp-border": "rgba(139,92,246,0.28)",
+        "--sl-color": "#4a3f80",
+        "--subtabs-bg": "rgba(255,255,255,0.55)",
       })
     }}>
 

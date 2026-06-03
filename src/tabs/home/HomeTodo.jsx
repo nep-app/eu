@@ -198,12 +198,26 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
             <div style={SL}>🔔 Notificações</div>
             <div style={{ fontSize:11, fontWeight:900, color:CYN, background:`${CYN}18`, borderRadius:20, padding:"3px 10px" }}>{notifs.length}</div>
           </div>
-          {notifs.map(n => (
-            <div key={n.id} style={{ display:"flex", gap:12, padding:"13px 14px", background: light ? "rgba(0,0,0,0.04)" : "rgba(0,0,0,0.2)", borderRadius:14, marginBottom:8, border: light ? "1px solid rgba(0,0,0,0.06)" : "1px solid rgba(255,255,255,0.05)" }}>
-              <div style={{ flex:1, fontSize:13, lineHeight:1.6, color: light ? "#0f172a" : "#f1f5f9" }}>{n.text}</div>
-              <button onClick={() => onDeleteNotif && onDeleteNotif(n.id)} style={{ background:"none", border:"none", color:"#475569", fontSize:16, cursor:"pointer", paddingTop:2, flexShrink:0, lineHeight:1 }}>✕</button>
-            </div>
-          ))}
+          {notifs.map(n => {
+            const isForumNotif = n.text?.startsWith("📢") || n.text?.startsWith("📚");
+            return (
+              <div key={n.id} onClick={isForumNotif ? () => setTab("forum") : undefined}
+                style={{ display:"flex", gap:12, padding:"13px 14px",
+                  background: light ? "rgba(139,92,246,0.07)" : "rgba(0,0,0,0.2)",
+                  borderRadius:14, marginBottom:8,
+                  border: light ? "1px solid rgba(139,92,246,0.15)" : "1px solid rgba(255,255,255,0.05)",
+                  cursor: isForumNotif ? "pointer" : "default",
+                  transition:"all 0.15s",
+                }}>
+                <div style={{ flex:1, fontSize:13, lineHeight:1.6, color: light ? "#1e1b3a" : "#f1f5f9" }}>
+                  {n.text}
+                  {isForumNotif && <span style={{ fontSize:10, fontWeight:800, color:"#7c5cbf", marginLeft:8 }}>→ ver no fórum</span>}
+                </div>
+                <button onClick={e => { e.stopPropagation(); onDeleteNotif && onDeleteNotif(n.id); }}
+                  style={{ background:"none", border:"none", color:"#475569", fontSize:16, cursor:"pointer", paddingTop:2, flexShrink:0, lineHeight:1 }}>✕</button>
+              </div>
+            );
+          })}
         </div>
       )}
 

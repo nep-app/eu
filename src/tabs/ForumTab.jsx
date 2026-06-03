@@ -70,10 +70,14 @@ export default function ForumTab({ user, forumCollection = "forum" }) {
             <button key={ch.id} onClick={() => setCanalAtivo(ch.id)} style={{
               display:"flex", flexDirection:"column", alignItems:"center", gap:4,
               padding:"12px 8px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
-              border: sel ? `1px solid ${chColor}60` : "1px solid rgba(255,255,255,0.07)",
-              background: sel ? `${chColor}14` : "rgba(255,255,255,0.03)",
-              color: sel ? chColor : TXT_MUT,
-              boxShadow: sel ? `0 0 0 1px ${chColor}25` : "none",
+              border: sel
+                ? `1px solid ${chColor}70`
+                : (light ? "1px solid rgba(0,0,0,0.10)" : "1px solid rgba(255,255,255,0.07)"),
+              background: sel
+                ? `${chColor}18`
+                : (light ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.03)"),
+              color: sel ? chColor : (light ? "#4a4570" : TXT_MUT),
+              boxShadow: sel ? `0 0 0 1px ${chColor}30` : (light ? "0 1px 4px rgba(0,0,0,0.08)" : "none"),
             }}>
               <span style={{ fontSize:20 }}>{ch.icon}</span>
               <span style={{ fontSize:8, fontWeight:900, textAlign:"center", letterSpacing:0.3, textTransform:"uppercase", lineHeight:1.3 }}>{ch.label}</span>
@@ -84,10 +88,10 @@ export default function ForumTab({ user, forumCollection = "forum" }) {
         <button onClick={() => setCanalAtivo("__recursos")} style={{
           display:"flex", flexDirection:"column", alignItems:"center", gap:4,
           padding:"12px 8px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
-          border: canalAtivo === "__recursos" ? "1px solid rgba(99,102,241,0.55)" : "1px solid rgba(99,102,241,0.25)",
-          background: canalAtivo === "__recursos" ? "rgba(99,102,241,0.16)" : "rgba(99,102,241,0.06)",
-          color: canalAtivo === "__recursos" ? "#818cf8" : "#6b7cb8",
-          boxShadow: canalAtivo === "__recursos" ? "0 0 0 1px rgba(99,102,241,0.25)" : "none",
+          border: canalAtivo === "__recursos" ? "1px solid rgba(99,102,241,0.55)" : (light ? "1px solid rgba(99,102,241,0.28)" : "1px solid rgba(99,102,241,0.22)"),
+          background: canalAtivo === "__recursos" ? "rgba(99,102,241,0.16)" : (light ? "rgba(255,255,255,0.55)" : "rgba(99,102,241,0.06)"),
+          color: canalAtivo === "__recursos" ? "#6d56d8" : (light ? "#5048a0" : "#6b7cb8"),
+          boxShadow: canalAtivo === "__recursos" ? "0 0 0 1px rgba(99,102,241,0.25)" : (light ? "0 1px 4px rgba(0,0,0,0.08)" : "none"),
         }}>
           <span style={{ fontSize:20 }}>📚</span>
           <span style={{ fontSize:8, fontWeight:900, textAlign:"center", letterSpacing:0.3, textTransform:"uppercase", lineHeight:1.3 }}>Recursos</span>
@@ -97,26 +101,28 @@ export default function ForumTab({ user, forumCollection = "forum" }) {
       {canalAtivo === "__recursos" ? (
         /* ── VISTA DE RECURSOS ──────────────────────────────────────── */
         <div style={{ padding:"16px 16px 0" }}>
-          <div style={{ fontSize:10, fontWeight:900, letterSpacing:2, color:"#6366f1", textTransform:"uppercase", marginBottom:12 }}>
+          <div style={{ fontSize:10, fontWeight:900, letterSpacing:2, color: light ? "#4a3f80" : "#6366f1", textTransform:"uppercase", marginBottom:12 }}>
             📚 Recursos
           </div>
           {recursos.length === 0 ? (
-            <div style={{ textAlign:"center", padding:"30px 20px", color:TXT_MUT, fontSize:13 }}>
+            <div style={{ textAlign:"center", padding:"30px 20px", color: light ? "#6b5fa8" : TXT_MUT, fontSize:13 }}>
               Ainda não há recursos disponíveis.
             </div>
           ) : (
             recursos.map(r => (
               <a key={r.id} href={r.url} target="_blank" rel="noreferrer" style={{
                 display:"flex", alignItems:"center", gap:14, padding:"14px 16px", borderRadius:18,
-                background:"rgba(99,102,241,0.07)", border:"1px solid rgba(99,102,241,0.18)",
+                background: light ? "rgba(255,255,255,0.70)" : "rgba(99,102,241,0.07)",
+                border: light ? "1px solid rgba(99,102,241,0.22)" : "1px solid rgba(99,102,241,0.18)",
                 textDecoration:"none", marginBottom:10, transition:"all 0.15s",
+                boxShadow: light ? "0 2px 8px rgba(99,102,241,0.08)" : "none",
               }}>
                 <span style={{ fontSize:26, flexShrink:0 }}>{r.icone || "📄"}</span>
                 <div style={{ flex:1 }}>
-                  <div style={{ fontSize:13, fontWeight:800, color:"#a5b4fc" }}>{r.titulo}</div>
-                  {r.desc && <div style={{ fontSize:11, color:"#818cf8", marginTop:2 }}>{r.desc}</div>}
+                  <div style={{ fontSize:13, fontWeight:800, color: light ? "#3730a3" : "#a5b4fc" }}>{r.titulo}</div>
+                  {r.desc && <div style={{ fontSize:11, color: light ? "#5048a0" : "#818cf8", marginTop:2 }}>{r.desc}</div>}
                 </div>
-                <span style={{ fontSize:14, color:"#818cf8" }}>→</span>
+                <span style={{ fontSize:14, color: light ? "#5048a0" : "#818cf8" }}>→</span>
               </a>
             ))
           )}
@@ -125,8 +131,9 @@ export default function ForumTab({ user, forumCollection = "forum" }) {
         <>
           {/* ── INFO DO CANAL ────────────────────────────────────────── */}
           <div style={{ margin:"12px 16px 0", padding:"12px 16px", borderRadius:16,
-            background:"rgba(255,255,255,0.03)", borderLeft:`2px solid ${CHANNEL_COLORS[canalAtivo] || CYN}60`,
-            fontSize:12, color:TXT_MUT, lineHeight:1.6 }}>
+            background: light ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.03)",
+            borderLeft:`2px solid ${CHANNEL_COLORS[canalAtivo] || CYN}60`,
+            fontSize:12, color: light ? "#4a4570" : TXT_MUT, lineHeight:1.6 }}>
             {canalInfo?.desc}
             {canalInfo?.adminOnly && <span style={{ marginLeft:6, fontSize:10, fontWeight:900, color:"#f59e0b" }}>· apenas a Teresa publica</span>}
           </div>
