@@ -9,17 +9,22 @@ import ForumComposer from './forum/ForumComposer.jsx';
 
 // Per-channel accent colors for light mode
 const CHANNEL_COLORS = {
+  anuncios:  "#f59e0b", // amber — announcements
   csi:       "#ef4444", // red — CSI investigative
-  monitor:   "#f59e0b", // amber — trophies/victories
-  olx:       "#8b5cf6", // violet — marketplace
-  orienta:   "#3b82f6", // blue — compass/guidance
+  monitor:   "#22c55e", // green — trophies/victories
   backstage: "#ec4899", // pink — creative/stage
   coffee:    "#78716c", // warm brown — coffee
 };
 
+const RECURSOS = [
+  { label:"Guia Bem-estar Digital", icon:"📱", href:"bem-estar-digital.html", desc:"Conceitos, hábitos e ferramentas para uma relação saudável com o digital" },
+];
+
+const isAdmin = (u) => u?.username === "admin" || u?.username === "teresa";
+
 export default function ForumTab({ user, forumCollection = "forum" }) {
   const light = useContext(ThemeCtx);
-  const [canalAtivo, setCanalAtivo] = useState("csi");
+  const [canalAtivo, setCanalAtivo] = useState("anuncios");
   const [listaPosts, setListaPosts]  = useState([]);
   const [allMedals,  setAllMedals]   = useState({});
 
@@ -42,12 +47,37 @@ export default function ForumTab({ user, forumCollection = "forum" }) {
     return onSnapshot(q, snap => setListaPosts(snap.docs.map(d => ({ id:d.id, ...d.data() }))));
   }, [canalAtivo, forumCollection]);
 
-  const infoCanal = CHANNELS.find(c => c.id === canalAtivo);
+  const canalInfo = CHANNELS.find(c => c.id === canalAtivo);
+  const adminOnlyLocked = canalInfo?.adminOnly && !isAdmin(user);
 
   return (
     <div style={{ paddingBottom:100 }}>
 
-      {/* ── CANAIS EM GRELHA 3×2 ────────────────────────────────────── */}
+      {/* ── RECURSOS ─────────────────────────────────────────────────── */}
+      <div style={{ padding:"16px 16px 0" }}>
+        <div style={{ fontSize:10, fontWeight:900, letterSpacing:2, color: light ? "#6366f1" : "#5a7a9a", textTransform:"uppercase", marginBottom:8 }}>
+          📚 Recursos
+        </div>
+        <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+          {RECURSOS.map(r => (
+            <a key={r.href} href={r.href} target="_blank" rel="noreferrer" style={{
+              display:"flex", alignItems:"center", gap:12, padding:"12px 16px", borderRadius:16,
+              background: light ? "rgba(99,102,241,0.08)" : "rgba(99,102,241,0.08)",
+              border: light ? "1px solid rgba(99,102,241,0.2)" : "1px solid rgba(99,102,241,0.2)",
+              textDecoration:"none", transition:"all 0.15s",
+            }}>
+              <span style={{ fontSize:22 }}>{r.icon}</span>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:13, fontWeight:800, color: light ? "#3730a3" : "#a5b4fc" }}>{r.label}</div>
+                <div style={{ fontSize:11, color: light ? "#6366f1" : "#818cf8", marginTop:1 }}>{r.desc}</div>
+              </div>
+              <span style={{ fontSize:12, color: light ? "#6366f1" : "#818cf8", fontWeight:800 }}>→</span>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      {/* ── CANAIS ─────────────────────────────────────────────────── */}
       <div style={{ padding:"16px 16px 0", display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
         {CHANNELS.map(ch => {
           const sel = canalAtivo === ch.id;
@@ -76,22 +106,29 @@ export default function ForumTab({ user, forumCollection = "forum" }) {
 
       {/* ── INFO DO CANAL ────────────────────────────────────────────── */}
       <div style={{ margin:"12px 16px 0", padding:"12px 16px", borderRadius:16,
-        background: light ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.03)", borderLeft:`2px solid ${CYN}50`,
+        background: light ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.03)", borderLeft:`2px solid ${CHANNEL_COLORS[canalAtivo] || CYN}60`,
         fontSize:12, color: light ? "#475569" : TXT_MUT, lineHeight:1.6 }}>
-        {infoCanal?.desc}
+        {canalInfo?.desc}
+        {canalInfo?.adminOnly && <span style={{ marginLeft:6, fontSize:10, fontWeight:900, color:"#f59e0b" }}>· apenas a Teresa publica</span>}
       </div>
 
-      {/* ── COMPOSER ────────────────────────────────────────────────── */}
+      {/* ── COMPOSER (locked for adminOnly channels unless admin) ──── */}
       <div style={{ padding:"14px 16px 0" }}>
-        <ForumComposer user={user} canalAtivo={canalAtivo} infoCanal={infoCanal} forumCollection={forumCollection} />
+        {adminOnlyLocked ? (
+          <div style={{ padding:"14px 16px", borderRadius:16, background:"rgba(245,158,11,0.06)", border:"1px solid rgba(245,158,11,0.2)", fontSize:13, color:"#d97706", textAlign:"center" }}>
+            🔔 Este canal é só para anúncios da Teresa. Podes comentar nos posts abaixo!
+          </div>
+        ) : (
+          <ForumComposer user={user} canalAtivo={canalAtivo} infoCanal={canalInfo} forumCollection={forumCollection} />
+        )}
       </div>
 
       {/* ── POSTS ───────────────────────────────────────────────────── */}
       <div style={{ padding:"0 16px", marginTop:8 }}>
         {listaPosts.length === 0 ? (
           <div style={{ textAlign:"center", padding:"40px 20px", color: light ? "#475569" : TXT_MUT, fontSize:13 }}>
-            <div style={{ fontSize:32, marginBottom:10 }}>{infoCanal?.icon}</div>
-            Ainda sem partilhas neste canal. Sê o primeiro!
+            <div style={{ fontSize:32, marginBottom:10 }}>{canalInfo?.icon}</div>
+            {canalInfo?.adminOnly ? "Ainda sem anúncios. Aguarda novidades da Teresa!" : "Ainda sem partilhas neste canal. Sê o primeiro!"}
           </div>
         ) : (
           listaPosts.map(post => (

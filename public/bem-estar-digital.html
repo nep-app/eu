@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bem-estar Digital · Guia JEEP</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,300;9..144,0,700;9..144,0,900;9..144,1,300;9..144,1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f2ede4;
+    --surface: #e8e1d5;
+    --card: #faf7f2;
+    --ink: #1a1612;
+    --ink2: #3d3630;
+    --muted: #8a8078;
+    --a1: #d4401a;
+    --a2: #1a5c3a;
+    --a3: #c4973a;
+    --a4: #2a3d8f;
+    --a5: #8f2a5c;
+    --border: rgba(26,22,18,0.1);
+    --border2: rgba(26,22,18,0.06);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { color-scheme: light; }
+  html { scroll-behavior:smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  .topnav {
+    position: fixed; top:0; left:0; right:0; z-index:100;
+    background: rgba(242,237,228,0.94);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    display: flex; overflow-x:auto; scrollbar-width:none;
+    padding: 0 40px;
+  }
+  .topnav::-webkit-scrollbar { display:none; }
+  .topnav a {
+    text-decoration:none; color:var(--muted);
+    font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
+    padding:15px 16px; white-space:nowrap;
+    border-bottom:2px solid transparent;
+    transition:all 0.2s; display:block; font-weight:500;
+  }
+  .topnav a:hover { color:var(--ink); border-color:var(--a1); }
+  .topnav a.active { color:var(--a1); border-color:var(--a1); }
+
+  /* HERO */
+  #hero {
+    min-height:100vh;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 2px solid var(--ink);
+  }
+  .hero-left {
+    padding: 120px 48px 64px;
+    border-right: 1px solid var(--border);
+    display:flex; flex-direction:column; justify-content:flex-end;
+  }
+  .hero-right {
+    padding: 120px 48px 64px;
+    background: var(--ink);
+    display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .hero-tag {
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:10px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:40px; font-weight:500;
+  }
+  .hero-tag::before { content:''; width:20px; height:1px; background:var(--a1); }
+  #hero h1 {
+    font-family:'Fraunces',serif;
+    font-size: clamp(56px,7vw,96px);
+    font-weight:900; line-height:0.95;
+    letter-spacing:-0.02em;
+    margin-bottom:32px; color:var(--ink);
+  }
+  #hero h1 em { font-style:italic; color:var(--a1); }
+  .hero-desc {
+    font-size:16px; color:var(--ink2); line-height:1.7;
+    max-width:400px; font-weight:300;
+  }
+  .hero-desc strong { font-weight:500; color:var(--ink); }
+  .hero-right-top { color:rgba(242,237,228,0.4); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; }
+  .hero-chips { display:flex; flex-direction:column; gap:12px; }
+  .hero-chip {
+    border:1px solid rgba(242,237,228,0.15);
+    padding:16px 20px; border-radius:4px;
+    font-size:14px; color:rgba(242,237,228,0.8);
+    display:flex; align-items:center; gap:12px;
+    transition:background 0.2s;
+  }
+  .hero-chip:hover { background:rgba(242,237,228,0.05); }
+  .hero-chip span:first-child { font-size:20px; }
+
+  /* SECTIONS */
+  section { border-bottom:1px solid var(--border); scroll-margin-top:50px; }
+  .sec-inner { padding:80px 48px; }
+  .slabel {
+    font-size:10px; letter-spacing:0.18em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:48px;
+    display:flex; align-items:center; gap:14px; font-weight:500;
+  }
+  .slabel::after { content:''; flex:1; height:1px; background:var(--border); }
+  h2 {
+    font-family:'Fraunces',serif;
+    font-size: clamp(36px,4.5vw,64px);
+    font-weight:900; line-height:1.0;
+    letter-spacing:-0.02em; margin-bottom:16px; color:var(--ink);
+  }
+  h2 em { font-style:italic; color:var(--a1); }
+  .lead { color:var(--muted); max-width:520px; font-size:16px; margin-bottom:52px; line-height:1.75; font-weight:300; }
+  .lead strong { color:var(--ink); font-weight:500; }
+
+  /* CONCEITOS */
+  #conceitos { background:var(--card); }
+  .c-grid {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:0; border:1px solid var(--border);
+  }
+  .c-card {
+    padding:36px 32px;
+    border-right:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    position:relative;
+  }
+  .c-card:last-child { border-right:none; }
+  .c-num {
+    font-family:'Fraunces',serif; font-size:48px; font-weight:900;
+    color:var(--border); line-height:1; margin-bottom:20px;
+    letter-spacing:-0.03em;
+  }
+  .c-card h3 {
+    font-family:'Fraunces',serif; font-size:20px; font-weight:700;
+    margin-bottom:12px; color:var(--ink); line-height:1.2;
+  }
+  .c-card p { font-size:14px; color:var(--ink2); line-height:1.75; font-weight:300; }
+  .c-card strong { font-weight:500; color:var(--ink); }
+  .c-wide {
+    grid-column:1/-1; border-right:none;
+    background:var(--ink); padding:32px 36px;
+  }
+  .c-wide .c-num { color:rgba(242,237,228,0.1); }
+  .c-wide h3 { color:var(--bg); }
+  .c-wide p { color:rgba(242,237,228,0.6); }
+  .c-wide strong { color:var(--bg); }
+  .c-tag {
+    display:inline-block; font-size:10px; letter-spacing:0.12em;
+    text-transform:uppercase; background:var(--a1);
+    color:white; padding:4px 10px; margin-bottom:16px; font-weight:500;
+  }
+
+  /* LOOP */
+  #loop { background:var(--bg); }
+  .loop-track {
+    display:flex; flex-direction:column; gap:0;
+    border:1px solid var(--border); margin-top:8px;
+  }
+  .lt {
+    display:grid; grid-template-columns:80px 1fr;
+    border-bottom:1px solid var(--border);
+    min-height:80px;
+  }
+  .lt:last-child { border-bottom:none; }
+  .lt-num {
+    display:flex; align-items:center; justify-content:center;
+    border-right:1px solid var(--border);
+    font-family:'Fraunces',serif; font-size:28px; font-weight:900;
+    color:var(--border);
+  }
+  .lt-content { padding:20px 28px; display:flex; align-items:center; gap:20px; }
+  .lt-icon { font-size:28px; flex-shrink:0; width:40px; text-align:center; }
+  .lt-title { font-family:'Fraunces',serif; font-size:17px; font-weight:700; color:var(--ink); margin-bottom:4px; }
+  .lt-desc { font-size:13px; color:var(--muted); line-height:1.5; font-weight:300; }
+  .lt.highlight { background:var(--ink); }
+  .lt.highlight .lt-num { color:rgba(242,237,228,0.15); border-color:rgba(242,237,228,0.1); }
+  .lt.highlight .lt-content { border-left:none; }
+  .lt.highlight .lt-title { color:var(--bg); }
+  .lt.highlight .lt-desc { color:rgba(242,237,228,0.5); }
+  .loop-note {
+    margin-top:24px; padding:24px 28px;
+    border-left:3px solid var(--a1);
+    background:var(--card);
+    font-size:14px; color:var(--ink2); line-height:1.7; font-weight:300;
+  }
+  .loop-note strong { color:var(--a1); font-weight:600; }
+
+  /* DESIGN PERSUASIVO */
+  #design { background:var(--surface); }
+  .dp-grid {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:0; border:1px solid var(--border); margin-top:8px;
+  }
+  .dp-card {
+    padding:28px 24px;
+    border-right:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+  }
+  .dp-color { width:100%; height:3px; margin-bottom:20px; }
+  .dp-card h4 { font-family:'Fraunces',serif; font-size:17px; font-weight:700; margin-bottom:8px; color:var(--ink); }
+  .dp-card p { font-size:13px; color:var(--muted); line-height:1.65; font-weight:300; }
+  .dp-callout {
+    margin-top:24px; padding:28px 32px;
+    background:var(--ink); color:rgba(242,237,228,0.7);
+    font-size:15px; line-height:1.75; font-weight:300;
+  }
+  .dp-callout strong { color:var(--bg); font-weight:500; }
+
+  /* SINAIS */
+  #sinais { background:var(--card); }
+  .sinais-grid {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:0; border:1px solid var(--border); margin-top:8px;
+  }
+  .s-card { padding:32px 28px; border-right:1px solid var(--border); border-bottom:1px solid var(--border); }
+  .s-label {
+    font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
+    font-weight:600; margin-bottom:20px; display:flex; align-items:center; gap:8px;
+  }
+  .s-label::before { content:''; width:12px; height:2px; }
+  .s-list { list-style:none; display:flex; flex-direction:column; gap:10px; }
+  .s-list li { font-size:13px; color:var(--ink2); line-height:1.6; font-weight:300; padding-left:16px; position:relative; }
+  .s-list li::before { content:'—'; position:absolute; left:0; color:var(--muted); font-size:11px; }
+  .s-note {
+    grid-column:1/-1; padding:24px 28px;
+    background:rgba(212,64,26,0.06); border-top:2px solid var(--a1);
+    font-size:14px; color:var(--ink2); line-height:1.7; font-weight:300;
+  }
+  .s-note strong { color:var(--a1); font-weight:600; }
+
+  /* ATIVIDADES */
+  #atividades { background:var(--bg); }
+  .ativ-note {
+    padding:20px 24px; border-left:3px solid var(--a2);
+    background:var(--card); margin-bottom:16px;
+    font-size:14px; color:var(--ink2); line-height:1.7; font-weight:300;
+  }
+  .ativ-note strong { color:var(--a2); font-weight:600; }
+  .ag { display:flex; flex-direction:column; gap:0; border:1px solid var(--border); }
+  .ac { border-bottom:1px solid var(--border); }
+  .ac:last-child { border-bottom:none; }
+  .ac-head {
+    padding:24px 32px; cursor:pointer;
+    display:flex; align-items:center; gap:20px;
+    transition:background 0.15s;
+    user-select:none;
+  }
+  .ac-head:hover { background:var(--surface); }
+  .ac-num {
+    font-family:'Fraunces',serif; font-size:32px; font-weight:900;
+    color:var(--border); flex-shrink:0; width:40px; line-height:1;
+  }
+  .ac-emoji { font-size:24px; flex-shrink:0; }
+  .ac-info { flex:1; }
+  .ac-title { font-family:'Fraunces',serif; font-size:20px; font-weight:700; color:var(--ink); margin-bottom:6px; }
+  .ac-meta { display:flex; gap:8px; flex-wrap:wrap; }
+  .ac-meta span {
+    font-size:11px; color:var(--muted); font-weight:400;
+    padding:3px 10px; background:var(--surface);
+    border:1px solid var(--border); border-radius:2px;
+    letter-spacing:0.04em;
+  }
+  .ac-toggle { color:var(--muted); font-size:20px; transition:transform 0.25s; flex-shrink:0; }
+  .ac.open .ac-toggle { transform:rotate(45deg); }
+  .ac-body {
+    display:none; padding:0 32px 32px 92px;
+  }
+  .ac.open .ac-body { display:block; }
+  .ac-objetivo {
+    font-size:14px; color:var(--muted); margin-bottom:20px;
+    line-height:1.7; font-weight:300;
+    padding-bottom:20px; border-bottom:1px dashed var(--border);
+  }
+  .ac-objetivo strong {
+    display:block; font-size:10px; letter-spacing:0.12em;
+    text-transform:uppercase; color:var(--a1); font-weight:600; margin-bottom:6px;
+  }
+  .ac-steps { list-style:none; display:flex; flex-direction:column; gap:0; }
+  .ac-steps li {
+    font-size:14px; color:var(--ink2); padding:12px 0 12px 24px;
+    border-bottom:1px dashed var(--border2);
+    position:relative; line-height:1.6; font-weight:300;
+    display:flex; gap:12px; align-items:flex-start;
+  }
+  .ac-steps li::before {
+    content:''; flex-shrink:0; width:16px; height:1px;
+    background:var(--a1); margin-top:11px;
+  }
+  .ac-steps li:last-child { border-bottom:none; }
+  .ac-pergunta {
+    margin-top:16px; padding:16px 20px;
+    border-left:2px solid var(--a3);
+    background:rgba(196,151,58,0.06);
+    font-size:13px; color:var(--ink2); line-height:1.7; font-weight:300;
+  }
+  .ac-pergunta strong {
+    color:var(--a3); display:block; font-size:10px;
+    letter-spacing:0.1em; text-transform:uppercase;
+    font-weight:600; margin-bottom:6px;
+  }
+  .ac-pergunta-alt {
+    margin-top:8px; padding:14px 18px;
+    border-left:2px solid;
+    font-size:13px; color:var(--ink2); line-height:1.65; font-weight:300;
+  }
+  .ac-pergunta-alt strong {
+    display:block; font-size:10px; letter-spacing:0.1em;
+    text-transform:uppercase; font-weight:600; margin-bottom:5px;
+  }
+
+  /* FERRAMENTAS */
+  #ferramentas { background:var(--surface); }
+  .ft-grid {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:0; border:1px solid var(--border); margin-top:8px;
+  }
+  .ft-card {
+    padding:32px 28px;
+    border-right:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+  }
+  .ft-icon { font-size:32px; margin-bottom:16px; display:block; }
+  .ft-card h3 { font-family:'Fraunces',serif; font-size:17px; font-weight:700; margin-bottom:10px; color:var(--ink); }
+  .ft-card p { font-size:13px; color:var(--muted); line-height:1.7; font-weight:300; }
+  .ft-time {
+    display:inline-block; margin-top:14px;
+    font-size:10px; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--a1); font-weight:600;
+    border-bottom:1px solid var(--a1); padding-bottom:2px;
+  }
+
+  /* PERGUNTAS */
+  #perguntas { background:var(--card); }
+  .pq-note {
+    padding:20px 24px; border-left:3px solid var(--a4);
+    background:var(--bg); margin-bottom:32px;
+    font-size:14px; color:var(--ink2); line-height:1.7; font-weight:300;
+  }
+  .pq-note strong { color:var(--a4); font-weight:600; }
+  .pq-conv {
+    padding:20px 24px; border-left:3px solid var(--a2);
+    background:var(--bg); margin-bottom:32px;
+    font-size:14px; color:var(--ink2); line-height:1.8; font-weight:300;
+  }
+  .pq-conv strong { color:var(--a2); font-weight:600; }
+  .pq-grid {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:0; border:1px solid var(--border);
+  }
+  .pq {
+    padding:24px 28px;
+    border-right:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    font-family:'Fraunces',serif; font-size:16px;
+    line-height:1.5; color:var(--ink); font-style:italic;
+    font-weight:300; position:relative;
+  }
+  .pq::before {
+    content:'"'; position:absolute; top:16px; left:20px;
+    font-size:36px; color:var(--border); line-height:1;
+    font-family:'Fraunces',serif; font-weight:900;
+  }
+  .pq { padding-top:40px; }
+
+  /* FOOTER */
+  footer {
+    padding:48px; border-top:2px solid var(--ink);
+    display:grid; grid-template-columns:1fr auto;
+    align-items:end; gap:24px;
+    background:var(--card);
+  }
+  .f-logo {
+    font-family:'Fraunces',serif; font-size:28px;
+    font-weight:900; color:var(--ink); display:block; margin-bottom:8px;
+    letter-spacing:-0.02em;
+  }
+  footer p { font-size:12px; color:var(--muted); }
+  .f-mark {
+    font-family:'Fraunces',serif; font-size:80px; font-weight:900;
+    color:var(--border); line-height:1; letter-spacing:-0.04em;
+  }
+
+  @media(max-width:640px) {
+    #hero { grid-template-columns:1fr; }
+    .hero-right { display:none; }
+    .sec-inner, footer { padding:60px 20px; }
+    .topnav { padding:0 16px; }
+    .ac-body { padding-left:20px; }
+    .ac-num { display:none; }
+    footer { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="#hero">Início</a>
+  <a href="#conceitos">Conceitos</a>
+  <a href="#loop">O loop</a>
+  <a href="#design">Design persuasivo</a>
+  <a href="#sinais">Sinais de alerta</a>
+  <a href="#atividades">Atividades</a>
+  <a href="#ferramentas">Ferramentas</a>
+  <a href="#perguntas">Perguntas</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-left">
+    <div class="hero-tag">Guia para animadores JEEP · Educa+</div>
+    <h1>Bem-estar<br><em>Digital</em></h1>
+    <p class="hero-desc">
+      Um guia para usares nas ludotecas e espaços comunitários.<br>
+      <strong>Não é sobre banir os ecrãs</strong> — é sobre ajudar os jovens a perceber a relação que têm com a tecnologia.
+    </p>
+  </div>
+  <div class="hero-right">
+    <div class="hero-right-top">O que encontras aqui</div>
+    <div class="hero-chips">
+      <div class="hero-chip"><span>💡</span><span>Conceitos-chave para teres claros</span></div>
+      <div class="hero-chip"><span>⚠️</span><span>Sinais de alerta a observar</span></div>
+      <div class="hero-chip"><span>🎯</span><span>6 atividades prontas a usar</span></div>
+      <div class="hero-chip"><span>🛠️</span><span>Ferramentas de 1 a 5 minutos</span></div>
+      <div class="hero-chip"><span>❓</span><span>Perguntas para criar reflexão</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CONCEITOS -->
+<section id="conceitos">
+  <div class="sec-inner">
+    <div class="slabel">01 — Conceitos fundamentais</div>
+    <h2>O que precisas<br><em>de saber</em></h2>
+    <p class="lead">Antes de qualquer atividade, convém teres estes conceitos claros. São a base de todas as conversas.</p>
+    <div class="c-grid">
+      <div class="c-card">
+        <div class="c-num">01</div>
+        <h3>Bem-estar digital</h3>
+        <p>Não é só quanto tempo passam online. É <strong>porquê</strong> usam, <strong>como se sentem</strong> durante e depois, e se a tecnologia os serve — ou os drena.</p>
+      </div>
+      <div class="c-card">
+        <div class="c-num">02</div>
+        <h3>Compulsão ≠ vício</h3>
+        <p>A maioria não é viciada. Usa os ecrãs para <strong>fugir de emoções difíceis</strong>: tédio, solidão, stress. Isso chama-se compulsão — muito mais fácil de mudar do que um vício.</p>
+      </div>
+      <div class="c-card">
+        <div class="c-num">03</div>
+        <h3>Quando se torna problema</h3>
+        <p>Quando passa de <strong>escolha para automatismo</strong>, quando é a resposta padrão a qualquer emoção, ou quando interfere com o que realmente importa.</p>
+      </div>
+      <div class="c-card" style="border-right:none;">
+        <div class="c-num">04</div>
+        <h3>Não é fraqueza</h3>
+        <p>As apps são <strong>desenhadas para prender</strong>. Ter dificuldade em parar não é falta de força de vontade — é o sistema a funcionar como foi desenhado.</p>
+      </div>
+      <div class="c-card c-wide">
+        <div class="c-tag">linguagem que importa</div>
+        <h3>Limites ≠ Fronteiras</h3>
+        <p><strong>"Limites"</strong> soam a regra imposta por alguém de fora — criam resistência. <strong>"Fronteiras"</strong> são acordos que a pessoa escolhe para si: quando, onde e como a tecnologia cabe na sua vida. A mudança de palavra muda tudo na forma como os jovens recebem a conversa.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOOP -->
+<section id="loop">
+  <div class="sec-inner">
+    <div class="slabel">02 — O mecanismo</div>
+    <h2>O loop<br><em>do hábito</em></h2>
+    <p class="lead">Explica aos jovens como o cérebro fica preso. Quando percebem o ciclo, ficam com mais agência para o interromper.</p>
+    <div class="loop-track">
+      <div class="lt">
+        <div class="lt-num">1</div>
+        <div class="lt-content"><div class="lt-icon">⚡</div><div><div class="lt-title">Trigger</div><div class="lt-desc">Tédio, solidão, stress, notificação, aborrecimento</div></div></div>
+      </div>
+      <div class="lt">
+        <div class="lt-num">2</div>
+        <div class="lt-content"><div class="lt-icon">🧠</div><div><div class="lt-title">Antecipação</div><div class="lt-desc">O cérebro espera prazer, alívio ou ligação</div></div></div>
+      </div>
+      <div class="lt">
+        <div class="lt-num">3</div>
+        <div class="lt-content"><div class="lt-icon">📲</div><div><div class="lt-title">Comportamento</div><div class="lt-desc">Abrem a app, scrollam, verificam as notificações</div></div></div>
+      </div>
+      <div class="lt">
+        <div class="lt-num">4</div>
+        <div class="lt-content"><div class="lt-icon">✨</div><div><div class="lt-title">Recompensa</div><div class="lt-desc">Like, vídeo novo, mensagem — alívio temporário</div></div></div>
+      </div>
+      <div class="lt highlight">
+        <div class="lt-num">↺</div>
+        <div class="lt-content"><div class="lt-icon">🔄</div><div><div class="lt-title">Repete — torna-se automático</div><div class="lt-desc">Modo automático: trigger → comportamento. Modo consciente: trigger → sentimento → <strong style="color:var(--bg)">pausa</strong> → escolha. O mindfulness é essa pausa.</div></div></div>
+      </div>
+    </div>
+    <div class="loop-note">
+      <strong>Como usar nas sessões:</strong> Pergunta "o que é que costuma acontecer antes de pegares no telemóvel sem pensar?" — os jovens identificam os seus triggers rapidamente. A partir daí a conversa flui sozinha.
+    </div>
+  </div>
+</section>
+
+<!-- DESIGN PERSUASIVO -->
+<section id="design">
+  <div class="sec-inner">
+    <div class="slabel">03 — O que as apps fazem</div>
+    <h2>Design<br><em>persuasivo</em></h2>
+    <p class="lead">Não é acidente. Estes mecanismos existem de propósito para maximizar o tempo dentro das plataformas. Partilhar isto com os jovens reduz a vergonha e aumenta a consciência.</p>
+    <div class="dp-grid">
+      <div class="dp-card"><div class="dp-color" style="background:var(--a1)"></div><h4>Scroll infinito</h4><p>Sem ponto de paragem natural. Nunca há um "acabou".</p></div>
+      <div class="dp-card"><div class="dp-color" style="background:var(--a2)"></div><h4>Autoplay</h4><p>O próximo vídeo começa antes de teres tempo de parar.</p></div>
+      <div class="dp-card"><div class="dp-color" style="background:var(--a3)"></div><h4>Likes e reações</h4><p>Recompensas imprevisíveis — como uma slot machine.</p></div>
+      <div class="dp-card"><div class="dp-color" style="background:var(--a4)"></div><h4>Notificações</h4><p>Interrompem o foco e criam urgência artificial.</p></div>
+      <div class="dp-card"><div class="dp-color" style="background:var(--a5)"></div><h4>Streaks</h4><p>Pressão social e medo de perder o que construíste. Voltam todos os dias.</p></div>
+      <div class="dp-card" style="border-right:none;"><div class="dp-color" style="background:var(--ink)"></div><h4>Algoritmos personalizados</h4><p>Aprendem o que prende e servem mais do mesmo.</p></div>
+    </div>
+    <div class="dp-callout">
+      <strong>Mensagem-chave para passar:</strong> "Não é culpa tua se é difícil parar — o teu cérebro está a responder a um design intencional." Esta frase muda a conversa de vergonha para consciência.
+    </div>
+  </div>
+</section>
+
+<!-- SINAIS DE ALERTA -->
+<section id="sinais">
+  <div class="sec-inner">
+    <div class="slabel">04 — Para o facilitador</div>
+    <h2>Sinais de<br><em>alerta</em></h2>
+    <p class="lead">Não é preciso um jovem falar para perceberes que algo pode não estar bem. Estes padrões — especialmente em conjunto — valem a pena notar.</p>
+    <div class="sinais-grid">
+      <div class="s-card">
+        <div class="s-label" style="color:var(--a1);"><span style="background:var(--a1);width:12px;height:2px;display:inline-block;"></span>Emocionais</div>
+        <ul class="s-list">
+          <li>Irritabilidade ou agitação quando está offline ou sem telemóvel</li>
+          <li>Humor baixo ou ansiedade depois de scrollar</li>
+          <li>Usar os ecrãs sistematicamente para fugir a emoções</li>
+        </ul>
+      </div>
+      <div class="s-card">
+        <div class="s-label" style="color:var(--a3);"><span style="background:var(--a3);width:12px;height:2px;display:inline-block;"></span>Comportamentais</div>
+        <ul class="s-list">
+          <li>Verificar o telemóvel repetidamente sem razão</li>
+          <li>Dificuldade genuína em parar mesmo quando quer</li>
+          <li>Dormir tarde a scrollar, acordar cansado</li>
+          <li>Abandonar atividades que antes gostava</li>
+        </ul>
+      </div>
+      <div class="s-card">
+        <div class="s-label" style="color:var(--a4);"><span style="background:var(--a4);width:12px;height:2px;display:inline-block;"></span>Sociais</div>
+        <ul class="s-list">
+          <li>Retirar-se progressivamente de relações offline</li>
+          <li>Pensar demasiado em likes, mensagens ou interações online</li>
+          <li>Preocupação excessiva com a identidade online</li>
+        </ul>
+      </div>
+      <div class="s-card" style="border-right:none;">
+        <div class="s-label" style="color:var(--a5);"><span style="background:var(--a5);width:12px;height:2px;display:inline-block;"></span>De linguagem</div>
+        <ul class="s-list">
+          <li>Visão do mundo cada vez mais negativa</li>
+          <li>Dificuldade em expressar emoções sem emojis ou memes</li>
+          <li>Adoção de opiniões extremas ou conspirativas</li>
+        </ul>
+      </div>
+      <div class="s-note">
+        <strong>Importante:</strong> Um sinal isolado não significa nada. É o padrão ao longo do tempo que importa. Quando algo te preocupa, o primeiro passo é sempre criar espaço para conversa — não confrontar nem resolver.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ATIVIDADES -->
+<section id="atividades">
+  <div class="sec-inner">
+    <div class="slabel">05 — Atividades para a ludoteca</div>
+    <h2>Para fazer<br><em>com os jovens</em></h2>
+    <div class="ativ-note">
+      <strong>Como facilitador(a):</strong> não tens de ser especialista. O teu papel é criar espaço para refletir — sem julgamento. Começa sempre pelo que é positivo nos ecrãs. Os jovens fecham-se se sentirem que estão a ser julgados.
+    </div>
+    <div class="ativ-note" style="border-color:var(--a1);">
+      <strong style="color:var(--a1);">Dica: partilha os teus próprios desafios.</strong> Dizer "eu também me deito a ver o telemóvel e depois durmo pior" cria confiança. Não tens de ser perfeito(a) — tens de ser honesto(a).
+    </div>
+
+    <div class="ag">
+
+      <div class="ac">
+        <div class="ac-head" onclick="toggle(this)">
+          <div class="ac-num">1</div>
+          <div class="ac-emoji">⏰</div>
+          <div class="ac-info">
+            <div class="ac-title">As Minhas 24 Horas</div>
+            <div class="ac-meta"><span>⏱ 25–30 min</span><span>👥 individual + grupo</span><span>📝 papel + caneta</span></div>
+          </div>
+          <div class="ac-toggle">+</div>
+        </div>
+        <div class="ac-body">
+          <div class="ac-objetivo"><strong>objetivo</strong>Perceber como gastam o tempo — usando a metáfora de um leilão onde cada hora é dinheiro que só se gasta uma vez.</div>
+          <ul class="ac-steps">
+            <li>Cada jovem recebe 24 fichas ou tokens (papéis numerados, moedas de papel, ou riscas) — cada um representa 1 hora do dia</li>
+            <li>Apresentas "lotes" no leilão: sono, escola/trabalho, redes sociais, jogos, família/amigos, desporto, séries, tempo sozinho…</li>
+            <li>Cada jovem distribui as suas horas pelos lotes como é o dia <em>hoje de facto</em></li>
+            <li>Revelam os resultados — o que é que a maioria comprou? O que ficou sem horas?</li>
+            <li>Segunda ronda: redistribuem os mesmos 24 tokens como <em>gostariam</em> que fosse</li>
+            <li>Partilha voluntária: o que mudou entre as duas rondas?</li>
+          </ul>
+          <div class="ac-pergunta"><strong>perguntas para o grupo</strong>O que te surpreendeu ao ver os números? O que ficou sem horas que gostarias de ter dado? O que tornaria essa mudança mais fácil — ou mais difícil?</div>
+        </div>
+      </div>
+
+      <div class="ac">
+        <div class="ac-head" onclick="toggle(this)">
+          <div class="ac-num">2</div>
+          <div class="ac-emoji">🪞</div>
+          <div class="ac-info">
+            <div class="ac-title">O Ecrã é o Meu Espelho?</div>
+            <div class="ac-meta"><span>⏱ 30–35 min</span><span>👥 grupo</span><span>📝 post-its + parede</span></div>
+          </div>
+          <div class="ac-toggle">+</div>
+        </div>
+        <div class="ac-body">
+          <div class="ac-objetivo"><strong>objetivo</strong>Conectar emoções com o uso do ecrã — perceber o "antes" e o "depois".</div>
+          <ul class="ac-steps">
+            <li>Cada jovem escreve 1 palavra do que sentia <em>antes</em> de pegar no telemóvel da última vez</li>
+            <li>Escreve 1 palavra de como ficou <em>depois</em></li>
+            <li>Colocam os papéis num mapa "antes / depois" na parede</li>
+            <li>Observam os padrões em conjunto</li>
+          </ul>
+          <div class="ac-pergunta"><strong>perguntas para o grupo</strong>Que padrões aparecem? Quando é que o ecrã ajuda? Quando piora o estado de humor? O que poderia substituir esses momentos?</div>
+        </div>
+      </div>
+
+      <div class="ac">
+        <div class="ac-head" onclick="toggle(this)">
+          <div class="ac-num">3</div>
+          <div class="ac-emoji">🔍</div>
+          <div class="ac-info">
+            <div class="ac-title">Detetive das Apps</div>
+            <div class="ac-meta"><span>⏱ 45–60 min</span><span>👥 4 grupos</span><span>📱 telemóveis</span></div>
+          </div>
+          <div class="ac-toggle">+</div>
+        </div>
+        <div class="ac-body">
+          <div class="ac-objetivo"><strong>objetivo</strong>Investigar e apresentar como as apps manipulam o comportamento — cada grupo explora um ângulo diferente.</div>
+          <ul class="ac-steps">
+            <li>Divide em 4 grupos, cada um com um tópico de investigação</li>
+            <li>20–30 min para pesquisar, discutir e preparar uma apresentação de 5 min</li>
+            <li>Cada grupo apresenta — podem usar cartazes, role-play, exemplos do telemóvel</li>
+            <li>Reflexão final em conjunto</li>
+          </ul>
+          <div class="ac-pergunta-alt" style="border-color:var(--a2);background:rgba(26,92,58,0.05);"><strong style="color:var(--a2);">Grupo 1 · Dopamina e recompensa</strong>O que é dopamina e como as redes sociais a ativam? Porque é especialmente poderoso em cérebros jovens? Como afeta os hábitos e a atenção?</div>
+          <div class="ac-pergunta-alt" style="border-color:var(--a1);background:rgba(212,64,26,0.05);margin-top:6px;"><strong style="color:var(--a1);">Grupo 2 · Features de design</strong>Que funcionalidades existem para prender (scroll infinito, autoplay, streaks)? Como se comparam às slot machines? Quem beneficia disto?</div>
+          <div class="ac-pergunta-alt" style="border-color:var(--a3);background:rgba(196,151,58,0.05);margin-top:6px;"><strong style="color:var(--a3);">Grupo 3 · Impacto emocional</strong>Como o excesso de ecrã afeta o humor, o sono, o stress? Que emoções levam ao uso? Como a consciência emocional pode ajudar?</div>
+          <div class="ac-pergunta-alt" style="border-color:var(--a4);background:rgba(42,61,143,0.05);margin-top:6px;"><strong style="color:var(--a4);">Grupo 4 · Pressão social e FOMO</strong>Que papel têm os likes, comentários e streaks? Como o FOMO afeta o tempo de ecrã? O que ajuda a desligar sem ansiedade?</div>
+        </div>
+      </div>
+
+      <div class="ac">
+        <div class="ac-head" onclick="toggle(this)">
+          <div class="ac-num">4</div>
+          <div class="ac-emoji">📊</div>
+          <div class="ac-info">
+            <div class="ac-title">Mapa de Humor e Ecrã</div>
+            <div class="ac-meta"><span>⏱ 25–30 min</span><span>👥 individual + grupo</span><span>📝 folha de registo</span></div>
+          </div>
+          <div class="ac-toggle">+</div>
+        </div>
+        <div class="ac-body">
+          <div class="ac-objetivo"><strong>objetivo</strong>Ligar atividades digitais a estados emocionais — antes, durante e depois.</div>
+          <ul class="ac-steps">
+            <li>Linha do tempo das últimas 24h: que atividades digitais fizeste?</li>
+            <li>Para cada uma: humor de 1 a 5 — antes, durante e depois</li>
+            <li>Que padrões aparecem? Que uso deixou melhor ou pior?</li>
+            <li>Takeaway pessoal: "Da próxima vez que sentir ___, vou tentar ___"</li>
+          </ul>
+          <div class="ac-pergunta"><strong>variante</strong>Pede que façam este registo em casa durante 3 dias e tragam os resultados na sessão seguinte.</div>
+        </div>
+      </div>
+
+      <div class="ac">
+        <div class="ac-head" onclick="toggle(this)">
+          <div class="ac-num">5</div>
+          <div class="ac-emoji">🧘</div>
+          <div class="ac-info">
+            <div class="ac-title">Check-in Mindful</div>
+            <div class="ac-meta"><span>⏱ 20 min</span><span>👥 pares + grupo</span><span>📱 telemóvel próprio</span></div>
+          </div>
+          <div class="ac-toggle">+</div>
+        </div>
+        <div class="ac-body">
+          <div class="ac-objetivo"><strong>objetivo</strong>Praticar uma pausa consciente antes de abrir o telemóvel.</div>
+          <ul class="ac-steps">
+            <li>Demonstra: segura o telemóvel, faz 3 respirações, pergunta-te "porquê estou a abrir isto?"</li>
+            <li>Em pares — um guia o outro numa situação comum (esperar, estar aborrecido)</li>
+            <li>Trocam de papel</li>
+            <li>Reflexão em grupo: o que foi difícil? Como se pode tornar hábito?</li>
+          </ul>
+          <div class="ac-pergunta"><strong>as 3 perguntas da pausa</strong>Porquê estou a abrir isto? O que quero sentir? Isto é mesmo o que quero fazer agora?</div>
+        </div>
+      </div>
+
+      <div class="ac">
+        <div class="ac-head" onclick="toggle(this)">
+          <div class="ac-num">6</div>
+          <div class="ac-emoji">🫙</div>
+          <div class="ac-info">
+            <div class="ac-title">Frasco de Alternativas</div>
+            <div class="ac-meta"><span>⏱ 30–40 min</span><span>👥 individual</span><span>✂️ papéis + frasco</span></div>
+          </div>
+          <div class="ac-toggle">+</div>
+        </div>
+        <div class="ac-body">
+          <div class="ac-objetivo"><strong>objetivo</strong>Criar um kit pessoal de alternativas ao scroll para ter à mão quando der vontade.</div>
+          <ul class="ac-steps">
+            <li>Brainstorm em grupo: atividades divertidas, calmas ou energizantes sem ecrã</li>
+            <li>Cada jovem escreve 10–15 ideias suas em papéis separados</li>
+            <li>Mete num envelope ou frasco para levar para casa</li>
+            <li>Quando der vontade de scrollar por hábito, tira um papel ao acaso</li>
+          </ul>
+          <div class="ac-pergunta"><strong>seguimento</strong>Que alternativas funcionaram? Como ficou o humor antes e depois?</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FERRAMENTAS -->
+<section id="ferramentas">
+  <div class="sec-inner">
+    <div class="slabel">06 — Ferramentas rápidas</div>
+    <h2>De bolso —<br><em>qualquer momento</em></h2>
+    <p class="lead">Técnicas de 1 a 5 minutos. Para o início ou fim de sessão, ou para ensinar os jovens a usarem sozinhos.</p>
+    <div class="ft-grid">
+      <div class="ft-card"><span class="ft-icon">🫁</span><h3>Pausa das 3 respirações</h3><p>Antes de abrir o telemóvel: 3 respirações lentas. Pergunta: porquê estou a abrir isto? O que quero sentir?</p><span class="ft-time">1–2 min</span></div>
+      <div class="ft-card"><span class="ft-icon">📦</span><h3>Box breathing</h3><p>Inspira 4 seg → segura 4 → expira 4 → segura 4. Regula o sistema nervoso rapidamente.</p><span class="ft-time">2 min</span></div>
+      <div class="ft-card"><span class="ft-icon">👁️</span><h3>Grounding 5 sentidos</h3><p>Nota 2 coisas que vês, 2 que ouves, 2 que sentes no corpo. Para quando estão overwhelmed.</p><span class="ft-time">1–3 min</span></div>
+      <div class="ft-card"><span class="ft-icon">⏸️</span><h3>Espera 5 minutos</h3><p>Quando tiver vontade de abrir uma app, espera 5 minutos. A compulsão passa — e perceber isso é em si uma descoberta.</p><span class="ft-time">5 min</span></div>
+      <div class="ft-card"><span class="ft-icon">🔕</span><h3>Micro-fronteira</h3><p>Uma pequena mudança escolhida por eles: sem telemóvel nas refeições, 1 app desligada, ecrã fora do quarto.</p><span class="ft-time">Escolha deles</span></div>
+      <div class="ft-card" style="border-right:none;"><span class="ft-icon">🔄</span><h3>Substituição consciente</h3><p>Tédio → música, desenho, caminhar. Solidão → mensagem real. Stress → respiração, movimento.</p><span class="ft-time">Satisfaz a necessidade</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- PERGUNTAS -->
+<section id="perguntas">
+  <div class="sec-inner">
+    <div class="slabel">07 — Perguntas de reflexão</div>
+    <h2>Para usar<br><em>nas sessões</em></h2>
+    <div class="pq-note">
+      <strong>Dica:</strong> Não precisam de ser respondidas em voz alta — às vezes o simples ato de as ler já é suficiente para algo se mover.
+    </div>
+    <div class="pq-conv">
+      <strong>Para começar uma conversa (em vez de "estás sempre no telemóvel"):</strong><br>
+      "O que é que gostas de fazer online?" &nbsp;·&nbsp; "O que é que te faz sentir sobrecarregado(a)?" &nbsp;·&nbsp; "O que é que gostavas que os adultos entendessem sobre o teu mundo digital?" &nbsp;·&nbsp; "Como seria para ti um uso equilibrado?"
+    </div>
+    <div class="pq-grid">
+      <div class="pq">Quando scrollo sem razão, o que é que estou à procura mesmo?</div>
+      <div class="pq">Como me sinto depois de 1 hora no TikTok — é como esperava?</div>
+      <div class="pq">O que é que os ecrãs me dão que seria difícil conseguir de outra forma?</div>
+      <div class="pq">Que parte do dia seria mais difícil sem o telemóvel? Porquê?</div>
+      <div class="pq">Existe alguma app que me faz sentir pior mas continuo a abrir?</div>
+      <div class="pq">Se tivesse mais tempo longe dos ecrãs, o que gostaria de fazer?</div>
+      <div class="pq">O que é que os criadores da minha app favorita <em>querem</em> que eu sinta?</div>
+      <div class="pq">Há uma pequena mudança que parece possível tentar esta semana?</div>
+      <div class="pq">O meu uso dos ecrãs mudou nos últimos tempos? Em que sentido?</div>
+      <div class="pq" style="border-right:none;">Que necessidade estou a tentar satisfazer quando pego no telemóvel sem motivo?</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <span class="f-logo">JEEP · Educa+</span>
+    <p>Programa promovido pela Câmara Municipal de Cascais · DINT/DSQV</p>
+    <p style="margin-top:4px;opacity:0.5;">Baseado no OASIS Training Pack for Youth Workers · Co-financiado pela UE</p>
+  </div>
+  <div class="f-mark">♻</div>
+</footer>
+
+<script>
+  function toggle(head) {
+    const card = head.parentElement;
+    card.classList.toggle('open');
+  }
+
+  const links = document.querySelectorAll('.topnav a');
+  const sections = document.querySelectorAll('section[id]');
+  function updateActive() {
+    let cur = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 80) cur = s.id; });
+    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur));
+  }
+  window.addEventListener('scroll', updateActive, { passive:true });
+  updateActive();
+  links.forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior:'smooth' });
+    });
+  });
+</script>
+</body>
+</html>
