@@ -3,7 +3,7 @@ import { collection, addDoc, doc, updateDoc, increment, arrayUnion } from "fireb
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
 import { CARD, SL, CYN, INP, TXT_MUT } from "../../theme.jsx";
-import { nowFull } from "../../data.js";
+import { nowFull, ALLOWED_USERNAMES } from "../../data.js";
 
 export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollection = "forum" }) {
   const [textoPost,     setTextoPost]     = useState("");
@@ -56,6 +56,15 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
           tipo: "FORUM_POST", jovem: user.username, canal: canalAtivo,
           texto: textoPost.substring(0, 60), ts: Date.now(), lida: false
         });
+        // Notify all users when admin posts in anuncios
+        if (canalAtivo === "anuncios" && user.username === "admin") {
+          const preview = textoPost.trim().substring(0, 80);
+          await Promise.all(ALLOWED_USERNAMES.map(u =>
+            addDoc(collection(db, "notifications", u, "items"), {
+              from:"teresa", text:`📢 Novo anúncio: ${preview}`, date:nowFull(), read:false
+            })
+          ));
+        }
       }
       darXPComStreak("Publicou uma partilha no Fórum");
       setTextoPost(""); setFicheiroMedia(null);

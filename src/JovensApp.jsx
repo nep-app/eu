@@ -20,10 +20,12 @@ const NAV = [
   ["perfil",   "👤", "Perfil"],
 ];
 
-const LIGHT_GRAD = "linear-gradient(160deg, #dde4ff 0%, #e8e0ff 100%)";
+const TERESA_BG  = "#0d0f1a";
+const TERESA_ACC = "#a78bfa"; // soft violet
 
 export default function JovensApp({ user, onLogout }) {
-  const light = user.username === "teresa";
+  const isTeresa = user.username === "teresa";
+  const light = false; // all users dark mode; isTeresa drives teresa-specific styles
   const [tab, setTab] = useState("home");
   const [desafiosSubTab, setDesafiosSubTab] = useState("pergunta");
   const [allData, setAllData] = useState({
@@ -53,11 +55,15 @@ export default function JovensApp({ user, onLogout }) {
     return () => unsubs.forEach(u => u());
   }, [user]);
 
-  // Tema roxo para teresa — muda body bg + grid
+  // Tema escuro-violeta para teresa
   useEffect(() => {
-    if (!light) return;
-    document.body.style.backgroundColor = "#eef2ff";
-    document.body.style.backgroundImage = "none";
+    if (!isTeresa) return;
+    document.body.style.backgroundColor = TERESA_BG;
+    document.body.style.backgroundImage = `
+      linear-gradient(rgba(139,92,246,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(139,92,246,0.04) 1px, transparent 1px)
+    `;
+    document.body.style.backgroundSize = "32px 32px";
     return () => {
       document.body.style.backgroundColor = "#071529";
       document.body.style.backgroundImage = `
@@ -65,7 +71,7 @@ export default function JovensApp({ user, onLogout }) {
         linear-gradient(90deg, rgba(50,199,255,0.04) 1px, transparent 1px)
       `;
     };
-  }, [light]);
+  }, [isTeresa]);
 
   const ud = allData.userData;
   const dayStreak = ud.dayStreak || 0;
@@ -86,54 +92,53 @@ export default function JovensApp({ user, onLogout }) {
 
   return (
     <ThemeCtx.Provider value={light}>
-    <div style={{ minHeight:"100vh", background: light ? LIGHT_GRAD : BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif",
-      ...(light && {
-        "--card-bg": "rgba(18,42,82,0.92)",
-        "--card-text": "#f1f5f9",
-        "--card-border": "rgba(50,120,255,0.18)",
-        "--card-shadow": "0 4px 24px rgba(0,0,0,0.30), inset 0 1px 0 rgba(80,140,255,0.08)",
-        "--inp-bg": "rgba(10,25,60,0.80)",
-        "--inp-border": "rgba(50,199,255,0.18)",
-        "--sl-color": "#8898b4",
-        "--subtabs-bg": "rgba(10,25,60,0.65)",
+    <div style={{ minHeight:"100vh", background: isTeresa ? TERESA_BG : BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif",
+      ...(isTeresa && {
+        "--card-bg": "rgba(16,14,32,0.90)",
+        "--card-text": "#e8e4f8",
+        "--card-border": "rgba(139,92,246,0.14)",
+        "--card-shadow": "0 4px 24px rgba(0,0,0,0.60), inset 0 1px 0 rgba(139,92,246,0.08)",
+        "--inp-bg": "rgba(10,8,24,0.82)",
+        "--inp-border": "rgba(139,92,246,0.20)",
+        "--sl-color": "#9490b8",
+        "--subtabs-bg": "rgba(10,8,24,0.68)",
       })
     }}>
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      {light ? (
-        /* Teresa — header claro com grid e logo original integrado */
-        <div style={{ position:"relative", padding:"20px 20px 18px", overflow:"hidden",
-          background:"#ffffff", borderBottom:"1px solid rgba(0,0,0,0.08)" }}>
-          {/* Grid pattern */}
-          <div style={{ position:"absolute", inset:0, pointerEvents:"none",
-            backgroundImage:"linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)",
-            backgroundSize:"26px 26px" }} />
+      {isTeresa ? (
+        /* Teresa — dark violet header */
+        <div style={{ position:"relative", padding:"22px 20px 18px", overflow:"hidden",
+          background:"linear-gradient(160deg, #1c1530 0%, #0d0f1a 100%)",
+          borderBottom:"1px solid rgba(139,92,246,0.18)" }}>
+          {/* Violet glow */}
+          <div style={{ position:"absolute", top:-50, right:-30, width:180, height:180, borderRadius:"50%",
+            background:"radial-gradient(circle, rgba(139,92,246,0.14), transparent 68%)", pointerEvents:"none" }}/>
+          <div style={{ position:"absolute", top:-10, left:-40, width:140, height:140, borderRadius:"50%",
+            background:"radial-gradient(circle, rgba(99,102,241,0.06), transparent 70%)", pointerEvents:"none" }}/>
 
           <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", position:"relative" }}>
-            {/* Left */}
             <div>
-              <div style={{ fontSize:12, color:"#94a3b8", fontWeight:500, letterSpacing:0.2 }}>Olá,</div>
-              <div style={{ fontSize:28, fontWeight:900, color:"#0f172a", lineHeight:1.1, letterSpacing:-0.5 }}>{user.realName}</div>
-              <div style={{ display:"flex", gap:6, marginTop:9, flexWrap:"wrap", alignItems:"center" }}>
+              <div style={{ fontSize:11, color:"#6b6f8a", fontWeight:500, letterSpacing:0.3 }}>Olá,</div>
+              <div style={{ fontSize:26, fontWeight:900, color:"#ede8ff", lineHeight:1.1, letterSpacing:-0.5 }}>{user.realName}</div>
+              <div style={{ display:"flex", gap:6, marginTop:8, flexWrap:"wrap", alignItems:"center" }}>
                 {dayStreak > 0 && (
-                  <div style={{ fontSize:11, background:"rgba(234,124,46,0.12)", border:"1px solid rgba(234,124,46,0.28)",
-                    borderRadius:20, padding:"4px 12px", fontWeight:700, color:"#c2650a" }}>
+                  <div style={{ fontSize:10, background:"rgba(251,146,60,0.14)", border:"1px solid rgba(251,146,60,0.30)",
+                    borderRadius:20, padding:"3px 11px", fontWeight:700, color:"#fb923c" }}>
                     🔥 {dayStreak} dia{dayStreak > 1 ? "s" : ""}
                   </div>
                 )}
-                <div style={{ fontSize:11, background:"rgba(99,102,241,0.10)", border:"1px solid rgba(99,102,241,0.24)",
-                  borderRadius:20, padding:"4px 12px", fontWeight:700, color:"#5254b3" }}>
+                <div style={{ fontSize:10, background:"rgba(167,139,250,0.14)", border:"1px solid rgba(167,139,250,0.28)",
+                  borderRadius:20, padding:"3px 11px", fontWeight:700, color:TERESA_ACC }}>
                   ⚡ {weekXp} XP
                 </div>
               </div>
             </div>
-
-            {/* Right: logo image integrado + Sair */}
             <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:8, flexShrink:0 }}>
-              <img src={logoImg} alt="edu ca+" style={{ width:90, height:90, objectFit:"contain", opacity:0.92 }} />
+              <img src={logoImg} alt="JEEP" style={{ width:72, height:72, objectFit:"contain", opacity:0.88 }} />
               <button onClick={onLogout} style={{
-                background:"rgba(0,0,0,0.05)", border:"1px solid rgba(0,0,0,0.12)",
-                color:"#475569", padding:"7px 18px", borderRadius:20, fontSize:12,
+                background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.10)",
+                color:"#9490b8", padding:"6px 15px", borderRadius:20, fontSize:11,
                 cursor:"pointer", fontWeight:600
               }}>Sair</button>
             </div>
@@ -201,26 +206,26 @@ export default function JovensApp({ user, onLogout }) {
       {/* ── NAV BAR ────────────────────────────────────────────────────── */}
       <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
         width:"100%", maxWidth:420, zIndex:100,
-        background: light ? "rgba(255,255,255,0.85)" : "rgba(7,21,41,0.97)", backdropFilter:"blur(24px)",
-        borderTop: light ? "1px solid rgba(0,0,0,0.12)" : "1px solid rgba(255,255,255,0.06)",
+        background: isTeresa ? "rgba(10,8,22,0.97)" : "rgba(7,21,41,0.97)", backdropFilter:"blur(24px)",
+        borderTop: isTeresa ? "1px solid rgba(139,92,246,0.14)" : "1px solid rgba(255,255,255,0.06)",
         display:"flex", padding:"12px 0 28px" }}>
         {NAV.map(([id, icon, label]) => {
           const active = tab === id;
           const hasNotif = id === "home" && notifCount > 0;
+          const acc = isTeresa ? TERESA_ACC : CYN;
           return (
             <button key={id} onClick={() => setTab(id)} style={{
               flex:1, background:"none", border:"none", cursor:"pointer",
               display:"flex", flexDirection:"column", alignItems:"center", gap:3,
-              color: active ? CYN : light ? "#1e293b" : TXT_MUT,
+              color: active ? acc : TXT_MUT,
               transition:"all 0.2s", position:"relative",
             }}>
-              {/* Indicador activo */}
               {active && (
                 <div style={{ position:"absolute", top:-12, left:"50%", transform:"translateX(-50%)",
-                  width:28, height:2, borderRadius:2, background:CYN,
-                  boxShadow:`0 0 8px ${CYN}` }}/>
+                  width:28, height:2, borderRadius:2, background:acc,
+                  boxShadow:`0 0 8px ${acc}` }}/>
               )}
-              <span style={{ fontSize:20, filter: active ? `drop-shadow(0 0 6px ${CYN}80)` : "none", transition:"filter 0.2s" }}>
+              <span style={{ fontSize:20, filter: active ? `drop-shadow(0 0 6px ${acc}80)` : "none", transition:"filter 0.2s" }}>
                 {icon}
                 {hasNotif && (
                   <span style={{ position:"absolute", top:-2, right:-2, width:8, height:8,
