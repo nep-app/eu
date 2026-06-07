@@ -24,9 +24,22 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
     const msg = tipo === "like"
       ? `❤️ ${user.realName} reagiu à tua partilha!`
       : `💬 ${user.realName} comentou a tua partilha!`;
-    await addDoc(collection(db, "notifications", post.username, "items"), {
-      from:"sistema", text:msg, date:nowFull(), read:false
-    });
+    if (post.username === "admin") {
+      // Notify admin panel (Geral tab)
+      const canal = post.canalAtivo || "";
+      await addDoc(collection(db, "adminNotificacoes"), {
+        tipo: tipo === "like" ? "FORUM_REACAO" : "FORUM_COMENTARIO",
+        jovem: user.username,
+        texto: tipo === "like"
+          ? `${user.realName} reagiu ao teu post nos Anúncios`
+          : `${user.realName} comentou o teu post nos Anúncios`,
+        ts: Date.now(), lida: false
+      });
+    } else {
+      await addDoc(collection(db, "notifications", post.username, "items"), {
+        from:"sistema", text:msg, date:nowFull(), read:false
+      });
+    }
   }
 
   async function handleApagarPost() {
