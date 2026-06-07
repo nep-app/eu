@@ -16,6 +16,7 @@ import AdminUsers from './tabs/admin/AdminUsers.jsx';
 import AdminVotacoes from './tabs/admin/AdminVotacoes.jsx';
 import AdminQuizzes from './tabs/admin/AdminQuizzes.jsx';
 import AdminSatisfacao from './tabs/admin/AdminSatisfacao.jsx';
+import AdminRelatorio from './tabs/admin/AdminRelatorio.jsx';
 export default function TeresaAdmin({ user, onLogout }) {
   const [adminTab, setAdminTab] = useState("geral");
 
@@ -119,7 +120,8 @@ const ADMIN_TABS = [
     ["missoes",   "🎯 Missões"],
     ["satisfacao","😊 Satisfação"],
     ["msgs",      "💬 Msgs"],
-    ["users",     "👥 Utilizadores"]
+    ["users",     "👥 Utilizadores"],
+    ["relatorio", "📈 Relatório"],
   ];
 
   return (
@@ -195,7 +197,8 @@ const ADMIN_TABS = [
         {adminTab === "missoes" && <AdminMissoes missions={missions} />}
         {adminTab === "satisfacao" && <AdminSatisfacao />}
         {adminTab === "msgs" && <AdminMsgs />}
-        {adminTab === "users" && <AdminUsers amMedals={amMedals} setAmMedals={setAmMedals} allShared={allShared} weekStartTs={weekStartTs} />}
+        {adminTab === "users"     && <AdminUsers amMedals={amMedals} setAmMedals={setAmMedals} allShared={allShared} weekStartTs={weekStartTs} />}
+        {adminTab === "relatorio" && <AdminRelatorio allShared={allShared} />}
       </div>
       
     </div>

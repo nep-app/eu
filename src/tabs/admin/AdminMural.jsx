@@ -200,11 +200,17 @@ export default function AdminMural() {
                   {p.media && <img src={p.media} alt="" style={{ maxWidth:"100%", borderRadius:12, marginTop:8, border:"1px solid rgba(255,255,255,0.1)" }}/>}
 
                   <div style={{ marginTop:10, display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
-                    {FORUM_REACTIONS.map(r => (
-                      <span key={r.id} style={{ fontSize:12, color:"#94a3b8", cursor:"pointer" }}>
-                        {r.icon}{((p.reactions||{})[r.id]||0)>0 ? " "+((p.reactions||{})[r.id]) : ""}
-                      </span>
-                    ))}
+                    {FORUM_REACTIONS.map(r => {
+                      const count = ((p.reactions||{})[r.id]||0);
+                      const who = ((p.reactedBy||{})[r.id]||[]);
+                      return (
+                        <span key={r.id} title={who.length ? who.join(", ") : undefined}
+                          style={{ fontSize:12, color: count > 0 ? "#f1f5f9" : "#94a3b8", cursor: count > 0 ? "help" : "default", display:"flex", alignItems:"center", gap:3 }}>
+                          {r.icon}
+                          {count > 0 && <span style={{ fontSize:11, color:"#94a3b8" }}>{count} · <span style={{ color:"#60a5fa" }}>{who.join(", ")}</span></span>}
+                        </span>
+                      );
+                    })}
                     <span onClick={() => setReplyTo(replyTo===p.id?null:p.id)}
                       style={{ fontSize:12, color:"#94a3b8", cursor:"pointer", fontWeight:600 }}>💬 Responder</span>
                     {(p.replies||[]).length > 0 && (
