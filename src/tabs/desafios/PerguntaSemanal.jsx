@@ -75,6 +75,16 @@ export default function PerguntaSemanal({ user, data }) {
       const ud = data.userData || {};
       const yesterday = new Date(Date.now() - 86400000).toDateString();
       const newStreak = ud.lastActiveDay === yesterday ? (ud.dayStreak || 0) + 1 : (ud.lastActiveDay === today ? (ud.dayStreak || 1) : 1);
+      // Archive previous answer before overwriting (in case admin reset without explicit "Repor")
+      if (uData.answerText) {
+        await updateDoc(doc(db, "userData", user.username), {
+          perguntasHistorico: arrayUnion({
+            week: uData.answerDate ? uData.answerDate.split(" ")[0] : "anterior",
+            answer: uData.answerText, type: uData.answerType || "texto",
+            ts: Date.now() - 1
+          })
+        });
+      }
       await updateDoc(doc(db, "userData", user.username), {
         answered: true,
         answerType: valorBotao ? "botao" : activeTab,

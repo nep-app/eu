@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { doc, setDoc, getDoc, addDoc, collection, updateDoc, deleteField } from "firebase/firestore";
+import { doc, setDoc, getDoc, addDoc, collection, updateDoc, deleteField, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PRP, GRN, RadarChart, INP } from "../../theme.jsx";
 import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, PIA_FIELDS, getWeekKey } from "../../data.js";
@@ -109,19 +109,48 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
 
   // ── RESET AUTOAVALIAÇÃO ───────────────────────────────────────────────────
   async function resetAutoavaliacao(username) {
-    if (!window.confirm("Repor a autoavaliação? O jovem poderá submeter de novo (as notas dos sliders também são limpas).")) return;
+    if (!window.confirm("Repor a autoavaliação? O jovem poderá submeter de novo. A versão atual fica guardada no histórico.")) return;
+    const uData = allShared[username] || {};
+    if (uData.autoSaved || Object.keys(uData.dScores || {}).length > 0) {
+      await updateDoc(doc(db, "userData", username), {
+        autoAvaliacaoHistorico: arrayUnion({
+          week: getWeekKey(), scores: uData.dScores || {},
+          notas: uData.dNotas || {}, date: uData.autoDate || null,
+          saved: !!uData.autoSaved, ts: Date.now()
+        })
+      });
+    }
     await setDoc(doc(db, "userData", username), { autoSaved: false, autoDate: null, dScores: {}, dNotas: {} }, { merge: true });
   }
 
   // ── RESET PERGUNTA SEMANAL ────────────────────────────────────────────────
   async function resetPergunta(username) {
-    if (!window.confirm("Repor a pergunta semanal? O jovem poderá responder de novo.")) return;
+    if (!window.confirm("Repor a pergunta semanal? O jovem poderá responder de novo. A resposta atual fica guardada no histórico.")) return;
+    const uData = allShared[username] || {};
+    if (uData.answerText) {
+      await updateDoc(doc(db, "userData", username), {
+        perguntasHistorico: arrayUnion({
+          week: getWeekKey(), answer: uData.answerText,
+          type: uData.answerType || "texto", ts: Date.now()
+        })
+      });
+    }
     await setDoc(doc(db, "userData", username), { answered: false, qAnswer: null }, { merge: true });
   }
 
   // ── RESET SATISFAÇÃO ──────────────────────────────────────────────────────
   async function resetSatisfacao(username) {
-    if (!window.confirm("Repor a satisfação? O jovem poderá submeter de novo.")) return;
+    if (!window.confirm("Repor a satisfação? O jovem poderá submeter de novo. A versão atual fica guardada no histórico.")) return;
+    const uData = allShared[username] || {};
+    if (uData.sSaved) {
+      await updateDoc(doc(db, "userData", username), {
+        satisfacaoHistorico: arrayUnion({
+          week: getWeekKey(), ratings: uData.sRatings || {},
+          chips: uData.sChips || [], mudaria: uData.sMudaria || "",
+          ts: Date.now()
+        })
+      });
+    }
     await setDoc(doc(db, "userData", username), { sSaved: false, sRatings: {}, sChips: [], sMudaria: "" }, { merge: true });
   }
 
@@ -465,6 +494,76 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
               )}
             </div>
           </div>
+
+          {/* HISTÓRICO DE RESPOSTAS ARQUIVADAS */}
+          {(() => {
+            const hP = [...(uData.perguntasHistorico || [])].reverse();
+            const hS = [...(uData.satisfacaoHistorico || [])].reverse();
+            const hA = [...(uData.autoAvaliacaoHistorico || [])].reverse();
+            if (hP.length === 0 && hS.length === 0 && hA.length === 0) return null;
+            return (
+              <div style={CARD}>
+                <div style={SL}>🗄️ Arquivo de Respostas Anteriores</div>
+
+                {hP.length > 0 && (
+                  <div style={{ marginBottom: 14 }}>
+                    <div style={{ fontSize:10, fontWeight:900, color:"#5a7a9a", letterSpacing:1.5, textTransform:"uppercase", marginBottom:8 }}>💬 Perguntas Semanais</div>
+                    {hP.map((e, i) => (
+                      <div key={i} style={{ padding:"10px 12px", borderRadius:10, background:"rgba(0,0,0,0.2)", marginBottom:6 }}>
+                        <div style={{ fontSize:10, color:"#475569", marginBottom:3 }}>{e.week} · {e.type || "texto"} · {formatarDataHora(e.ts, "")}</div>
+                        <div style={{ fontSize:13, color:"#e2e8f0", lineHeight:1.5 }}>{e.answer || "—"}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {hS.length > 0 && (
+                  <div style={{ marginBottom: 14 }}>
+                    <div style={{ fontSize:10, fontWeight:900, color:"#5a7a9a", letterSpacing:1.5, textTransform:"uppercase", marginBottom:8 }}>😊 Satisfação</div>
+                    {hS.map((e, i) => (
+                      <div key={i} style={{ padding:"10px 12px", borderRadius:10, background:"rgba(0,0,0,0.2)", marginBottom:6 }}>
+                        <div style={{ fontSize:10, color:"#475569", marginBottom:4 }}>{e.week} · {formatarDataHora(e.ts, "")}</div>
+                        {Object.keys(e.ratings || {}).length > 0 && (
+                          <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:4 }}>
+                            {Object.entries(e.ratings).map(([k, v]) => (
+                              <span key={k} style={{ fontSize:11, background:"rgba(50,199,255,0.1)", border:"1px solid rgba(50,199,255,0.2)", borderRadius:6, padding:"2px 8px", color:CYN }}>
+                                {k}: <strong>{v}</strong>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {e.chips?.length > 0 && <div style={{ fontSize:11, color:"#94a3b8", marginBottom:2 }}>Pontos: {e.chips.join(", ")}</div>}
+                        {e.mudaria && <div style={{ fontSize:12, color:"#e2e8f0", fontStyle:"italic" }}>"{e.mudaria}"</div>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {hA.length > 0 && (
+                  <div>
+                    <div style={{ fontSize:10, fontWeight:900, color:"#5a7a9a", letterSpacing:1.5, textTransform:"uppercase", marginBottom:8 }}>📊 Auto-Avaliações</div>
+                    {hA.map((e, i) => (
+                      <div key={i} style={{ padding:"10px 12px", borderRadius:10, background:"rgba(0,0,0,0.2)", marginBottom:6 }}>
+                        <div style={{ fontSize:10, color:"#475569", marginBottom:4 }}>
+                          {e.week}{e.date ? ` · Entregue ${e.date}` : ""} · {formatarDataHora(e.ts, "")}
+                          {!e.saved && <span style={{ color:"#f97316", marginLeft:6 }}>(não submetida)</span>}
+                        </div>
+                        {Object.keys(e.scores || {}).length > 0 && (
+                          <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                            {Object.entries(e.scores).map(([k, v]) => (
+                              <span key={k} style={{ fontSize:11, background:"rgba(167,139,250,0.1)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:6, padding:"2px 8px", color:"#a78bfa" }}>
+                                {k}: <strong>{v}</strong>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* REPOSIÇÕES DE EMERGÊNCIA */}
           <div style={{ ...CARD, border:"1.5px dashed rgba(244,63,94,0.25)", background:"rgba(244,63,94,0.04)" }}>
