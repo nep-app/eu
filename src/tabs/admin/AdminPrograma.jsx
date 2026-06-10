@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { doc, setDoc, addDoc, collection } from "firebase/firestore";
+import React, { useState, useEffect } from 'react';
+import { doc, setDoc, addDoc, collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
 import { ALLOWED_USERNAMES, JEEP_LIST, DIMS, nowLabel } from "../../data.js";
@@ -36,6 +36,16 @@ function PerguntaManager({ allShared, activeQ }) {
   const [opt2, setOpt2] = useState("");
   const [opt3, setOpt3] = useState("");
   const [selectedModes, setSelectedModes] = useState(["texto"]);
+  const [arquivo, setArquivo] = useState([]);
+  const [arquivoOpen, setArquivoOpen] = useState(null);
+
+  useEffect(() => {
+    const unsub = onSnapshot(
+      query(collection(db, "perguntasArquivo"), orderBy("archivedAt", "desc")),
+      snap => setArquivo(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    );
+    return unsub;
+  }, []);
 
   const toggleMode = (id) => setSelectedModes(prev =>
     prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
@@ -45,6 +55,25 @@ function PerguntaManager({ allShared, activeQ }) {
     if (!activeQEdit.trim()) return alert("Escreve a pergunta!");
     if (selectedModes.length === 0 && !opt1.trim()) return alert("Seleciona pelo menos um modo de resposta!");
     const opcoes = [opt1, opt2, opt3].filter(o => o.trim());
+
+    // Archive current question + all answers before overwriting
+    if (activeQ) {
+      const respostas = {};
+      JEEP_8.forEach(j => {
+        const d = allShared[j.username] || {};
+        respostas[j.username] = {
+          name: j.name,
+          answered: !!d.answered,
+          answerText: d.answerText || null,
+          answerType: d.answerType || null,
+          answerDate: d.answerDate || null,
+        };
+      });
+      await addDoc(collection(db, "perguntasArquivo"), {
+        text: activeQ, archivedAt: Date.now(), date: nowLabel(), respostas
+      });
+    }
+
     await setDoc(doc(db, "config", "activeQuestion"), {
       text: activeQEdit.trim(), options: opcoes, modes: selectedModes, date: Date.now()
     });
@@ -118,6 +147,39 @@ function PerguntaManager({ allShared, activeQ }) {
           textTransform:"uppercase", background:CYN, color:"#0f172a", border:"none", borderRadius:14, cursor:"pointer"
         }}>Publicar Desafio Semanal 💬</button>
       </div>
+
+      {arquivo.length > 0 && (
+        <div style={CARD}>
+          <div style={SL}>📚 Arquivo de Perguntas Anteriores</div>
+          {arquivo.map(a => (
+            <div key={a.id} style={{ marginBottom:10, borderRadius:12, overflow:"hidden", border:"1px solid rgba(255,255,255,0.07)" }}>
+              <button onClick={() => setArquivoOpen(arquivoOpen === a.id ? null : a.id)} style={{
+                width:"100%", textAlign:"left", background:"rgba(0,0,0,0.25)", border:"none",
+                color:"#e2e8f0", padding:"12px 14px", cursor:"pointer",
+                display:"flex", justifyContent:"space-between", alignItems:"center",
+              }}>
+                <span style={{ fontSize:13, fontWeight:700, flex:1, marginRight:10 }}>{a.text}</span>
+                <span style={{ fontSize:10, color:"#475569", flexShrink:0 }}>{a.date} {arquivoOpen === a.id ? "▲" : "▼"}</span>
+              </button>
+              {arquivoOpen === a.id && (
+                <div style={{ background:"rgba(0,0,0,0.15)", padding:"10px 14px" }}>
+                  {JEEP_8.map(j => {
+                    const r = (a.respostas || {})[j.username] || {};
+                    return (
+                      <div key={j.username} style={{ padding:"7px 0", borderBottom:"1px solid rgba(255,255,255,0.05)", display:"flex", gap:8, alignItems:"flex-start" }}>
+                        <span style={{ fontSize:12, fontWeight:800, color:j.color, flexShrink:0, minWidth:70 }}>{j.name}:</span>
+                        {r.answered && r.answerText
+                          ? <span style={{ fontSize:12, color:"#e2e8f0", lineHeight:1.5 }}>{r.answerText}</span>
+                          : <span style={{ fontSize:12, color:"#475569" }}>Sem resposta</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
