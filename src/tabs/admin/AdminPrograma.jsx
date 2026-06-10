@@ -184,9 +184,50 @@ function PerguntaManager({ allShared, activeQ }) {
   );
 }
 
+function ScoresGrid({ scores, notas }) {
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+      {DIMS.map(dim => {
+        const val = scores[dim.id];
+        if (!val) return null;
+        const nota = notas?.[dim.id];
+        return (
+          <div key={dim.id} style={{ background:"rgba(0,0,0,0.2)", borderRadius:10, padding:"7px 11px" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: nota ? 3 : 0 }}>
+              <span style={{ fontSize:11, fontWeight:700, color:"#e2e8f0" }}>{dim.label}</span>
+              <span style={{ fontSize:13, fontWeight:900, color: val >= 8 ? "#4ade80" : val >= 5 ? "#fbbf24" : "#f87171" }}>{val}/10</span>
+            </div>
+            {nota && <div style={{ fontSize:10, color:"#94a3b8", fontStyle:"italic" }}>"{nota}"</div>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function AutoavAdmin({ allShared }) {
+  const [histOpen, setHistOpen] = useState(null);
+
+  // Build historical rounds from all users' autoAvaliacaoHistorico
+  const rondasMap = {};
+  JEEP_8.forEach(j => {
+    (allShared[j.username]?.autoAvaliacaoHistorico || []).forEach(entry => {
+      if (!rondasMap[entry.week]) rondasMap[entry.week] = { week: entry.week, users: {}, maxTs: 0 };
+      rondasMap[entry.week].users[j.username] = entry;
+      if ((entry.ts || 0) > rondasMap[entry.week].maxTs) {
+        rondasMap[entry.week].maxTs = entry.ts || 0;
+        rondasMap[entry.week].date = entry.date;
+      }
+    });
+  });
+  const rondasAntigas = Object.values(rondasMap).sort((a, b) => b.maxTs - a.maxTs);
+
   return (
     <div>
+      {/* Ronda atual */}
+      <div style={{ ...CARD, marginBottom:4 }}>
+        <div style={SL}>Ronda Atual</div>
+      </div>
       {JEEP_8.map(j => {
         const uData = allShared[j.username] || {};
         const scores = uData.dScores || {};
@@ -194,7 +235,7 @@ function AutoavAdmin({ allShared }) {
         const hasData = Object.keys(scores).length > 0;
         return (
           <div key={j.username} style={{ ...CARD, marginBottom:10, borderLeft: uData.autoSaved ? `4px solid ${CYN}` : "4px solid transparent" }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: hasData ? 12 : 0 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: hasData ? 10 : 0 }}>
               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                 <div style={{ width:10, height:10, borderRadius:"50%", background:j.color }} />
                 <span style={{ fontSize:14, fontWeight:800, color:j.color }}>{j.name}</span>
@@ -203,27 +244,53 @@ function AutoavAdmin({ allShared }) {
                 {uData.autoSaved ? `✓ Entregue ${uData.autoDate||""}` : hasData ? "Iniciada (não entregue)" : "Pendente"}
               </span>
             </div>
-            {hasData && (
-              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                {DIMS.map(dim => {
-                  const val = scores[dim.id];
-                  if (!val) return null;
-                  const nota = notas[dim.id];
-                  return (
-                    <div key={dim.id} style={{ background:"rgba(0,0,0,0.2)", borderRadius:10, padding:"8px 12px" }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: nota ? 4 : 0 }}>
-                        <span style={{ fontSize:12, fontWeight:700, color:"#e2e8f0" }}>{dim.label}</span>
-                        <span style={{ fontSize:14, fontWeight:900, color: val >= 8 ? "#4ade80" : val >= 5 ? "#fbbf24" : "#f87171" }}>{val}/10</span>
-                      </div>
-                      {nota && <div style={{ fontSize:11, color:"#94a3b8", fontStyle:"italic" }}>"{nota}"</div>}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            {hasData && <ScoresGrid scores={scores} notas={notas} />}
           </div>
         );
       })}
+
+      {/* Rondas anteriores */}
+      {rondasAntigas.length > 0 && (
+        <div style={{ ...CARD, marginTop:10 }}>
+          <div style={SL}>📚 Rondas Anteriores ({rondasAntigas.length})</div>
+          {rondasAntigas.map(ronda => {
+            const entregaram = Object.keys(ronda.users).length;
+            return (
+              <div key={ronda.week} style={{ marginBottom:8, borderRadius:12, overflow:"hidden", border:"1px solid rgba(255,255,255,0.07)" }}>
+                <button onClick={() => setHistOpen(histOpen === ronda.week ? null : ronda.week)} style={{
+                  width:"100%", textAlign:"left", background:"rgba(0,0,0,0.25)", border:"none",
+                  color:"#e2e8f0", padding:"12px 14px", cursor:"pointer",
+                  display:"flex", justifyContent:"space-between", alignItems:"center",
+                }}>
+                  <span style={{ fontSize:13, fontWeight:700 }}>Semana {ronda.week}</span>
+                  <span style={{ fontSize:10, color:"#475569" }}>{ronda.date} · {entregaram}/{JEEP_8.length} entregaram {histOpen === ronda.week ? "▲" : "▼"}</span>
+                </button>
+                {histOpen === ronda.week && (
+                  <div style={{ background:"rgba(0,0,0,0.15)", padding:"10px 14px" }}>
+                    {JEEP_8.map(j => {
+                      const entry = ronda.users[j.username];
+                      return (
+                        <div key={j.username} style={{ marginBottom:12 }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
+                            <div style={{ width:8, height:8, borderRadius:"50%", background:j.color }} />
+                            <span style={{ fontSize:13, fontWeight:800, color:j.color }}>{j.name}</span>
+                            {entry ? (
+                              <span style={{ fontSize:10, color:"#475569" }}>{entry.date}</span>
+                            ) : (
+                              <span style={{ fontSize:10, color:"#475569" }}>Não entregou</span>
+                            )}
+                          </div>
+                          {entry && <ScoresGrid scores={entry.scores || {}} notas={entry.notas} />}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
