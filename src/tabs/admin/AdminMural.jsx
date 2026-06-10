@@ -75,6 +75,22 @@ export default function AdminMural() {
     setIsUploading(false);
   }
 
+  async function reagirPost(pid, reactionId) {
+    const p = posts.find(x => x.id === pid);
+    if (!p) return;
+    const rcts = { ...p.reactions };
+    const rBy  = { ...p.reactedBy };
+    const users = rBy[reactionId] || [];
+    if (users.includes("admin")) {
+      rcts[reactionId] = Math.max(0, (rcts[reactionId] || 1) - 1);
+      rBy[reactionId]  = users.filter(u => u !== "admin");
+    } else {
+      rcts[reactionId] = (rcts[reactionId] || 0) + 1;
+      rBy[reactionId]  = [...users, "admin"];
+    }
+    await updateDoc(doc(db, "forum", channel, "posts", pid), { reactions: rcts, reactedBy: rBy });
+  }
+
   async function deleteForumPost(pid) {
     if (window.confirm("Apagar este post e todos os seus comentários?"))
       await deleteDoc(doc(db, "forum", channel, "posts", pid));
@@ -199,16 +215,26 @@ export default function AdminMural() {
                   {p.text && <div style={{ fontSize:13, color:"#cbd5e1", marginTop:4, lineHeight:1.55 }}>{p.text}</div>}
                   {p.media && <img src={p.media} alt="" style={{ maxWidth:"100%", borderRadius:12, marginTop:8, border:"1px solid rgba(255,255,255,0.1)" }}/>}
 
-                  <div style={{ marginTop:10, display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
+                  <div style={{ marginTop:10, display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" }}>
                     {FORUM_REACTIONS.map(r => {
                       const count = ((p.reactions||{})[r.id]||0);
-                      const who = ((p.reactedBy||{})[r.id]||[]);
+                      const who   = ((p.reactedBy||{})[r.id]||[]);
+                      const mine  = who.includes("admin");
                       return (
-                        <span key={r.id} title={who.length ? who.join(", ") : undefined}
-                          style={{ fontSize:12, color: count > 0 ? "#f1f5f9" : "#94a3b8", cursor: count > 0 ? "help" : "default", display:"flex", alignItems:"center", gap:3 }}>
-                          {r.icon}
-                          {count > 0 && <span style={{ fontSize:11, color:"#94a3b8" }}>{count} · <span style={{ color:"#60a5fa" }}>{who.join(", ")}</span></span>}
-                        </span>
+                        <button key={r.id} onClick={() => reagirPost(p.id, r.id)}
+                          title={who.length ? who.join(", ") : r.id}
+                          style={{ display:"flex", alignItems:"center", gap:4, padding:"4px 10px",
+                            borderRadius:20, border:"none", cursor:"pointer", transition:"all 0.15s",
+                            background: mine ? `${CYN}15` : "rgba(255,255,255,0.04)",
+                            color: mine ? CYN : "#94a3b8", fontSize:12,
+                            boxShadow: mine ? `0 0 0 1px ${CYN}30` : "none",
+                          }}>
+                          <span>{r.icon}</span>
+                          {count > 0 && <span style={{ fontWeight:800 }}>{count}</span>}
+                          {who.filter(u => u !== "admin").length > 0 && (
+                            <span style={{ fontSize:10, color:"#60a5fa" }}>{who.filter(u => u !== "admin").join(", ")}</span>
+                          )}
+                        </button>
                       );
                     })}
                     <span onClick={() => setReplyTo(replyTo===p.id?null:p.id)}
