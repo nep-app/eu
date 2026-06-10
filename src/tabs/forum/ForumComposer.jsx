@@ -3,7 +3,7 @@ import { collection, addDoc, doc, updateDoc, increment, arrayUnion } from "fireb
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
 import { CARD, SL, CYN, INP, TXT_MUT } from "../../theme.jsx";
-import { nowFull } from "../../data.js";
+import { nowFull, ALLOWED_USERNAMES } from "../../data.js";
 
 export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollection = "forum" }) {
   const [textoPost,     setTextoPost]     = useState("");
@@ -44,17 +44,27 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
         reactedBy: { heart:[], fire:[], clap:[], think:[] },
         replies: []
       });
-      if (textoPost.includes("@")) {
-        const mencionado = textoPost.split("@")[1].split(" ")[0].toLowerCase();
-        await addDoc(collection(db, "notifications", mencionado, "items"), {
-          text:`🔔 ${user.realName} mencionou-te no canal ${canalAtivo}!`,
-          date: nowFull()
-        });
-      }
       if (forumCollection === "forum") {
+        const canalLabel = infoCanal?.label || canalAtivo;
+        const preview = textoPost.trim().substring(0, 60);
+        const notifText = `🌐 ${user.realName} publicou em ${canalLabel}${preview ? `: "${preview}${textoPost.length > 60 ? "…" : ""}"` : ""}`;
+        await Promise.all(
+          ALLOWED_USERNAMES
+            .filter(u => u !== user.username && u !== "demo")
+            .map(u => addDoc(collection(db, "notifications", u, "items"), {
+              from: user.username, text: notifText, date: nowFull(), read: false
+            }))
+        );
         await addDoc(collection(db, "adminNotificacoes"), {
           tipo: "FORUM_POST", jovem: user.username, canal: canalAtivo,
           texto: textoPost.substring(0, 60), ts: Date.now(), lida: false
+        });
+      }
+      if (textoPost.includes("@")) {
+        const mencionado = textoPost.split("@")[1].split(" ")[0].toLowerCase();
+        await addDoc(collection(db, "notifications", mencionado, "items"), {
+          from: user.username, text: `🔔 ${user.realName} mencionou-te em ${infoCanal?.label || canalAtivo}!`,
+          date: nowFull(), read: false
         });
       }
       darXPComStreak("Publicou uma partilha no Fórum");
