@@ -19,9 +19,10 @@ export default function PerfilTab({ user, data, features = {} }) {
   const cap  = uData.cap  || DEF_CAP;
   const cap2 = uData.cap2 || DEF_CAP2;
   const history    = data.history || [];
-  const medalDoc   = data.medals || {};
-  const weekKey    = getWeekKey();
-  const userMedals = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
+  const medalDoc    = data.medals || {};
+  const weekKey     = getWeekKey();
+  const weekMedals  = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
+  const userMedals  = medalDoc.allTime || [];
 
   // ── LIGHT THEME (só para teresa) ──
   const light = user.username === "teresa";
@@ -351,20 +352,23 @@ export default function PerfilTab({ user, data, features = {} }) {
       {userMedals.length > 0 && (
         <div style={{ marginBottom:16 }}>
           <div style={{ fontSize:10, fontWeight:800, letterSpacing:2, textTransform:"uppercase", color: light ? "#64748b" : "#7a90b0", marginBottom:10 }}>
-            🏅 {userMedals.length} Medalha{userMedals.length !== 1 ? "s" : ""}
+            🏅 {userMedals.length} Medalha{userMedals.length !== 1 ? "s" : ""} no total
           </div>
           <div style={{ display:"flex", gap:8, overflowX:"auto", paddingBottom:4 }}>
             {userMedals.map(mId => {
               const m = ALL_MEDALS.find(x => x.id === mId);
+              const isThisWeek = weekMedals.includes(mId);
               return m ? (
                 <div key={mId} style={{
                   flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center",
                   gap:4, padding:"12px 14px", borderRadius:16,
-                  ...thm.medal,
+                  background: isThisWeek ? `${CYN}18` : "rgba(255,255,255,0.05)",
+                  border: isThisWeek ? `1px solid ${CYN}40` : "1px solid rgba(255,255,255,0.10)",
                   minWidth:70,
                 }}>
                   <span style={{ fontSize:24 }}>{m.icon}</span>
-                  <span style={{ fontSize:9, fontWeight:900, color:CYN, textAlign:"center", lineHeight:1.2 }}>{m.label.toUpperCase()}</span>
+                  <span style={{ fontSize:9, fontWeight:900, color: isThisWeek ? CYN : "#5a7a9a", textAlign:"center", lineHeight:1.2 }}>{m.label.toUpperCase()}</span>
+                  {isThisWeek && <span style={{ fontSize:8, color:CYN, fontWeight:700 }}>esta semana</span>}
                 </div>
               ) : null;
             })}

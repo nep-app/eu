@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { doc, setDoc, addDoc, collection, updateDoc, onSnapshot } from "firebase/firestore";
+import { doc, setDoc, addDoc, collection, updateDoc, onSnapshot, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, Btn, INP, PNK } from "../../theme.jsx";
 import { nowLabel, fmtDate, getWeekKey, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
@@ -33,7 +33,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
 
   async function launchRequest() {
     let msg = ""; let field = null;
-    if (launchType === "auto")         { msg = "📊 Nova Autoavaliação pedida!"; field = "autoNewRound"; }
+    if (launchType === "auto")         { msg = "📊 Nova Autoavaliação pedida!"; }
     if (launchType === "satisf")       { msg = "😊 Nova Avaliação de Satisfação pedida!"; field = "sSaved"; }
     if (launchType === "pia")          { msg = "📋 Atualização do PIA pedida!"; field = "piaSaved"; }
     if (launchType === "roda")         { msg = "🌸 Nova Roda da Vida pedida!"; field = "rodaSaved"; }
@@ -45,10 +45,24 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
 
     const targets = launchTarget === "all" ? ALLOWED_USERNAMES : [launchTarget];
     for (const u of targets) {
-      if (field) {
+      if (launchType === "auto") {
+        // Archive current scores then clear so form starts empty
+        const uData = allShared[u] || {};
+        if (uData.autoSaved || Object.keys(uData.dScores || {}).length > 0) {
+          await updateDoc(doc(db, "userData", u), {
+            autoAvaliacaoHistorico: arrayUnion({
+              week: getWeekKey(), scores: uData.dScores || {},
+              notas: uData.dNotas || {}, date: nowLabel(), ts: Date.now()
+            })
+          });
+        }
+        await setDoc(doc(db, "userData", u), {
+          autoSaved: false, autoNewRound: false, dScores: {}, dNotas: {},
+          ...(launchPrazo ? { autoNewRoundPrazo: launchPrazo } : {})
+        }, { merge: true });
+      } else if (field) {
         const prazoData = launchPrazo ? { [field + "Prazo"]: launchPrazo } : {};
-        const fieldVal = field === "autoNewRound" ? true : false;
-        await setDoc(doc(db, "userData", u), { [field]: fieldVal, ...prazoData }, { merge: true });
+        await setDoc(doc(db, "userData", u), { [field]: false, ...prazoData }, { merge: true });
       }
       const isReminder = launchType === "lembreteGeral";
       await addDoc(collection(db, "notifications", u, "items"), { from:"teresa", text:msg, date:nowLabel(), read:false, ...(!isReminder ? { tipo:"proposta" } : {}), ...(launchPrazo ? { prazo:launchPrazo } : {}) });
