@@ -17,6 +17,7 @@ export default function AdminMural() {
   const [expanded, setExpanded] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
   const [replyTxt, setReplyTxt] = useState("");
+  const [whoOpen, setWhoOpen] = useState(null);
   const [notificarForum, setNotificarForum] = useState(true);
 
   // ── RECURSOS ──
@@ -217,24 +218,44 @@ export default function AdminMural() {
 
                   <div style={{ marginTop:10, display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" }}>
                     {FORUM_REACTIONS.map(r => {
-                      const count = ((p.reactions||{})[r.id]||0);
-                      const who   = ((p.reactedBy||{})[r.id]||[]);
-                      const mine  = who.includes("admin");
+                      const count  = ((p.reactions||{})[r.id]||0);
+                      const who    = ((p.reactedBy||{})[r.id]||[]);
+                      const mine   = who.includes("admin");
+                      const key    = `${p.id}_${r.id}`;
+                      const isOpen = whoOpen === key;
                       return (
-                        <button key={r.id} onClick={() => reagirPost(p.id, r.id)}
-                          title={who.length ? who.join(", ") : r.id}
-                          style={{ display:"flex", alignItems:"center", gap:4, padding:"4px 10px",
-                            borderRadius:20, border:"none", cursor:"pointer", transition:"all 0.15s",
-                            background: mine ? `${CYN}15` : "rgba(255,255,255,0.04)",
-                            color: mine ? CYN : "#94a3b8", fontSize:12,
+                        <div key={r.id} style={{ position:"relative" }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:1,
+                            borderRadius:20, overflow:"hidden",
                             boxShadow: mine ? `0 0 0 1px ${CYN}30` : "none",
+                            background: mine ? `${CYN}15` : "rgba(255,255,255,0.04)",
                           }}>
-                          <span>{r.icon}</span>
-                          {count > 0 && <span style={{ fontWeight:800 }}>{count}</span>}
-                          {who.filter(u => u !== "admin").length > 0 && (
-                            <span style={{ fontSize:10, color:"#60a5fa" }}>{who.filter(u => u !== "admin").join(", ")}</span>
+                            <button onClick={() => reagirPost(p.id, r.id)} style={{
+                              display:"flex", alignItems:"center", gap:3, padding:"4px 8px 4px 10px",
+                              border:"none", cursor:"pointer", background:"transparent",
+                              color: mine ? CYN : "#94a3b8", fontSize:12,
+                            }}>
+                              <span>{r.icon}</span>
+                            </button>
+                            {count > 0 && (
+                              <button onClick={() => setWhoOpen(isOpen ? null : key)} style={{
+                                padding:"4px 10px 4px 2px", border:"none", cursor:"pointer",
+                                background:"transparent", color: mine ? CYN : "#94a3b8",
+                                fontSize:12, fontWeight:800,
+                              }}>{count}</button>
+                            )}
+                          </div>
+                          {isOpen && who.length > 0 && (
+                            <div style={{
+                              position:"absolute", top:"calc(100% + 6px)", left:0, zIndex:10,
+                              background:"#1e293b", border:"1px solid rgba(255,255,255,0.12)",
+                              borderRadius:10, padding:"8px 12px", whiteSpace:"nowrap",
+                              fontSize:11, color:"#e2e8f0", boxShadow:"0 8px 24px rgba(0,0,0,0.4)",
+                            }}>
+                              {who.map(u => u === "admin" ? "Teresa (tu)" : u).join(", ")}
+                            </div>
                           )}
-                        </button>
+                        </div>
                       );
                     })}
                     <span onClick={() => setReplyTo(replyTo===p.id?null:p.id)}
