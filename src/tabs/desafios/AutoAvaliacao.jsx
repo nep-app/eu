@@ -1,8 +1,8 @@
 import React, { useState, useContext } from 'react';
-import { doc, setDoc, addDoc, collection, increment } from "firebase/firestore";
+import { doc, setDoc, updateDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, CYN, INP, Btn } from "../../theme.jsx";
-import { scoreLabel, getDimDesc, DIMS, nowLabel } from "../../data.js";
+import { scoreLabel, getDimDesc, DIMS, nowLabel, getWeekKey } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
 
 export default function AutoAvaliacao({ user, data }) {
@@ -27,6 +27,12 @@ export default function AutoAvaliacao({ user, data }) {
       await setDoc(doc(db, "userData", user.username), {
         autoSaved: true, autoDate: date, autoNewRound: false, history: newHistory, weekXp: increment(30)
       }, { merge: true });
+      await updateDoc(doc(db, "userData", user.username), {
+        autoAvaliacaoHistorico: arrayUnion({
+          week: getWeekKey(), scores: uData.dScores || {},
+          notas: uData.dNotas || {}, date, ts: Date.now()
+        })
+      });
 
       await addDoc(collection(db, "adminNotificacoes"), {
         tipo: "AUTOAVALIACAO", jovem: user.username, data: date, ts: Date.now(), lida: false

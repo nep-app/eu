@@ -545,7 +545,8 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
             const hP = [...(uData.perguntasHistorico || [])].reverse();
             const hS = [...(uData.satisfacaoHistorico || [])].reverse();
             const hA = [...(uData.autoAvaliacaoHistorico || [])].reverse();
-            if (hP.length === 0 && hS.length === 0 && hA.length === 0) return null;
+            const hPIA = [...(uData.piaHistorico || [])].reverse();
+            if (hP.length === 0 && hS.length === 0 && hA.length === 0 && hPIA.length === 0) return null;
             return (
               <div style={CARD}>
                 <div style={SL}>🗄️ Arquivo de Respostas Anteriores</div>
@@ -585,13 +586,12 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
                 )}
 
                 {hA.length > 0 && (
-                  <div>
+                  <div style={{ marginBottom: hPIA.length > 0 ? 14 : 0 }}>
                     <div style={{ fontSize:10, fontWeight:900, color:"#5a7a9a", letterSpacing:1.5, textTransform:"uppercase", marginBottom:8 }}>📊 Auto-Avaliações</div>
                     {hA.map((e, i) => (
                       <div key={i} style={{ padding:"10px 12px", borderRadius:10, background:"rgba(0,0,0,0.2)", marginBottom:6 }}>
                         <div style={{ fontSize:10, color:"#475569", marginBottom:4 }}>
                           {e.week}{e.date ? ` · Entregue ${e.date}` : ""} · {formatarDataHora(e.ts, "")}
-                          {!e.saved && <span style={{ color:"#f97316", marginLeft:6 }}>(não submetida)</span>}
                         </div>
                         {Object.keys(e.scores || {}).length > 0 && (
                           <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
@@ -602,6 +602,52 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
                             ))}
                           </div>
                         )}
+                        {Object.keys(e.notas || {}).length > 0 && (
+                          <div style={{ marginTop:6, display:"flex", flexDirection:"column", gap:3 }}>
+                            {Object.entries(e.notas).filter(([,v]) => v).map(([k, v]) => (
+                              <div key={k} style={{ fontSize:11, color:"#94a3b8", fontStyle:"italic" }}>
+                                <span style={{ color:"#a78bfa", fontStyle:"normal", fontWeight:800 }}>{k}:</span> "{v}"
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {hPIA.length > 0 && (
+                  <div>
+                    <div style={{ fontSize:10, fontWeight:900, color:"#5a7a9a", letterSpacing:1.5, textTransform:"uppercase", marginBottom:8 }}>🚀 Versões do PIA</div>
+                    {hPIA.map((e, i) => (
+                      <div key={i} style={{ padding:"10px 12px", borderRadius:10, background:"rgba(0,0,0,0.2)", marginBottom:6 }}>
+                        <div style={{ fontSize:10, color:"#475569", marginBottom:6 }}>
+                          Versão {hPIA.length - i} · {e.week} · {formatarDataHora(e.ts, e.sentAt || "")}
+                        </div>
+                        {PIA_SECTIONS.map(sec => {
+                          const sd = (e.piaData || {})[sec.id] || {};
+                          const hasAny = sec.id === "s3b"
+                            ? ["swotF","swotFraq","swotOp","swotR"].some(k => sd[k]?.trim())
+                            : sec.fields.some(f => sd[f.key]?.trim?.() || (Array.isArray(sd[f.key]) && sd[f.key].length));
+                          if (!hasAny) return null;
+                          return (
+                            <div key={sec.id} style={{ marginBottom:4 }}>
+                              <span style={{ fontSize:10, fontWeight:800, color:CYN }}>{sec.icon} {sec.title}</span>
+                              {sec.id === "s3b" ? (
+                                <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginTop:3 }}>
+                                  {[["swotF","Forças"],["swotFraq","Fraquezas"],["swotOp","Oportunidades"],["swotR","Riscos"]].map(([k,l]) => sd[k] && (
+                                    <span key={k} style={{ fontSize:10, color:"#94a3b8" }}><strong style={{ color:"#e2e8f0" }}>{l}:</strong> {sd[k].substring(0,60)}{sd[k].length > 60 ? "…" : ""}</span>
+                                  ))}
+                                </div>
+                              ) : sec.fields.map(f => {
+                                const v = sd[f.key];
+                                if (!v || (Array.isArray(v) && !v.length)) return null;
+                                const preview = Array.isArray(v) ? `${v.length} entrada(s)` : String(v).substring(0,80) + (String(v).length > 80 ? "…" : "");
+                                return <div key={f.key} style={{ fontSize:10, color:"#94a3b8", marginTop:2 }}><strong style={{ color:"#e2e8f0" }}>{f.label}:</strong> {preview}</div>;
+                              })}
+                            </div>
+                          );
+                        })}
                       </div>
                     ))}
                   </div>

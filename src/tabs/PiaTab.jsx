@@ -1,8 +1,8 @@
 import React, { useState, useContext } from 'react';
-import { doc, setDoc, addDoc, collection } from "firebase/firestore";
+import { doc, setDoc, updateDoc, addDoc, collection, arrayUnion } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { CARD, SL, INP, CYN, GRN, TXT_MUT, PNK } from "../theme.jsx";
-import { PIA_SECTIONS, nowFull, nowLabel } from "../data.js";
+import { PIA_SECTIONS, nowFull, nowLabel, getWeekKey } from "../data.js";
 import { ThemeCtx } from "../JovensApp.jsx";
 
 const SUB_TABS = [
@@ -145,6 +145,12 @@ export default function PiaTab({ user, data }) {
       history: newHistory,
       weekXp: (uData.weekXp || 0) + (jaEnviou ? 0 : 30),
     }, { merge: true });
+    await updateDoc(doc(db, "userData", user.username), {
+      piaHistorico: arrayUnion({
+        week: getWeekKey(), sentAt: ts,
+        piaData: piaData, ts: Date.now()
+      })
+    });
     await addDoc(collection(db, "adminNotificacoes"), {
       tipo: "PIA", jovem: user.username, ts: Date.now(), lida: false,
       atualizado: jaEnviou
