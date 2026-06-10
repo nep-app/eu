@@ -234,14 +234,15 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
                     </div>
                     {hasWeek ? (
                       <div style={{ fontSize:8, color:"#5a7a9a", fontWeight:700 }}>✓ Esta semana</div>
-                    ) : hasEver ? (
-                      <div style={{ fontSize:8, color:"#475569", fontWeight:700 }}>📅 Histórico</div>
                     ) : (
-                      <button onClick={() => { setMedalModal({ username, medal:m }); setMedalMsg(""); }} style={{
-                        background:"rgba(50,199,255,0.12)", border:`1px solid ${CYN}30`,
-                        color:CYN, fontSize:9, fontWeight:900, borderRadius:8,
-                        padding:"3px 8px", cursor:"pointer", width:"100%",
-                      }}>+ Atribuir</button>
+                      <>
+                        {hasEver && <div style={{ fontSize:8, color:"#475569", fontWeight:700, marginBottom:3 }}>📅 Histórico</div>}
+                        <button onClick={() => { setMedalModal({ username, medal:m }); setMedalMsg(""); }} style={{
+                          background:"rgba(50,199,255,0.12)", border:`1px solid ${CYN}30`,
+                          color:CYN, fontSize:9, fontWeight:900, borderRadius:8,
+                          padding:"3px 8px", cursor:"pointer", width:"100%",
+                        }}>+ Atribuir</button>
+                      </>
                     )}
                   </div>
                 );
