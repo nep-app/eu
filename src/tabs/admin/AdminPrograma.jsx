@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { doc, setDoc, addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
-import { ALLOWED_USERNAMES, JEEP_LIST, nowLabel } from "../../data.js";
+import { ALLOWED_USERNAMES, JEEP_LIST, DIMS, nowLabel } from "../../data.js";
 import AdminQuizzes from './AdminQuizzes.jsx';
 import AdminVotacoes from './AdminVotacoes.jsx';
 import AdminMissoes from './AdminMissoes.jsx';
@@ -10,9 +10,10 @@ import AdminAgenda from './AdminAgenda.jsx';
 import AdminTarefas from './AdminTarefas.jsx';
 
 const SUBTABS = [
-  ["pergunta", "💬 Pergunta"],
-  ["dilemas",  "🧠 Dilemas"],
-  ["votacoes", "🗳️ Votações"],
+  ["pergunta",   "💬 Pergunta"],
+  ["autoav",     "📊 Autoavaliação"],
+  ["dilemas",    "🧠 Dilemas"],
+  ["votacoes",   "🗳️ Votações"],
   ["missoes",  "🎯 Missões"],
   ["agenda",   "📅 Agenda"],
   ["tarefas",  "✅ Tarefas"],
@@ -121,6 +122,50 @@ function PerguntaManager({ allShared, activeQ }) {
   );
 }
 
+function AutoavAdmin({ allShared }) {
+  return (
+    <div>
+      {JEEP_8.map(j => {
+        const uData = allShared[j.username] || {};
+        const scores = uData.dScores || {};
+        const notas  = uData.dNotas  || {};
+        const hasData = Object.keys(scores).length > 0;
+        return (
+          <div key={j.username} style={{ ...CARD, marginBottom:10, borderLeft: uData.autoSaved ? `4px solid ${CYN}` : "4px solid transparent" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: hasData ? 12 : 0 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <div style={{ width:10, height:10, borderRadius:"50%", background:j.color }} />
+                <span style={{ fontSize:14, fontWeight:800, color:j.color }}>{j.name}</span>
+              </div>
+              <span style={{ fontSize:11, fontWeight:800, color: uData.autoSaved ? CYN : "#475569" }}>
+                {uData.autoSaved ? `✓ Entregue ${uData.autoDate||""}` : hasData ? "Iniciada (não entregue)" : "Pendente"}
+              </span>
+            </div>
+            {hasData && (
+              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                {DIMS.map(dim => {
+                  const val = scores[dim.id];
+                  if (!val) return null;
+                  const nota = notas[dim.id];
+                  return (
+                    <div key={dim.id} style={{ background:"rgba(0,0,0,0.2)", borderRadius:10, padding:"8px 12px" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: nota ? 4 : 0 }}>
+                        <span style={{ fontSize:12, fontWeight:700, color:"#e2e8f0" }}>{dim.label}</span>
+                        <span style={{ fontSize:14, fontWeight:900, color: val >= 8 ? "#4ade80" : val >= 5 ? "#fbbf24" : "#f87171" }}>{val}/10</span>
+                      </div>
+                      {nota && <div style={{ fontSize:11, color:"#94a3b8", fontStyle:"italic" }}>"{nota}"</div>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function AdminPrograma({ allShared, events, missions, activeQ }) {
   const [sub, setSub] = useState("pergunta");
   return (
@@ -136,6 +181,7 @@ export default function AdminPrograma({ allShared, events, missions, activeQ }) 
         ))}
       </div>
       {sub === "pergunta" && <PerguntaManager allShared={allShared} activeQ={activeQ} />}
+      {sub === "autoav"   && <AutoavAdmin allShared={allShared} />}
       {sub === "dilemas"  && <AdminQuizzes />}
       {sub === "votacoes" && <AdminVotacoes />}
       {sub === "missoes"  && <AdminMissoes missions={missions} />}
