@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { doc, setDoc, getDoc, addDoc, collection, updateDoc, deleteField, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PRP, GRN, RadarChart, INP } from "../../theme.jsx";
-import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, PIA_FIELDS, getWeekKey } from "../../data.js";
+import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, PIA_FIELDS, PIA_SECTIONS, getWeekKey } from "../../data.js";
 
 export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStartTs = 0 }) {
   const [userSelecionado, setUserSelecionado] = useState(null);
@@ -268,54 +268,99 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
               : <div style={{ textAlign:"center", color:"#475569", padding:20, fontSize:13 }}>Sem dados.</div>}
           </div>
 
-          {/* SECÇÃO: PIA */}
+          {/* SECÇÃO: PIA — conteúdo completo */}
           <div style={CARD}>
-            <div style={SL}>🚀 Plano Individual de Ação (PIA)</div>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+              <div style={SL}>🚀 PIA — Plano Individual de Ação</div>
+              {uData.piaSaved
+                ? <span style={{ fontSize:10, color:GRN, fontWeight:800 }}>✓ Enviado {uData.piaSavedAt||""}</span>
+                : <span style={{ fontSize:10, color:"#475569", fontWeight:700 }}>Ainda não enviado</span>}
+            </div>
             {(() => {
               const piaUnlocked = uData.piaUnlocked || {};
               const piaData     = uData.piaData     || {};
               async function togglePiaSection(sectionId) {
-                const current = piaUnlocked[sectionId] || false;
-                await setDoc(doc(db, "userData", username), {
-                  piaUnlocked: { ...piaUnlocked, [sectionId]: !current }
-                }, { merge: true });
+                const cur = piaUnlocked[sectionId] || false;
+                await setDoc(doc(db, "userData", username), { piaUnlocked: { ...piaUnlocked, [sectionId]: !cur } }, { merge: true });
               }
-              const PIA_SECTIONS_MINI = [
-                { id:"s2",  title:"Diagnóstico",   icon:"🔍" },
-                { id:"s3",  title:"Atributos",     icon:"⭐" },
-                { id:"s3b", title:"Raio-X",        icon:"📊" },
-                { id:"s4",  title:"Projeto",       icon:"🚀" },
-                { id:"s5",  title:"Monitorização", icon:"📈" },
-              ];
               return (
                 <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                  {uData.piaSaved && (
-                    <div style={{ fontSize:10, color:"#4ade80", fontWeight:800, marginBottom:4 }}>
-                      ✓ PIA enviado {uData.piaSavedAt ? `em ${uData.piaSavedAt}` : ""}
-                    </div>
-                  )}
-                  {PIA_SECTIONS_MINI.map((sec, idx) => {
+                  {PIA_SECTIONS.map(sec => {
+                    const sd = piaData[sec.id] || {};
                     const isOpen = piaUnlocked[sec.id] || false;
-                    const secData = piaData[sec.id] || {};
-                    const swotKeys = ["swotF","swotFraq","swotOp","swotR"];
-                    const filled = sec.id === "s3b"
-                      ? swotKeys.filter(k => secData[k]?.trim()).length
-                      : Object.values(secData).filter(v => typeof v === "string" && v.trim()).length;
+                    const hasContent = sec.id === "s3b"
+                      ? ["swotF","swotFraq","swotOp","swotR"].some(k => sd[k]?.trim())
+                      : sec.fields.some(f => {
+                          if (f.type === "activities") return (sd[f.key]||[]).some(a => a.oQue);
+                          if (f.type === "revisoes")   return (sd[f.key]||[]).some(r => r.texto);
+                          return sd[f.key]?.trim?.();
+                        });
                     return (
-                      <div key={sec.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", borderRadius:12, background:"rgba(0,0,0,0.2)", border: isOpen ? `1px solid ${CYN}30` : "1px solid transparent" }}>
-                        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                          <span style={{ fontSize:18 }}>{sec.icon}</span>
-                          <div>
-                            <div style={{ fontSize:12, fontWeight:800, color: isOpen ? "#f1f5f9" : "#64748b" }}>{idx+1}. {sec.title}</div>
-                            {isOpen && filled > 0 && <div style={{ fontSize:10, color:CYN }}>{filled} campo(s) preenchido(s)</div>}
+                      <div key={sec.id} style={{ borderRadius:12, background:"rgba(0,0,0,0.2)", overflow:"hidden" }}>
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px" }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                            <span style={{ fontSize:16 }}>{sec.icon}</span>
+                            <span style={{ fontSize:12, fontWeight:800, color: hasContent ? "#f1f5f9" : "#475569" }}>{sec.title}</span>
+                            {hasContent && <span style={{ fontSize:10, color:GRN }}>✓</span>}
                           </div>
+                          <button onClick={() => togglePiaSection(sec.id)} style={{
+                            background: isOpen ? "rgba(244,63,94,0.12)" : "rgba(50,199,255,0.10)",
+                            border: isOpen ? "1px solid rgba(244,63,94,0.3)" : `1px solid ${CYN}25`,
+                            color: isOpen ? "#f43f5e" : CYN,
+                            borderRadius:8, padding:"3px 10px", fontWeight:900, fontSize:10, cursor:"pointer",
+                          }}>{isOpen ? "🔒 Bloquear" : "🔓 Abrir"}</button>
                         </div>
-                        <button onClick={() => togglePiaSection(sec.id)} style={{
-                          background: isOpen ? "rgba(244,63,94,0.12)" : "rgba(50,199,255,0.12)",
-                          border: isOpen ? "1px solid rgba(244,63,94,0.3)" : `1px solid ${CYN}30`,
-                          color: isOpen ? "#f43f5e" : CYN,
-                          borderRadius:8, padding:"5px 12px", fontWeight:900, fontSize:11, cursor:"pointer",
-                        }}>{isOpen ? "🔒 Bloquear" : "🔓 Abrir"}</button>
+                        {hasContent && (
+                          <div style={{ padding:"0 14px 12px", borderTop:"1px solid rgba(255,255,255,0.04)" }}>
+                            {sec.id === "s3b" ? (
+                              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6, marginTop:8 }}>
+                                {[["swotF","Forças 💪"],["swotFraq","Fraquezas 🔍"],["swotOp","Oportunidades 🌱"],["swotR","Riscos ⚠️"]].map(([k,l]) => sd[k] && (
+                                  <div key={k} style={{ background:"rgba(0,0,0,0.25)", borderRadius:8, padding:"8px 10px" }}>
+                                    <div style={{ fontSize:9, fontWeight:900, color:"#5a7a9a", marginBottom:3 }}>{l}</div>
+                                    <div style={{ fontSize:11, color:"#e2e8f0", lineHeight:1.5, whiteSpace:"pre-wrap" }}>{sd[k]}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : sec.fields.map(f => {
+                              if (f.type === "activities") {
+                                const acts = (sd[f.key]||[]).filter(a => a.oQue);
+                                if (!acts.length) return null;
+                                return (
+                                  <div key={f.key} style={{ marginTop:8 }}>
+                                    <div style={{ fontSize:9, color:"#5a7a9a", fontWeight:800, marginBottom:4 }}>{f.label.toUpperCase()}</div>
+                                    {acts.map((a,i) => (
+                                      <div key={i} style={{ fontSize:11, color:"#e2e8f0", marginBottom:4, paddingLeft:8, borderLeft:`2px solid ${CYN}40` }}>
+                                        <strong>{a.oQue}</strong>{a.quando && ` · ${a.quando}`}{a.obj && ` — ${a.obj}`}
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              }
+                              if (f.type === "revisoes") {
+                                const revs = (sd[f.key]||[]).filter(r => r.texto);
+                                if (!revs.length) return null;
+                                return (
+                                  <div key={f.key} style={{ marginTop:8 }}>
+                                    <div style={{ fontSize:9, color:"#5a7a9a", fontWeight:800, marginBottom:4 }}>{f.label.toUpperCase()}</div>
+                                    {revs.map((r,i) => (
+                                      <div key={i} style={{ fontSize:11, color:"#e2e8f0", marginBottom:4, paddingLeft:8, borderLeft:"2px solid rgba(167,139,250,0.4)" }}>
+                                        {r.data && <span style={{ color:"#5a7a9a" }}>{r.data}: </span>}{r.texto}
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              }
+                              const val = sd[f.key];
+                              if (!val?.trim?.()) return null;
+                              return (
+                                <div key={f.key} style={{ marginTop:8 }}>
+                                  <div style={{ fontSize:9, color:"#5a7a9a", fontWeight:800, marginBottom:3 }}>{f.label.toUpperCase()}</div>
+                                  <div style={{ fontSize:12, color:"#e2e8f0", lineHeight:1.6, whiteSpace:"pre-wrap" }}>{val}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     );
                   })}

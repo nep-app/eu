@@ -25,14 +25,12 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
       ? `❤️ ${user.realName} reagiu à tua partilha!`
       : `💬 ${user.realName} comentou a tua partilha!`;
     if (post.username === "admin") {
-      // Notify admin panel (Geral tab)
-      const canal = post.canalAtivo || "";
       await addDoc(collection(db, "adminNotificacoes"), {
         tipo: tipo === "like" ? "FORUM_REACAO" : "FORUM_COMENTARIO",
         jovem: user.username,
         texto: tipo === "like"
-          ? `${user.realName} reagiu ao teu post nos Anúncios`
-          : `${user.realName} comentou o teu post nos Anúncios`,
+          ? `${user.realName} reagiu ao teu post em #${canalAtivo}`
+          : `${user.realName} comentou o teu post em #${canalAtivo}`,
         ts: Date.now(), lida: false
       });
     } else {

@@ -19,19 +19,18 @@ function tsToWeekKey(ts) {
   const d = new Date(ts);
   const jan1 = new Date(d.getFullYear(), 0, 1);
   const wk = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
-  return d.getFullYear() + "-W" + String(wk).padStart(2, "0");
+  return d.getFullYear() + "-W" + wk;
 }
 
 function weekLabel(wkStr) {
   try {
     const [y, w] = wkStr.split("-W").map(Number);
-    // ISO week: Jan 4 is always in week 1
-    const jan4 = new Date(y, 0, 4);
-    const mondayOfW1 = new Date(jan4.getTime() - ((jan4.getDay() + 6) % 7) * 86400000);
-    const monday = new Date(mondayOfW1.getTime() + (w - 1) * 7 * 86400000);
-    const sunday = new Date(monday.getTime() + 6 * 86400000);
+    const jan1 = new Date(y, 0, 1);
+    const dow = jan1.getDay();
+    const start = new Date(jan1.getTime() + ((w - 1) * 7 - dow) * 86400000);
+    const end = new Date(start.getTime() + 6 * 86400000);
     const fmt = d => `${d.getDate()}/${d.getMonth() + 1}`;
-    return `${fmt(monday)}–${fmt(sunday)}`;
+    return `${fmt(start)}–${fmt(end)}`;
   } catch { return wkStr; }
 }
 
@@ -101,8 +100,10 @@ function buildCSV(weeks) {
   const a = document.createElement("a");
   a.href = url;
   a.download = "jeep_relatorio.csv";
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
 const cellStyle = (val, bool) => ({
@@ -156,8 +157,6 @@ export default function AdminRelatorio({ allShared }) {
         boolCols.forEach(c => {
           completed[c.key] = JEEP_8.filter(j => (wkData[j.username] || {})[c.key]).length;
         });
-        const totalXP = JEEP_8.reduce((s, j) => s + ((wkData[j.username] || {}).xp || 0), 0);
-
         return (
           <div key={wk} style={{
             ...CARD,
