@@ -6,17 +6,12 @@ import { upd, getWeekKey, nowLabel, ALLOWED_USERNAMES, JEEP_LIST } from "./data.
 
 // ── IMPORTAÇÃO DAS FATIAS ──
 import AdminGeral from './tabs/admin/AdminGeral.jsx';
+import AdminJovens from './tabs/admin/AdminJovens.jsx';
+import AdminPrograma from './tabs/admin/AdminPrograma.jsx';
+import AdminPia from './tabs/admin/AdminPia.jsx';
 import AdminMural from './tabs/admin/AdminMural.jsx';
-import AdminPartilhas from './tabs/admin/AdminPartilhas.jsx';
-import AdminTarefas from './tabs/admin/AdminTarefas.jsx';
-import AdminAgenda from './tabs/admin/AdminAgenda.jsx';
-import AdminMissoes from './tabs/admin/AdminMissoes.jsx';
-import AdminMsgs from './tabs/admin/AdminMsgs.jsx';
-import AdminUsers from './tabs/admin/AdminUsers.jsx';
-import AdminVotacoes from './tabs/admin/AdminVotacoes.jsx';
-import AdminQuizzes from './tabs/admin/AdminQuizzes.jsx';
 import AdminSatisfacao from './tabs/admin/AdminSatisfacao.jsx';
-import AdminRelatorio from './tabs/admin/AdminRelatorio.jsx';
+import AdminMsgs from './tabs/admin/AdminMsgs.jsx';
 export default function TeresaAdmin({ user, onLogout }) {
   const [adminTab, setAdminTab] = useState("geral");
 
@@ -111,17 +106,12 @@ export default function TeresaAdmin({ user, onLogout }) {
 
 const ADMIN_TABS = [
     ["geral",     unreadNotifsCount > 0 ? `📊 Geral (${unreadNotifsCount})` : "📊 Geral"],
-    ["mural",     "🌐 Fórum"],
-    ["votacoes",  "🗳️ Votações"],
-    ["quizzes",   "🧠 Dilemas"],
-    ["partilhas", "📂 Partilhas"],
-    ["tasks",     "✅ Tarefas"],
-    ["agenda",    "📅 Agenda"],
-    ["missoes",   "🎯 Missões"],
+    ["jovens",    "👥 Jovens"],
+    ["programa",  "🎯 Programa"],
+    ["pia",       "📋 PIA"],
+    ["forum",     "🌐 Fórum"],
     ["satisfacao","😊 Satisfação"],
     ["msgs",      "💬 Msgs"],
-    ["users",     "👥 Utilizadores"],
-    ["relatorio", "📈 Relatório"],
   ];
 
   return (
@@ -187,18 +177,13 @@ const ADMIN_TABS = [
 
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "20px 16px" }}>
         {/* RENDERIZAÇÃO DAS FATIAS */}
-        {adminTab === "geral"     && <AdminGeral allShared={allShared} leaderboard={leaderboard} adminNotifs={adminNotifs} activeQ={activeQ} />}
-        {adminTab === "mural"     && <AdminMural />}
-        {adminTab === "votacoes"  && <AdminVotacoes />}
-        {adminTab === "quizzes"   && <AdminQuizzes />}
-        {adminTab === "partilhas" && <AdminPartilhas allShared={allShared} />}
-        {adminTab === "tasks"     && <AdminTarefas />}
-        {adminTab === "agenda"    && <AdminAgenda events={events} />}
-        {adminTab === "missoes" && <AdminMissoes missions={missions} />}
-        {adminTab === "satisfacao" && <AdminSatisfacao />}
-        {adminTab === "msgs" && <AdminMsgs />}
-        {adminTab === "users"     && <AdminUsers amMedals={amMedals} setAmMedals={setAmMedals} allShared={allShared} weekStartTs={weekStartTs} />}
-        {adminTab === "relatorio" && <AdminRelatorio allShared={allShared} />}
+        {adminTab === "geral"     && <AdminGeral allShared={allShared} leaderboard={leaderboard} adminNotifs={adminNotifs} />}
+        {adminTab === "jovens"    && <AdminJovens amMedals={amMedals} setAmMedals={setAmMedals} allShared={allShared} weekStartTs={weekStartTs} />}
+        {adminTab === "programa"  && <AdminPrograma allShared={allShared} events={events} missions={missions} activeQ={activeQ} />}
+        {adminTab === "pia"       && <AdminPia allShared={allShared} />}
+        {adminTab === "forum"     && <AdminMural />}
+        {adminTab === "satisfacao"&& <AdminSatisfacao />}
+        {adminTab === "msgs"      && <AdminMsgs />}
       </div>
       
     </div>

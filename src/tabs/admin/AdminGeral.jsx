@@ -4,7 +4,7 @@ import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, Btn, INP, PNK } from "../../theme.jsx";
 import { nowLabel, fmtDate, getWeekKey, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
 
-export default function AdminGeral({ allShared, leaderboard, adminNotifs, activeQ }) {
+export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
   const [features, setFeatures] = useState({});
 
   useEffect(() => {
@@ -30,31 +30,6 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
   const [launchPrazo, setLaunchPrazo] = useState("");
   const [feedbackOpen, setFeedbackOpen] = useState({});
   const [feedbackTexts, setFeedbackTexts] = useState({});
-  const [activeQEdit, setActiveQEdit] = useState("");
-  
-  // Opções para botões
-  const [opt1, setOpt1] = useState("");
-  const [opt2, setOpt2] = useState("");
-  const [opt3, setOpt3] = useState("");
-
-  // SELEÇÃO MÚLTIPLA DE MODOS (HÍBRIDO)
-  const MODOS_DISPONIVEIS = [
-    { id: "texto", label: "Texto", icon: "📝" },
-    { id: "audio", label: "Áudio", icon: "🎤" },
-    { id: "3palavras", label: "3 Palavras", icon: "🔢" },
-    { id: "semana", label: "Rating (1-5)", icon: "⭐" },
-    { id: "imagem", label: "Imagem", icon: "📸" },
-    { id: "mood", label: "Emoji/Mood", icon: "🎭" }
-  ];
-  const [selectedModes, setSelectedModes] = useState(["texto"]);
-
-  const toggleMode = (id) => {
-    if (selectedModes.includes(id)) {
-      setSelectedModes(selectedModes.filter(m => m !== id));
-    } else {
-      setSelectedModes([...selectedModes, id]);
-    }
-  };
 
   async function launchRequest() {
     let msg = ""; let field = null;
@@ -105,28 +80,6 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
     if (!window.confirm(`Iniciar semana desde ${label}? Nenhum dado é apagado — o XP semanal passa a contar a partir desse momento.`)) return;
     await setDoc(doc(db, "config", "weekStart"), { ts, label: nowLabel() });
     alert(`Semana iniciada desde ${label}! 🆕\nO ranking já está a calcular o XP a partir dessa hora.`);
-  }
-
-  async function updateActiveQ() {
-    if (!activeQEdit.trim()) return alert("Escreve a pergunta!");
-    if (selectedModes.length === 0 && opt1 === "") return alert("Seleciona pelo menos um modo de resposta!");
-    
-    const opcoesFinais = [opt1, opt2, opt3].filter(o => o.trim() !== "");
-
-    await setDoc(doc(db, "config", "activeQuestion"), { 
-      text: activeQEdit.trim(), 
-      options: opcoesFinais, 
-      modes: selectedModes, 
-      date: Date.now() 
-    });
-
-    const qTargets = ALLOWED_USERNAMES;
-    for (const u of qTargets) {
-      await setDoc(doc(db, "userData", u), { answered: false }, { merge: true });
-      await addDoc(collection(db, "notifications", u, "items"), { from:"teresa", text:"💬 Nova pergunta da semana!", date:nowLabel(), read:false, tipo:"proposta" });
-    }
-    alert("Pergunta publicada com os modos selecionados!");
-    setActiveQEdit(""); setOpt1(""); setOpt2(""); setOpt3("");
   }
 
   async function markAdminNotifAsRead(notifId) {
@@ -201,43 +154,6 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
         }} style={{ width:"100%", padding:"12px", background:`${CYN}18`, border:`1px solid ${CYN}30`, color:CYN, borderRadius:12, fontWeight:900, fontSize:13, cursor:"pointer" }}>
           🔄 Inicializar / Resetar Dados Demo
         </button>
-      </div>
-
-      {/* 0d. PIA — LANÇAR SECÇÕES A TODOS */}
-      <div style={CARD}>
-        <div style={SL}>🚀 PIA — Lançar Secções</div>
-        <div style={{ fontSize:11, color:"#475569", marginBottom:12 }}>
-          Abre/fecha secções do PIA para todos os jovens de uma vez. Usa o Dossier individual para controlo por pessoa.
-        </div>
-        {[
-          { id:"s1",  title:"1. Identificação", icon:"👤" },
-          { id:"s2",  title:"2. Diagnóstico",   icon:"🔍" },
-          { id:"s3",  title:"3. Atributos",     icon:"⭐" },
-          { id:"s3b", title:"3b. Raio-X",       icon:"📊" },
-          { id:"s4",  title:"4. Projeto",       icon:"🚀" },
-          { id:"s5",  title:"5. Monitorização", icon:"📈" },
-        ].map(sec => (
-          <div key={sec.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", borderRadius:12, background:"rgba(0,0,0,0.2)", marginBottom:6 }}>
-            <div style={{ fontSize:13, fontWeight:800 }}>{sec.icon} {sec.title}</div>
-            <div style={{ display:"flex", gap:6 }}>
-              <button onClick={async () => {
-                const targets = ALLOWED_USERNAMES;
-                for (const u of targets) await setDoc(doc(db,"userData",u), { piaUnlocked: { [sec.id]: true } }, { merge:true });
-                alert(`Secção "${sec.title}" aberta para todos!`);
-              }} style={{ background:`${GRN}18`, border:`1px solid ${GRN}40`, color:GRN, borderRadius:8, padding:"5px 12px", fontWeight:900, fontSize:11, cursor:"pointer" }}>
-                🔓 Abrir a todos
-              </button>
-              <button onClick={async () => {
-                if (!window.confirm(`Fechar "${sec.title}"?`)) return;
-                const targets = ALLOWED_USERNAMES;
-                for (const u of targets) await setDoc(doc(db,"userData",u), { piaUnlocked: { [sec.id]: false } }, { merge:true });
-                alert(`Secção "${sec.title}" fechada para todos.`);
-              }} style={{ background:"rgba(244,63,94,0.1)", border:"1px solid rgba(244,63,94,0.25)", color:"#f43f5e", borderRadius:8, padding:"5px 12px", fontWeight:900, fontSize:11, cursor:"pointer" }}>
-                🔒 Fechar a todos
-              </button>
-            </div>
-          </div>
-        ))}
       </div>
 
       {/* 1. NOTIFICAÇÕES */}
@@ -371,59 +287,6 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, active
         })}
       </div>
 
-      {/* 4. PERGUNTA DA SEMANA */}
-      <div style={CARD}>
-        <div style={SL}>Lançar Pergunta da Semana</div>
-        <div style={{ fontSize:13, color:"white", marginBottom:15, padding:"12px", background:"rgba(0,0,0,0.2)", borderRadius:12, borderLeft:`4px solid ${CYN}` }}>{activeQ}</div>
-        
-        <input value={activeQEdit} onChange={e=>setActiveQEdit(e.target.value)} placeholder="A pergunta da semana..." style={INP}/>
-        
-        <div style={{ marginBottom: 15 }}>
-          <div style={{ fontSize: 11, color: CYN, fontWeight: 800, marginBottom: 8 }}>MODOS DE RESPOSTA PERMITIDOS:</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-            {MODOS_DISPONIVEIS.map(m => (
-              <button 
-                key={m.id} 
-                onClick={() => toggleMode(m.id)}
-                style={{
-                  padding: "10px 5px", borderRadius: "10px", fontSize: "11px", border: "none", cursor: "pointer",
-                  background: selectedModes.includes(m.id) ? CYN : "rgba(255,255,255,0.05)",
-                  color: selectedModes.includes(m.id) ? "#000" : "#fff",
-                  fontWeight: selectedModes.includes(m.id) ? 900 : 600,
-                  transition: "0.2s"
-                }}
-              >
-                <span style={{ fontSize: 16, display: "block", marginBottom: 2 }}>{m.icon}</span>
-                {m.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 15 }}>
-          <div style={{ fontSize: 11, color: PNK, fontWeight: 800, marginBottom: 8 }}>OU CRIAR BOTÕES DE OPÇÃO:</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-            <input value={opt1} onChange={e=>setOpt1(e.target.value)} placeholder="Opção 1" style={{ ...INP, marginBottom: 0, fontSize: 11 }} />
-            <input value={opt2} onChange={e=>setOpt2(e.target.value)} placeholder="Opção 2" style={{ ...INP, marginBottom: 0, fontSize: 11 }} />
-            <input value={opt3} onChange={e=>setOpt3(e.target.value)} placeholder="Opção 3" style={{ ...INP, marginBottom: 0, fontSize: 11 }} />
-          </div>
-        </div>
-        
-        <button onClick={updateActiveQ} style={{ marginTop:15, width:"100%", padding:"14px 20px", fontSize:13, fontWeight:800, letterSpacing:1.2, textTransform:"uppercase", background:CYN, color:"#0f172a", border:"none", borderRadius:14, cursor:"pointer" }}>Publicar Desafio Semanal 💬</button>
-      </div>
-
-      {/* 5. RESPOSTAS */}
-      <div style={CARD}>
-        <div style={SL}>Respostas Recebidas</div>
-        {JEEP_LIST.map(j => {
-          let d = allShared[j.username] || {};
-          return (
-            <div key={j.username} style={{ padding:"12px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-              <div style={{ fontSize:14, fontWeight:700 }}>{j.name}: {d.answered ? <span style={{ color:CYN, fontWeight:400 }}>{d.answerText}</span> : <span style={{ color:"#475569" }}>Pendente</span>}</div>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
