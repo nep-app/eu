@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { doc, setDoc, addDoc, collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { doc, setDoc, addDoc, collection, onSnapshot, query, orderBy, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
-import { ALLOWED_USERNAMES, JEEP_LIST, DIMS, nowLabel } from "../../data.js";
+import { ALLOWED_USERNAMES, JEEP_LIST, DIMS, nowLabel, getWeekKey } from "../../data.js";
 import AdminQuizzes from './AdminQuizzes.jsx';
 import AdminVotacoes from './AdminVotacoes.jsx';
 import AdminMissoes from './AdminMissoes.jsx';
@@ -148,6 +148,32 @@ function PerguntaManager({ allShared, activeQ }) {
         }}>Publicar Desafio Semanal 💬</button>
       </div>
 
+      {/* Respostas anteriores já guardadas por user (perguntasHistorico) */}
+      {JEEP_8.some(j => (allShared[j.username]?.perguntasHistorico || []).length > 0) && (
+        <div style={CARD}>
+          <div style={SL}>📜 Respostas a Perguntas Anteriores</div>
+          <div style={{ fontSize:11, color:"#475569", marginBottom:10 }}>Respostas que os jovens já enviaram a perguntas anteriores (o texto da pergunta não foi guardado nas versões anteriores do sistema).</div>
+          {JEEP_8.map(j => {
+            const hist = (allShared[j.username]?.perguntasHistorico || []).slice().reverse();
+            if (hist.length === 0) return null;
+            return (
+              <div key={j.username} style={{ marginBottom:12 }}>
+                <div style={{ fontSize:12, fontWeight:800, color:j.color, marginBottom:6 }}>{j.name}</div>
+                {hist.map((h, i) => (
+                  <div key={i} style={{ background:"rgba(0,0,0,0.2)", borderRadius:8, padding:"8px 10px", marginBottom:5 }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
+                      <span style={{ fontSize:10, color:"#475569" }}>{h.week || "—"}</span>
+                      <span style={{ fontSize:10, color:"#475569" }}>{h.type || "texto"}</span>
+                    </div>
+                    <div style={{ fontSize:12, color:"#e2e8f0" }}>{h.answer}</div>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {arquivo.length > 0 && (
         <div style={CARD}>
           <div style={SL}>📚 Arquivo de Perguntas Anteriores</div>
@@ -207,6 +233,7 @@ function ScoresGrid({ scores, notas }) {
 
 function AutoavAdmin({ allShared }) {
   const [histOpen, setHistOpen] = useState(null);
+  const [guardando, setGuardando] = useState(false);
 
   // Build historical rounds from all users' autoAvaliacaoHistorico
   const rondasMap = {};
@@ -222,11 +249,33 @@ function AutoavAdmin({ allShared }) {
   });
   const rondasAntigas = Object.values(rondasMap).sort((a, b) => b.maxTs - a.maxTs);
 
+  async function arquivarRondaAtual() {
+    if (!window.confirm("Arquivar o estado atual de todas as autoavaliações? Útil para guardar a ronda atual antes de lançares uma nova.")) return;
+    setGuardando(true);
+    const week = getWeekKey();
+    const date = nowLabel();
+    for (const j of JEEP_8) {
+      const uData = allShared[j.username] || {};
+      if (Object.keys(uData.dScores || {}).length === 0) continue;
+      await updateDoc(doc(db, "userData", j.username), {
+        autoAvaliacaoHistorico: arrayUnion({
+          week, scores: uData.dScores || {}, notas: uData.dNotas || {}, date, ts: Date.now()
+        })
+      });
+    }
+    setGuardando(false);
+    alert("Ronda arquivada!");
+  }
+
   return (
     <div>
       {/* Ronda atual */}
-      <div style={{ ...CARD, marginBottom:4 }}>
+      <div style={{ ...CARD, marginBottom:4, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
         <div style={SL}>Ronda Atual</div>
+        <button onClick={arquivarRondaAtual} disabled={guardando} style={{
+          background:"rgba(34,211,238,0.1)", border:`1px solid ${CYN}40`, color:CYN,
+          borderRadius:10, padding:"6px 12px", fontSize:11, fontWeight:800, cursor:"pointer"
+        }}>{guardando ? "A guardar..." : "📥 Arquivar estado atual"}</button>
       </div>
       {JEEP_8.map(j => {
         const uData = allShared[j.username] || {};
