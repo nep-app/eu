@@ -14,16 +14,22 @@ function fmtOpcaoData(date, time) {
   return time ? `${base} · ${time}` : base;
 }
 
+function hasVotes(poll) {
+  return poll.options.some(op => (poll.votes[op] || []).length > 0);
+}
+
 export default function AdminVotacoes() {
   const [polls, setPolls] = useState([]);
   const [titulo, setTitulo] = useState("");
   const [tipo, setTipo] = useState("texto");
-  // Para tipo texto: array de strings
   const [opcoes, setOpcoes] = useState(["", ""]);
-  // Para tipo data: array de {date, time}
   const [opcoesDatas, setOpcoesDatas] = useState([{date:"",time:""},{date:"",time:""}]);
   const [targetUsers, setTargetUsers] = useState(JEEP_8.map(j => j.username));
   const [saving, setSaving] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [editTitulo, setEditTitulo] = useState("");
+  const [editOpcoes, setEditOpcoes] = useState([]);
+  const [editTargetUsers, setEditTargetUsers] = useState([]);
 
   useEffect(() => {
     return onSnapshot(collection(db, "polls"), snap => {
@@ -66,6 +72,27 @@ export default function AdminVotacoes() {
     } finally {
       setSaving(false);
     }
+  }
+
+  function abrirEdicao(poll) {
+    setEditId(poll.id);
+    setEditTitulo(poll.title);
+    setEditOpcoes([...poll.options]);
+    setEditTargetUsers(poll.targetUsers?.length > 0 ? poll.targetUsers : JEEP_8.map(j => j.username));
+  }
+
+  async function guardarEdicao(poll) {
+    const opcoesFinais = editOpcoes.filter(o => o.trim());
+    if (!editTitulo.trim() || opcoesFinais.length < 2) return alert("Título e pelo menos 2 opções são obrigatórios.");
+    const votosIniciais = {};
+    opcoesFinais.forEach(op => { votosIniciais[op] = []; });
+    await updateDoc(doc(db, "polls", poll.id), {
+      title: editTitulo,
+      options: opcoesFinais,
+      votes: votosIniciais,
+      targetUsers: editTargetUsers.length === JEEP_8.length ? [] : editTargetUsers,
+    });
+    setEditId(null);
   }
 
   async function apagarVotacao(id) {
@@ -212,6 +239,12 @@ export default function AdminVotacoes() {
                   )}
                 </div>
                 <div style={{ display:"flex", gap:8 }}>
+                  {!hasVotes(poll) && editId !== poll.id && (
+                    <button onClick={() => abrirEdicao(poll)} style={{
+                      background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)",
+                      color:"#94a3b8", borderRadius:8, padding:"4px 10px", fontSize:11, cursor:"pointer", fontWeight:700,
+                    }}>✏️ Editar</button>
+                  )}
                   <button onClick={() => fecharVotacao(poll.id, poll.active)} style={{
                     background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)",
                     color:"#fff", borderRadius:8, padding:"4px 10px", fontSize:11, cursor:"pointer", fontWeight:700,
@@ -222,6 +255,55 @@ export default function AdminVotacoes() {
                   }}>✕</button>
                 </div>
               </div>
+              {editId === poll.id && (
+                <div style={{ background:"rgba(0,0,0,0.25)", borderRadius:14, padding:14, marginBottom:14 }}>
+                  <input value={editTitulo} onChange={e => setEditTitulo(e.target.value)}
+                    style={{ ...INP, marginBottom:10 }} placeholder="Título" />
+                  <div style={{ fontSize:11, color:"#94a3b8", fontWeight:800, marginBottom:8 }}>OPÇÕES:</div>
+                  {editOpcoes.map((op, idx) => (
+                    <div key={idx} style={{ display:"flex", gap:8, marginBottom:8 }}>
+                      <input value={op} onChange={e => { const n=[...editOpcoes]; n[idx]=e.target.value; setEditOpcoes(n); }}
+                        placeholder={`Opção ${idx+1}`} style={{ ...INP, marginBottom:0, flex:1 }} />
+                      {idx >= 2 && (
+                        <button onClick={() => setEditOpcoes(editOpcoes.filter((_,i) => i!==idx))}
+                          style={{ background:"none", border:"none", color:"#fb7185", cursor:"pointer", fontSize:16 }}>✕</button>
+                      )}
+                    </div>
+                  ))}
+                  <button onClick={() => setEditOpcoes([...editOpcoes,""])} style={{
+                    background:"transparent", border:`1px dashed ${CYN}`, color:CYN,
+                    padding:"6px 12px", borderRadius:10, fontSize:11, fontWeight:800,
+                    cursor:"pointer", width:"100%", marginBottom:12,
+                  }}>+ Opção</button>
+                  <div style={{ fontSize:11, color:"#94a3b8", fontWeight:800, marginBottom:8 }}>VISÍVEL PARA:</div>
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:12 }}>
+                    {JEEP_8.map(j => {
+                      const sel = editTargetUsers.includes(j.username);
+                      return (
+                        <button key={j.username} onClick={() => setEditTargetUsers(
+                          sel ? editTargetUsers.filter(u => u !== j.username) : [...editTargetUsers, j.username]
+                        )} style={{
+                          padding:"5px 12px", borderRadius:20, fontSize:11, fontWeight:800, cursor:"pointer",
+                          border: sel ? `1.5px solid ${CYN}` : "1.5px solid rgba(255,255,255,0.1)",
+                          background: sel ? `${CYN}20` : "rgba(255,255,255,0.03)",
+                          color: sel ? CYN : "#64748b",
+                        }}>{j.name}</button>
+                      );
+                    })}
+                  </div>
+                  <div style={{ display:"flex", gap:8 }}>
+                    <button onClick={() => guardarEdicao(poll)} style={{
+                      flex:1, padding:"10px", background:CYN, border:"none", borderRadius:10,
+                      fontWeight:900, fontSize:12, cursor:"pointer", color:"#071529",
+                    }}>✓ Guardar</button>
+                    <button onClick={() => setEditId(null)} style={{
+                      padding:"10px 16px", background:"rgba(255,255,255,0.07)", border:"none",
+                      borderRadius:10, color:"#64748b", cursor:"pointer", fontSize:12,
+                    }}>Cancelar</button>
+                  </div>
+                </div>
+              )}
+
               <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                 {poll.options.map(op => {
                   const votos = poll.votes[op] || [];
