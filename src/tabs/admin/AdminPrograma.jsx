@@ -38,6 +38,7 @@ function PerguntaManager({ allShared, activeQ }) {
   const [selectedModes, setSelectedModes] = useState(["texto"]);
   const [arquivo, setArquivo] = useState([]);
   const [arquivoOpen, setArquivoOpen] = useState(null);
+  const [semeado, setSemeado] = useState(false);
 
   useEffect(() => {
     const unsub = onSnapshot(
@@ -46,6 +47,22 @@ function PerguntaManager({ allShared, activeQ }) {
     );
     return unsub;
   }, []);
+
+  async function semeiarPerguntaHistorica() {
+    if (semeado) return;
+    if (!window.confirm("Adicionar a pergunta histórica de Mai 2026 ao arquivo?")) return;
+    await addDoc(collection(db, "perguntasArquivo"), {
+      text: "Qual o teu compromisso para este novo mês?",
+      date: "Mai 2026",
+      archivedAt: 1746057600000,
+      respostas: {
+        nilton: { name:"Nilton", answered:true, answerText:"Ser mais assertivo; criar mais atividades que fomentem cooperação de grupo e não tanta competição.", answerType:"texto", answerDate:null },
+        marisa: { name:"Marisa", answered:true, answerText:"Melhorar a produtividade,desenvolver uma atividade nova,finalizar um projeto específico. Tens algo em mente que gostasses de alcançar. Muito obrigada", answerType:"texto", answerDate:null },
+      }
+    });
+    setSemeado(true);
+    alert("Pergunta histórica adicionada!");
+  }
 
   const toggleMode = (id) => setSelectedModes(prev =>
     prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
@@ -146,6 +163,13 @@ function PerguntaManager({ allShared, activeQ }) {
           width:"100%", padding:"14px 20px", fontSize:13, fontWeight:800, letterSpacing:1.2,
           textTransform:"uppercase", background:CYN, color:"#0f172a", border:"none", borderRadius:14, cursor:"pointer"
         }}>Publicar Desafio Semanal 💬</button>
+        {arquivo.length === 0 && !semeado && (
+          <button onClick={semeiarPerguntaHistorica} style={{
+            width:"100%", marginTop:8, padding:"10px 20px", fontSize:11, fontWeight:800,
+            background:"rgba(255,255,255,0.06)", color:"#94a3b8", border:"1px solid rgba(255,255,255,0.1)",
+            borderRadius:12, cursor:"pointer"
+          }}>📥 Adicionar pergunta histórica de Mai 2026</button>
+        )}
       </div>
 
       {/* Respostas anteriores já guardadas por user (perguntasHistorico) */}

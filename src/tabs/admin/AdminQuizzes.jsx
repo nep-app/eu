@@ -219,7 +219,7 @@ export default function AdminQuizzes({ allShared = {} }) {
                         <span style={{ fontWeight: 800 }}>{r.jovem}</span>
                         {r.opcaoId
                           ? <span style={{ marginLeft: 8, background: "rgba(50,199,255,0.15)", color: CYN, padding: "2px 9px", borderRadius: 6, fontSize: 12, fontWeight: 900 }}>{r.opcaoId}</span>
-                          : <span style={{ marginLeft: 8, color: "#64748b", fontSize: 11 }}>(opção não registada)</span>
+                          : <span style={{ marginLeft: 8, color: "#64748b", fontSize: 11 }}>✓ respondeu</span>
                         }
                       </div>
                       <button onClick={() => resetarResposta(quiz.id, r.jovem)}
