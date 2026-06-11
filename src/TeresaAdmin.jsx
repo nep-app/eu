@@ -19,7 +19,6 @@ const JEEP_8 = JEEP_LIST.filter(j => !["teresa","ricardo","demo"].includes(j.use
 export default function TeresaAdmin({ user, onLogout }) {
   const [adminTab, setAdminTab] = useState("geral");
   const [previewUser, setPreviewUser] = useState(null);
-  const [showPreviewPicker, setShowPreviewPicker] = useState(false);
 
   // ── DADOS GLOBAIS DA COORDENAÇÃO ──
   const [allShared, setAllShared] = useState({});
@@ -118,35 +117,18 @@ const ADMIN_TABS = [
     ["forum",     "🌐 Fórum"],
     ["satisfacao","😊 Satisfação"],
     ["msgs",      "💬 Msgs"],
+    ["preview",   "👁️ Preview"],
   ];
 
-  // ── MODO PREVIEW ──
-  if (previewUser) {
+  // ── MODO PREVIEW — full screen JovensApp quando um jovem está selecionado ──
+  if (adminTab === "preview" && previewUser) {
     return (
-      <div style={{ position:"relative", minHeight:"100vh" }}>
-        {/* Banner fixo — fora do pointer-events:none */}
-        <div style={{
-          position:"fixed", top:0, left:"50%", transform:"translateX(-50%)",
-          width:"100%", maxWidth:420, zIndex:9999,
-          background:"rgba(7,21,41,0.97)", borderBottom:`2px solid ${CYN}`,
-          padding:"10px 16px", display:"flex", alignItems:"center", justifyContent:"space-between",
-          backdropFilter:"blur(12px)"
-        }}>
-          <div>
-            <div style={{ fontSize:9, color:"#64748b", fontWeight:800, letterSpacing:1 }}>MODO PREVIEW — SÓ LEITURA</div>
-            <div style={{ fontSize:14, fontWeight:900, color:previewUser.color }}>👁️ A ver como {previewUser.name}</div>
-          </div>
-          <button onClick={() => setPreviewUser(null)} style={{
-            background:`${CYN}15`, border:`1px solid ${CYN}40`, color:CYN,
-            padding:"7px 14px", borderRadius:20, fontSize:12, cursor:"pointer", fontWeight:800
-          }}>← Sair</button>
-        </div>
-
-        {/* App do jovem — pointer-events:none impede qualquer clique/escrita */}
-        <div style={{ pointerEvents:"none", paddingTop:52 }}>
-          <JovensApp user={previewUser} onLogout={() => {}} />
-        </div>
-      </div>
+      <JovensApp
+        user={previewUser}
+        onLogout={() => {}}
+        previewMode={true}
+        onExitPreview={() => setPreviewUser(null)}
+      />
     );
   }
 
@@ -173,14 +155,7 @@ const ADMIN_TABS = [
             </div>
           </div>
         </div>
-        <div style={{ display:"flex", gap:8, alignItems:"center", position:"relative" }}>
-          <button onClick={() => setShowPreviewPicker(p => !p)} style={{
-            background: "rgba(50,199,255,0.1)",
-            border: `1px solid ${CYN}40`,
-            color: CYN, padding: "7px 14px",
-            borderRadius: 20, fontSize: 12,
-            cursor: "pointer", fontWeight: 700
-          }}>👁️ Ver como</button>
+        <div style={{ display:"flex", gap:8, alignItems:"center" }}>
           <button onClick={onLogout} style={{
             background: "rgba(255,255,255,0.1)",
             border: "1px solid rgba(255,255,255,0.2)",
@@ -188,28 +163,6 @@ const ADMIN_TABS = [
             borderRadius: 20, fontSize: 12,
             cursor: "pointer", fontWeight: 600
           }}>Sair</button>
-
-          {/* Picker de utilizador */}
-          {showPreviewPicker && (
-            <div style={{
-              position:"absolute", top:"calc(100% + 8px)", right:0, zIndex:200,
-              background:"#0f172a", border:`1px solid ${CYN}30`, borderRadius:16,
-              padding:14, minWidth:200, boxShadow:"0 8px 32px rgba(0,0,0,0.5)"
-            }}>
-              <div style={{ fontSize:10, color:"#64748b", fontWeight:800, marginBottom:10, letterSpacing:1 }}>VER APP COMO:</div>
-              {JEEP_8.map(j => (
-                <button key={j.username} onClick={() => { setPreviewUser(j); setShowPreviewPicker(false); }}
-                  style={{
-                    display:"block", width:"100%", textAlign:"left", padding:"9px 12px",
-                    background:"rgba(255,255,255,0.03)", border:"none", color:"#e2e8f0",
-                    fontSize:13, fontWeight:700, cursor:"pointer", borderRadius:10, marginBottom:6,
-                    borderLeft:`3px solid ${j.color}`
-                  }}>
-                  {j.name}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
@@ -249,6 +202,27 @@ const ADMIN_TABS = [
         {adminTab === "forum"     && <AdminMural />}
         {adminTab === "satisfacao"&& <AdminSatisfacao />}
         {adminTab === "msgs"      && <AdminMsgs />}
+        {adminTab === "preview"   && !previewUser && (
+          <div>
+            <div style={{ fontSize:12, color:"#64748b", marginBottom:20, lineHeight:1.6 }}>
+              Escolhe um jovem para ver a app exatamente como ele/ela a vê. Podes navegar entre tabs mas não podes fazer alterações.
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {JEEP_8.map(j => (
+                <button key={j.username} onClick={() => setPreviewUser(j)} style={{
+                  display:"flex", alignItems:"center", gap:14, padding:"14px 16px",
+                  background:"rgba(255,255,255,0.03)", border:`1px solid rgba(255,255,255,0.07)`,
+                  borderLeft:`4px solid ${j.color}`, borderRadius:14, cursor:"pointer",
+                  textAlign:"left", color:"#e2e8f0", fontSize:14, fontWeight:700,
+                }}>
+                  <div style={{ width:10, height:10, borderRadius:"50%", background:j.color, flexShrink:0 }} />
+                  {j.name}
+                  <span style={{ marginLeft:"auto", fontSize:11, color:"#475569" }}>Ver app →</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       
     </div>

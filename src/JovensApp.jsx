@@ -23,8 +23,8 @@ const NAV = [
 const TERESA_BG  = "#ebe6f7";
 const TERESA_ACC = "#a78bfa"; // soft violet
 
-export default function JovensApp({ user, onLogout }) {
-  const isTeresa = user.username === "teresa";
+export default function JovensApp({ user, onLogout, previewMode = false, onExitPreview = null }) {
+  const isTeresa = user.username === "teresa" && !previewMode;
   const light = false; // always dark mode; action card colors handled independently
   const [tab, setTab] = useState("home");
   const [desafiosSubTab, setDesafiosSubTab] = useState("pergunta");
@@ -182,6 +182,22 @@ export default function JovensApp({ user, onLogout }) {
         </div>
       )}
 
+      {/* ── BANNER PREVIEW ─────────────────────────────────────────────── */}
+      {previewMode && (
+        <div style={{ background:"rgba(7,21,41,0.97)", borderBottom:`2px solid ${CYN}`,
+          padding:"8px 16px", display:"flex", alignItems:"center", justifyContent:"space-between",
+          position:"sticky", top:0, zIndex:50 }}>
+          <div>
+            <div style={{ fontSize:9, color:"#64748b", fontWeight:800, letterSpacing:1 }}>PREVIEW — SÓ LEITURA</div>
+            <div style={{ fontSize:13, fontWeight:900, color:user.color || CYN }}>👁️ {user.realName || user.name}</div>
+          </div>
+          <button onClick={onExitPreview} style={{
+            background:`${CYN}15`, border:`1px solid ${CYN}40`, color:CYN,
+            padding:"6px 14px", borderRadius:20, fontSize:12, cursor:"pointer", fontWeight:800
+          }}>← Sair</button>
+        </div>
+      )}
+
       {/* ── BANNER DEMO ────────────────────────────────────────────────── */}
       {user.isDemo && (
         <div style={{ background:"rgba(163,230,53,0.12)", borderBottom:"1px solid rgba(163,230,53,0.25)",
@@ -195,7 +211,7 @@ export default function JovensApp({ user, onLogout }) {
       )}
 
       {/* ── CONTEÚDO ───────────────────────────────────────────────────── */}
-      <div style={{ flex:1, overflowY:"auto", paddingBottom:90 }}>
+      <div style={{ flex:1, overflowY:"auto", paddingBottom:90, ...(previewMode ? { pointerEvents:"none", userSelect:"none" } : {}) }}>
         {tab === "home"     && <HomeTab     user={user} data={{...allData, features: effectiveFeatures}} setTab={setTab} setDesafiosSubTab={setDesafiosSubTab} />}
         {tab === "desafios" && <DesafiosTab user={user} data={allData} subTab={desafiosSubTab} setSubTab={setDesafiosSubTab} features={effectiveFeatures} />}
         {tab === "forum"    && <ForumTab    user={user} forumCollection={user.isDemo ? "forum_demo" : "forum"} />}
