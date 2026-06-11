@@ -33,7 +33,7 @@ export default function HomeVotacoes({ user }) {
     }
     const aVotar = !quemVotouNesta.includes(user.realName);
     await updateDoc(doc(db, "polls", pollId), { votes: novosVotos });
-    if (aVotar) {
+    if (aVotar && user.username !== "teresa") {
       await addDoc(collection(db, "adminNotificacoes"), {
         tipo: "VOTO", jovem: user.username,
         texto: `${user.realName} votou em "${poll.title}" → ${opcao}`,
