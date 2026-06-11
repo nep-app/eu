@@ -191,6 +191,8 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
               if (n.tipo === "EVENTO_RECUSADO") return `❌ ${nome} recusou um evento proposto.`;
               if (n.tipo === "SATISFACAO_ANONIMA") return `😊 Nova Satisfação Anónima submetida.`;
               if (n.tipo === "VOTO")            return `🗳️ ${n.texto || `${nome} votou numa votação.`}`;
+              if (n.tipo === "FORUM_REACAO")    return `❤️ ${nome} reagiu a uma publicação no fórum${n.texto ? `: "${n.texto}"` : "."}`;
+              if (n.tipo === "FORUM_COMENTARIO") return `💬 ${nome} comentou uma publicação no fórum${n.texto ? `: "${n.texto}"` : "."}`;
               return `🔔 ${n.tipo || "Notificação"}: ${n.texto || nome}`;
             })();
             return (
