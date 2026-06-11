@@ -18,8 +18,7 @@ function isRelevant(n) {
 
 export default function HomeTab({ user, data, setTab, setDesafiosSubTab }) {
   const allRelev = (data.myNotifs || []).filter(isRelevant);
-  const notifs        = allRelev.filter(n => !n.read);
-  const notifsLidas   = allRelev.filter(n =>  n.read);
+  const notifs = allRelev.filter(n => !n.read);
 
   function dismissNotif(id) {
     updateDoc(doc(db, "notifications", user.username, "items", id), { read: true });
@@ -32,7 +31,7 @@ export default function HomeTab({ user, data, setTab, setDesafiosSubTab }) {
       <HomeTodo
         user={user} data={data} setTab={setTab}
         setDesafiosSubTab={setDesafiosSubTab} features={data.features}
-        notifs={notifs} notifsLidas={notifsLidas} onDeleteNotif={dismissNotif}
+        notifs={notifs} onDeleteNotif={dismissNotif}
       />
 
       {/* 2. AGENDA */}

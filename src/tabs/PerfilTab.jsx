@@ -453,23 +453,38 @@ export default function PerfilTab({ user, data, features = {} }) {
       )}
 
       {/* ── HISTÓRICO ── */}
-      {subTab === "hist" && (
-        <div style={thm.card}>
-          <div style={thm.sl}>📜 Registo de Atividades</div>
-          {history.length === 0 ? (
-            <div style={{ textAlign:"center", color:thm.muted, fontSize:12 }}>Sem registos.</div>
-          ) : (
-            history.slice().reverse().map((h, i) => (
-              <div key={i} style={{ padding:"12px 0", borderBottom: thm.divider, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                <div style={{ fontSize:13, fontWeight:700, flex:1, color:thm.text }}>{h.action}</div>
-                <div style={{ fontSize:10, color:CYN, fontWeight:800, marginLeft:10, flexShrink:0 }}>
-                  {formatarDataHora(h.ts, h.date)}
+      {subTab === "hist" && (() => {
+        const readNotifs = (data.myNotifs || []).filter(n => n.read).map(n => ({
+          _isNotif: true,
+          action: n.text || "",
+          ts: n.ts || 0,
+          date: n.date || "",
+          id: n.id,
+        }));
+        const allEntries = [
+          ...history.map(h => ({ ...h, _isNotif: false })),
+          ...readNotifs,
+        ].sort((a, b) => (b.ts || 0) - (a.ts || 0));
+        return (
+          <div style={thm.card}>
+            <div style={thm.sl}>📜 Registo de Atividades</div>
+            {allEntries.length === 0 ? (
+              <div style={{ textAlign:"center", color:thm.muted, fontSize:12 }}>Sem registos.</div>
+            ) : (
+              allEntries.map((h, i) => (
+                <div key={h._isNotif ? `n-${h.id}` : i} style={{ padding:"12px 0", borderBottom: thm.divider, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <div style={{ fontSize:13, fontWeight:700, flex:1, color: h._isNotif ? "#94a3b8" : thm.text, opacity: h._isNotif ? 0.75 : 1 }}>
+                    {h.action}
+                  </div>
+                  <div style={{ fontSize:10, color: h._isNotif ? "#475569" : CYN, fontWeight:800, marginLeft:10, flexShrink:0 }}>
+                    {formatarDataHora(h.ts, h.date)}
+                  </div>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+              ))
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── DUAS CÁPSULAS ── */}
       {subTab === "cap" && (
