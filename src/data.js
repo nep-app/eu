@@ -44,6 +44,13 @@ export function getWeekKey() {
   return d.getFullYear()+"-W"+wk;
 }
 
+export function buildAutoavEntry(uData) {
+  return {
+    week: getWeekKey(), date: nowLabel(), ts: Date.now(),
+    scores: uData.dScores || {}, notas: uData.dNotas || {},
+  };
+}
+
 export const ALLOWED_USERNAMES = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","marisa","teresa","ricardo"];
 export const SPECIAL_USERS = ["teresa","ricardo","demo"];
 export const USERS = [

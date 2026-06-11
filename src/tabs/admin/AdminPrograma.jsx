@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { doc, setDoc, addDoc, collection, onSnapshot, query, orderBy, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
-import { ALLOWED_USERNAMES, JEEP_LIST, DIMS, nowLabel, getWeekKey } from "../../data.js";
+import { ALLOWED_USERNAMES, JEEP_LIST, DIMS, nowLabel, getWeekKey, buildAutoavEntry } from "../../data.js";
 import AdminQuizzes from './AdminQuizzes.jsx';
 import AdminVotacoes from './AdminVotacoes.jsx';
 import AdminMissoes from './AdminMissoes.jsx';
@@ -159,8 +159,8 @@ function PerguntaManager({ allShared, activeQ }) {
             return (
               <div key={j.username} style={{ marginBottom:12 }}>
                 <div style={{ fontSize:12, fontWeight:800, color:j.color, marginBottom:6 }}>{j.name}</div>
-                {hist.map((h, i) => (
-                  <div key={i} style={{ background:"rgba(0,0,0,0.2)", borderRadius:8, padding:"8px 10px", marginBottom:5 }}>
+                {hist.map((h) => (
+                  <div key={`${h.week}-${h.date}`} style={{ background:"rgba(0,0,0,0.2)", borderRadius:8, padding:"8px 10px", marginBottom:5 }}>
                     <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
                       <span style={{ fontSize:10, color:"#475569" }}>{h.week || "—"}</span>
                       <span style={{ fontSize:10, color:"#475569" }}>{h.type || "texto"}</span>
@@ -235,34 +235,28 @@ function AutoavAdmin({ allShared }) {
   const [histOpen, setHistOpen] = useState(null);
   const [guardando, setGuardando] = useState(false);
 
-  // Build historical rounds from all users' autoAvaliacaoHistorico
-  const rondasMap = {};
-  JEEP_8.forEach(j => {
-    (allShared[j.username]?.autoAvaliacaoHistorico || []).forEach(entry => {
-      if (!rondasMap[entry.week]) rondasMap[entry.week] = { week: entry.week, users: {}, maxTs: 0 };
-      rondasMap[entry.week].users[j.username] = entry;
-      if ((entry.ts || 0) > rondasMap[entry.week].maxTs) {
-        rondasMap[entry.week].maxTs = entry.ts || 0;
-        rondasMap[entry.week].date = entry.date;
-      }
+  const rondasAntigas = useMemo(() => {
+    const map = {};
+    JEEP_8.forEach(j => {
+      (allShared[j.username]?.autoAvaliacaoHistorico || []).forEach(entry => {
+        if (!map[entry.week]) map[entry.week] = { week: entry.week, users: {}, maxTs: 0 };
+        map[entry.week].users[j.username] = entry;
+        const ts = entry.ts || 0;
+        if (ts > map[entry.week].maxTs) { map[entry.week].maxTs = ts; map[entry.week].date = entry.date; }
+      });
     });
-  });
-  const rondasAntigas = Object.values(rondasMap).sort((a, b) => b.maxTs - a.maxTs);
+    return Object.values(map).sort((a, b) => b.maxTs - a.maxTs);
+  }, [allShared]);
 
   async function arquivarRondaAtual() {
     if (!window.confirm("Arquivar o estado atual de todas as autoavaliações? Útil para guardar a ronda atual antes de lançares uma nova.")) return;
     setGuardando(true);
-    const week = getWeekKey();
-    const date = nowLabel();
-    for (const j of JEEP_8) {
+    await Promise.all(JEEP_8.map(j => {
       const uData = allShared[j.username] || {};
-      if (Object.keys(uData.dScores || {}).length === 0) continue;
-      await updateDoc(doc(db, "userData", j.username), {
-        autoAvaliacaoHistorico: arrayUnion({
-          week, scores: uData.dScores || {}, notas: uData.dNotas || {}, date, ts: Date.now()
-        })
-      });
-    }
+      const { dScores = {} } = uData;
+      if (Object.keys(dScores).length === 0) return Promise.resolve();
+      return updateDoc(doc(db, "userData", j.username), { autoAvaliacaoHistorico: arrayUnion(buildAutoavEntry(uData)) });
+    }));
     setGuardando(false);
     alert("Ronda arquivada!");
   }

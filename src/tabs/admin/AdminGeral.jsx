@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { doc, setDoc, addDoc, collection, updateDoc, onSnapshot, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, Btn, INP, PNK } from "../../theme.jsx";
-import { nowLabel, fmtDate, getWeekKey, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
+import { nowLabel, fmtDate, getWeekKey, buildAutoavEntry, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
 
 export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
   const [features, setFeatures] = useState({});
@@ -44,29 +44,26 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
     if (launchPrazo) msg += ` ⏰ Prazo: ${fmtDate(launchPrazo)}`;
 
     const targets = launchTarget === "all" ? ALLOWED_USERNAMES : [launchTarget];
-    for (const u of targets) {
+    const isReminder = launchType === "lembreteGeral";
+    const notifData = { from:"teresa", text:msg, date:nowLabel(), read:false, ...(!isReminder ? { tipo:"proposta" } : {}), ...(launchPrazo ? { prazo:launchPrazo } : {}) };
+    await Promise.all(targets.map(async u => {
       if (launchType === "auto") {
-        // Archive current scores then clear so form starts empty
         const uData = allShared[u] || {};
+        const writes = [];
         if (uData.autoSaved || Object.keys(uData.dScores || {}).length > 0) {
-          await updateDoc(doc(db, "userData", u), {
-            autoAvaliacaoHistorico: arrayUnion({
-              week: getWeekKey(), scores: uData.dScores || {},
-              notas: uData.dNotas || {}, date: nowLabel(), ts: Date.now()
-            })
-          });
+          writes.push(updateDoc(doc(db, "userData", u), { autoAvaliacaoHistorico: arrayUnion(buildAutoavEntry(uData)) }));
         }
-        await setDoc(doc(db, "userData", u), {
+        writes.push(setDoc(doc(db, "userData", u), {
           autoSaved: false, autoNewRound: false, dScores: {}, dNotas: {},
           ...(launchPrazo ? { autoNewRoundPrazo: launchPrazo } : {})
-        }, { merge: true });
+        }, { merge: true }));
+        await Promise.all(writes);
       } else if (field) {
         const prazoData = launchPrazo ? { [field + "Prazo"]: launchPrazo } : {};
         await setDoc(doc(db, "userData", u), { [field]: false, ...prazoData }, { merge: true });
       }
-      const isReminder = launchType === "lembreteGeral";
-      await addDoc(collection(db, "notifications", u, "items"), { from:"teresa", text:msg, date:nowLabel(), read:false, ...(!isReminder ? { tipo:"proposta" } : {}), ...(launchPrazo ? { prazo:launchPrazo } : {}) });
-    }
+      await addDoc(collection(db, "notifications", u, "items"), notifData);
+    }));
     setLaunchPrazo("");
     alert("Pedidos/Lembretes lançados com sucesso!");
   }
