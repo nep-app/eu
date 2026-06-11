@@ -4,7 +4,7 @@ import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, GRN, INP, Btn } from "../../theme.jsx";
 import { JEEP_LIST } from "../../data.js";
 
-const JEEP_8 = JEEP_LIST.filter(j => !["teresa","ricardo","demo"].includes(j.username));
+const JEEP_8 = JEEP_LIST.filter(j => !["ricardo","demo"].includes(j.username));
 
 function fmtOpcaoData(date, time) {
   if (!date) return "";
