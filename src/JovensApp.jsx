@@ -79,7 +79,7 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
   const weekXp = weekStartTs > 0
     ? (allData.history || []).filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
     : (ud.weekXp || 0);
-  const notifCount = allData.myNotifs.length;
+  const notifCount = allData.myNotifs.filter(n => !n.read).length;
 
   // Merge global feature flags with per-user overrides (override wins when set)
   const globalFeatures   = allData.features || {};

@@ -13,7 +13,7 @@ function fmtDatePt(str) {
   return `${parseInt(d)} ${MESES[parseInt(m)-1]} ${y}`;
 }
 
-export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, features = {}, notifs = [], onDeleteNotif }) {
+export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, features = {}, notifs = [], notifsLidas = [], onDeleteNotif }) {
   const light = useContext(ThemeCtx);
   const [novaTarefaTexto, setNovaTarefaTexto]       = useState("");
   const [novaTarefaData, setNovaTarefaData]         = useState("");
@@ -22,6 +22,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
   const [editTarefaId,    setEditTarefaId]    = useState(null);
   const [editTarefaTexto, setEditTarefaTexto] = useState("");
   const [editTarefaData,  setEditTarefaData]  = useState("");
+  const [mostrarHistorico, setMostrarHistorico] = useState(false);
 
   const uData        = data.userData || {};
   const listaTarefas = data.todos    || [];
@@ -222,6 +223,31 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* ── HISTÓRICO DE NOTIFICAÇÕES ───────────────────────────────── */}
+      {notifsLidas.length > 0 && (
+        <div style={{ marginBottom:16 }}>
+          <button onClick={() => setMostrarHistorico(v => !v)}
+            style={{ background:"none", border:"none", color:"#475569", fontSize:12, cursor:"pointer", fontWeight:700, padding:"4px 0", display:"flex", alignItems:"center", gap:6 }}>
+            {mostrarHistorico ? "▲" : "▼"} Notificações anteriores ({notifsLidas.length})
+          </button>
+          {mostrarHistorico && (
+            <div style={{ ...CARD, marginTop:8 }}>
+              {notifsLidas.sort((a,b) => (b.ts||0)-(a.ts||0)).map(n => {
+                const isForumNotif = n.text?.startsWith("🌐");
+                return (
+                  <div key={n.id} onClick={isForumNotif ? () => setTab("forum") : undefined}
+                    style={{ display:"flex", gap:12, padding:"10px 0",
+                      borderBottom:"1px solid rgba(255,255,255,0.04)",
+                      cursor: isForumNotif ? "pointer" : "default", opacity:0.55 }}>
+                    <div style={{ flex:1, fontSize:12, lineHeight:1.6, color:"#94a3b8" }}>{n.text}</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { doc, deleteDoc } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase.js";
 import HomeTodo from './home/HomeTodo.jsx';
 import HomeAgenda from './home/HomeAgenda.jsx';
@@ -12,14 +12,17 @@ const ACAO_PENDENTE_TEXTS = [
   "propôs-te uma tarefa", "adicionou uma tarefa", "propôs um evento", "evento agendado",
 ];
 
-export default function HomeTab({ user, data, setTab, setDesafiosSubTab }) {
-  const notifs = (data.myNotifs || []).filter(n =>
-    n.tipo !== "proposta" &&
-    !ACAO_PENDENTE_TEXTS.some(t => n.text?.includes(t))
-  );
+function isRelevant(n) {
+  return n.tipo !== "proposta" && !ACAO_PENDENTE_TEXTS.some(t => n.text?.includes(t));
+}
 
-  function deleteNotif(id) {
-    deleteDoc(doc(db, "notifications", user.username, "items", id));
+export default function HomeTab({ user, data, setTab, setDesafiosSubTab }) {
+  const allRelev = (data.myNotifs || []).filter(isRelevant);
+  const notifs        = allRelev.filter(n => !n.read);
+  const notifsLidas   = allRelev.filter(n =>  n.read);
+
+  function dismissNotif(id) {
+    updateDoc(doc(db, "notifications", user.username, "items", id), { read: true });
   }
 
   return (
@@ -29,13 +32,13 @@ export default function HomeTab({ user, data, setTab, setDesafiosSubTab }) {
       <HomeTodo
         user={user} data={data} setTab={setTab}
         setDesafiosSubTab={setDesafiosSubTab} features={data.features}
-        notifs={notifs} onDeleteNotif={deleteNotif}
+        notifs={notifs} notifsLidas={notifsLidas} onDeleteNotif={dismissNotif}
       />
 
       {/* 2. AGENDA */}
       <HomeAgenda user={user} data={data} />
 
-      {/* 4. MISSÕES, RANKING E CONTACTOS */}
+      {/* 3. MISSÕES, RANKING E CONTACTOS */}
       <HomeExtras user={user} data={data} setTab={setTab} />
 
     </div>
