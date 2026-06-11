@@ -4,6 +4,7 @@ import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP, PS, TXT_MUT } from "../../theme.jsx";
 import { nowLabel, fmtDate, isOverdue, TASK_TYPES } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
+import HomeVotacoes from "./HomeVotacoes.jsx";
 
 function fmtDatePt(str) {
   if (!str) return "";
@@ -115,6 +116,9 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
 
   return (
     <>
+      {/* ── VOTAÇÕES ────────────────────────────────────────────────── */}
+      <HomeVotacoes user={user} />
+
       {/* ── AÇÕES PENDENTES ─────────────────────────────────────────── */}
       {acoesPendentes.length > 0 && (
         <div style={{ marginBottom:20 }}>

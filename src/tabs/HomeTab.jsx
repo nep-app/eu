@@ -2,7 +2,6 @@ import React from 'react';
 import { doc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase.js";
 import HomeTodo from './home/HomeTodo.jsx';
-import HomeVotacoes from './home/HomeVotacoes.jsx';
 import HomeAgenda from './home/HomeAgenda.jsx';
 import HomeExtras from './home/HomeExtras.jsx';
 
@@ -26,17 +25,14 @@ export default function HomeTab({ user, data, setTab, setDesafiosSubTab }) {
   return (
     <div style={{ padding: "18px 16px", paddingBottom: "100px" }}>
 
-      {/* 1. AÇÕES PENDENTES + NOTIFICAÇÕES + A MINHA LISTA */}
+      {/* 1. VOTAÇÕES + AÇÕES PENDENTES + NOTIFICAÇÕES + A MINHA LISTA */}
       <HomeTodo
         user={user} data={data} setTab={setTab}
         setDesafiosSubTab={setDesafiosSubTab} features={data.features}
         notifs={notifs} onDeleteNotif={deleteNotif}
       />
 
-      {/* 2. VOTAÇÕES ATIVAS */}
-      <HomeVotacoes user={user} />
-
-      {/* 3. AGENDA */}
+      {/* 2. AGENDA */}
       <HomeAgenda user={user} data={data} />
 
       {/* 4. MISSÕES, RANKING E CONTACTOS */}
