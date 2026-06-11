@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, GRN, INP, Btn } from "../../theme.jsx";
+import { JEEP_LIST } from "../../data.js";
+
+const JEEP_8 = JEEP_LIST.filter(j => !["teresa","ricardo","demo"].includes(j.username));
 
 function fmtOpcaoData(date, time) {
   if (!date) return "";
@@ -19,6 +22,7 @@ export default function AdminVotacoes() {
   const [opcoes, setOpcoes] = useState(["", ""]);
   // Para tipo data: array de {date, time}
   const [opcoesDatas, setOpcoesDatas] = useState([{date:"",time:""},{date:"",time:""}]);
+  const [targetUsers, setTargetUsers] = useState(JEEP_8.map(j => j.username));
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -51,10 +55,12 @@ export default function AdminVotacoes() {
         options: opcoesFinais, votes: votosIniciais,
         active: true, ts: Date.now(),
         demo: false,
+        targetUsers: targetUsers.length === JEEP_8.length ? [] : targetUsers,
       });
       setTitulo("");
       setOpcoes(["", ""]);
       setOpcoesDatas([{date:"",time:""},{date:"",time:""}]);
+      setTargetUsers(JEEP_8.map(j => j.username));
     } catch(e) {
       alert("Erro ao criar votação: " + e.message);
     } finally {
@@ -148,6 +154,36 @@ export default function AdminVotacoes() {
           </>
         )}
 
+        {/* Target users */}
+        <div style={{ marginBottom:16 }}>
+          <div style={{ fontSize:11, color:"#94a3b8", fontWeight:800, marginBottom:8 }}>
+            VISÍVEL PARA:
+            <button onClick={() => setTargetUsers(
+              targetUsers.length === JEEP_8.length ? [] : JEEP_8.map(j => j.username)
+            )} style={{ background:"none", border:"none", color:CYN, cursor:"pointer", fontSize:11, fontWeight:800, marginLeft:10 }}>
+              {targetUsers.length === JEEP_8.length ? "Desselecionar todos" : "Selecionar todos"}
+            </button>
+          </div>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+            {JEEP_8.map(j => {
+              const sel = targetUsers.includes(j.username);
+              return (
+                <button key={j.username} onClick={() => setTargetUsers(
+                  sel ? targetUsers.filter(u => u !== j.username) : [...targetUsers, j.username]
+                )} style={{
+                  padding:"6px 14px", borderRadius:20, fontSize:12, fontWeight:800, cursor:"pointer",
+                  border: sel ? `1.5px solid ${CYN}` : "1.5px solid rgba(255,255,255,0.1)",
+                  background: sel ? `${CYN}20` : "rgba(255,255,255,0.03)",
+                  color: sel ? CYN : "#64748b",
+                }}>{j.name}</button>
+              );
+            })}
+          </div>
+          {targetUsers.length === 0 && (
+            <div style={{ fontSize:11, color:"#f43f5e", marginTop:6 }}>Nenhum jovem selecionado — a votação não será visível para ninguém.</div>
+          )}
+        </div>
+
         <button onClick={criarVotacao} disabled={saving} style={{
           width:"100%", padding:"13px", background: saving ? "rgba(50,199,255,0.3)" : CYN,
           border:"none", borderRadius:12, fontWeight:900, fontSize:13,
@@ -169,6 +205,11 @@ export default function AdminVotacoes() {
                   <div style={{ fontSize:11, color: poll.active ? CYN : "#64748b", fontWeight:800, marginTop:3 }}>
                     {poll.active ? "🟢 A DECORRER" : "🔴 ENCERRADA"} · {poll.type === "data" ? "Doodle" : "Escolha múltipla"}
                   </div>
+                  {poll.targetUsers && poll.targetUsers.length > 0 && (
+                    <div style={{ fontSize:10, color:"#64748b", marginTop:3 }}>
+                      👥 {poll.targetUsers.map(u => JEEP_8.find(j => j.username === u)?.name || u).join(", ")}
+                    </div>
+                  )}
                 </div>
                 <div style={{ display:"flex", gap:8 }}>
                   <button onClick={() => fecharVotacao(poll.id, poll.active)} style={{

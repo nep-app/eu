@@ -11,7 +11,12 @@ export default function HomeVotacoes({ user }) {
       const isDemo = user.isDemo || false;
       const ativas = snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
-        .filter(p => p.active && (isDemo ? p.demo === true : !p.demo));
+        .filter(p => {
+          if (!p.active) return false;
+          if (isDemo ? p.demo !== true : p.demo) return false;
+          if (p.targetUsers && p.targetUsers.length > 0 && !p.targetUsers.includes(user.username)) return false;
+          return true;
+        });
       setPolls(ativas.sort((a, b) => b.ts - a.ts));
     });
   }, []);
@@ -51,15 +56,15 @@ export default function HomeVotacoes({ user }) {
               const voteiNesta = votos.includes(user.realName);
 
               return (
-                <div 
-                  key={op} 
+                <div key={op}>
+                <div
                   onClick={() => votar(poll.id, op)}
-                  style={{ 
-                    background: voteiNesta ? `${CYN}20` : "rgba(255,255,255,0.05)", 
+                  style={{
+                    background: voteiNesta ? `${CYN}20` : "rgba(255,255,255,0.05)",
                     border: voteiNesta ? `1.5px solid ${CYN}` : "1.5px solid rgba(255,255,255,0.1)",
-                    padding: "12px 16px", 
-                    borderRadius: 14, 
-                    display: "flex", 
+                    padding: "12px 16px",
+                    borderRadius: votos.length > 0 ? "14px 14px 0 0" : 14,
+                    display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
                     cursor: "pointer",
@@ -74,15 +79,16 @@ export default function HomeVotacoes({ user }) {
                       {op}
                     </span>
                   </div>
-                  
-                  {/* Mostrar quantos votaram (opcional, mas fixe para verem a tendência) */}
                   {votos.length > 0 && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <span style={{ fontSize: 12, fontWeight: 800, color: CYN }}>{votos.length}</span>
-                      <span style={{ fontSize: 12 }}>🙋‍♂️</span>
-                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: CYN }}>{votos.length} 🙋</span>
                   )}
                 </div>
+                {votos.length > 0 && (
+                  <div style={{ background: voteiNesta ? `${CYN}10` : "rgba(255,255,255,0.03)", border: voteiNesta ? `1.5px solid ${CYN}` : "1.5px solid rgba(255,255,255,0.1)", borderTop: "none", padding: "6px 16px", borderRadius: "0 0 14px 14px", fontSize: 12, color: "#94a3b8" }}>
+                    🙋 {votos.join(", ")}
+                  </div>
+                )}
+              </div>
               );
             })}
           </div>
