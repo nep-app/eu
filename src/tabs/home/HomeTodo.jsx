@@ -47,7 +47,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
 
   let acoesPendentes = [];
   if (features.perguntaSemanal && !uData.answered)  acoesPendentes.push({ status:"urgent",  icon:"💬", title:"Pergunta da semana",    sub:"A Teresa aguarda a tua reflexão", prazo:uData.answeredPrazo,  go:() => { setDesafiosSubTab("pergunta"); setTab("desafios"); } });
-  if (features.autoAvaliacao   && (!uData.autoSaved || uData.autoNewRound)) acoesPendentes.push({ status:"pending", icon:"📊", title:"Autoavaliação mensal",  sub:"Avalia as tuas competências",     prazo:uData.autoSavedPrazo, go:() => { setDesafiosSubTab("auto");     setTab("desafios"); } });
+  if (features.autoAvaliacao   && !uData.autoSaved) acoesPendentes.push({ status:"pending", icon:"📊", title:"Autoavaliação mensal",  sub:"Avalia as tuas competências",     prazo:uData.autoSavedPrazo, go:() => { setDesafiosSubTab("auto");     setTab("desafios"); } });
   if (features.satisfacao      && !uData.sSaved)    acoesPendentes.push({ status:"new",     icon:"😊", title:"Satisfação",            sub:"Diz-nos como corre o programa",   prazo:uData.sSavedPrazo,    go:() => { setDesafiosSubTab("satisf");   setTab("desafios"); } });
   const piaUnlocked = uData.piaUnlocked || {};
   const temPiaAberto = Object.values(piaUnlocked).some(v => v === true);
@@ -199,7 +199,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
             <div style={{ fontSize:11, fontWeight:900, color:CYN, background:`${CYN}18`, borderRadius:20, padding:"3px 10px" }}>{notifs.length}</div>
           </div>
           {notifs.map(n => {
-            const isForumNotif = n.text?.startsWith("📢") || n.text?.startsWith("📚");
+            const isForumNotif = n.text?.startsWith("🌐");
             return (
               <div key={n.id} onClick={isForumNotif ? () => setTab("forum") : undefined}
                 style={{ display:"flex", gap:12, padding:"13px 14px",

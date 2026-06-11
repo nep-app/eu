@@ -11,7 +11,9 @@ export default function AutoAvaliacao({ user, data }) {
   const [localSaved, setLocalSaved] = useState(false);
   const uData = data.userData || {};
 
-  const alreadyDone = (uData.autoSaved && !uData.autoNewRound) || localSaved;
+  // autoSaved=true means user submitted. autoNewRound=true means admin launched a new round.
+  // If both are true simultaneously it's stale data from old launch code — treat as done.
+  const alreadyDone = uData.autoSaved || localSaved;
 
   async function submit() {
     if (alreadyDone || isSubmitting) return;
