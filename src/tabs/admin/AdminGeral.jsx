@@ -189,7 +189,9 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
               if (n.tipo === "EVENTO_PARTILHADO") return `📅 ${nome} partilhou um evento: "${n.texto}${(n.texto||"").length>=60?"…":""}"`;
               if (n.tipo === "EVENTO_ACEITE")   return `✅ ${nome} aceitou um evento proposto.`;
               if (n.tipo === "EVENTO_RECUSADO") return `❌ ${nome} recusou um evento proposto.`;
-              return `😊 Nova Satisfação Anónima submetida.`;
+              if (n.tipo === "SATISFACAO_ANONIMA") return `😊 Nova Satisfação Anónima submetida.`;
+              if (n.tipo === "VOTO")            return `🗳️ ${n.texto || `${nome} votou numa votação.`}`;
+              return `🔔 ${n.tipo || "Notificação"}: ${n.texto || nome}`;
             })();
             return (
               <div key={n.id} style={{ background:"rgba(0,0,0,0.2)", borderRadius:12, marginBottom:8, overflow:"hidden" }}>
