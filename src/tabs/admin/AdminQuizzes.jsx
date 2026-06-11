@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, arrayRemove, deleteField, query, orderBy } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, Btn, INP } from "../../theme.jsx";
+import { JEEP_LIST } from "../../data.js";
 
-export default function AdminQuizzes() {
+const JEEP_8 = JEEP_LIST.filter(j => !["teresa","ricardo","demo"].includes(j.username));
+
+export default function AdminQuizzes({ allShared = {} }) {
   const [quizzes, setQuizzes] = useState([]);
-  const [notifRespostas, setNotifRespostas] = useState([]); // fallback para respostas antigas
+  const [notifRespostas, setNotifRespostas] = useState([]); // fallback para opcaoId/nota quando allShared não tem
   const [erro, setErro] = useState(null);
   const [resetInputs, setResetInputs] = useState({});
   const [expandido, setExpandido] = useState({});
@@ -120,16 +123,26 @@ export default function AdminQuizzes() {
       )}
 
       {quizzes.map(quiz => {
-        // Fonte primária: quiz.responses (guardado no doc do quiz)
+        // Fonte primária: allShared — quem tem quiz.id em completedQuizzes respondeu de certeza
+        const sharedResps = JEEP_8
+          .filter(j => (allShared[j.username]?.completedQuizzes || []).includes(quiz.id))
+          .map(j => {
+            const uData = allShared[j.username] || {};
+            const notif = notifRespostas.find(r => r.jovem === j.username && (r.quizId === quiz.id || r.quizTitle === quiz.title));
+            return {
+              jovem: j.username,
+              opcaoId: uData.quizResponses?.[quiz.id] || notif?.opcaoId || null,
+              nota: uData.quizNotes?.[quiz.id] || notif?.nota || null,
+              ts: notif?.ts || null,
+            };
+          });
+
+        // Complemento: quiz.responses + adminNotificacoes para respostas fora de JEEP_8
         const docResps = Object.entries(quiz.responses || {}).map(([jovem, d]) => ({ jovem, ...d }));
+        const extras = [...docResps, ...notifRespostas.filter(r => r.quizId === quiz.id || r.quizTitle === quiz.title)]
+          .filter(r => !sharedResps.find(s => s.jovem === r.jovem));
 
-        // Fonte secundária: adminNotificacoes (respostas antigas sem quiz.responses)
-        const notifResps = notifRespostas.filter(r =>
-          (r.quizId === quiz.id || (!r.quizId && r.quizTitle === quiz.title)) &&
-          !docResps.find(d => d.jovem === r.jovem) // não duplicar
-        );
-
-        const todasRespostas = [...docResps, ...notifResps];
+        const todasRespostas = [...sharedResps, ...extras];
         const totalVotos = todasRespostas.length;
 
         // Contagem por opção
