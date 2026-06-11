@@ -454,7 +454,7 @@ export default function PerfilTab({ user, data, features = {} }) {
 
       {/* ── HISTÓRICO ── */}
       {subTab === "hist" && (() => {
-        const readNotifs = (data.myNotifs || []).filter(n => n.read).map(n => ({
+        const readNotifs = (data.myNotifs || []).map(n => ({
           _isNotif: true,
           action: n.text || "",
           ts: n.ts || 0,
