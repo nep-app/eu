@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, doc, updateDoc } from "firebase/firestore";
+import { collection, onSnapshot, doc, updateDoc, addDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN } from "../../theme.jsx";
 
@@ -31,7 +31,15 @@ export default function HomeVotacoes({ user }) {
     } else {
       novosVotos[opcao] = [...quemVotouNesta, user.realName];
     }
+    const aVotar = !quemVotouNesta.includes(user.realName);
     await updateDoc(doc(db, "polls", pollId), { votes: novosVotos });
+    if (aVotar) {
+      await addDoc(collection(db, "adminNotificacoes"), {
+        tipo: "VOTO", jovem: user.username,
+        texto: `${user.realName} votou em "${poll.title}" → ${opcao}`,
+        ts: Date.now(), lida: false,
+      });
+    }
   }
 
   if (polls.length === 0) return null;
