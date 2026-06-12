@@ -125,6 +125,11 @@ export default function AdminAgenda({ events = [] }) {
                   {ev.userId === "all" ? "Todos" : jeep?.name || ev.userId}
                 </span>
               </div>
+              {ev.votantes?.length > 0 && (
+                <div style={{ fontSize:10, color:"#64748b", marginTop:2 }}>
+                  👥 {ev.votantes.join(", ")}
+                </div>
+              )}
             </div>
             <button onClick={() => { setEditId(ev.id); setEditTitulo(ev.title); setEditData(ev.date); setEditHora(ev.time || ""); }} style={{ background:"none", border:"none", color:"#64748b", fontSize:13, cursor:"pointer", padding:"2px 4px" }}>✏️</button>
             <button onClick={() => remover(ev.id)} style={{

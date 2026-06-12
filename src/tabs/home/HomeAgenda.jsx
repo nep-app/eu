@@ -171,6 +171,11 @@ export default function HomeAgenda({ user, data }) {
                             {fmtDatePtShort(ev.date)}{ev.time ? ` · ${ev.time}` : ""}
                             {ev.userId === "all" && <span style={{ color:"#475569" }}> · Geral</span>}
                           </div>
+                          {ev.votantes?.length > 0 && (
+                            <div style={{ fontSize:10, color:"#64748b", marginTop:3 }}>
+                              👥 {ev.votantes.join(", ")}
+                            </div>
+                          )}
                         </div>
                         {ev.userId === user.username && (
                           <>
