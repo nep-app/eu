@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { doc, updateDoc, deleteDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, CYN, INP, TXT_MUT, PRP } from "../../theme.jsx";
-import { nowFull, FORUM_REACTIONS, ALL_MEDALS } from "../../data.js";
+import { nowFull, FORUM_REACTIONS, ALL_MEDALS, JEEP_LIST } from "../../data.js";
 
 export default function ForumPost({ post, user, canalAtivo, forumCollection = "forum", authorMedals = [] }) {
   const [responderA,        setResponderA]        = useState(false);
@@ -11,6 +11,7 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
   const [textoEditado,      setTextoEditado]       = useState(post.text);
   const [editandoReplyId,   setEditandoReplyId]    = useState(null);
   const [textoEditadoReply, setTextoEditadoReply]  = useState("");
+  const [whoOpen,           setWhoOpen]            = useState(null);
 
   async function darXP(acao) {
     await updateDoc(doc(db, "userData", user.username), {
@@ -167,19 +168,49 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
           {/* Reações + Responder */}
           <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:12, flexWrap:"wrap" }}>
             {FORUM_REACTIONS.map(r => {
-              const cnt   = post.reactions?.[r.id] || 0;
-              const mine  = post.reactedBy?.[r.id]?.includes(user.username);
+              const cnt      = post.reactions?.[r.id] || 0;
+              const mine     = post.reactedBy?.[r.id]?.includes(user.username);
+              const key      = `${post.id}_${r.id}`;
+              const isOpen   = whoOpen === key;
+              const quem     = (post.reactedBy?.[r.id] || []).map(u => {
+                if (u === "admin") return "Teresa (GO)";
+                return JEEP_LIST.find(j => j.username === u)?.name || u;
+              });
               return (
-                <button key={r.id} onClick={() => handleReagir(r.id)} style={{
-                  display:"flex", alignItems:"center", gap:4, padding:"4px 10px",
-                  borderRadius:20, border:"none", cursor:"pointer", transition:"all 0.15s",
-                  background: mine ? `${CYN}15` : "rgba(255,255,255,0.04)",
-                  color: mine ? CYN : TXT_MUT, fontSize:12,
-                  boxShadow: mine ? `0 0 0 1px ${CYN}30` : "none",
-                }}>
-                  <span>{r.icon}</span>
-                  {cnt > 0 && <span style={{ fontWeight:800 }}>{cnt}</span>}
-                </button>
+                <div key={r.id} style={{ position:"relative" }}>
+                  <div style={{
+                    display:"flex", alignItems:"center",
+                    borderRadius:20, overflow:"hidden",
+                    background: mine ? `${CYN}15` : "rgba(255,255,255,0.04)",
+                    boxShadow: mine ? `0 0 0 1px ${CYN}30` : "none",
+                  }}>
+                    <button onClick={() => handleReagir(r.id)} style={{
+                      display:"flex", alignItems:"center", gap:4,
+                      padding: cnt > 0 ? "4px 6px 4px 10px" : "4px 10px",
+                      border:"none", cursor:"pointer", background:"transparent",
+                      color: mine ? CYN : TXT_MUT, fontSize:12,
+                    }}>
+                      <span>{r.icon}</span>
+                    </button>
+                    {cnt > 0 && (
+                      <button onClick={() => setWhoOpen(isOpen ? null : key)} style={{
+                        padding:"4px 10px 4px 2px", border:"none", cursor:"pointer",
+                        background:"transparent", color: mine ? CYN : TXT_MUT,
+                        fontSize:12, fontWeight:800,
+                      }}>{cnt}</button>
+                    )}
+                  </div>
+                  {isOpen && quem.length > 0 && (
+                    <div style={{
+                      position:"absolute", bottom:"calc(100% + 6px)", left:0, zIndex:20,
+                      background:"#1e293b", border:"1px solid rgba(255,255,255,0.12)",
+                      borderRadius:10, padding:"8px 12px", whiteSpace:"nowrap",
+                      fontSize:11, color:"#e2e8f0", boxShadow:"0 8px 24px rgba(0,0,0,0.5)",
+                    }}>
+                      {quem.join(", ")}
+                    </div>
+                  )}
+                </div>
               );
             })}
             <button onClick={() => setResponderA(!responderA)} style={{
