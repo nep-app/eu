@@ -13,7 +13,7 @@ function fmtDatePt(str) {
   return `${parseInt(d)} ${MESES[parseInt(m)-1]} ${y}`;
 }
 
-export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, features = {}, notifs = [], onDeleteNotif, setForumCanal, mencaoNotifs = [], previewMode }) {
+export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, features = {}, notifs = [], onDeleteNotif, setForumCanal, mencaoNotifs = [], previewMode, scrollToAgenda }) {
   const light = useContext(ThemeCtx);
   const [novaTarefaTexto, setNovaTarefaTexto]       = useState("");
   const [novaTarefaData, setNovaTarefaData]         = useState("");
@@ -216,6 +216,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
           {notifs.map(n => {
             const isForumNotif = !!n.canal || CHANNELS.some(ch => n.text?.startsWith(ch.icon)) || n.text?.startsWith("🌐") || n.text?.startsWith("📢");
             const isMedalNotif = n.text?.includes("medalha") || n.text?.includes("🏅") || n.text?.includes("⭐");
+            const isDoodleNotif = n.tipo === "doodle_resultado" || (n.text?.startsWith("🗳️") && n.text?.includes("→"));
             function handleClick() {
               if (isForumNotif) {
                 let canal = n.canal;
@@ -228,6 +229,9 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                 }
                 if (setForumCanal) setForumCanal(canal);
                 setTab("forum");
+              } else if (isDoodleNotif) {
+                setTab("home");
+                setTimeout(() => scrollToAgenda?.(), 100);
               } else if (isMedalNotif) {
                 setTab("perfil");
               }
@@ -251,6 +255,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                       </span>
                     )}
                     {isForumNotif && <span style={{ fontSize:10, fontWeight:800, color:"#7c5cbf" }}>→ ver no fórum</span>}
+                    {isDoodleNotif && <span style={{ fontSize:10, fontWeight:800, color:"#22d3ee" }}>→ ver na agenda</span>}
                     {isMedalNotif && <span style={{ fontSize:10, fontWeight:800, color:"#f59e0b" }}>→ ver no perfil</span>}
                   </div>
                 </div>

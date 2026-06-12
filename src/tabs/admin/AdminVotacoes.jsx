@@ -149,9 +149,12 @@ export default function AdminVotacoes() {
         : JEEP_8.map(j => j.username);
 
       // Notificação para todos os destinatários
+      const isDoodleResult = poll.type === "data" && !empate && totalVotos > 0;
       await Promise.all(targets.map(u =>
         addDoc(collection(db, "notifications", u, "items"), {
-          from: "sistema", text: texto, read: false, ts: Date.now(), date: new Date().toLocaleString("pt-PT", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })
+          from: "sistema", text: texto, read: false, ts: Date.now(),
+          date: new Date().toLocaleString("pt-PT", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }),
+          ...(isDoodleResult ? { tipo: "doodle_resultado" } : {})
         })
       ));
 

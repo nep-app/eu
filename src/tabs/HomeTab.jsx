@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { MTHS } from "../data.js";
@@ -34,6 +34,7 @@ function parseDateStr(str) {
 }
 
 export default function HomeTab({ user, data, setTab, setDesafiosSubTab, setForumCanal, previewMode }) {
+  const agendaRef = useRef(null);
   const allRelev = (data.myNotifs || []).filter(isRelevant);
   const notifs = allRelev
     .filter(n => !n.read)
@@ -61,10 +62,11 @@ export default function HomeTab({ user, data, setTab, setDesafiosSubTab, setForu
         setDesafiosSubTab={setDesafiosSubTab} features={data.features}
         notifs={notifs} onDeleteNotif={dismissNotif} setForumCanal={setForumCanal}
         mencaoNotifs={mencaoNotifs} previewMode={previewMode}
+        scrollToAgenda={() => agendaRef.current?.scrollIntoView({ behavior:"smooth" })}
       />
 
       {/* 2. AGENDA */}
-      <HomeAgenda user={user} data={data} />
+      <div ref={agendaRef}><HomeAgenda user={user} data={data} /></div>
 
       {/* 3. MISSÕES, RANKING E CONTACTOS */}
       <HomeExtras user={user} data={data} setTab={setTab} />
