@@ -215,27 +215,33 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
           </div>
           {notifs.map(n => {
             const isForumNotif = !!n.canal || CHANNELS.some(ch => n.text?.startsWith(ch.icon)) || n.text?.startsWith("🌐") || n.text?.startsWith("📢");
-            function handleForumClick() {
-              let canal = n.canal;
-              if (!canal) {
-                for (const ch of CHANNELS) {
-                  if (n.text?.includes(`em ${ch.label}`) || n.text?.includes(`em ${ch.id}`)) { canal = ch.id; break; }
+            const isMedalNotif = n.text?.includes("medalha") || n.text?.includes("🏅") || n.text?.includes("⭐");
+            function handleClick() {
+              if (isForumNotif) {
+                let canal = n.canal;
+                if (!canal) {
+                  for (const ch of CHANNELS) {
+                    if (n.text?.includes(`em ${ch.label}`) || n.text?.includes(`em ${ch.id}`)) { canal = ch.id; break; }
+                  }
+                  if (!canal && (n.text?.toLowerCase().includes("anúncio") || n.text?.toLowerCase().includes("anuncio"))) canal = "anuncios";
+                  if (!canal) canal = "anuncios";
                 }
-                if (!canal && (n.text?.toLowerCase().includes("anúncio") || n.text?.toLowerCase().includes("anuncio"))) canal = "anuncios";
-                if (!canal) canal = "anuncios";
+                if (setForumCanal) setForumCanal(canal);
+                setTab("forum");
+              } else if (isMedalNotif) {
+                setTab("perfil");
               }
-              if (setForumCanal) setForumCanal(canal);
-              setTab("forum");
+              onDeleteNotif && onDeleteNotif(n.id);
             }
             return (
-              <div key={n.id} onClick={isForumNotif ? handleForumClick : undefined}
+              <div key={n.id} onClick={handleClick}
                 style={{ display:"flex", gap:12, padding:"13px 14px",
                   background:"rgba(0,0,0,0.2)",
                   borderRadius:14, marginBottom:8,
                   border:"1px solid rgba(255,255,255,0.05)",
-                  cursor: isForumNotif ? "pointer" : "default",
+                  cursor: "pointer",
                   transition:"all 0.15s",
-                  ...(isForumNotif && previewMode ? { pointerEvents:"auto" } : {}),
+                  ...(previewMode ? { pointerEvents:"auto" } : {}),
                 }}>
                 <div style={{ flex:1 }}>
                   <div style={{ fontSize:13, lineHeight:1.5, color:"#f1f5f9" }}>{n.text}</div>
@@ -246,14 +252,13 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                       </span>
                     )}
                     {isForumNotif && <span style={{ fontSize:10, fontWeight:800, color:"#7c5cbf" }}>→ ver no fórum</span>}
+                    {isMedalNotif && <span style={{ fontSize:10, fontWeight:800, color:"#f59e0b" }}>→ ver no perfil</span>}
                   </div>
                 </div>
-                {previewMode
-                  ? <button onClick={e => { e.stopPropagation(); onDeleteNotif && onDeleteNotif(n.id); }}
-                      style={{ background:"rgba(244,63,94,0.12)", border:"1px solid rgba(244,63,94,0.25)", color:"#f43f5e", fontSize:12, cursor:"pointer", padding:"3px 8px", borderRadius:8, flexShrink:0, fontWeight:800, pointerEvents:"auto" }}>🗑️</button>
-                  : <button onClick={e => { e.stopPropagation(); onDeleteNotif && onDeleteNotif(n.id); }}
-                      style={{ background:"none", border:"none", color:"#475569", fontSize:16, cursor:"pointer", paddingTop:2, flexShrink:0, lineHeight:1 }}>✕</button>
-                }
+                {previewMode && (
+                  <button onClick={e => { e.stopPropagation(); onDeleteNotif && onDeleteNotif(n.id); }}
+                    style={{ background:"rgba(244,63,94,0.12)", border:"1px solid rgba(244,63,94,0.25)", color:"#f43f5e", fontSize:12, cursor:"pointer", padding:"3px 8px", borderRadius:8, flexShrink:0, fontWeight:800, pointerEvents:"auto" }}>🗑️</button>
+                )}
               </div>
             );
           })}
