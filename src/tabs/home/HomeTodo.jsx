@@ -217,8 +217,12 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
             const isForumNotif = !!n.canal || CHANNELS.some(ch => n.text?.startsWith(ch.icon)) || n.text?.startsWith("🌐") || n.text?.startsWith("📢");
             const isMedalNotif = n.text?.includes("medalha") || n.text?.includes("🏅") || n.text?.includes("⭐");
             const isDoodleNotif = n.tipo === "doodle_resultado" || (n.text?.startsWith("🗳️") && n.text?.includes("→"));
+            const isRecursoNotif = n.tipo === "recurso" || n.text?.startsWith("📚");
             function handleClick() {
-              if (isForumNotif) {
+              if (isRecursoNotif) {
+                if (setForumCanal) setForumCanal("__recursos");
+                setTab("forum");
+              } else if (isForumNotif) {
                 let canal = n.canal;
                 if (!canal) {
                   for (const ch of CHANNELS) {
@@ -254,7 +258,8 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                         {n.date || new Date(n.ts).toLocaleString("pt-PT", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })}
                       </span>
                     )}
-                    {isForumNotif && <span style={{ fontSize:10, fontWeight:800, color:"#7c5cbf" }}>→ ver no fórum</span>}
+                    {isRecursoNotif && <span style={{ fontSize:10, fontWeight:800, color:"#818cf8" }}>→ ver recursos</span>}
+                    {!isRecursoNotif && isForumNotif && <span style={{ fontSize:10, fontWeight:800, color:"#7c5cbf" }}>→ ver no fórum</span>}
                     {isDoodleNotif && <span style={{ fontSize:10, fontWeight:800, color:"#22d3ee" }}>→ ver na agenda</span>}
                     {isMedalNotif && <span style={{ fontSize:10, fontWeight:800, color:"#f59e0b" }}>→ ver no perfil</span>}
                   </div>

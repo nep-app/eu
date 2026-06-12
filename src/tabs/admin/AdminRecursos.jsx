@@ -31,7 +31,7 @@ export default function AdminRecursos() {
         const preview = titulo.trim().substring(0, 60);
         await Promise.all(ALLOWED_USERNAMES.map(u =>
           addDoc(collection(db, "notifications", u, "items"), {
-            from:"teresa", text:`📚 Novo recurso disponível: ${preview}`, date:nowFull(), read:false
+            from:"teresa", text:`📚 Novo recurso disponível: ${preview}`, date:nowFull(), read:false, tipo:"recurso", ts:Date.now()
           })
         ));
       }
