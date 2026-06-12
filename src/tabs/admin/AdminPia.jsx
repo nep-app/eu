@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, SL, CYN, GRN } from "../../theme.jsx";
+import { CARD, SL, CYN, GRN, INP } from "../../theme.jsx";
 import { ALLOWED_USERNAMES, JEEP_LIST, PIA_SECTIONS } from "../../data.js";
 
 const JEEP_8 = JEEP_LIST.filter(j => !["teresa","ricardo","demo"].includes(j.username));
@@ -16,6 +16,8 @@ const PIA_SECS_META = [
 ];
 
 export default function AdminPia({ allShared }) {
+  const [prazo, setPrazo] = useState("");
+
   return (
     <div>
       {/* Global PIA section unlock */}
@@ -24,14 +26,20 @@ export default function AdminPia({ allShared }) {
         <div style={{ fontSize:11, color:"#475569", marginBottom:12 }}>
           Abre/fecha secções para todos os jovens de uma vez. Para controlo individual usa o Dossier em Jovens.
         </div>
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, padding:"10px 14px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
+          <div style={{ fontSize:11, fontWeight:800, color:"#94a3b8", flexShrink:0 }}>⏰ Data limite (opcional):</div>
+          <input type="date" value={prazo} onChange={e => setPrazo(e.target.value)}
+            style={{ ...INP, marginBottom:0, flex:1, fontSize:12, padding:"6px 10px" }} />
+          {prazo && <button onClick={() => setPrazo("")} style={{ background:"none", border:"none", color:"#64748b", cursor:"pointer", fontSize:16 }}>✕</button>}
+        </div>
         {PIA_SECS_META.map(sec => (
           <div key={sec.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", borderRadius:12, background:"rgba(0,0,0,0.2)", marginBottom:6 }}>
             <div style={{ fontSize:13, fontWeight:800 }}>{sec.icon} {sec.title}</div>
             <div style={{ display:"flex", gap:6 }}>
               <button onClick={async () => {
                 for (const u of ALLOWED_USERNAMES)
-                  await setDoc(doc(db,"userData",u), { piaUnlocked:{ [sec.id]:true } }, { merge:true });
-                alert(`"${sec.title}" aberta para todos!`);
+                  await setDoc(doc(db,"userData",u), { piaUnlocked:{ [sec.id]:true }, ...(prazo ? { piaSavedPrazo: prazo } : {}) }, { merge:true });
+                alert(`"${sec.title}" aberta para todos!${prazo ? ` Prazo: ${prazo}` : ""}`);
               }} style={{ background:`${GRN}18`, border:`1px solid ${GRN}40`, color:GRN, borderRadius:8, padding:"5px 12px", fontWeight:900, fontSize:11, cursor:"pointer" }}>
                 🔓 Abrir a todos
               </button>
