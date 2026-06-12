@@ -102,6 +102,41 @@ export default function AdminVotacoes() {
 
   async function fecharVotacao(id, estadoAtual) {
     await updateDoc(doc(db, "polls", id), { active: !estadoAtual });
+
+    if (estadoAtual) {
+      // A fechar — notificar destinatários com o resultado
+      const poll = polls.find(p => p.id === id);
+      if (!poll) return;
+
+      const vencedora = poll.options.reduce((best, op) =>
+        (poll.votes[op]||[]).length > (poll.votes[best]||[]).length ? op : best
+      , poll.options[0]);
+
+      const empate = poll.options.filter(op =>
+        (poll.votes[op]||[]).length === (poll.votes[vencedora]||[]).length &&
+        (poll.votes[vencedora]||[]).length > 0
+      ).length > 1;
+
+      const totalVotos = poll.options.reduce((s, op) => s + (poll.votes[op]||[]).length, 0);
+      let texto;
+      if (totalVotos === 0) {
+        texto = `🗳️ A votação "${poll.title}" foi encerrada sem votos.`;
+      } else if (empate) {
+        texto = `🗳️ A votação "${poll.title}" encerrou em empate! Aguarda decisão da Teresa.`;
+      } else {
+        texto = `🗳️ Está escolhido! "${poll.title}" → ${vencedora}`;
+      }
+
+      const targets = poll.targetUsers?.length > 0
+        ? poll.targetUsers
+        : JEEP_8.map(j => j.username);
+
+      await Promise.all(targets.map(u =>
+        addDoc(collection(db, "notifications", u, "items"), {
+          from: "sistema", text: texto, read: false, ts: Date.now()
+        })
+      ));
+    }
   }
 
   return (
