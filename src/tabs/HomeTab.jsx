@@ -14,7 +14,7 @@ const ACAO_PENDENTE_TEXTS = [
 ];
 
 function isRelevant(n) {
-  return n.tipo !== "proposta" && !ACAO_PENDENTE_TEXTS.some(t => n.text?.includes(t));
+  return n.tipo !== "proposta" && !n.mencao && !ACAO_PENDENTE_TEXTS.some(t => n.text?.includes(t));
 }
 
 function parseDateStr(str) {
@@ -42,6 +42,7 @@ export default function HomeTab({ user, data, setTab, setDesafiosSubTab, setForu
       const tb = b.ts || parseDateStr(b.date);
       return tb - ta;
     });
+  const mencaoNotifs = (data.myNotifs || []).filter(n => n.mencao && !n.read);
 
   function dismissNotif(id) {
     if (previewMode) {
@@ -58,7 +59,8 @@ export default function HomeTab({ user, data, setTab, setDesafiosSubTab, setForu
       <HomeTodo
         user={user} data={data} setTab={setTab}
         setDesafiosSubTab={setDesafiosSubTab} features={data.features}
-        notifs={notifs} onDeleteNotif={dismissNotif} setForumCanal={setForumCanal} previewMode={previewMode}
+        notifs={notifs} onDeleteNotif={dismissNotif} setForumCanal={setForumCanal}
+        mencaoNotifs={mencaoNotifs} previewMode={previewMode}
       />
 
       {/* 2. AGENDA */}

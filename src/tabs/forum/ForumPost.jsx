@@ -4,7 +4,7 @@ import { db } from "../../firebase.js";
 import { CARD, CYN, INP, TXT_MUT, PRP } from "../../theme.jsx";
 import { nowFull, FORUM_REACTIONS, ALL_MEDALS, JEEP_LIST } from "../../data.js";
 
-export default function ForumPost({ post, user, canalAtivo, forumCollection = "forum", authorMedals = [] }) {
+export default function ForumPost({ post, user, canalAtivo, forumCollection = "forum", authorMedals = [], mencaoNotif = null }) {
   const [responderA,        setResponderA]        = useState(false);
   const [textoResposta,     setTextoResposta]      = useState("");
   const [editando,          setEditando]           = useState(false);
@@ -54,6 +54,12 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
     setEditando(false);
   }
 
+  async function dismissMencao() {
+    if (mencaoNotif?.id) {
+      await updateDoc(doc(db, "notifications", user.username, "items", mencaoNotif.id), { read: true });
+    }
+  }
+
   async function handleReagir(tipo) {
     const rcts = { ...post.reactions };
     const rBy  = { ...post.reactedBy };
@@ -66,6 +72,7 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
       rBy[tipo]  = [...users, user.username];
       darXP("Interagiu no Fórum");
       enviarNotificacao("like");
+      dismissMencao();
     }
     await updateDoc(doc(db, forumCollection, canalAtivo, "posts", post.id), { reactions:rcts, reactedBy:rBy });
   }
@@ -83,6 +90,7 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
     setResponderA(false); setTextoResposta("");
     darXP("Respondeu no Fórum");
     enviarNotificacao("reply");
+    dismissMencao();
   }
 
   async function apagarReply(rid) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc, getDocs } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
@@ -19,6 +19,10 @@ export default function AdminMural() {
   const [replyTxt, setReplyTxt] = useState("");
   const [whoOpen, setWhoOpen] = useState(null);
   const [notificarForum, setNotificarForum] = useState(true);
+  const [mencaoDropdown, setMencaoDropdown] = useState(false);
+  const [mencaoFiltro,   setMencaoFiltro]   = useState("");
+  const [mencaoStart,    setMencaoStart]    = useState(0);
+  const fPostRef = useRef(null);
 
   // ── RECURSOS ──
   const [recursos, setRecursos] = useState([]);
@@ -52,6 +56,41 @@ export default function AdminMural() {
     );
   }
 
+  const mencaoCandidatos = JEEP_LIST
+    .filter(j => j.username !== "demo" && j.username !== "ricardo")
+    .filter(j => !mencaoFiltro || j.username.toLowerCase().includes(mencaoFiltro) || j.name.toLowerCase().includes(mencaoFiltro))
+    .slice(0, 5);
+
+  function handleFPostChange(e) {
+    const val = e.target.value;
+    setFPost(val);
+    const cursor = e.target.selectionStart;
+    const antes = val.substring(0, cursor);
+    const match = antes.match(/@(\w*)$/);
+    if (match) {
+      setMencaoDropdown(true);
+      setMencaoFiltro(match[1].toLowerCase());
+      setMencaoStart(cursor - match[0].length);
+    } else {
+      setMencaoDropdown(false);
+    }
+  }
+
+  function selecionarMencao(username) {
+    const antes = fPost.substring(0, mencaoStart);
+    const depois = fPost.substring(mencaoStart).replace(/^@\w*/, "");
+    const novo = antes + "@" + username + " " + depois;
+    setFPost(novo);
+    setMencaoDropdown(false);
+    setTimeout(() => {
+      if (fPostRef.current) {
+        const pos = mencaoStart + username.length + 2;
+        fPostRef.current.focus();
+        fPostRef.current.setSelectionRange(pos, pos);
+      }
+    }, 0);
+  }
+
   // ── PUBLICAR POST ──
   async function postForum() {
     if (!fPost.trim() && !mediaFile) return;
@@ -63,7 +102,7 @@ export default function AdminMural() {
         await uploadBytes(fileRef, mediaFile);
         mediaUrl = await getDownloadURL(fileRef);
       }
-      await addDoc(collection(db, "forum", channel, "posts"), {
+      const docRef = await addDoc(collection(db, "forum", channel, "posts"), {
         user:"Teresa (GO)", username:"admin", color:"#22d3ee",
         text:fPost, media:mediaUrl, time:nowFull(),
         reactions:{ heart:0, fire:0, clap:0, think:0 }, reactedBy:{}, replies:[]
@@ -74,7 +113,21 @@ export default function AdminMural() {
         const label = ch?.label || channel;
         await notificarTodos(`${ch?.icon || "🌐"} Teresa publicou em ${label}: "${preview}${fPost.length > 80 ? "…" : ""}"`, channel);
       }
-      setFPost(""); setMediaFile(null);
+      // @menções → ação pendente
+      const mencoes = [...fPost.matchAll(/@(\w+)/g)]
+        .map(m => m[1].toLowerCase())
+        .filter((u, i, arr) => arr.indexOf(u) === i)
+        .filter(u => ALLOWED_USERNAMES.includes(u));
+      const chInfo = CHANNELS.find(c => c.id === channel);
+      await Promise.all(mencoes.map(u =>
+        addDoc(collection(db, "notifications", u, "items"), {
+          from: "admin",
+          text: `🔔 Teresa mencionou-te em ${chInfo?.label || channel}!`,
+          date: nowFull(), read: false, ts: Date.now(),
+          mencao: true, postId: docRef.id, canal: channel
+        })
+      ));
+      setFPost(""); setMediaFile(null); setMencaoDropdown(false);
     } catch(e) { alert("Erro: " + e.message); }
     setIsUploading(false);
   }
@@ -177,9 +230,37 @@ export default function AdminMural() {
 
           {/* PUBLICAR */}
           <div style={CARD}>
-            <textarea value={fPost} onChange={e => setFPost(e.target.value)}
-              placeholder={`Publicar no canal ${activeChannelInfo?.label}...`} rows={2}
-              style={{ ...INP, marginBottom:8, resize:"none" }} />
+            <div style={{ position:"relative" }}>
+              <textarea ref={fPostRef} value={fPost} onChange={handleFPostChange}
+                onBlur={() => setTimeout(() => setMencaoDropdown(false), 150)}
+                placeholder={`Publicar no canal ${activeChannelInfo?.label}... (@ para mencionar)`} rows={2}
+                style={{ ...INP, marginBottom:8, resize:"none" }} />
+              {mencaoDropdown && mencaoCandidatos.length > 0 && (
+                <div style={{
+                  position:"absolute", top:"calc(100% - 8px)", left:0, right:0, zIndex:50,
+                  background:"#1e293b", border:"1px solid rgba(255,255,255,0.12)",
+                  borderRadius:12, overflow:"hidden", boxShadow:"0 8px 24px rgba(0,0,0,0.5)",
+                }}>
+                  {mencaoCandidatos.map(j => (
+                    <div key={j.username} onMouseDown={() => selecionarMencao(j.username)} style={{
+                      display:"flex", alignItems:"center", gap:10, padding:"10px 14px", cursor:"pointer",
+                      borderBottom:"1px solid rgba(255,255,255,0.05)",
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                      <div style={{ width:26, height:26, borderRadius:8, background:`linear-gradient(135deg,${j.color},${j.color}66)`,
+                        display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:900, color:"#0f172a" }}>
+                        {j.name[0]}
+                      </div>
+                      <div>
+                        <div style={{ fontSize:12, fontWeight:800, color:j.color }}>{j.name}</div>
+                        <div style={{ fontSize:10, color:"#64748b" }}>@{j.username}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, flexWrap:"wrap" }}>
               <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer" }}>
                 <input type="checkbox" checked={notificarForum} onChange={() => setNotificarForum(v => !v)}

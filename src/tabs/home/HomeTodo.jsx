@@ -13,7 +13,7 @@ function fmtDatePt(str) {
   return `${parseInt(d)} ${MESES[parseInt(m)-1]} ${y}`;
 }
 
-export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, features = {}, notifs = [], onDeleteNotif, setForumCanal, previewMode }) {
+export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, features = {}, notifs = [], onDeleteNotif, setForumCanal, mencaoNotifs = [], previewMode }) {
   const light = useContext(ThemeCtx);
   const [novaTarefaTexto, setNovaTarefaTexto]       = useState("");
   const [novaTarefaData, setNovaTarefaData]         = useState("");
@@ -58,6 +58,12 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
   const cap2 = uData.cap2 || {};
   if (cap.unlocked  && !cap.locked)  acoesPendentes.push({ status:"new", icon:"🔒", title:"Cápsula de Dezembro",  sub:"Escreve a tua mensagem para o futuro", go:() => setTab("perfil") });
   if (cap2.unlocked && !cap2.locked) acoesPendentes.push({ status:"new", icon:"🔐", title:"Cápsula Final",         sub:"A Teresa desbloqueou a tua cápsula final", go:() => setTab("perfil") });
+  mencaoNotifs.forEach(n => acoesPendentes.push({
+    status:"new", icon:"🔔",
+    title:"Foste mencionado no fórum",
+    sub: n.text?.replace("🔔 ", "") || "Vai reagir ou comentar para concluir",
+    go: () => { if (n.canal && setForumCanal) setForumCanal(n.canal); setTab("forum"); }
+  }));
 
   async function criarNovaTarefa() {
     if (!novaTarefaTexto.trim()) return;
@@ -136,6 +142,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
               "🧠": { bg:"#c07848", border:"#a05828", dot:"#804010", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
               "🔒": { bg:"#9878c8", border:"#7858a8", dot:"#584088", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
               "🔐": { bg:"#9878c8", border:"#7858a8", dot:"#584088", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
+              "🔔": { bg:"#0f3050", border:"#1a4870", dot:"#22d3ee", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
             };
             const ls = ICON_C[item.icon] || ICON_C["💬"];
             return (

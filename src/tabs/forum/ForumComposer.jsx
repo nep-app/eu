@@ -68,7 +68,7 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
         await uploadBytes(storageRef, ficheiroMedia);
         urlMedia = await getDownloadURL(storageRef);
       }
-      await addDoc(collection(db, forumCollection, canalAtivo, "posts"), {
+      const docRef = await addDoc(collection(db, forumCollection, canalAtivo, "posts"), {
         user: user.realName || user.username,
         username: user.username,
         color: user.color || CYN,
@@ -105,7 +105,8 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
         addDoc(collection(db, "notifications", mencionado, "items"), {
           from: user.username,
           text: `🔔 ${user.realName} mencionou-te em ${infoCanal?.label || canalAtivo}!`,
-          date: nowFull(), read: false, ts: Date.now()
+          date: nowFull(), read: false, ts: Date.now(),
+          mencao: true, postId: docRef.id, canal: canalAtivo
         })
       ));
       darXPComStreak("Publicou uma partilha no Fórum");

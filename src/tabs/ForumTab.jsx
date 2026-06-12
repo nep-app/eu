@@ -160,10 +160,14 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
                 {canalInfo?.adminOnly ? "Ainda sem anúncios. Aguarda novidades da Teresa!" : "Ainda sem partilhas neste canal. Sê o primeiro!"}
               </div>
             ) : (
-              listaPosts.map(post => (
-                <ForumPost key={post.id} post={post} user={user} canalAtivo={canalAtivo}
-                  forumCollection={forumCollection} authorMedals={allMedals[post.username] || []} />
-              ))
+              listaPosts.map(post => {
+                const mencaoNotif = (data.myNotifs || []).find(n => n.mencao && !n.read && n.postId === post.id);
+                return (
+                  <ForumPost key={post.id} post={post} user={user} canalAtivo={canalAtivo}
+                    forumCollection={forumCollection} authorMedals={allMedals[post.username] || []}
+                    mencaoNotif={mencaoNotif} />
+                );
+              })
             )}
           </div>
         </>
