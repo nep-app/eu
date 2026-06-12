@@ -25,6 +25,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
     { key:"satisfacao",      label:"😊 Satisfação",              desc:"Sub-tab Satisfação nos Desafios" },
     { key:"rodaVida",        label:"🌸 Roda da Vida",            desc:"Secção Roda no Perfil" },
   ];
+  const emManutencao = !!features.emManutencao;
   const [launchType, setLaunchType] = useState("auto");
   const [launchTarget, setLaunchTarget] = useState("all");
   const [launchPrazo, setLaunchPrazo] = useState("");
@@ -102,6 +103,28 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
 
   return (
     <div>
+      {/* MODO MANUTENÇÃO */}
+      <div onClick={() => toggleFeature("emManutencao")} style={{
+        ...CARD, cursor:"pointer", marginBottom:12,
+        background: emManutencao ? "rgba(244,63,94,0.10)" : "rgba(0,0,0,0.2)",
+        border: emManutencao ? "2px solid rgba(244,63,94,0.5)" : "1px solid rgba(255,255,255,0.07)",
+      }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div>
+            <div style={{ fontSize:14, fontWeight:900, color: emManutencao ? "#f43f5e" : "#64748b" }}>🔧 Modo Manutenção</div>
+            <div style={{ fontSize:11, color:"#475569", marginTop:2 }}>Bloqueia o acesso a todos os users exceto admin e teresa</div>
+          </div>
+          <div style={{
+            background: emManutencao ? "rgba(244,63,94,0.2)" : "rgba(255,255,255,0.06)",
+            border: emManutencao ? "1.5px solid rgba(244,63,94,0.6)" : "1.5px solid rgba(255,255,255,0.1)",
+            color: emManutencao ? "#f43f5e" : "#64748b",
+            borderRadius:20, padding:"6px 18px", fontWeight:900, fontSize:12,
+          }}>
+            {emManutencao ? "ATIVO 🔒" : "OFF"}
+          </div>
+        </div>
+      </div>
+
       {/* 0. CONTROLO DE FUNCIONALIDADES */}
       <div style={CARD}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>

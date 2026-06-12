@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "./firebase.js";
 import { AppIcon, BG, CYN } from "./theme.jsx";
 import { ALLOWED_USERNAMES, USERS, nowLabel, GDPR_TEXT } from "./data.js";
@@ -11,6 +11,13 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [screen, setScreen] = useState("login");
   const [user, setUser] = useState(null);
+  const [emManutencao, setEmManutencao] = useState(false);
+
+  useEffect(() => {
+    return onSnapshot(doc(db, "config", "features"), s => {
+      setEmManutencao(s.exists() ? !!s.data().emManutencao : false);
+    });
+  }, []);
   const [uIn, setUIn] = useState("");
   const [pIn, setPIn] = useState("");
   const [lErr, setLErr] = useState("");
@@ -134,5 +141,17 @@ export default function App() {
   }
 
   if (user?.isAdmin) return <TeresaAdmin user={user} onLogout={doLogout} />;
+
+  if (emManutencao && user?.username !== "teresa") return (
+    <div style={{ minHeight:"100vh", background:BG, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"system-ui,sans-serif", padding:24 }}>
+      <div style={{ textAlign:"center", maxWidth:300 }}>
+        <div style={{ fontSize:56, marginBottom:16 }}>🔧</div>
+        <div style={{ fontSize:20, fontWeight:900, color:"white", marginBottom:8 }}>App em manutenção</div>
+        <div style={{ fontSize:14, color:"#64748b", lineHeight:1.6, marginBottom:24 }}>Estamos a preparar novidades. Voltamos já!</div>
+        {user && <button onClick={doLogout} style={{ background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", color:"#64748b", padding:"8px 20px", borderRadius:20, fontSize:12, cursor:"pointer" }}>Sair</button>}
+      </div>
+    </div>
+  );
+
   return <JovensApp user={user} onLogout={doLogout} />;
 }
