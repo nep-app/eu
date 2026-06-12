@@ -18,7 +18,7 @@ function isRelevant(n) {
 
 export default function HomeTab({ user, data, setTab, setDesafiosSubTab, setForumCanal, previewMode }) {
   const allRelev = (data.myNotifs || []).filter(isRelevant);
-  const notifs = allRelev.filter(n => !n.read);
+  const notifs = allRelev.filter(n => !n.read).sort((a, b) => (b.ts || 0) - (a.ts || 0));
 
   function dismissNotif(id) {
     if (previewMode) {

@@ -151,7 +151,7 @@ export default function AdminVotacoes() {
       // Notificação para todos os destinatários
       await Promise.all(targets.map(u =>
         addDoc(collection(db, "notifications", u, "items"), {
-          from: "sistema", text: texto, read: false, ts: Date.now()
+          from: "sistema", text: texto, read: false, ts: Date.now(), date: new Date().toLocaleString("pt-PT", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })
         })
       ));
 

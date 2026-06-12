@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { doc, setDoc, getDoc, addDoc, collection, updateDoc, deleteField, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PRP, GRN, RadarChart, INP } from "../../theme.jsx";
-import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, PIA_FIELDS, PIA_SECTIONS, getWeekKey } from "../../data.js";
+import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, nowFull, PIA_FIELDS, PIA_SECTIONS, getWeekKey } from "../../data.js";
 
 export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStartTs = 0 }) {
   const [userSelecionado, setUserSelecionado] = useState(null);
@@ -36,7 +36,7 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
     await setDoc(userRef, { history: newHistory, weekXp: (uData.weekXp || 0) + 50 }, { merge: true });
 
     const notifText = `🏅 A Teresa atribuiu-te a medalha ${medal?.icon} ${medal?.label}!${msg ? ` "${msg}"` : ""}`;
-    await addDoc(collection(db, "notifications", username, "items"), { from:"teresa", text:notifText, date:nowLabel(), read:false });
+    await addDoc(collection(db, "notifications", username, "items"), { from:"teresa", text:notifText, date:nowFull(), read:false, ts:Date.now() });
   }
 
   // ── REMOVER MEDALHA (semana + allTime + histórico + XP) ──────────────────

@@ -52,7 +52,7 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
           ALLOWED_USERNAMES
             .filter(u => u !== (user.username || "__none__") && u !== "demo")
             .map(u => addDoc(collection(db, "notifications", u, "items"), {
-              from: user.username, text: notifText, date: nowFull(), read: false, canal: canalAtivo
+              from: user.username, text: notifText, date: nowFull(), read: false, canal: canalAtivo, ts: Date.now()
             }))
         );
         await addDoc(collection(db, "adminNotificacoes"), {

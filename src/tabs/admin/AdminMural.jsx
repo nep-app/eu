@@ -46,7 +46,7 @@ export default function AdminMural() {
       ALLOWED_USERNAMES
         .filter(u => u !== "teresa" && u !== "ricardo")
         .map(u => addDoc(collection(db, "notifications", u, "items"), {
-          from:"teresa", text:texto, date:nowFull(), read:false,
+          from:"teresa", text:texto, date:nowFull(), read:false, ts:Date.now(),
           ...(canal ? { canal } : {}),
         }))
     );

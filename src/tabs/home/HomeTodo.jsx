@@ -224,9 +224,16 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                   transition:"all 0.15s",
                   ...(isForumNotif && previewMode ? { pointerEvents:"auto" } : {}),
                 }}>
-                <div style={{ flex:1, fontSize:13, lineHeight:1.6, color:"#f1f5f9" }}>
-                  {n.text}
-                  {isForumNotif && <span style={{ fontSize:10, fontWeight:800, color:"#7c5cbf", marginLeft:8 }}>→ ver no fórum</span>}
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:13, lineHeight:1.5, color:"#f1f5f9" }}>{n.text}</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:3 }}>
+                    {(n.date || n.ts) && (
+                      <span style={{ fontSize:10, color:"#475569", fontWeight:600 }}>
+                        {n.date || new Date(n.ts).toLocaleString("pt-PT", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })}
+                      </span>
+                    )}
+                    {isForumNotif && <span style={{ fontSize:10, fontWeight:800, color:"#7c5cbf" }}>→ ver no fórum</span>}
+                  </div>
                 </div>
                 {previewMode
                   ? <button onClick={e => { e.stopPropagation(); onDeleteNotif && onDeleteNotif(n.id); }}
