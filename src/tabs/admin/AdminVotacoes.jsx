@@ -159,9 +159,12 @@ export default function AdminVotacoes() {
       if (poll.type === "data" && !empate && totalVotos > 0) {
         const parsed = parseFmtData(vencedora);
         if (parsed) {
+          const hasSpecificTargets = poll.targetUsers?.length > 0;
           await addDoc(collection(db, "events"), {
             title: poll.title, date: parsed.date, time: parsed.time,
-            userId: "all", type: "group", shared: false,
+            userId: hasSpecificTargets ? "group" : "all",
+            ...(hasSpecificTargets ? { targetUsers: poll.targetUsers } : {}),
+            type: "group", shared: false,
             accepted: true, ts: Date.now(), fromPoll: poll.id,
           });
         }

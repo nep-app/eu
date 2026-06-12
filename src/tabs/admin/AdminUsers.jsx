@@ -170,6 +170,7 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
     const [xpEdit, setXpEdit] = useState(String(uData.weekXp || 0));
     const [feedbackAuto, setFeedbackAuto] = useState("");
     const [feedbackPia, setFeedbackPia] = useState("");
+    const [piaPrazo, setPiaPrazo] = useState(uData.piaSavedPrazo || "");
 
     async function enviarFeedback(tipo, texto, setTexto) {
       if (!texto.trim()) return;
@@ -282,10 +283,21 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
               const piaData     = uData.piaData     || {};
               async function togglePiaSection(sectionId) {
                 const cur = piaUnlocked[sectionId] || false;
-                await setDoc(doc(db, "userData", username), { piaUnlocked: { ...piaUnlocked, [sectionId]: !cur } }, { merge: true });
+                const opening = !cur;
+                await setDoc(doc(db, "userData", username), {
+                  piaUnlocked: { ...piaUnlocked, [sectionId]: opening },
+                  ...(opening && piaPrazo ? { piaSavedPrazo: piaPrazo } : {}),
+                }, { merge: true });
               }
               return (
                 <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                  {/* Prazo para esta secção */}
+                  <div style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 10px", background:"rgba(0,0,0,0.2)", borderRadius:10 }}>
+                    <div style={{ fontSize:10, fontWeight:800, color:"#94a3b8", flexShrink:0 }}>⏰ Prazo (aplicado ao abrir):</div>
+                    <input type="date" value={piaPrazo} onChange={e => setPiaPrazo(e.target.value)}
+                      style={{ ...INP, marginBottom:0, flex:1, fontSize:11, padding:"4px 8px" }} />
+                    {piaPrazo && <button onClick={() => setPiaPrazo("")} style={{ background:"none", border:"none", color:"#64748b", cursor:"pointer", fontSize:14 }}>✕</button>}
+                  </div>
                   {PIA_SECTIONS.map(sec => {
                     const sd = piaData[sec.id] || {};
                     const isOpen = piaUnlocked[sec.id] || false;
@@ -689,6 +701,15 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
                     const v = Math.max(0, parseInt(xpEdit) || 0);
                     await setDoc(doc(db, "userData", username), { weekXp: v }, { merge: true });
                   }} style={{ ...BTN_RESET, padding:"6px 12px" }}>Guardar</button>
+                  <button onClick={async () => {
+                    const snap2 = await getDoc(doc(db, "userData", username));
+                    const ud2 = snap2.exists() ? snap2.data() : {};
+                    await setDoc(doc(db, "userData", username), {
+                      weekXp: (ud2.weekXp || 0) + 5,
+                      history: [...(ud2.history || []), { date: nowLabel(), action: "Votou numa votação", ts: Date.now(), xp: 5 }],
+                    }, { merge: true });
+                    setXpEdit(String((ud2.weekXp || 0) + 5));
+                  }} style={{ ...BTN_RESET, padding:"6px 10px", fontSize:10 }}>+5 XP 🗳️</button>
                 </div>
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>

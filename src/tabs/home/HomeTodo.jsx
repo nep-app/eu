@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { doc, setDoc, addDoc, collection, deleteDoc, updateDoc, getDocs } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP, PS, TXT_MUT } from "../../theme.jsx";
-import { nowLabel, fmtDate, isOverdue, TASK_TYPES } from "../../data.js";
+import { nowLabel, fmtDate, isOverdue, TASK_TYPES, CHANNELS } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
 import HomeVotacoes from "./HomeVotacoes.jsx";
 
@@ -203,15 +203,26 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
             <div style={{ fontSize:11, fontWeight:900, color:CYN, background:`${CYN}18`, borderRadius:20, padding:"3px 10px" }}>{notifs.length}</div>
           </div>
           {notifs.map(n => {
-            const isForumNotif = n.text?.startsWith("🌐");
+            const isForumNotif = n.text?.startsWith("🌐") || !!n.canal;
+            function handleForumClick() {
+              let canal = n.canal;
+              if (!canal) {
+                for (const ch of CHANNELS) {
+                  if (n.text?.includes(`em ${ch.label}`) || n.text?.includes(`em ${ch.id}`)) { canal = ch.id; break; }
+                }
+              }
+              if (setForumCanal && canal) setForumCanal(canal);
+              setTab("forum");
+            }
             return (
-              <div key={n.id} onClick={isForumNotif ? () => { if (setForumCanal && n.canal) setForumCanal(n.canal); setTab("forum"); } : undefined}
+              <div key={n.id} onClick={isForumNotif ? handleForumClick : undefined}
                 style={{ display:"flex", gap:12, padding:"13px 14px",
                   background:"rgba(0,0,0,0.2)",
                   borderRadius:14, marginBottom:8,
                   border:"1px solid rgba(255,255,255,0.05)",
                   cursor: isForumNotif ? "pointer" : "default",
                   transition:"all 0.15s",
+                  ...(isForumNotif && previewMode ? { pointerEvents:"auto" } : {}),
                 }}>
                 <div style={{ flex:1, fontSize:13, lineHeight:1.6, color:"#f1f5f9" }}>
                   {n.text}

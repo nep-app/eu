@@ -41,12 +41,15 @@ export default function AdminMural() {
     );
   }, []);
 
-  async function notificarTodos(texto) {
-    await Promise.all(ALLOWED_USERNAMES.map(u =>
-      addDoc(collection(db, "notifications", u, "items"), {
-        from:"teresa", text:texto, date:nowFull(), read:false
-      })
-    ));
+  async function notificarTodos(texto, canal = null) {
+    await Promise.all(
+      ALLOWED_USERNAMES
+        .filter(u => u !== "teresa" && u !== "ricardo")
+        .map(u => addDoc(collection(db, "notifications", u, "items"), {
+          from:"teresa", text:texto, date:nowFull(), read:false,
+          ...(canal ? { canal } : {}),
+        }))
+    );
   }
 
   // ── PUBLICAR POST ──
@@ -69,7 +72,7 @@ export default function AdminMural() {
         const ch = CHANNELS.find(c => c.id === channel);
         const preview = fPost.trim().substring(0, 80);
         const label = ch?.label || channel;
-        await notificarTodos(`📢 ${channel === "anuncios" ? "Novo anúncio" : `Nova publicação em ${label}`}: ${preview}`);
+        await notificarTodos(`🌐 Teresa publicou em ${label}: "${preview}${fPost.length > 80 ? "…" : ""}"`, channel);
       }
       setFPost(""); setMediaFile(null);
     } catch(e) { alert("Erro: " + e.message); }

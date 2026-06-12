@@ -46,7 +46,7 @@ export default function HomeAgenda({ user, data }) {
   const [editHora,   setEditHora]   = useState("");
 
   const meusEventos = (data.events || [])
-    .filter(ev => ev.userId === user.username || ev.userId === "all")
+    .filter(ev => ev.userId === user.username || ev.userId === "all" || ev.targetUsers?.includes(user.username))
     .filter(ev => ev.accepted !== false) // propostas ficam em HomeTodo até serem aceites
     .filter(ev => ev.date >= hoje)
     .sort((a, b) => a.date.localeCompare(b.date) || (a.time||"").localeCompare(b.time||""));

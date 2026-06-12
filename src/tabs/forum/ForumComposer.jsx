@@ -50,7 +50,7 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
         const notifText = `🌐 ${user.realName} publicou em ${canalLabel}${preview ? `: "${preview}${textoPost.length > 60 ? "…" : ""}"` : ""}`;
         await Promise.all(
           ALLOWED_USERNAMES
-            .filter(u => u !== user.username && u !== "demo")
+            .filter(u => u !== (user.username || "__none__") && u !== "demo")
             .map(u => addDoc(collection(db, "notifications", u, "items"), {
               from: user.username, text: notifText, date: nowFull(), read: false, canal: canalAtivo
             }))
@@ -62,10 +62,12 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
       }
       if (textoPost.includes("@")) {
         const mencionado = textoPost.split("@")[1].split(" ")[0].toLowerCase();
-        await addDoc(collection(db, "notifications", mencionado, "items"), {
-          from: user.username, text: `🔔 ${user.realName} mencionou-te em ${infoCanal?.label || canalAtivo}!`,
-          date: nowFull(), read: false
-        });
+        if (mencionado !== user.username && ALLOWED_USERNAMES.includes(mencionado)) {
+          await addDoc(collection(db, "notifications", mencionado, "items"), {
+            from: user.username, text: `🔔 ${user.realName} mencionou-te em ${infoCanal?.label || canalAtivo}!`,
+            date: nowFull(), read: false
+          });
+        }
       }
       darXPComStreak("Publicou uma partilha no Fórum");
       setTextoPost(""); setFicheiroMedia(null);
