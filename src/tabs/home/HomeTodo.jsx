@@ -13,7 +13,7 @@ function fmtDatePt(str) {
   return `${parseInt(d)} ${MESES[parseInt(m)-1]} ${y}`;
 }
 
-export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, features = {}, notifs = [], onDeleteNotif, setForumCanal }) {
+export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, features = {}, notifs = [], onDeleteNotif, setForumCanal, previewMode }) {
   const light = useContext(ThemeCtx);
   const [novaTarefaTexto, setNovaTarefaTexto]       = useState("");
   const [novaTarefaData, setNovaTarefaData]         = useState("");
@@ -217,8 +217,12 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                   {n.text}
                   {isForumNotif && <span style={{ fontSize:10, fontWeight:800, color:"#7c5cbf", marginLeft:8 }}>→ ver no fórum</span>}
                 </div>
-                <button onClick={e => { e.stopPropagation(); onDeleteNotif && onDeleteNotif(n.id); }}
-                  style={{ background:"none", border:"none", color:"#475569", fontSize:16, cursor:"pointer", paddingTop:2, flexShrink:0, lineHeight:1 }}>✕</button>
+                {previewMode
+                  ? <button onClick={e => { e.stopPropagation(); onDeleteNotif && onDeleteNotif(n.id); }}
+                      style={{ background:"rgba(244,63,94,0.12)", border:"1px solid rgba(244,63,94,0.25)", color:"#f43f5e", fontSize:12, cursor:"pointer", padding:"3px 8px", borderRadius:8, flexShrink:0, fontWeight:800, pointerEvents:"auto" }}>🗑️</button>
+                  : <button onClick={e => { e.stopPropagation(); onDeleteNotif && onDeleteNotif(n.id); }}
+                      style={{ background:"none", border:"none", color:"#475569", fontSize:16, cursor:"pointer", paddingTop:2, flexShrink:0, lineHeight:1 }}>✕</button>
+                }
               </div>
             );
           })}

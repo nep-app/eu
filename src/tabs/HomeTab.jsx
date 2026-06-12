@@ -1,5 +1,5 @@
 import React from 'react';
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase.js";
 import HomeTodo from './home/HomeTodo.jsx';
 import HomeAgenda from './home/HomeAgenda.jsx';
@@ -16,12 +16,16 @@ function isRelevant(n) {
   return n.tipo !== "proposta" && !ACAO_PENDENTE_TEXTS.some(t => n.text?.includes(t));
 }
 
-export default function HomeTab({ user, data, setTab, setDesafiosSubTab, setForumCanal }) {
+export default function HomeTab({ user, data, setTab, setDesafiosSubTab, setForumCanal, previewMode }) {
   const allRelev = (data.myNotifs || []).filter(isRelevant);
   const notifs = allRelev.filter(n => !n.read);
 
   function dismissNotif(id) {
-    updateDoc(doc(db, "notifications", user.username, "items", id), { read: true });
+    if (previewMode) {
+      deleteDoc(doc(db, "notifications", user.username, "items", id));
+    } else {
+      updateDoc(doc(db, "notifications", user.username, "items", id), { read: true });
+    }
   }
 
   return (
@@ -31,7 +35,7 @@ export default function HomeTab({ user, data, setTab, setDesafiosSubTab, setForu
       <HomeTodo
         user={user} data={data} setTab={setTab}
         setDesafiosSubTab={setDesafiosSubTab} features={data.features}
-        notifs={notifs} onDeleteNotif={dismissNotif} setForumCanal={setForumCanal}
+        notifs={notifs} onDeleteNotif={dismissNotif} setForumCanal={setForumCanal} previewMode={previewMode}
       />
 
       {/* 2. AGENDA */}
