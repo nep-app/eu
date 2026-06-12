@@ -3,7 +3,7 @@ import { collection, addDoc, doc, updateDoc, increment, arrayUnion } from "fireb
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
 import { CARD, SL, CYN, INP, TXT_MUT } from "../../theme.jsx";
-import { nowFull, ALLOWED_USERNAMES } from "../../data.js";
+import { nowFull, ALLOWED_USERNAMES, CHANNELS } from "../../data.js";
 
 export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollection = "forum" }) {
   const [textoPost,     setTextoPost]     = useState("");
@@ -46,8 +46,9 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
       });
       if (forumCollection === "forum") {
         const canalLabel = infoCanal?.label || canalAtivo;
+        const canalIcon = (CHANNELS.find(c => c.id === canalAtivo) || {}).icon || "🌐";
         const preview = textoPost.trim().substring(0, 60);
-        const notifText = `🌐 ${user.realName} publicou em ${canalLabel}${preview ? `: "${preview}${textoPost.length > 60 ? "…" : ""}"` : ""}`;
+        const notifText = `${canalIcon} ${user.realName} publicou em ${canalLabel}${preview ? `: "${preview}${textoPost.length > 60 ? "…" : ""}"` : ""}`;
         await Promise.all(
           ALLOWED_USERNAMES
             .filter(u => u !== (user.username || "__none__") && u !== "demo")

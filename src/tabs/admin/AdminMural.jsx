@@ -72,7 +72,7 @@ export default function AdminMural() {
         const ch = CHANNELS.find(c => c.id === channel);
         const preview = fPost.trim().substring(0, 80);
         const label = ch?.label || channel;
-        await notificarTodos(`🌐 Teresa publicou em ${label}: "${preview}${fPost.length > 80 ? "…" : ""}"`, channel);
+        await notificarTodos(`${ch?.icon || "🌐"} Teresa publicou em ${label}: "${preview}${fPost.length > 80 ? "…" : ""}"`, channel);
       }
       setFPost(""); setMediaFile(null);
     } catch(e) { alert("Erro: " + e.message); }
