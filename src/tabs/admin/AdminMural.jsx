@@ -62,7 +62,7 @@ export default function AdminMural() {
       }
       await addDoc(collection(db, "forum", channel, "posts"), {
         user:"Teresa (GO)", username:"admin", color:"#22d3ee",
-        text:fPost, media:mediaUrl, time:nowLabel(),
+        text:fPost, media:mediaUrl, time:nowFull(),
         reactions:{ heart:0, fire:0, clap:0, think:0 }, reactedBy:{}, replies:[]
       });
       if (notificarForum && fPost.trim()) {
@@ -102,7 +102,7 @@ export default function AdminMural() {
     const cur = posts.find(p => p.id === pid);
     if (!cur) return;
     await updateDoc(doc(db, "forum", channel, "posts", pid), {
-      replies:[...cur.replies, { id:"R_"+Date.now(), user:"Teresa (GO)", username:"admin", color:"#22d3ee", text:replyTxt, time:nowLabel() }]
+      replies:[...cur.replies, { id:"R_"+Date.now(), user:"Teresa (GO)", username:"admin", color:"#22d3ee", text:replyTxt, time:nowFull() }]
     });
     setReplyTxt(""); setReplyTo(null);
   }

@@ -155,17 +155,15 @@ export default function AdminVotacoes() {
         })
       ));
 
-      // Para Doodle com vencedor claro, criar evento forçado na agenda de cada user
+      // Para Doodle com vencedor claro, criar UM único evento de grupo
       if (poll.type === "data" && !empate && totalVotos > 0) {
         const parsed = parseFmtData(vencedora);
         if (parsed) {
-          await Promise.all(targets.map(u =>
-            addDoc(collection(db, "events"), {
-              title: poll.title, date: parsed.date, time: parsed.time,
-              userId: u, type: "group", shared: false,
-              accepted: true, ts: Date.now(),
-            })
-          ));
+          await addDoc(collection(db, "events"), {
+            title: poll.title, date: parsed.date, time: parsed.time,
+            userId: "all", type: "group", shared: false,
+            accepted: true, ts: Date.now(), fromPoll: poll.id,
+          });
         }
       }
     }
