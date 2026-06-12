@@ -231,7 +231,6 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
               } else if (isMedalNotif) {
                 setTab("perfil");
               }
-              onDeleteNotif && onDeleteNotif(n.id);
             }
             return (
               <div key={n.id} onClick={handleClick}
@@ -255,10 +254,9 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                     {isMedalNotif && <span style={{ fontSize:10, fontWeight:800, color:"#f59e0b" }}>→ ver no perfil</span>}
                   </div>
                 </div>
-                {previewMode && (
-                  <button onClick={e => { e.stopPropagation(); onDeleteNotif && onDeleteNotif(n.id); }}
-                    style={{ background:"rgba(244,63,94,0.12)", border:"1px solid rgba(244,63,94,0.25)", color:"#f43f5e", fontSize:12, cursor:"pointer", padding:"3px 8px", borderRadius:8, flexShrink:0, fontWeight:800, pointerEvents:"auto" }}>🗑️</button>
-                )}
+                <button onClick={e => { e.stopPropagation(); onDeleteNotif && onDeleteNotif(n.id); }}
+                  style={{ background:"none", border:"none", color:"#475569", fontSize:16, cursor:"pointer", paddingTop:2, flexShrink:0, lineHeight:1,
+                    ...(previewMode ? { pointerEvents:"auto" } : {}) }}>✕</button>
               </div>
             );
           })}

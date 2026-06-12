@@ -36,7 +36,8 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
       });
     } else {
       await addDoc(collection(db, "notifications", post.username, "items"), {
-        from:"sistema", text:msg, date:nowFull(), read:false
+        from: user.username, text: msg, date: nowFull(), read: false,
+        canal: canalAtivo, ts: Date.now()
       });
     }
   }
