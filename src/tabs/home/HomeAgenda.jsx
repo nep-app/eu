@@ -12,10 +12,16 @@ function toDateStr(d) {
 function groupLabel(dateStr) {
   const hoje = toDateStr(new Date());
   const amanha = toDateStr(new Date(Date.now() + 86400000));
-  const em7 = toDateStr(new Date(Date.now() + 7*86400000));
-  if (dateStr === hoje)   return "Hoje";
-  if (dateStr === amanha) return "Amanhã";
-  if (dateStr <= em7)     return "Esta semana";
+  // fim desta semana = próximo domingo
+  const d = new Date();
+  const diasAteDomingo = (7 - d.getDay()) % 7; // 0 se hoje é domingo
+  const fimSemana = toDateStr(new Date(Date.now() + diasAteDomingo * 86400000));
+  // fim da próxima semana = domingo seguinte
+  const fimProxSemana = toDateStr(new Date(Date.now() + (diasAteDomingo + 7) * 86400000));
+  if (dateStr === hoje)           return "Hoje";
+  if (dateStr === amanha)         return "Amanhã";
+  if (dateStr <= fimSemana)       return "Esta semana";
+  if (dateStr <= fimProxSemana)   return "Próxima semana";
   return "Mais tarde";
 }
 

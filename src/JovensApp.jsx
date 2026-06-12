@@ -28,6 +28,7 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
   const light = false; // always dark mode; action card colors handled independently
   const [tab, setTab] = useState("home");
   const [desafiosSubTab, setDesafiosSubTab] = useState("pergunta");
+  const [forumCanal, setForumCanal] = useState(null);
   const [allData, setAllData] = useState({
     todos: [], events: [], myNotifs: [], leaderboard: {},
     missions: [], completedMissions: [], history: [],
@@ -212,9 +213,9 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
 
       {/* ── CONTEÚDO ───────────────────────────────────────────────────── */}
       <div style={{ flex:1, overflowY:"auto", paddingBottom:90, ...(previewMode ? { pointerEvents:"none", userSelect:"none" } : {}) }}>
-        {tab === "home"     && <HomeTab     user={user} data={{...allData, features: effectiveFeatures}} setTab={setTab} setDesafiosSubTab={setDesafiosSubTab} />}
+        {tab === "home"     && <HomeTab     user={user} data={{...allData, features: effectiveFeatures}} setTab={setTab} setDesafiosSubTab={setDesafiosSubTab} setForumCanal={setForumCanal} />}
         {tab === "desafios" && <DesafiosTab user={user} data={allData} subTab={desafiosSubTab} setSubTab={setDesafiosSubTab} features={effectiveFeatures} />}
-        {tab === "forum"    && <ForumTab    user={user} forumCollection={user.isDemo ? "forum_demo" : "forum"} />}
+        {tab === "forum"    && <ForumTab    user={user} forumCollection={user.isDemo ? "forum_demo" : "forum"} initialCanal={forumCanal} />}
         {tab === "pia"      && <PiaTab      user={user} data={allData} />}
         {tab === "perfil"   && <PerfilTab   user={user} data={allData} features={effectiveFeatures} />}
       </div>

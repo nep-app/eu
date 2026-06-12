@@ -22,9 +22,9 @@ const RECURSOS_FIXOS = [
 
 const isAdmin = (u) => u?.username === "admin";
 
-export default function ForumTab({ user, forumCollection = "forum" }) {
+export default function ForumTab({ user, forumCollection = "forum", initialCanal = null }) {
   const light = useContext(ThemeCtx);
-  const [canalAtivo, setCanalAtivo] = useState("anuncios");
+  const [canalAtivo, setCanalAtivo] = useState(initialCanal || "anuncios");
   const [listaPosts, setListaPosts]  = useState([]);
   const [allMedals,  setAllMedals]   = useState({});
   const [recursos,   setRecursos]    = useState(RECURSOS_FIXOS);

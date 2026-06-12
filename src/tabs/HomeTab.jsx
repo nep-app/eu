@@ -16,7 +16,7 @@ function isRelevant(n) {
   return n.tipo !== "proposta" && !ACAO_PENDENTE_TEXTS.some(t => n.text?.includes(t));
 }
 
-export default function HomeTab({ user, data, setTab, setDesafiosSubTab }) {
+export default function HomeTab({ user, data, setTab, setDesafiosSubTab, setForumCanal }) {
   const allRelev = (data.myNotifs || []).filter(isRelevant);
   const notifs = allRelev.filter(n => !n.read);
 
@@ -31,7 +31,7 @@ export default function HomeTab({ user, data, setTab, setDesafiosSubTab }) {
       <HomeTodo
         user={user} data={data} setTab={setTab}
         setDesafiosSubTab={setDesafiosSubTab} features={data.features}
-        notifs={notifs} onDeleteNotif={dismissNotif}
+        notifs={notifs} onDeleteNotif={dismissNotif} setForumCanal={setForumCanal}
       />
 
       {/* 2. AGENDA */}

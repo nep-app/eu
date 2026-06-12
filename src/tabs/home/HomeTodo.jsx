@@ -13,7 +13,7 @@ function fmtDatePt(str) {
   return `${parseInt(d)} ${MESES[parseInt(m)-1]} ${y}`;
 }
 
-export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, features = {}, notifs = [], onDeleteNotif }) {
+export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, features = {}, notifs = [], onDeleteNotif, setForumCanal }) {
   const light = useContext(ThemeCtx);
   const [novaTarefaTexto, setNovaTarefaTexto]       = useState("");
   const [novaTarefaData, setNovaTarefaData]         = useState("");
@@ -205,7 +205,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
           {notifs.map(n => {
             const isForumNotif = n.text?.startsWith("🌐");
             return (
-              <div key={n.id} onClick={isForumNotif ? () => setTab("forum") : undefined}
+              <div key={n.id} onClick={isForumNotif ? () => { if (setForumCanal && n.canal) setForumCanal(n.canal); setTab("forum"); } : undefined}
                 style={{ display:"flex", gap:12, padding:"13px 14px",
                   background:"rgba(0,0,0,0.2)",
                   borderRadius:14, marginBottom:8,
