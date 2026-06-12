@@ -203,15 +203,17 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
             <div style={{ fontSize:11, fontWeight:900, color:CYN, background:`${CYN}18`, borderRadius:20, padding:"3px 10px" }}>{notifs.length}</div>
           </div>
           {notifs.map(n => {
-            const isForumNotif = n.text?.startsWith("🌐") || !!n.canal;
+            const isForumNotif = n.text?.startsWith("🌐") || n.text?.startsWith("📢") || !!n.canal;
             function handleForumClick() {
               let canal = n.canal;
               if (!canal) {
                 for (const ch of CHANNELS) {
                   if (n.text?.includes(`em ${ch.label}`) || n.text?.includes(`em ${ch.id}`)) { canal = ch.id; break; }
                 }
+                if (!canal && (n.text?.toLowerCase().includes("anúncio") || n.text?.toLowerCase().includes("anuncio"))) canal = "anuncios";
+                if (!canal) canal = "anuncios";
               }
-              if (setForumCanal && canal) setForumCanal(canal);
+              if (setForumCanal) setForumCanal(canal);
               setTab("forum");
             }
             return (
