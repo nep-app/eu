@@ -6,6 +6,23 @@ import { JEEP_LIST } from "../../data.js";
 
 const JEEP_8 = JEEP_LIST.filter(j => !["ricardo","demo"].includes(j.username));
 
+function parseFmtData(str) {
+  const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  const [datePart, timePart] = str.split(" · ");
+  const parts = datePart.trim().split(" ");
+  const day = parseInt(parts[0]);
+  const month = MESES.indexOf(parts[1]) + 1;
+  if (!month) return null;
+  const now = new Date();
+  let year = now.getFullYear();
+  const testDate = new Date(year, month - 1, day);
+  if (testDate < now) year++;
+  return {
+    date: `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`,
+    time: timePart || "",
+  };
+}
+
 function fmtOpcaoData(date, time) {
   if (!date) return "";
   const [y, m, d] = date.split("-");
@@ -104,7 +121,6 @@ export default function AdminVotacoes() {
     await updateDoc(doc(db, "polls", id), { active: !estadoAtual });
 
     if (estadoAtual) {
-      // A fechar — notificar destinatários com o resultado
       const poll = polls.find(p => p.id === id);
       if (!poll) return;
 
@@ -118,6 +134,7 @@ export default function AdminVotacoes() {
       ).length > 1;
 
       const totalVotos = poll.options.reduce((s, op) => s + (poll.votes[op]||[]).length, 0);
+
       let texto;
       if (totalVotos === 0) {
         texto = `🗳️ A votação "${poll.title}" foi encerrada sem votos.`;
@@ -131,11 +148,26 @@ export default function AdminVotacoes() {
         ? poll.targetUsers
         : JEEP_8.map(j => j.username);
 
+      // Notificação para todos os destinatários
       await Promise.all(targets.map(u =>
         addDoc(collection(db, "notifications", u, "items"), {
           from: "sistema", text: texto, read: false, ts: Date.now()
         })
       ));
+
+      // Para Doodle com vencedor claro, criar evento forçado na agenda de cada user
+      if (poll.type === "data" && !empate && totalVotos > 0) {
+        const parsed = parseFmtData(vencedora);
+        if (parsed) {
+          await Promise.all(targets.map(u =>
+            addDoc(collection(db, "events"), {
+              title: poll.title, date: parsed.date, time: parsed.time,
+              userId: u, type: "group", shared: false,
+              accepted: true, ts: Date.now(),
+            })
+          ));
+        }
+      }
     }
   }
 
