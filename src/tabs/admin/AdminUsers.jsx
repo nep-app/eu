@@ -8,6 +8,7 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
   const [userSelecionado, setUserSelecionado] = useState(null);
   const [medalModal, setMedalModal]           = useState(null);
   const [medalMsg,   setMedalMsg]             = useState("");
+  const [piaPrazoExt, setPiaPrazoExt]         = useState("");
 
   function formatarDataHora(ts, dataAntiga) {
     if (!ts) return dataAntiga;
@@ -170,7 +171,8 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
     const [xpEdit, setXpEdit] = useState(String(uData.weekXp || 0));
     const [feedbackAuto, setFeedbackAuto] = useState("");
     const [feedbackPia, setFeedbackPia] = useState("");
-    const [piaPrazo, setPiaPrazo] = useState(uData.piaSavedPrazo || "");
+    const piaPrazo = piaPrazoExt;
+    const setPiaPrazo = setPiaPrazoExt;
 
     async function enviarFeedback(tipo, texto, setTexto) {
       if (!texto.trim()) return;
@@ -789,7 +791,7 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
             {atMedals.length > 0 && (
               <div style={{ fontSize:9, color:"#5a7a9a", marginBottom:12 }}>🏅 {atMedals.length} medalha{atMedals.length!==1?"s":""} no histórico</div>
             )}
-            <button onClick={() => setUserSelecionado(j.username)} style={{
+            <button onClick={() => { setUserSelecionado(j.username); setPiaPrazoExt((allShared[j.username]||{}).piaSavedPrazo || ""); }} style={{
               width:"100%", background:"rgba(255,255,255,0.05)", border:`1px solid ${CYN}40`,
               color:CYN, borderRadius:12, padding:10, fontSize:11, fontWeight:900, cursor:"pointer",
             }}>VER DOSSIER</button>

@@ -274,7 +274,7 @@ export default function AdminMural() {
                       const label = ch?.label || channel;
                       const preview = (p.text||"").trim().substring(0, 80);
                       const nome = p.username === "admin" ? "Teresa (GO)" : (p.user || p.username);
-                      await notificarTodos(`🌐 ${nome} publicou em ${label}${preview ? `: "${preview}${p.text.length > 80 ? "…" : ""}"` : ""}`);
+                      await notificarTodos(`🌐 ${nome} publicou em ${label}${preview ? `: "${preview}${p.text.length > 80 ? "…" : ""}"` : ""}`, channel);
                       alert("Notificação enviada a todos! ✅");
                     }} style={{ fontSize:12, color:CYN, cursor:"pointer", fontWeight:700 }}>🔔 Notificar</span>
                     <span onClick={() => deleteForumPost(p.id)}
