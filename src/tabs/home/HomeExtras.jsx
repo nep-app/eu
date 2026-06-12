@@ -65,6 +65,8 @@ export default function HomeExtras({ user, data, setTab }) {
       texto: mensagemTexto.substring(0, 60),
       ts, lida: false
     });
+    const newHistory = [...(data.history || []), { date:nowFull(), action:"Enviou uma mensagem à Teresa", ts, xp:5 }];
+    await setDoc(doc(db, "userData", user.username), { history:newHistory, weekXp:(uData.weekXp||0)+5 }, { merge:true });
     setMensagemTexto(""); setMensagemEnviadaSucesso(true);
     setTimeout(() => setMensagemEnviadaSucesso(false), 3000);
   }

@@ -136,14 +136,24 @@ export default function PiaTab({ user, data }) {
     if (!window.confirm(jaEnviou ? "Atualizar o PIA enviado à Teresa?" : "Enviar o PIA à Teresa?")) return;
     setSending(true);
     const ts = nowFull();
-    const newHistory = [...(data.history || []),
-      { date: ts, action: jaEnviou ? "Atualizou o PIA 🔄" : "Enviou o Plano Individual de Ação (PIA) à Teresa 🚀", ts: Date.now(), xp: jaEnviou ? 0 : 30 }];
+    const submittedSections = uData.piaSubmittedSections || [];
+    const novasSeccoes = PIA_SECTIONS.filter(sec =>
+      piaUnlocked[sec.id] &&
+      !submittedSections.includes(sec.id) &&
+      sec.fields.some(f => fieldFilled(f, piaData[sec.id] || {}))
+    );
+    const xpGanho = novasSeccoes.length * 30;
+    const todasSeccoes = [...submittedSections, ...novasSeccoes.map(s => s.id)];
+    const newHistory = xpGanho > 0
+      ? [...(data.history || []), { date: ts, action: jaEnviou ? "Atualizou o PIA 🔄" : "Enviou o Plano Individual de Ação (PIA) à Teresa 🚀", ts: Date.now(), xp: xpGanho }]
+      : (data.history || []);
     await setDoc(doc(db, "userData", user.username), {
       piaSaved: true, piaSavedAt: ts,
       piaSentFilled: filledFields,
       piaSentTotal: totalFields,
+      piaSubmittedSections: todasSeccoes,
       history: newHistory,
-      weekXp: (uData.weekXp || 0) + (jaEnviou ? 0 : 30),
+      weekXp: (uData.weekXp || 0) + xpGanho,
     }, { merge: true });
     await updateDoc(doc(db, "userData", user.username), {
       piaHistorico: arrayUnion({

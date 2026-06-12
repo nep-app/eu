@@ -1,8 +1,8 @@
 import React, { useState, useContext } from 'react';
-import { addDoc, collection, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, BLUE, INP, TXT_MUT } from "../../theme.jsx";
-import { EVT_COLORS, EVT_ICONS } from "../../data.js";
+import { EVT_COLORS, EVT_ICONS, nowLabel } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
 
 function toDateStr(d) {
@@ -32,7 +32,7 @@ function fmtDatePtShort(str) {
   return `${parseInt(d)} ${MESES[parseInt(m)-1]}`;
 }
 
-export default function HomeAgenda({ user, data }) {
+export default function HomeAgenda({ user, data = {} }) {
   const light = useContext(ThemeCtx);
   const hoje = toDateStr(new Date());
   const [novoTitulo, setNovoTitulo] = useState("");
@@ -73,6 +73,9 @@ export default function HomeAgenda({ user, data }) {
         texto: novoTitulo.substring(0, 60), ts: Date.now(), lida: false,
       });
     }
+    const uData = data.userData || {};
+    const newHistory = [...(data.history || []), { date:nowLabel(), action:"Criou um evento na agenda", ts:Date.now(), xp:5 }];
+    await setDoc(doc(db, "userData", user.username), { history:newHistory, weekXp:(uData.weekXp||0)+5 }, { merge:true });
     setNovoTitulo(""); setNovaHora(""); setPartilhar(false); setShowForm(false);
   }
 

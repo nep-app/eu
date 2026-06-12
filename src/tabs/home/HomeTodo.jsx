@@ -71,14 +71,16 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
         texto: novaTarefaTexto.substring(0, 60), ts: Date.now(), lida: false,
       });
     }
+    const newHistory = [...(data.history || []), { date:nowLabel(), action:"Criou uma tarefa", ts:Date.now(), xp:5 }];
+    await setDoc(doc(db, "userData", user.username), { history:newHistory, weekXp:(uData.weekXp||0)+5 }, { merge:true });
     setNovaTarefaTexto(""); setNovaTarefaData(""); setPartilharTarefaCheck(false);
   }
 
   async function alternarEstadoTarefa(tarefa) {
     await updateDoc(doc(db, "todos", user.username, "items", tarefa.id), { done: !tarefa.done });
     if (!tarefa.done) {
-      const newHistory = [...(data.history || []), { date:nowLabel(), action:`Concluiu a tarefa: ${tarefa.text}`, ts:Date.now(), xp:5 }];
-      await setDoc(doc(db, "userData", user.username), { history:newHistory, weekXp:(uData.weekXp||0)+5 }, { merge:true });
+      const newHistory = [...(data.history || []), { date:nowLabel(), action:`Concluiu a tarefa: ${tarefa.text}`, ts:Date.now(), xp:10 }];
+      await setDoc(doc(db, "userData", user.username), { history:newHistory, weekXp:(uData.weekXp||0)+10 }, { merge:true });
     }
   }
 
@@ -95,6 +97,8 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
   async function aceitarTarefa(id) {
     await updateDoc(doc(db, "todos", user.username, "items", id), { accepted:true, shared:true });
     await addDoc(collection(db, "adminNotificacoes"), { tipo:"TAREFA_ACEITE", jovem:user.username, ts:Date.now(), lida:false });
+    const newHistory = [...(data.history || []), { date:nowLabel(), action:"Aceitou uma tarefa sugerida", ts:Date.now(), xp:5 }];
+    await setDoc(doc(db, "userData", user.username), { history:newHistory, weekXp:(uData.weekXp||0)+5 }, { merge:true });
   }
 
   async function recusarTarefa(id) {

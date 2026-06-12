@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { collection, onSnapshot, query, orderBy, doc, getDocs } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, doc, getDocs, setDoc } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { CYN, TXT_MUT, BG, PNK, GRN } from "../theme.jsx";
-import { CHANNELS, JEEP_LIST, getWeekKey } from "../data.js";
+import { CHANNELS, JEEP_LIST, getWeekKey, nowLabel } from "../data.js";
 import { ThemeCtx } from "../JovensApp.jsx";
 import ForumPost     from './forum/ForumPost.jsx';
 import ForumComposer from './forum/ForumComposer.jsx';
@@ -22,7 +22,7 @@ const RECURSOS_FIXOS = [
 
 const isAdmin = (u) => u?.username === "admin";
 
-export default function ForumTab({ user, forumCollection = "forum", initialCanal = null }) {
+export default function ForumTab({ user, data = {}, forumCollection = "forum", initialCanal = null }) {
   const light = useContext(ThemeCtx);
   const [canalAtivo, setCanalAtivo] = useState(initialCanal || "anuncios");
   const [listaPosts, setListaPosts]  = useState([]);
@@ -81,7 +81,15 @@ export default function ForumTab({ user, forumCollection = "forum", initialCanal
           );
         })}
         {/* Recursos — mostra só 1 botão no grid (abre lista inline) */}
-        <button onClick={() => setCanalAtivo("__recursos")} style={{
+        <button onClick={async () => {
+          setCanalAtivo("__recursos");
+          const uData = data.userData || {};
+          if (!uData.recursosVisitados) {
+            const ts = Date.now();
+            const newHistory = [...((data.history) || []), { date:nowLabel(), action:"Visitou os recursos", ts, xp:20 }];
+            await setDoc(doc(db, "userData", user.username), { recursosVisitados:true, history:newHistory, weekXp:(uData.weekXp||0)+20 }, { merge:true });
+          }
+        }} style={{
           display:"flex", flexDirection:"column", alignItems:"center", gap:4,
           padding:"12px 8px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
           border: canalAtivo === "__recursos" ? "1px solid rgba(99,102,241,0.55)" : "1px solid rgba(99,102,241,0.22)",
