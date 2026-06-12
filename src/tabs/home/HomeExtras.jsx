@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { doc, setDoc, addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, BLUE, PNK, YLW, INP, Btn, TXT_MUT, GRN } from "../../theme.jsx";
-import { nowFull, getWeekKey, fmtDate, isOverdue, SPECIAL_USERS } from "../../data.js";
+import { nowFull, getWeekKey, fmtDate, isOverdue, SPECIAL_USERS, JEEP_LIST } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
 
 export default function HomeExtras({ user, data, setTab }) {
@@ -10,6 +10,7 @@ export default function HomeExtras({ user, data, setTab }) {
   const [mensagemTexto, setMensagemTexto]           = useState("");
   const [mensagemAnonima, setMensagemAnonima]       = useState(false);
   const [mensagemEnviadaSucesso, setMensagemEnviadaSucesso] = useState(false);
+  const [destinatarios, setDestinatarios]           = useState(["admin"]);
 
   const uData              = data.userData || {};
   const rankingDados       = data.leaderboard || {};
@@ -21,13 +22,23 @@ export default function HomeExtras({ user, data, setTab }) {
     ? (data.history || []).filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
     : (uData.weekXp || 0);
 
-  // Top 3 por XP semanal, apresentados em ordem aleatória
   const destaquesXp = Object.entries(rankingDados)
     .map(([username, d]) => ({ username, ...d }))
     .filter(d => !SPECIAL_USERS.includes(d.username) && (d.xp || 0) > 0)
     .sort((a, b) => (b.xp || 0) - (a.xp || 0))
     .slice(0, 3)
     .sort(() => Math.random() - 0.5);
+
+  // Peers visíveis no seletor (excluir próprio user, demo, ricardo)
+  const peerList = JEEP_LIST.filter(j =>
+    j.username !== user.username && j.username !== "demo" && j.username !== "ricardo"
+  );
+
+  function toggleDestinatario(id) {
+    setDestinatarios(prev =>
+      prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]
+    );
+  }
 
   function getDayStreakUpdate() {
     const today     = new Date().toDateString();
@@ -50,22 +61,36 @@ export default function HomeExtras({ user, data, setTab }) {
     alert(`+${missao.xp || 10} XP ✨`);
   }
 
-  async function enviarMensagemTeresa() {
-    if (!mensagemTexto.trim()) return;
+  async function enviarMensagem() {
+    if (!mensagemTexto.trim() || destinatarios.length === 0) return;
     const ts = Date.now();
-    await addDoc(collection(db, "messages"), {
-      text: mensagemTexto, anon: mensagemAnonima,
-      from: mensagemAnonima ? "Anónimo" : user.username,
-      hiddenUser: user.username, date: nowFull(), ts, adminReply: ""
-    });
-    await addDoc(collection(db, "adminNotificacoes"), {
-      tipo: "MENSAGEM",
-      anon: mensagemAnonima,
-      jovem: user.username,
-      texto: mensagemTexto.substring(0, 60),
-      ts, lida: false
-    });
-    const newHistory = [...(data.history || []), { date:nowFull(), action:"Enviou uma mensagem à Teresa", ts, xp:5 }];
+
+    if (destinatarios.includes("admin")) {
+      await addDoc(collection(db, "messages"), {
+        text: mensagemTexto, anon: mensagemAnonima,
+        from: mensagemAnonima ? "Anónimo" : user.username,
+        hiddenUser: user.username, date: nowFull(), ts, adminReply: ""
+      });
+      await addDoc(collection(db, "adminNotificacoes"), {
+        tipo: "MENSAGEM", anon: mensagemAnonima,
+        jovem: user.username,
+        texto: mensagemTexto.substring(0, 60),
+        ts, lida: false
+      });
+    }
+
+    const peers = destinatarios.filter(d => d !== "admin");
+    const remetente = mensagemAnonima ? "Alguém" : user.realName;
+    const preview = mensagemTexto.trim().substring(0, 50);
+    await Promise.all(peers.map(uname =>
+      addDoc(collection(db, "notifications", uname, "items"), {
+        from: mensagemAnonima ? "anonimo" : user.username,
+        text: `💬 ${remetente}: "${preview}${mensagemTexto.length > 50 ? "…" : ""}"`,
+        date: nowFull(), read: false, ts: Date.now()
+      })
+    ));
+
+    const newHistory = [...(data.history || []), { date:nowFull(), action:"Enviou uma mensagem", ts, xp:5 }];
     await setDoc(doc(db, "userData", user.username), { history:newHistory, weekXp:(uData.weekXp||0)+5 }, { merge:true });
     setMensagemTexto(""); setMensagemEnviadaSucesso(true);
     setTimeout(() => setMensagemEnviadaSucesso(false), 3000);
@@ -77,7 +102,6 @@ export default function HomeExtras({ user, data, setTab }) {
   return (
     <>
 
-
       {/* ── MISSÕES DE CAMPO ─────────────────────────────────────────── */}
       {missoesSemana.length > 0 && (
         <div style={CARD}>
@@ -87,7 +111,6 @@ export default function HomeExtras({ user, data, setTab }) {
               {missoesDone}/{missoesSemana.length}
             </div>
           </div>
-          {/* Barra de progresso das missões */}
           <div style={{ height:3, background: light ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.06)", borderRadius:3, marginBottom:16, overflow:"hidden" }}>
             <div style={{ height:"100%", width:`${(missoesDone/missoesSemana.length)*100}%`, background:`linear-gradient(90deg,${CYN},${GRN})`, transition:"width 0.5s ease", borderRadius:3 }}/>
           </div>
@@ -149,10 +172,10 @@ export default function HomeExtras({ user, data, setTab }) {
         )}
       </div>
 
-      {/* ── MENSAGEM À TERESA ────────────────────────────────────────── */}
+      {/* ── MENSAGEM ────────────────────────────────────────────────── */}
       <div style={CARD}>
-        <div style={SL}>📱 Falar com a Teresa</div>
-        <div style={{ display:"flex", gap:10, marginBottom:16 }}>
+        <div style={SL}>📱 Enviar Mensagem</div>
+        <div style={{ display:"flex", gap:10, marginBottom:14 }}>
           <a href="https://wa.me/351916025666" target="_blank" rel="noreferrer" style={{
             flex:1, background:"rgba(37,211,102,0.18)", color:"#25D366",
             textDecoration:"none", padding:"13px 12px", borderRadius:14, textAlign:"center",
@@ -179,6 +202,33 @@ export default function HomeExtras({ user, data, setTab }) {
           </div>
         ) : (
           <>
+            {/* Seletor de destinatários */}
+            <div style={{ marginBottom:10 }}>
+              <div style={{ fontSize:10, fontWeight:900, color:"#5a7a9a", textTransform:"uppercase", letterSpacing:1, marginBottom:6 }}>Para:</div>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                {/* Teresa (GO) */}
+                <button onClick={() => toggleDestinatario("admin")} style={{
+                  padding:"5px 12px", borderRadius:20, fontSize:11, fontWeight:800, cursor:"pointer", border:"none",
+                  background: destinatarios.includes("admin") ? `${CYN}20` : "rgba(255,255,255,0.06)",
+                  color: destinatarios.includes("admin") ? CYN : "#64748b",
+                  boxShadow: destinatarios.includes("admin") ? `0 0 0 1.5px ${CYN}50` : "none",
+                }}>
+                  {destinatarios.includes("admin") ? "✓ " : ""}Teresa (GO)
+                </button>
+                {/* Peers */}
+                {peerList.map(peer => (
+                  <button key={peer.username} onClick={() => toggleDestinatario(peer.username)} style={{
+                    padding:"5px 12px", borderRadius:20, fontSize:11, fontWeight:800, cursor:"pointer", border:"none",
+                    background: destinatarios.includes(peer.username) ? `${peer.color || CYN}20` : "rgba(255,255,255,0.06)",
+                    color: destinatarios.includes(peer.username) ? (peer.color || CYN) : "#64748b",
+                    boxShadow: destinatarios.includes(peer.username) ? `0 0 0 1.5px ${peer.color || CYN}50` : "none",
+                  }}>
+                    {destinatarios.includes(peer.username) ? "✓ " : ""}{peer.name.split(" ")[0]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <textarea value={mensagemTexto} onChange={e => setMensagemTexto(e.target.value)}
               style={{ ...INP, minHeight:80, resize:"none", marginBottom:10 }}
               placeholder="Dúvida, sugestão ou desabafo..." />
@@ -187,9 +237,11 @@ export default function HomeExtras({ user, data, setTab }) {
                 <input type="checkbox" checked={mensagemAnonima} onChange={() => setMensagemAnonima(!mensagemAnonima)} style={{ accentColor:PNK, width:16, height:16 }} />
                 Anónimo
               </label>
-              <button onClick={enviarMensagemTeresa} style={{
-                background:PNK, color:"#070b14", border:"none", padding:"10px 24px",
-                borderRadius:12, fontWeight:900, cursor:"pointer", fontSize:12, letterSpacing:0.8 }}>
+              <button onClick={enviarMensagem} disabled={destinatarios.length === 0} style={{
+                background: destinatarios.length === 0 ? "rgba(255,255,255,0.05)" : PNK,
+                color: destinatarios.length === 0 ? "#64748b" : "#070b14",
+                border:"none", padding:"10px 24px",
+                borderRadius:12, fontWeight:900, cursor: destinatarios.length === 0 ? "default" : "pointer", fontSize:12, letterSpacing:0.8 }}>
                 ENVIAR
               </button>
             </div>
