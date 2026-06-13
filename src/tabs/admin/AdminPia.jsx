@@ -17,6 +17,7 @@ const PIA_SECS_META = [
 
 export default function AdminPia({ allShared }) {
   const [prazo, setPrazo] = useState("");
+  const [expanded, setExpanded] = useState({});
 
   return (
     <div>
@@ -72,6 +73,7 @@ export default function AdminPia({ allShared }) {
             });
           });
 
+          const isExpanded = !!expanded[j.username];
           return (
             <div key={j.username} style={{ marginBottom:10, borderRadius:12, background:"rgba(0,0,0,0.2)", overflow:"hidden" }}>
               <div style={{ padding:"12px 14px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
@@ -84,6 +86,12 @@ export default function AdminPia({ allShared }) {
                     ? <span style={{ fontSize:10, color:GRN, fontWeight:800 }}>✓ Enviado {uData.piaSavedAt||""}</span>
                     : <span style={{ fontSize:10, color:"#475569" }}>Não enviado</span>}
                   <span style={{ fontSize:10, color:CYN, fontWeight:800 }}>{filledSections.length}/{PIA_SECTIONS.length} secções</span>
+                  {filledSections.length > 0 && (
+                    <button onClick={() => setExpanded(p => ({ ...p, [j.username]: !p[j.username] }))}
+                      style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:6, padding:"3px 8px", fontSize:10, fontWeight:800, color:"#94a3b8", cursor:"pointer" }}>
+                      {isExpanded ? "▲ fechar" : "▼ ver tudo"}
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -98,7 +106,8 @@ export default function AdminPia({ allShared }) {
                           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:4 }}>
                             {[["swotF","Forças"],["swotFraq","Fraquezas"],["swotOp","Oportunidades"],["swotR","Riscos"]].map(([k,l]) => sd[k] && (
                               <div key={k} style={{ fontSize:11, color:"#94a3b8", background:"rgba(0,0,0,0.2)", borderRadius:6, padding:"5px 8px" }}>
-                                <strong style={{ color:"#e2e8f0" }}>{l}:</strong> {sd[k].substring(0,60)}{sd[k].length > 60 ? "…" : ""}
+                                <strong style={{ color:"#e2e8f0" }}>{l}:</strong>{" "}
+                                {isExpanded ? sd[k] : (sd[k].substring(0,60) + (sd[k].length > 60 ? "…" : ""))}
                               </div>
                             ))}
                           </div>
@@ -106,10 +115,12 @@ export default function AdminPia({ allShared }) {
                           const v = sd[f.key];
                           if (!v || (Array.isArray(v) && !v.length)) return null;
                           const preview = Array.isArray(v)
-                            ? `${v.length} entrada(s)`
-                            : String(v).substring(0,100) + (String(v).length > 100 ? "…" : "");
+                            ? (isExpanded
+                                ? v.map((a,i) => <div key={i} style={{ paddingLeft:8, borderLeft:"2px solid rgba(255,255,255,0.08)", marginTop:3 }}>{Object.entries(a).filter(([,val])=>val).map(([k,val])=>`${k}: ${val}`).join(" · ")}</div>)
+                                : `${v.length} entrada(s)`)
+                            : (isExpanded ? String(v) : String(v).substring(0,100) + (String(v).length > 100 ? "…" : ""));
                           return (
-                            <div key={f.key} style={{ fontSize:11, color:"#94a3b8", marginBottom:2 }}>
+                            <div key={f.key} style={{ fontSize:11, color:"#94a3b8", marginBottom:2, whiteSpace: isExpanded ? "pre-wrap" : "normal" }}>
                               <strong style={{ color:"#e2e8f0" }}>{f.label}:</strong> {preview}
                             </div>
                           );
