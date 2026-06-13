@@ -170,7 +170,8 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
     const jeep          = JEEP_LIST.find(j => j.username === username);
     const [xpEdit, setXpEdit] = useState(String(uData.weekXp || 0));
     const [feedbackAuto, setFeedbackAuto] = useState("");
-    const [feedbackPia, setFeedbackPia] = useState("");
+    const [feedbackPia, setFeedbackPia]   = useState("");
+    const [feedbackGeral, setFeedbackGeral] = useState("");
     const piaPrazo = piaPrazoExt;
     const setPiaPrazo = setPiaPrazoExt;
 
@@ -207,6 +208,22 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
         </div>
 
         <div style={{ display:"grid", gridTemplateColumns:"1fr", gap:15, maxWidth:600, margin:"0 auto" }}>
+
+          {/* Mensagem livre */}
+          <div style={{ ...CARD, border:`1px solid ${CYN}25` }}>
+            <div style={{ fontSize:11, fontWeight:900, color:CYN, letterSpacing:1, marginBottom:8 }}>💬 ENVIAR MENSAGEM</div>
+            <div style={{ display:"flex", gap:8 }}>
+              <input value={feedbackGeral} onChange={e => setFeedbackGeral(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && enviarFeedback("geral", feedbackGeral, setFeedbackGeral)}
+                placeholder={`Escreve uma mensagem para ${jeep.name}…`}
+                style={{ ...INP, flex:1, marginBottom:0, fontSize:13, padding:"10px 14px" }} />
+              <button onClick={() => enviarFeedback("geral", feedbackGeral, setFeedbackGeral)}
+                style={{ background:CYN, border:"none", color:"#0f172a", borderRadius:12, padding:"0 18px", fontWeight:900, fontSize:13, cursor:"pointer" }}>
+                Enviar
+              </button>
+            </div>
+          </div>
+
 
           {/* MEDALHAS */}
           <div style={CARD}>
