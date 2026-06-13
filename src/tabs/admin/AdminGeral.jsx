@@ -75,7 +75,10 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
       PERGUNTA: "resposta à Pergunta da Semana", AUTOAVALIACAO: "Autoavaliação",
       PIA: "PIA", RODA: "Roda da Vida", QUIZ: "Dilema",
       FORUM_POST: "publicação no Fórum", MENSAGEM: "mensagem",
-      TAREFA_ACEITE: "tarefa", EVENTO_ACEITE: "participação no evento",
+      TAREFA_ACEITE: "tarefa aceite", EVENTO_ACEITE: "participação no evento",
+      TAREFA_PARTILHADA: "tarefa partilhada", TAREFA_RECUSADA: "tarefa recusada",
+      EVENTO_PARTILHADO: "evento partilhado", EVENTO_RECUSADO: "evento recusado",
+      VOTO: "voto numa sondagem",
     }[notif.tipo] || "envio";
     const contexto = notif.texto?.trim() ? ` — sobre: "${notif.texto.substring(0, 60)}${notif.texto.length > 60 ? "…" : ""}"` : "";
     const text = `Teresa reagiu ao teu ${tipoLabel}${contexto}: ${msg.trim()}`;
