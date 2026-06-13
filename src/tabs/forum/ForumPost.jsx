@@ -294,7 +294,7 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
                     }}>
                       ❤️ {reply.likes > 0 ? reply.likes : ""}
                     </button>
-                    {reply.username !== user.username && (
+                    {(reply.username !== user.username || user.username === "admin" || user.username === "teresa") && (
                       <button onClick={() => responderAReply(reply.username)} style={{
                         background:"none", border:"none", cursor:"pointer", padding:0,
                         fontSize:11, color:TXT_MUT, fontWeight:700,

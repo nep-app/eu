@@ -163,6 +163,26 @@ export default function AdminMural() {
     setReplyTxt(""); setReplyTo(null);
   }
 
+  async function reagirReply(pid, replyId) {
+    const cur = posts.find(p => p.id === pid);
+    if (!cur) return;
+    const updReplies = cur.replies.map(r => {
+      if (r.id !== replyId) return r;
+      const liked = (r.likedBy || []).includes("admin");
+      return {
+        ...r,
+        likes: liked ? Math.max(0, (r.likes || 1) - 1) : (r.likes || 0) + 1,
+        likedBy: liked ? (r.likedBy || []).filter(u => u !== "admin") : [...(r.likedBy || []), "admin"],
+      };
+    });
+    await updateDoc(doc(db, "forum", channel, "posts", pid), { replies: updReplies });
+  }
+
+  function responderAReply(pid, replyUser) {
+    setReplyTxt(`@${replyUser} `);
+    setReplyTo(pid);
+  }
+
   async function deleteReply(pid, rp) {
     if (!window.confirm("Apagar este comentário?")) return;
     const cur = posts.find(p => p.id === pid);
@@ -381,6 +401,16 @@ export default function AdminMural() {
                             style={{ background:"none", border:"none", color:PNK, cursor:"pointer", fontSize:12 }}>🗑️</button>
                         </div>
                         <div style={{ fontSize:12, color:"#cbd5e1", marginTop:2 }}>{rp.text}</div>
+                        <div style={{ display:"flex", gap:10, marginTop:4 }}>
+                          <button onClick={() => reagirReply(p.id, rp.id)} style={{
+                            background:"none", border:"none", cursor:"pointer", padding:0,
+                            fontSize:11, color:(rp.likedBy||[]).includes("admin") ? "#f43f5e" : "#64748b",
+                          }}>❤️ {rp.likes > 0 ? rp.likes : ""}</button>
+                          <button onClick={() => responderAReply(p.id, rp.user)} style={{
+                            background:"none", border:"none", cursor:"pointer", padding:0,
+                            fontSize:11, color:"#64748b", fontWeight:700,
+                          }}>↩ Responder</button>
+                        </div>
                       </div>
                     </div>
                   ))}
