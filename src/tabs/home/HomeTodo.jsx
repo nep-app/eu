@@ -214,7 +214,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
             <div style={{ fontSize:11, fontWeight:900, color:CYN, background:`${CYN}18`, borderRadius:20, padding:"3px 10px" }}>{notifs.length}</div>
           </div>
           {notifs.map(n => {
-            const isForumNotif = !!n.canal || CHANNELS.some(ch => n.text?.startsWith(ch.icon)) || n.text?.startsWith("🌐") || n.text?.startsWith("📢");
+            const isForumNotif = !!n.canal || CHANNELS.some(ch => n.text?.startsWith(ch.icon)) || n.text?.startsWith("🌐") || n.text?.startsWith("📢") || n.text?.includes("reagiu à tua partilha") || n.text?.includes("comentou a tua partilha");
             const isMedalNotif = n.text?.includes("medalha") || n.text?.includes("🏅") || n.text?.includes("⭐");
             const isDoodleNotif = n.tipo === "doodle_resultado" || (n.text?.startsWith("🗳️") && n.text?.includes("→"));
             const isRecursoNotif = n.tipo === "recurso" || n.text?.startsWith("📚");
