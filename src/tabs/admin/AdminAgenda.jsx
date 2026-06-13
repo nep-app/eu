@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { addDoc, collection, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, INP, CYN, GRN, TXT_MUT } from "../../theme.jsx";
-import { JEEP_LIST, ALLOWED_USERNAMES, EVT_COLORS, EVT_ICONS, nowLabel } from "../../data.js";
+import { JEEP_LIST, ALLOWED_USERNAMES, EVT_COLORS, EVT_ICONS, nowFull } from "../../data.js";
 
 function toDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -61,7 +61,7 @@ export default function AdminAgenda({ events = [] }) {
     const targets = dest === "all" ? ALLOWED_USERNAMES : [dest];
     for (const u of targets) {
       await addDoc(collection(db, "notifications", u, "items"), {
-        from:"teresa", text:notifText, date:nowLabel(), read:false, tipo: "proposta"
+        from:"teresa", text:notifText, date:nowFull(), read:false, ts:Date.now(), tipo: "proposta"
       });
     }
     setTitulo(""); setHora(""); setShowForm(false);

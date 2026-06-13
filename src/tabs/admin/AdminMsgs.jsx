@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { doc, updateDoc, collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
-import { nowLabel, JEEP_LIST, ALLOWED_USERNAMES } from "../../data.js";
+import { nowFull, JEEP_LIST, ALLOWED_USERNAMES } from "../../data.js";
 
 export default function AdminMsgs() {
   const [msgs, setMsgs] = useState([]);
@@ -36,7 +36,7 @@ export default function AdminMsgs() {
     await updateDoc(doc(db, "messages", msgId), { adminReply: replyText });
     if (hiddenUser) {
       await addDoc(collection(db, "notifications", hiddenUser, "items"), {
-        from:"teresa", text:"A Teresa respondeu à tua mensagem: " + replyText, date:nowLabel(), read:false
+        from:"teresa", text:"A Teresa respondeu à tua mensagem: " + replyText, date:nowFull(), read:false, ts:Date.now()
       });
     }
     setAdminReplyTxt({ ...adminReplyTxt, [msgId]: "" });
@@ -49,7 +49,7 @@ export default function AdminMsgs() {
       const targets = novaMsgDest === "all" ? ALLOWED_USERNAMES : [novaMsgDest];
       for (const u of targets) {
         await addDoc(collection(db, "notifications", u, "items"), {
-          from:"teresa", text: novaMsgTexto.trim(), date: nowLabel(), read: false
+          from:"teresa", text: novaMsgTexto.trim(), date: nowFull(), read: false, ts: Date.now()
         });
       }
       setNovaMsgTexto("");

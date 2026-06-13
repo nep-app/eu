@@ -255,7 +255,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                   <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:3 }}>
                     {(n.date || n.ts) && (
                       <span style={{ fontSize:10, color:"#475569", fontWeight:600 }}>
-                        {n.date || new Date(n.ts).toLocaleString("pt-PT", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })}
+                        {n.ts ? new Date(n.ts).toLocaleString("pt-PT", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }) : n.date}
                       </span>
                     )}
                     {isRecursoNotif && <span style={{ fontSize:10, fontWeight:800, color:"#818cf8" }}>→ ver recursos</span>}

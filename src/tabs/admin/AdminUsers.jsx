@@ -177,7 +177,7 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
     async function enviarFeedback(tipo, texto, setTexto) {
       if (!texto.trim()) return;
       await addDoc(collection(db, "notifications", username, "items"), {
-        from: "teresa", text: texto, date: nowLabel(), read: false
+        from: "teresa", text: texto, date: nowFull(), read: false, ts: Date.now()
       });
       setTexto("");
       alert("Feedback enviado! ✓");

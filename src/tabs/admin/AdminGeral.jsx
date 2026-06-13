@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { doc, setDoc, addDoc, collection, updateDoc, onSnapshot, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, Btn, INP, PNK } from "../../theme.jsx";
-import { nowLabel, fmtDate, getWeekKey, buildAutoavEntry, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
+import { nowLabel, nowFull, fmtDate, getWeekKey, buildAutoavEntry, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
 
 export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
   const [features, setFeatures] = useState({});
@@ -46,7 +46,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
 
     const targets = launchTarget === "all" ? ALLOWED_USERNAMES : [launchTarget];
     const isReminder = launchType === "lembreteGeral";
-    const notifData = { from:"teresa", text:msg, date:nowLabel(), read:false, ...(!isReminder ? { tipo:"proposta" } : {}), ...(launchPrazo ? { prazo:launchPrazo } : {}) };
+    const notifData = { from:"teresa", text:msg, date:nowFull(), read:false, ts:Date.now(), ...(!isReminder ? { tipo:"proposta" } : {}), ...(launchPrazo ? { prazo:launchPrazo } : {}) };
     await Promise.all(targets.map(async u => {
       if (launchType === "auto") {
         const uData = allShared[u] || {};
@@ -78,7 +78,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
       TAREFA_ACEITE: "tarefa", EVENTO_ACEITE: "participação no evento",
     }[notif.tipo] || "envio";
     const text = `Teresa reagiu ao teu ${tipoLabel}: ${msg.trim()}`;
-    await addDoc(collection(db, "notifications", notif.jovem, "items"), { from:"teresa", text, date:nowLabel(), read:false });
+    await addDoc(collection(db, "notifications", notif.jovem, "items"), { from:"teresa", text, date:nowFull(), read:false, ts:Date.now() });
     await updateDoc(doc(db, "adminNotificacoes", notif.id), { feedback: msg.trim(), lida: true });
     setFeedbackTexts(p => ({...p, [notif.id]: ""}));
     setFeedbackOpen(p => ({...p, [notif.id]: false}));
