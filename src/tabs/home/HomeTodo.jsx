@@ -214,10 +214,13 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
             <div style={{ fontSize:11, fontWeight:900, color:CYN, background:`${CYN}18`, borderRadius:20, padding:"3px 10px" }}>{notifs.length}</div>
           </div>
           {notifs.map(n => {
-            const isForumNotif = !!n.canal || CHANNELS.some(ch => n.text?.startsWith(ch.icon)) || n.text?.startsWith("🌐") || n.text?.startsWith("📢") || n.text?.includes("reagiu à tua partilha") || n.text?.includes("comentou a tua partilha");
+            const isForumNotif = !!n.canal || CHANNELS.some(ch => n.text?.startsWith(ch.icon)) || n.text?.startsWith("🌐") || n.text?.startsWith("📢") || n.text?.includes("reagiu à tua partilha") || n.text?.includes("comentou a tua partilha") || n.text?.includes("publicação no Fórum");
             const isMedalNotif = n.text?.includes("medalha") || n.text?.includes("🏅") || n.text?.includes("⭐");
             const isDoodleNotif = n.tipo === "doodle_resultado" || (n.text?.startsWith("🗳️") && n.text?.includes("→"));
             const isRecursoNotif = n.tipo === "recurso" || n.text?.startsWith("📚");
+            const isRodaNotif = n.text?.includes("Roda da Vida");
+            const isPiaNotif = !isForumNotif && n.text?.includes("PIA");
+            const isAutoNotif = n.text?.includes("Autoavaliação") || n.text?.includes("Satisfação") || n.text?.includes("Pergunta da Semana") || n.text?.includes("Dilema");
             function handleClick() {
               if (isRecursoNotif) {
                 if (setForumCanal) setForumCanal("__recursos");
@@ -238,6 +241,12 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                 setTimeout(() => scrollToAgenda?.(), 100);
               } else if (isMedalNotif) {
                 setTab("perfil");
+              } else if (isRodaNotif) {
+                setDesafiosSubTab?.("roda"); setTab("desafios");
+              } else if (isPiaNotif) {
+                setTab("pia");
+              } else if (isAutoNotif) {
+                setTab("desafios");
               }
             }
             return (
@@ -262,6 +271,9 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                     {!isRecursoNotif && isForumNotif && <span style={{ fontSize:10, fontWeight:800, color:"#7c5cbf" }}>→ ver no fórum</span>}
                     {isDoodleNotif && <span style={{ fontSize:10, fontWeight:800, color:"#22d3ee" }}>→ ver na agenda</span>}
                     {isMedalNotif && <span style={{ fontSize:10, fontWeight:800, color:"#f59e0b" }}>→ ver no perfil</span>}
+                    {isRodaNotif && <span style={{ fontSize:10, fontWeight:800, color:"#a78bfa" }}>→ ver Roda da Vida</span>}
+                    {isPiaNotif && <span style={{ fontSize:10, fontWeight:800, color:"#f59e0b" }}>→ ver PIA</span>}
+                    {isAutoNotif && <span style={{ fontSize:10, fontWeight:800, color:"#34d399" }}>→ ver Desafios</span>}
                   </div>
                 </div>
                 <button onClick={e => { e.stopPropagation(); onDeleteNotif && onDeleteNotif(n.id); }}
