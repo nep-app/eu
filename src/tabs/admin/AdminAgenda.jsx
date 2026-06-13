@@ -27,6 +27,23 @@ export default function AdminAgenda({ events = [] }) {
   const [editTitulo, setEditTitulo] = useState("");
   const [editData,  setEditData]  = useState("");
   const [editHora,  setEditHora]  = useState("");
+  const [feedbackTxts,  setFeedbackTxts]  = useState({});
+  const [feedbackOpen,  setFeedbackOpen]  = useState({});
+
+  async function enviarFeedbackEvento(ev) {
+    const txt = feedbackTxts[ev.id]?.trim();
+    if (!txt) return;
+    const userId = ev.userId === "all" ? null : ev.userId;
+    if (!userId) return;
+    const contexto = ev.title ? ` — sobre: "${ev.title.substring(0, 60)}${ev.title.length > 60 ? "…" : ""}"` : "";
+    await addDoc(collection(db, "notifications", userId, "items"), {
+      from:"teresa", text:`Teresa reagiu ao teu evento partilhado${contexto}: ${txt}`,
+      date:nowFull(), read:false, ts:Date.now(), tipo:"evento"
+    });
+    setFeedbackTxts(p => ({ ...p, [ev.id]: "" }));
+    setFeedbackOpen(p => ({ ...p, [ev.id]: false }));
+    alert("Feedback enviado! ✓");
+  }
 
   const TIPOS = [
     { id:"group",    label:"Grupo",    icon:"👥" },
@@ -82,6 +99,7 @@ export default function AdminAgenda({ events = [] }) {
     const cor   = EVT_COLORS[ev.type] || CYN;
     const icone = EVT_ICONS[ev.type]  || "📌";
     const jeep  = JEEP_LIST.find(j => j.username === ev.userId);
+    const canFeedback = ev.shared === true && ev.userId && ev.userId !== "all";
     return (
       <div style={{ padding:"11px 14px", borderRadius:14, background:"rgba(0,0,0,0.18)",
         borderLeft:`3px solid ${ev.accepted === false ? "#f59e0b" : cor}`, marginBottom:6 }}>
@@ -106,37 +124,53 @@ export default function AdminAgenda({ events = [] }) {
             </div>
           </div>
         ) : (
-          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-            <span style={{ fontSize:16, flexShrink:0 }}>{ev.accepted === false ? "⏳" : icone}</span>
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:13, fontWeight:800, color:"#f1f5f9" }}>
-                {ev.title}
-                {ev.accepted === false && (
-                  <span style={{ fontSize:9, background:"rgba(245,158,11,0.2)", color:"#f59e0b", padding:"2px 6px", borderRadius:4, marginLeft:6, fontWeight:900 }}>PROPOSTA</span>
-                )}
-                {ev.shared && ev.accepted !== false && (
-                  <span style={{ fontSize:9, background:"rgba(50,199,255,0.15)", color:"#38bdf8", padding:"2px 6px", borderRadius:4, marginLeft:6, fontWeight:900 }}>PARTILHADO</span>
-                )}
-              </div>
-              <div style={{ fontSize:11, color: ev.accepted === false ? "#f59e0b" : cor, fontWeight:700, marginTop:2 }}>
-                {fmtDatePt(ev.date)}{ev.time ? ` · ${ev.time}` : ""}
-                {" · "}
-                <span style={{ color: jeep ? jeep.color : TXT_MUT }}>
-                  {ev.userId === "all" ? "Todos" : jeep?.name || ev.userId}
-                </span>
-              </div>
-              {ev.votantes?.length > 0 && (
-                <div style={{ fontSize:10, color:"#64748b", marginTop:2 }}>
-                  👥 {ev.votantes.join(", ")}
+          <>
+            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+              <span style={{ fontSize:16, flexShrink:0 }}>{ev.accepted === false ? "⏳" : icone}</span>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:13, fontWeight:800, color:"#f1f5f9" }}>
+                  {ev.title}
+                  {ev.accepted === false && (
+                    <span style={{ fontSize:9, background:"rgba(245,158,11,0.2)", color:"#f59e0b", padding:"2px 6px", borderRadius:4, marginLeft:6, fontWeight:900 }}>PROPOSTA</span>
+                  )}
+                  {ev.shared && ev.accepted !== false && (
+                    <span style={{ fontSize:9, background:"rgba(50,199,255,0.15)", color:"#38bdf8", padding:"2px 6px", borderRadius:4, marginLeft:6, fontWeight:900 }}>PARTILHADO</span>
+                  )}
                 </div>
+                <div style={{ fontSize:11, color: ev.accepted === false ? "#f59e0b" : cor, fontWeight:700, marginTop:2 }}>
+                  {fmtDatePt(ev.date)}{ev.time ? ` · ${ev.time}` : ""}
+                  {" · "}
+                  <span style={{ color: jeep ? jeep.color : TXT_MUT }}>
+                    {ev.userId === "all" ? "Todos" : jeep?.name || ev.userId}
+                  </span>
+                </div>
+                {ev.votantes?.length > 0 && (
+                  <div style={{ fontSize:10, color:"#64748b", marginTop:2 }}>
+                    👥 {ev.votantes.join(", ")}
+                  </div>
+                )}
+              </div>
+              <button onClick={() => { setEditId(ev.id); setEditTitulo(ev.title); setEditData(ev.date); setEditHora(ev.time || ""); }} style={{ background:"none", border:"none", color:"#64748b", fontSize:13, cursor:"pointer", padding:"2px 4px" }}>✏️</button>
+              {canFeedback && (
+                <button onClick={() => setFeedbackOpen(p => ({ ...p, [ev.id]: !p[ev.id] }))} style={{ background:"none", border:"none", color: feedbackOpen[ev.id] ? CYN : "#64748b", fontSize:13, cursor:"pointer", padding:"2px 4px" }}>💬</button>
               )}
+              <button onClick={() => remover(ev.id)} style={{
+                background:"rgba(244,63,94,0.12)", border:"none", color:"#f43f5e",
+                borderRadius:6, padding:"4px 8px", cursor:"pointer", fontSize:11, fontWeight:900,
+              }}>✕</button>
             </div>
-            <button onClick={() => { setEditId(ev.id); setEditTitulo(ev.title); setEditData(ev.date); setEditHora(ev.time || ""); }} style={{ background:"none", border:"none", color:"#64748b", fontSize:13, cursor:"pointer", padding:"2px 4px" }}>✏️</button>
-            <button onClick={() => remover(ev.id)} style={{
-              background:"rgba(244,63,94,0.12)", border:"none", color:"#f43f5e",
-              borderRadius:6, padding:"4px 8px", cursor:"pointer", fontSize:11, fontWeight:900,
-            }}>✕</button>
-          </div>
+            {canFeedback && feedbackOpen[ev.id] && (
+              <div style={{ display:"flex", gap:8, marginTop:8 }}>
+                <input value={feedbackTxts[ev.id] || ""} onChange={e => setFeedbackTxts(p => ({ ...p, [ev.id]: e.target.value }))}
+                  placeholder={`Comentar evento de ${jeep?.name || ev.userId}…`}
+                  style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                <button onClick={() => enviarFeedbackEvento(ev)}
+                  style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
+                  Enviar
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     );

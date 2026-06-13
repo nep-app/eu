@@ -71,7 +71,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
 
   async function sendFeedback(notif, msg) {
     if (!msg?.trim() || !ALLOWED_USERNAMES.includes(notif.jovem)) return;
-    const tipoLabel = {
+    const tipoMap = {
       PERGUNTA: "resposta à Pergunta da Semana", AUTOAVALIACAO: "Autoavaliação",
       PIA: "PIA", RODA: "Roda da Vida", QUIZ: "Dilema",
       FORUM_POST: "publicação no Fórum", MENSAGEM: "mensagem",
@@ -79,10 +79,15 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
       TAREFA_PARTILHADA: "tarefa partilhada", TAREFA_RECUSADA: "tarefa recusada",
       EVENTO_PARTILHADO: "evento partilhado", EVENTO_RECUSADO: "evento recusado",
       VOTO: "voto numa sondagem",
-    }[notif.tipo] || "envio";
+    };
+    const tipoLabel = tipoMap[notif.tipo] || "envio";
+    const tipoNav = { RODA:"roda", PIA:"pia", AUTOAVALIACAO:"auto", PERGUNTA:"auto",
+      TAREFA_ACEITE:"tarefa", TAREFA_PARTILHADA:"tarefa", TAREFA_RECUSADA:"tarefa",
+      EVENTO_ACEITE:"evento", EVENTO_PARTILHADO:"evento", EVENTO_RECUSADO:"evento",
+    }[notif.tipo];
     const contexto = notif.texto?.trim() ? ` — sobre: "${notif.texto.substring(0, 60)}${notif.texto.length > 60 ? "…" : ""}"` : "";
     const text = `Teresa reagiu ao teu ${tipoLabel}${contexto}: ${msg.trim()}`;
-    await addDoc(collection(db, "notifications", notif.jovem, "items"), { from:"teresa", text, date:nowFull(), read:false, ts:Date.now() });
+    await addDoc(collection(db, "notifications", notif.jovem, "items"), { from:"teresa", text, date:nowFull(), read:false, ts:Date.now(), ...(tipoNav ? { tipo: tipoNav } : {}) });
     await updateDoc(doc(db, "adminNotificacoes", notif.id), { feedback: msg.trim(), lida: true });
     setFeedbackTexts(p => ({...p, [notif.id]: ""}));
     setFeedbackOpen(p => ({...p, [notif.id]: false}));

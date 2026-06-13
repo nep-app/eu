@@ -11,9 +11,24 @@ export default function AdminTarefas() {
   const [tipoTarefa,   setTipoTarefa]   = useState("geral");
   const [modo, setModo] = useState("propor"); // "propor" | "forcar"
   const [tarefasPartilhadas, setTarefasPartilhadas] = useState([]);
-  const [editId,   setEditId]   = useState(null);
-  const [editText, setEditText] = useState("");
-  const [editDue,  setEditDue]  = useState("");
+  const [editId,      setEditId]      = useState(null);
+  const [editText,    setEditText]    = useState("");
+  const [editDue,     setEditDue]     = useState("");
+  const [feedbackTxts, setFeedbackTxts] = useState({});
+  const [feedbackOpen, setFeedbackOpen] = useState({});
+
+  async function enviarFeedbackTarefa(t) {
+    const txt = feedbackTxts[t.id]?.trim();
+    if (!txt) return;
+    const contexto = t.text ? ` — sobre: "${t.text.substring(0, 60)}${t.text.length > 60 ? "…" : ""}"` : "";
+    await addDoc(collection(db, "notifications", t.userId, "items"), {
+      from:"teresa", text:`Teresa reagiu ao teu tarefa partilhada${contexto}: ${txt}`,
+      date:nowFull(), read:false, ts:Date.now(), tipo:"tarefa"
+    });
+    setFeedbackTxts(p => ({ ...p, [t.id]: "" }));
+    setFeedbackOpen(p => ({ ...p, [t.id]: false }));
+    alert("Feedback enviado! ✓");
+  }
 
   useEffect(() => {
     let unsubs = [];
@@ -145,20 +160,34 @@ export default function AdminTarefas() {
                     </div>
                   </div>
                 ) : (
-                  <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                    <div style={{ width:16, height:16, borderRadius:4, border:`2px solid ${t.done ? "#4ade80" : "#64748b"}`, background:t.done ? "#4ade80" : "transparent", flexShrink:0 }} />
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontSize:14, color:"#fff", textDecoration:t.done?"line-through":"none", opacity:t.done?0.5:1 }}>{t.text}</div>
-                      <div style={{ fontSize:11, color:"#94a3b8", marginTop:4 }}>
-                        <span style={{ color:corJovem, fontWeight:800 }}>{nomeJovem}</span>
-                        {t.due && ` • Limite: ${fmtDate(t.due)}`}
-                        {t.addedBy === "teresa" && <span style={{ marginLeft:6, color:CYN, fontWeight:800 }}>·admin</span>}
+                  <>
+                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                      <div style={{ width:16, height:16, borderRadius:4, border:`2px solid ${t.done ? "#4ade80" : "#64748b"}`, background:t.done ? "#4ade80" : "transparent", flexShrink:0 }} />
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontSize:14, color:"#fff", textDecoration:t.done?"line-through":"none", opacity:t.done?0.5:1 }}>{t.text}</div>
+                        <div style={{ fontSize:11, color:"#94a3b8", marginTop:4 }}>
+                          <span style={{ color:corJovem, fontWeight:800 }}>{nomeJovem}</span>
+                          {t.due && ` • Limite: ${fmtDate(t.due)}`}
+                          {t.addedBy === "teresa" && <span style={{ marginLeft:6, color:CYN, fontWeight:800 }}>·admin</span>}
+                        </div>
                       </div>
+                      {t.addedBy === "teresa" && (
+                        <button onClick={() => { setEditId(t.id); setEditText(t.text); setEditDue(t.due || ""); }} style={{ background:"none", border:"none", color:"#64748b", fontSize:13, cursor:"pointer", padding:"2px 4px" }}>✏️</button>
+                      )}
+                      <button onClick={() => setFeedbackOpen(p => ({ ...p, [t.id]: !p[t.id] }))} style={{ background:"none", border:"none", color: feedbackOpen[t.id] ? CYN : "#64748b", fontSize:13, cursor:"pointer", padding:"2px 4px" }}>💬</button>
                     </div>
-                    {t.addedBy === "teresa" && (
-                      <button onClick={() => { setEditId(t.id); setEditText(t.text); setEditDue(t.due || ""); }} style={{ background:"none", border:"none", color:"#64748b", fontSize:13, cursor:"pointer", padding:"2px 4px" }}>✏️</button>
+                    {feedbackOpen[t.id] && (
+                      <div style={{ display:"flex", gap:8, marginTop:8 }}>
+                        <input value={feedbackTxts[t.id] || ""} onChange={e => setFeedbackTxts(p => ({ ...p, [t.id]: e.target.value }))}
+                          placeholder={`Comentar tarefa de ${nomeJovem}…`}
+                          style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                        <button onClick={() => enviarFeedbackTarefa(t)}
+                          style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
+                          Enviar
+                        </button>
+                      </div>
                     )}
-                  </div>
+                  </>
                 )}
               </div>
             );

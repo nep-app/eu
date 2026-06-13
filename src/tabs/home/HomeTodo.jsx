@@ -218,9 +218,9 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
             const isMedalNotif = n.text?.includes("medalha") || n.text?.includes("🏅") || n.text?.includes("⭐");
             const isDoodleNotif = n.tipo === "doodle_resultado" || (n.text?.startsWith("🗳️") && n.text?.includes("→"));
             const isRecursoNotif = n.tipo === "recurso" || n.text?.startsWith("📚");
-            const isRodaNotif = n.text?.includes("Roda da Vida");
-            const isPiaNotif = !isForumNotif && n.text?.includes("PIA");
-            const isAutoNotif = n.text?.includes("Autoavaliação") || n.text?.includes("Satisfação") || n.text?.includes("Pergunta da Semana") || n.text?.includes("Dilema");
+            const isRodaNotif = n.tipo === "roda" || (!n.tipo && n.text?.includes("Roda da Vida") && !n.text?.match(/tarefa|evento/i));
+            const isPiaNotif = n.tipo === "pia" || (!n.tipo && !isForumNotif && n.text?.includes("PIA"));
+            const isAutoNotif = n.tipo === "auto" || (!n.tipo && (n.text?.includes("Autoavaliação") || n.text?.includes("Satisfação") || n.text?.includes("Pergunta da Semana") || n.text?.includes("Dilema")));
             function handleClick() {
               if (isRecursoNotif) {
                 if (setForumCanal) setForumCanal("__recursos");
