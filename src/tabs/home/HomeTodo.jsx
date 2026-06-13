@@ -61,8 +61,12 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
   mencaoNotifs.forEach(n => acoesPendentes.push({
     status:"new", icon:"🔔",
     title:"Foste mencionado no fórum",
-    sub: n.text?.replace("🔔 ", "") || "Vai reagir ou comentar para concluir",
-    go: () => { if (n.canal && setForumCanal) setForumCanal(n.canal); setTab("forum"); }
+    sub: n.text?.replace("🔔 ", "") || "Clica para ver",
+    go: () => {
+      if (n.canal && setForumCanal) setForumCanal(n.canal);
+      setTab("forum");
+      onDeleteNotif && onDeleteNotif(n.id);
+    }
   }));
 
   async function criarNovaTarefa() {
