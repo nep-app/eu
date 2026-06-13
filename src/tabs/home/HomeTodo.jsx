@@ -260,7 +260,35 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                   ...(previewMode ? { pointerEvents:"auto" } : {}),
                 }}>
                 <div style={{ flex:1 }}>
-                  <div style={{ fontSize:13, lineHeight:1.5, color:"#f1f5f9" }}>{n.text}</div>
+                  {(() => {
+                    // "X — sobre: "Y": Z"  → action | context (italic) | reply
+                    const m = n.text?.match(/^(.+?) — sobre: "(.+?)": (.+)$/s);
+                    if (m) return (
+                      <>
+                        <div style={{ fontSize:11, color:"#64748b", marginBottom:4 }}>{m[1]}</div>
+                        <div style={{ fontSize:11, color:"#94a3b8", fontStyle:"italic", paddingLeft:8, borderLeft:"2px solid rgba(255,255,255,0.1)", marginBottom:6, lineHeight:1.4 }}>"{m[2]}"</div>
+                        <div style={{ fontSize:13, color:"#f1f5f9", fontWeight:600, lineHeight:1.5 }}>{m[3]}</div>
+                      </>
+                    );
+                    // n.sobre field (forum reactions/comments)
+                    if (n.sobre) return (
+                      <>
+                        <div style={{ fontSize:13, color:"#f1f5f9", lineHeight:1.5 }}>{n.text}</div>
+                        <div style={{ fontSize:11, color:"#94a3b8", fontStyle:"italic", paddingLeft:8, borderLeft:"2px solid rgba(255,255,255,0.1)", marginTop:5, lineHeight:1.4 }}>"{n.sobre}"</div>
+                      </>
+                    );
+                    // Teresa message with action: reply format
+                    if (n.from === "teresa" && n.text?.includes(": ")) {
+                      const ci = n.text.indexOf(": ");
+                      if (ci < 90) return (
+                        <>
+                          <div style={{ fontSize:11, color:"#64748b", marginBottom:4 }}>{n.text.substring(0, ci)}</div>
+                          <div style={{ fontSize:13, color:"#f1f5f9", fontWeight:600, lineHeight:1.5 }}>{n.text.substring(ci + 2)}</div>
+                        </>
+                      );
+                    }
+                    return <div style={{ fontSize:13, lineHeight:1.5, color:"#f1f5f9" }}>{n.text}</div>;
+                  })()}
                   <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:3 }}>
                     {(n.date || n.ts) && (
                       <span style={{ fontSize:10, color:"#475569", fontWeight:600 }}>

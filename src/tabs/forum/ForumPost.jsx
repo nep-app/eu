@@ -35,9 +35,11 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
         ts: Date.now(), lida: false
       });
     } else {
+      const sobrePreview = post.text ? post.text.substring(0, 80) + (post.text.length > 80 ? "…" : "") : "";
       await addDoc(collection(db, "notifications", post.username, "items"), {
         from: user.username, text: msg, date: nowFull(), read: false,
-        canal: canalAtivo, ts: Date.now()
+        canal: canalAtivo, ts: Date.now(),
+        ...(sobrePreview ? { sobre: sobrePreview } : {})
       });
     }
   }
