@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { doc, updateDoc, collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
+import { doc, updateDoc, deleteDoc, deleteField, collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
 import { nowFull, JEEP_LIST, ALLOWED_USERNAMES } from "../../data.js";
@@ -99,16 +99,25 @@ export default function AdminMsgs() {
 
       {msgs.map(m => (
         <div key={m.id} style={{ ...CARD, borderLeft: m.adminReply ? "1px solid rgba(255,255,255,0.1)" : `4px solid ${PNK}` }}>
-          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
             <span style={{ fontSize:12, fontWeight:800, color: m.anon ? PNK : CYN }}>
               {m.anon ? "🔒 ANÓNIMO" : m.from?.toUpperCase()}
             </span>
-            <span style={{ fontSize:11, color:"#94a3b8" }}>{m.date}</span>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ fontSize:11, color:"#94a3b8" }}>{m.date}</span>
+              <button onClick={() => { if (window.confirm("Apagar esta mensagem?")) deleteDoc(doc(db, "messages", m.id)); }}
+                style={{ background:"none", border:"none", color:"#475569", fontSize:12, cursor:"pointer", padding:"0 2px" }}>🗑</button>
+            </div>
           </div>
           <div style={{ fontSize:14, lineHeight:1.5, color:"#fff", marginBottom:12 }}>{m.text}</div>
           {m.adminReply ? (
             <div style={{ background:"rgba(34,211,238,0.1)", padding:12, borderRadius:12, borderLeft:`2px solid ${CYN}` }}>
-              <div style={{ fontSize:10, fontWeight:900, color:CYN, marginBottom:4 }}>A TUA RESPOSTA:</div>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                <div style={{ fontSize:10, fontWeight:900, color:CYN }}>A TUA RESPOSTA:</div>
+                <button onClick={() => updateDoc(doc(db, "messages", m.id), { adminReply: deleteField() })}
+                  title="Apagar resposta para reenviar"
+                  style={{ background:"none", border:"none", color:"#64748b", fontSize:12, cursor:"pointer", padding:"0 2px" }}>✕</button>
+              </div>
               <div style={{ fontSize:13 }}>{m.adminReply}</div>
             </div>
           ) : (
