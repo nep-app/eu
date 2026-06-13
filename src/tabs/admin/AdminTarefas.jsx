@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, addDoc, onSnapshot, query, updateDoc, doc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, INP, Btn, CYN, GRN, PNK } from "../../theme.jsx";
-import { JEEP_LIST, ALLOWED_USERNAMES, fmtDate, nowLabel, TASK_TYPES } from "../../data.js";
+import { JEEP_LIST, ALLOWED_USERNAMES, fmtDate, nowFull, TASK_TYPES } from "../../data.js";
 
 export default function AdminTarefas() {
   const [adminTodoUsr, setAdminTodoUsr] = useState("nilton");
@@ -50,7 +50,7 @@ export default function AdminTarefas() {
       ? `📋 A Teresa adicionou uma tarefa à tua lista: "${adminSuggTxt}"`
       : `📋 A Teresa propôs-te uma tarefa: "${adminSuggTxt}". Vai ao Início para aceitar ou recusar!`;
     await addDoc(collection(db, "notifications", targetUsr, "items"), {
-      from: "teresa", text: notifText, date: nowLabel(), read: false, tipo: "proposta"
+      from: "teresa", text: notifText, date: nowFull(), read: false, ts: Date.now(), tipo: "proposta"
     });
     setAdminSuggTxt(""); setAdminSuggDue("");
     alert(isForcar ? "Tarefa adicionada diretamente!" : "Sugestão de tarefa enviada!");

@@ -51,7 +51,7 @@ export default function AdminMsgs() {
       const targets = novaMsgDest === "all" ? ALLOWED_USERNAMES : [novaMsgDest];
       for (const u of targets) {
         await addDoc(collection(db, "notifications", u, "items"), {
-          from:"teresa", text: novaMsgTexto.trim(), date: nowFull(), read: false, ts: Date.now()
+          from:"teresa", text: `💬 Teresa: ${novaMsgTexto.trim()}`, date: nowFull(), read: false, ts: Date.now()
         });
       }
       setNovaMsgTexto("");
