@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { MTHS } from "../data.js";
 import HomeTodo from './home/HomeTodo.jsx';
@@ -46,7 +46,6 @@ export default function HomeTab({ user, data, setTab, setDesafiosSubTab, setForu
   const mencaoNotifs = (data.myNotifs || []).filter(n => n.mencao && !n.read);
 
   function dismissNotif(id) {
-    if (previewMode) return;
     updateDoc(doc(db, "notifications", user.username, "items", id), { read: true });
   }
 
