@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, INP } from "../../theme.jsx";
-import { ALLOWED_USERNAMES, JEEP_LIST, PIA_SECTIONS } from "../../data.js";
+import { ALLOWED_USERNAMES, JEEP_LIST, PIA_SECTIONS, nowFull } from "../../data.js";
 
 const JEEP_8 = JEEP_LIST.filter(j => !["teresa","ricardo","demo"].includes(j.username));
 
@@ -16,8 +16,22 @@ const PIA_SECS_META = [
 ];
 
 export default function AdminPia({ allShared }) {
-  const [prazo, setPrazo] = useState("");
+  const [prazo,    setPrazo]    = useState("");
   const [expanded, setExpanded] = useState({});
+  const [fbTxts,   setFbTxts]   = useState({});
+  const [fbOpen,   setFbOpen]   = useState({});
+
+  async function enviarFbPia(j) {
+    const txt = fbTxts[j.username]?.trim();
+    if (!txt) return;
+    await addDoc(collection(db, "notifications", j.username, "items"), {
+      from:"teresa", text:`Teresa reagiu ao teu PIA: ${txt}`,
+      date:nowFull(), read:false, ts:Date.now(), tipo:"pia"
+    });
+    setFbTxts(p => ({ ...p, [j.username]: "" }));
+    setFbOpen(p => ({ ...p, [j.username]: false }));
+    alert("Feedback enviado! ✓");
+  }
 
   return (
     <div>
@@ -92,9 +106,24 @@ export default function AdminPia({ allShared }) {
                       {isExpanded ? "▲ fechar" : "▼ ver tudo"}
                     </button>
                   )}
+                  {filledSections.length > 0 && (
+                    <button onClick={() => setFbOpen(p => ({ ...p, [j.username]: !p[j.username] }))}
+                      style={{ background:"none", border:"none", color: fbOpen[j.username] ? CYN : "#64748b", fontSize:13, cursor:"pointer", padding:"0 2px" }}>💬</button>
+                  )}
                 </div>
               </div>
 
+              {fbOpen[j.username] && (
+                <div style={{ display:"flex", gap:8, padding:"8px 14px 12px" }}>
+                  <input value={fbTxts[j.username] || ""} onChange={e => setFbTxts(p => ({ ...p, [j.username]: e.target.value }))}
+                    placeholder={`Comentar PIA de ${j.name}…`}
+                    style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                  <button onClick={() => enviarFbPia(j)}
+                    style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
+                    Enviar
+                  </button>
+                </div>
+              )}
               {filledSections.length > 0 && (
                 <div style={{ padding:"0 14px 12px", borderTop:"1px solid rgba(255,255,255,0.04)" }}>
                   {filledSections.map(sec => {

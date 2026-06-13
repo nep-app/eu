@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { doc, setDoc, addDoc, collection, onSnapshot, query, orderBy, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
-import { ALLOWED_USERNAMES, JEEP_LIST, DIMS, nowLabel, getWeekKey, buildAutoavEntry } from "../../data.js";
+import { ALLOWED_USERNAMES, JEEP_LIST, DIMS, nowLabel, nowFull, getWeekKey, buildAutoavEntry } from "../../data.js";
 import AdminQuizzes from './AdminQuizzes.jsx';
 import AdminVotacoes from './AdminVotacoes.jsx';
 import AdminMissoes from './AdminMissoes.jsx';
@@ -38,6 +38,21 @@ function PerguntaManager({ allShared, activeQ }) {
   const [selectedModes, setSelectedModes] = useState(["texto"]);
   const [arquivo, setArquivo] = useState([]);
   const [arquivoOpen, setArquivoOpen] = useState(null);
+  const [fbTxts, setFbTxts] = useState({});
+  const [fbOpen, setFbOpen] = useState({});
+
+  async function enviarFbPergunta(j, resposta) {
+    const txt = fbTxts[j.username]?.trim();
+    if (!txt) return;
+    const contexto = resposta ? ` — sobre: "${resposta.substring(0, 60)}${resposta.length > 60 ? "…" : ""}"` : "";
+    await addDoc(collection(db, "notifications", j.username, "items"), {
+      from:"teresa", text:`Teresa reagiu à tua resposta à Pergunta da Semana${contexto}: ${txt}`,
+      date:nowFull(), read:false, ts:Date.now(), tipo:"auto"
+    });
+    setFbTxts(p => ({ ...p, [j.username]: "" }));
+    setFbOpen(p => ({ ...p, [j.username]: false }));
+    alert("Feedback enviado! ✓");
+  }
 
   useEffect(() => {
     const unsub = onSnapshot(
@@ -101,11 +116,28 @@ function PerguntaManager({ allShared, activeQ }) {
         {JEEP_8.map(j => {
           const d = allShared[j.username] || {};
           return (
-            <div key={j.username} style={{ padding:"10px 0", borderBottom:"1px solid rgba(255,255,255,0.05)", display:"flex", gap:8, alignItems:"flex-start" }}>
-              <span style={{ fontSize:13, fontWeight:800, color:j.color, flexShrink:0, minWidth:72 }}>{j.name}:</span>
-              {d.answered
-                ? <span style={{ fontSize:13, color:"#e2e8f0", lineHeight:1.5 }}>{d.answerText}</span>
-                : <span style={{ fontSize:13, color:"#475569" }}>Pendente</span>}
+            <div key={j.username} style={{ padding:"10px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+              <div style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
+                <span style={{ fontSize:13, fontWeight:800, color:j.color, flexShrink:0, minWidth:72 }}>{j.name}:</span>
+                {d.answered
+                  ? <span style={{ fontSize:13, color:"#e2e8f0", lineHeight:1.5, flex:1 }}>{d.answerText}</span>
+                  : <span style={{ fontSize:13, color:"#475569", flex:1 }}>Pendente</span>}
+                {d.answered && (
+                  <button onClick={() => setFbOpen(p => ({ ...p, [j.username]: !p[j.username] }))}
+                    style={{ background:"none", border:"none", color: fbOpen[j.username] ? CYN : "#64748b", fontSize:13, cursor:"pointer", padding:"0 4px", flexShrink:0 }}>💬</button>
+                )}
+              </div>
+              {d.answered && fbOpen[j.username] && (
+                <div style={{ display:"flex", gap:8, marginTop:8 }}>
+                  <input value={fbTxts[j.username] || ""} onChange={e => setFbTxts(p => ({ ...p, [j.username]: e.target.value }))}
+                    placeholder={`Comentar resposta de ${j.name}…`}
+                    style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                  <button onClick={() => enviarFbPergunta(j, d.answerText)}
+                    style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
+                    Enviar
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}
@@ -232,8 +264,22 @@ function ScoresGrid({ scores, notas }) {
 }
 
 function AutoavAdmin({ allShared }) {
-  const [histOpen, setHistOpen] = useState(null);
+  const [histOpen,  setHistOpen]  = useState(null);
   const [guardando, setGuardando] = useState(false);
+  const [fbTxts,    setFbTxts]    = useState({});
+  const [fbOpen,    setFbOpen]    = useState({});
+
+  async function enviarFbAutoav(j) {
+    const txt = fbTxts[j.username]?.trim();
+    if (!txt) return;
+    await addDoc(collection(db, "notifications", j.username, "items"), {
+      from:"teresa", text:`Teresa reagiu à tua Autoavaliação: ${txt}`,
+      date:nowFull(), read:false, ts:Date.now(), tipo:"auto"
+    });
+    setFbTxts(p => ({ ...p, [j.username]: "" }));
+    setFbOpen(p => ({ ...p, [j.username]: false }));
+    alert("Feedback enviado! ✓");
+  }
 
   const rondasAntigas = useMemo(() => {
     const map = {};
@@ -283,11 +329,28 @@ function AutoavAdmin({ allShared }) {
                 <div style={{ width:10, height:10, borderRadius:"50%", background:j.color }} />
                 <span style={{ fontSize:14, fontWeight:800, color:j.color }}>{j.name}</span>
               </div>
-              <span style={{ fontSize:11, fontWeight:800, color: uData.autoSaved ? CYN : "#475569" }}>
-                {uData.autoSaved ? `✓ Entregue ${uData.autoDate||""}` : hasData ? "Iniciada (não entregue)" : "Pendente"}
-              </span>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ fontSize:11, fontWeight:800, color: uData.autoSaved ? CYN : "#475569" }}>
+                  {uData.autoSaved ? `✓ Entregue ${uData.autoDate||""}` : hasData ? "Iniciada (não entregue)" : "Pendente"}
+                </span>
+                {uData.autoSaved && (
+                  <button onClick={() => setFbOpen(p => ({ ...p, [j.username]: !p[j.username] }))}
+                    style={{ background:"none", border:"none", color: fbOpen[j.username] ? CYN : "#64748b", fontSize:13, cursor:"pointer", padding:"0 4px" }}>💬</button>
+                )}
+              </div>
             </div>
             {hasData && <ScoresGrid scores={scores} notas={notas} />}
+            {uData.autoSaved && fbOpen[j.username] && (
+              <div style={{ display:"flex", gap:8, marginTop:10 }}>
+                <input value={fbTxts[j.username] || ""} onChange={e => setFbTxts(p => ({ ...p, [j.username]: e.target.value }))}
+                  placeholder={`Comentar autoavaliação de ${j.name}…`}
+                  style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                <button onClick={() => enviarFbAutoav(j)}
+                  style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
+                  Enviar
+                </button>
+              </div>
+            )}
           </div>
         );
       })}
