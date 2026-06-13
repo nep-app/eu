@@ -113,8 +113,10 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
               Ainda não há recursos disponíveis.
             </div>
           ) : (
-            recursos.map(r => (
-              <a key={r.id} href={r.url} target="_blank" rel="noreferrer" style={{
+            recursos.map(r => {
+              const safeUrl = /^https?:\/\//i.test(r.url) ? r.url : "#";
+              return (
+              <a key={r.id} href={safeUrl} target="_blank" rel="noreferrer" style={{
                 display:"flex", alignItems:"center", gap:14, padding:"14px 16px", borderRadius:18,
                 background:"rgba(99,102,241,0.08)",
                 border:"1px solid rgba(99,102,241,0.20)",
@@ -127,7 +129,8 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
                 </div>
                 <span style={{ fontSize:14, color:"#818cf8" }}>→</span>
               </a>
-            ))
+              );
+            })
           )}
         </div>
       ) : (

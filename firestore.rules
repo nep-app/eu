@@ -8,6 +8,9 @@ service cloud.firestore {
     function isUser(username) {
       return request.auth != null && request.auth.token.email == username + '@jeep.app';
     }
+    function callerUsername() {
+      return request.auth.token.email.split('@')[0];
+    }
 
     // GDPR consent (user reads own, admin reads all)
     match /users/{username} {
@@ -25,22 +28,36 @@ service cloud.firestore {
       allow read, write: if isUser(username) || isAdmin();
     }
 
-    // Events (all authenticated read, admin write)
+    // Events — any user can create/read; update/delete restricted to owner or admin
     match /events/{eventId} {
       allow read: if request.auth != null;
-      allow write: if isAdmin() || request.auth != null; // personal events allowed
+      allow create: if request.auth != null;
+      allow update: if isAdmin()
+        || resource.data.userId == callerUsername()
+        || resource.data.userId == "all";
+      allow delete: if isAdmin()
+        || resource.data.userId == callerUsername()
+        || resource.data.userId == "all";
     }
 
-    // Forum (all authenticated read/write)
+    // Forum — anyone can read, create, react/reply (update); only owner or admin can delete
     match /forum/{channel}/posts/{postId} {
-      allow read, write: if request.auth != null;
+      allow read, create, update: if request.auth != null;
+      allow delete: if isAdmin()
+        || (request.auth != null && resource.data.username == callerUsername());
+    }
+
+    // Recursos — admin writes, authenticated users read
+    match /recursos/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
     }
 
     // Messages to Teresa (authenticated write, admin read/update)
     match /messages/{msgId} {
       allow create: if request.auth != null;
       allow read: if isAdmin();
-      allow update: if isAdmin(); // <-- A permissão que faltava à Teresa!
+      allow update: if isAdmin();
     }
 
     // Suggestions (authenticated write, admin read)
@@ -73,6 +90,7 @@ service cloud.firestore {
       allow create: if request.auth != null;
       allow read, update, delete: if isAdmin();
     }
+
     // Polls / Votações (admin cria/apaga, todos votam)
     match /polls/{pollId} {
       allow read: if request.auth != null;
@@ -103,9 +121,11 @@ service cloud.firestore {
       allow read: if isAdmin();
     }
 
-    // Fórum demo (isolado do fórum real)
+    // Fórum demo (isolado do fórum real) — mesmas restrições de delete
     match /forum_demo/{channel}/posts/{postId} {
-      allow read, write: if request.auth != null;
+      allow read, create, update: if request.auth != null;
+      allow delete: if isAdmin()
+        || (request.auth != null && resource.data.username == callerUsername());
     }
 
   }
