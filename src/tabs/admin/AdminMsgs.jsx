@@ -35,8 +35,10 @@ export default function AdminMsgs() {
     if (!replyText?.trim()) return;
     await updateDoc(doc(db, "messages", msgId), { adminReply: replyText });
     if (hiddenUser) {
+      const original = msgs.find(m => m.id === msgId)?.text || "";
+      const contexto = original ? ` — sobre: "${original.substring(0, 60)}${original.length > 60 ? "…" : ""}"` : "";
       await addDoc(collection(db, "notifications", hiddenUser, "items"), {
-        from:"teresa", text:"A Teresa respondeu à tua mensagem: " + replyText, date:nowFull(), read:false, ts:Date.now()
+        from:"teresa", text:`A Teresa respondeu à tua mensagem${contexto}: ${replyText}`, date:nowFull(), read:false, ts:Date.now()
       });
     }
     setAdminReplyTxt({ ...adminReplyTxt, [msgId]: "" });

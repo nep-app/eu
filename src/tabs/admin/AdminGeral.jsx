@@ -77,7 +77,8 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
       FORUM_POST: "publicação no Fórum", MENSAGEM: "mensagem",
       TAREFA_ACEITE: "tarefa", EVENTO_ACEITE: "participação no evento",
     }[notif.tipo] || "envio";
-    const text = `Teresa reagiu ao teu ${tipoLabel}: ${msg.trim()}`;
+    const contexto = notif.texto?.trim() ? ` — sobre: "${notif.texto.substring(0, 60)}${notif.texto.length > 60 ? "…" : ""}"` : "";
+    const text = `Teresa reagiu ao teu ${tipoLabel}${contexto}: ${msg.trim()}`;
     await addDoc(collection(db, "notifications", notif.jovem, "items"), { from:"teresa", text, date:nowFull(), read:false, ts:Date.now() });
     await updateDoc(doc(db, "adminNotificacoes", notif.id), { feedback: msg.trim(), lida: true });
     setFeedbackTexts(p => ({...p, [notif.id]: ""}));
