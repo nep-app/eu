@@ -96,6 +96,26 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
     dismissMencao();
   }
 
+  async function handleReagirReply(replyId) {
+    const updReplies = (post.replies || []).map(r => {
+      if (r.id !== replyId) return r;
+      const liked = (r.likedBy || []).includes(user.username);
+      return {
+        ...r,
+        likes: liked ? Math.max(0, (r.likes || 1) - 1) : (r.likes || 0) + 1,
+        likedBy: liked ? (r.likedBy || []).filter(u => u !== user.username) : [...(r.likedBy || []), user.username],
+      };
+    });
+    await updateDoc(doc(db, forumCollection, canalAtivo, "posts", post.id), { replies: updReplies });
+  }
+
+  function responderAReply(replyUsername) {
+    const nome = JEEP_LIST.find(j => j.username === replyUsername)?.name || replyUsername;
+    setTextoResposta(`@${nome} `);
+    setResponderA(true);
+    setTimeout(() => document.querySelector("input[placeholder='Responde aqui...']")?.focus(), 50);
+  }
+
   async function apagarReply(rid) {
     if (window.confirm("Apagar este comentário?")) {
       await updateDoc(doc(db, forumCollection, canalAtivo, "posts", post.id), {
@@ -264,7 +284,24 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
                     style={{ background:CYN, border:"none", borderRadius:8, padding:"0 10px", fontWeight:900, cursor:"pointer", fontSize:11, color:"#0f172a" }}>OK</button>
                 </div>
               ) : (
-                <div style={{ fontSize:13, color:"#cbd5e1", lineHeight:1.5 }}>{reply.text}</div>
+                <>
+                  <div style={{ fontSize:13, color:"#cbd5e1", lineHeight:1.5 }}>{reply.text}</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:10, marginTop:6 }}>
+                    <button onClick={() => handleReagirReply(reply.id)} style={{
+                      background:"none", border:"none", cursor:"pointer", padding:0,
+                      fontSize:12, color:(reply.likedBy||[]).includes(user.username) ? "#f43f5e" : TXT_MUT,
+                      display:"flex", alignItems:"center", gap:3,
+                    }}>
+                      ❤️ {reply.likes > 0 ? reply.likes : ""}
+                    </button>
+                    {reply.username !== user.username && (
+                      <button onClick={() => responderAReply(reply.username)} style={{
+                        background:"none", border:"none", cursor:"pointer", padding:0,
+                        fontSize:11, color:TXT_MUT, fontWeight:700,
+                      }}>↩ Responder</button>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           ))}
