@@ -176,8 +176,9 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
 
     async function enviarFeedback(tipo, texto, setTexto) {
       if (!texto.trim()) return;
+      const tipoLabel = { pia:"PIA", auto:"Autoavaliação", roda:"Roda da Vida", geral:"mensagem" }[tipo] || "dossier";
       await addDoc(collection(db, "notifications", username, "items"), {
-        from: "teresa", text: texto, date: nowFull(), read: false, ts: Date.now()
+        from: "teresa", text: `💬 Teresa (sobre o teu ${tipoLabel}): ${texto.trim()}`, date: nowFull(), read: false, ts: Date.now()
       });
       setTexto("");
       alert("Feedback enviado! ✓");

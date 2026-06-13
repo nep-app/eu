@@ -161,9 +161,10 @@ export default function PiaTab({ user, data }) {
         piaData: piaData, ts: Date.now()
       })
     });
+    const seccoesNomes = novasSeccoes.map(s => s.title).join(", ") || PIA_SECTIONS.filter(s => piaUnlocked[s.id]).map(s => s.title).join(", ");
     await addDoc(collection(db, "adminNotificacoes"), {
       tipo: "PIA", jovem: user.username, ts: Date.now(), lida: false,
-      atualizado: jaEnviou
+      atualizado: jaEnviou, texto: seccoesNomes
     });
     setSending(false);
     alert(jaEnviou ? "PIA atualizado! 🔄" : "PIA enviado à Teresa! 🚀");
