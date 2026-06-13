@@ -46,11 +46,8 @@ export default function HomeTab({ user, data, setTab, setDesafiosSubTab, setForu
   const mencaoNotifs = (data.myNotifs || []).filter(n => n.mencao && !n.read);
 
   function dismissNotif(id) {
-    if (previewMode) {
-      deleteDoc(doc(db, "notifications", user.username, "items", id));
-    } else {
-      updateDoc(doc(db, "notifications", user.username, "items", id), { read: true });
-    }
+    if (previewMode) return;
+    updateDoc(doc(db, "notifications", user.username, "items", id), { read: true });
   }
 
   return (
