@@ -1,9 +1,23 @@
 import React, { useState } from 'react';
-import { CARD, SL, CYN, PNK } from "../../theme.jsx";
-import { ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "../../firebase.js";
+import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
+import { ALLOWED_USERNAMES, JEEP_LIST, nowFull } from "../../data.js";
 
 export default function AdminPartilhas({ allShared }) {
   const [adminSharedSel, setAdminSharedSel] = useState(null);
+  const [feedbackTxts, setFeedbackTxts] = useState({});
+
+  async function enviarFeedback(uname, tipo, texto) {
+    if (!texto?.trim()) return;
+    const tipoLabel = { auto:"Autoavaliação", pia:"PIA", swot:"Raio-X" }[tipo] || tipo;
+    await addDoc(collection(db, "notifications", uname, "items"), {
+      from:"teresa", text:`Teresa reagiu ao teu ${tipoLabel}: ${texto.trim()}`,
+      date:nowFull(), read:false, ts:Date.now(), tipo
+    });
+    setFeedbackTxts(p => ({ ...p, [`${uname}_${tipo}`]: "" }));
+    alert("Feedback enviado! ✓");
+  }
 
   return (
     <div>
