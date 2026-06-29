@@ -46,8 +46,11 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
   useEffect(() => {
     const q = query(collection(db, forumCollection, canalAtivo, "posts"));
     return onSnapshot(q, snap => {
-      const posts = snap.docs.map(d => ({ id:d.id, ...d.data() }));
-      posts.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      const posts = snap.docs.map((d, i) => ({ id:d.id, ...d.data(), _idx: i }));
+      posts.sort((a, b) => {
+        const diff = (b.ts || 0) - (a.ts || 0);
+        return diff !== 0 ? diff : b._idx - a._idx;
+      });
       setListaPosts(posts);
     });
   }, [canalAtivo, forumCollection]);
