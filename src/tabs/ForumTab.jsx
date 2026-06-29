@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { collection, onSnapshot, query, orderBy, doc, getDocs, setDoc } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, doc, getDocs, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { CYN, TXT_MUT, BG, PNK, GRN } from "../theme.jsx";
 import { CHANNELS, JEEP_LIST, getWeekKey, nowLabel } from "../data.js";
@@ -28,6 +28,9 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
   const [listaPosts, setListaPosts]  = useState([]);
   const [allMedals,  setAllMedals]   = useState({});
   const [recursos,   setRecursos]    = useState(RECURSOS_FIXOS);
+  const [editRecurso, setEditRecurso] = useState(null);
+  const [editRecDraft, setEditRecDraft] = useState({});
+  const isTeresa = user?.username === "teresa" || user?.username === "admin";
 
   // Load current-week medals for all users
   useEffect(() => {
@@ -61,6 +64,24 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
       setRecursos([...RECURSOS_FIXOS, ...fromDb]);
     });
   }, []);
+
+  async function guardarEdicaoRecurso(id) {
+    if (!editRecDraft.titulo?.trim() || !editRecDraft.url?.trim()) return alert("Título e URL são obrigatórios.");
+    try {
+      await updateDoc(doc(db, "recursos", id), {
+        titulo: editRecDraft.titulo.trim(),
+        icone: editRecDraft.icone?.trim() || "📄",
+        url: editRecDraft.url.trim(),
+        desc: (editRecDraft.desc || "").trim(),
+      });
+      setEditRecurso(null);
+    } catch (e) { alert("Erro: " + e.message); }
+  }
+
+  async function eliminarRecursoForum(id) {
+    if (!window.confirm("Eliminar este recurso?")) return;
+    await deleteDoc(doc(db, "recursos", id));
+  }
 
   const canalInfo = CHANNELS.find(c => c.id === canalAtivo);
   const adminOnlyLocked = canalInfo?.adminOnly && !isAdmin(user);
@@ -122,20 +143,52 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
           ) : (
             recursos.map(r => {
               const safeUrl = /^https?:\/\//i.test(r.url) ? r.url : "#";
+              const isFixed = r.id?.startsWith("__");
+              const isEditing = editRecurso === r.id;
               return (
-              <a key={r.id} href={safeUrl} target="_blank" rel="noreferrer" style={{
-                display:"flex", alignItems:"center", gap:14, padding:"14px 16px", borderRadius:18,
-                background:"rgba(99,102,241,0.08)",
-                border:"1px solid rgba(99,102,241,0.20)",
-                textDecoration:"none", marginBottom:10, transition:"all 0.15s",
-              }}>
-                <span style={{ fontSize:26, flexShrink:0 }}>{r.icone || "📄"}</span>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:13, fontWeight:800, color:"#a5b4fc" }}>{r.titulo}</div>
-                  {r.desc && <div style={{ fontSize:11, color:"#818cf8", marginTop:2 }}>{r.desc}</div>}
+                <div key={r.id} style={{ marginBottom:10 }}>
+                  {isEditing ? (
+                    <div style={{ padding:"14px 16px", borderRadius:18, background:"rgba(99,102,241,0.08)", border:"1px solid rgba(99,102,241,0.35)" }}>
+                      <div style={{ display:"flex", gap:8, marginBottom:8 }}>
+                        <input value={editRecDraft.icone} onChange={e => setEditRecDraft(p => ({ ...p, icone: e.target.value }))}
+                          maxLength={4} style={{ width:50, background:"rgba(0,0,0,0.3)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"8px", fontSize:20, textAlign:"center", color:"white" }} />
+                        <input value={editRecDraft.titulo} onChange={e => setEditRecDraft(p => ({ ...p, titulo: e.target.value }))}
+                          placeholder="Título" style={{ flex:1, background:"rgba(0,0,0,0.3)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"8px 12px", color:"white", fontSize:13 }} />
+                      </div>
+                      <input value={editRecDraft.url} onChange={e => setEditRecDraft(p => ({ ...p, url: e.target.value }))}
+                        placeholder="URL" style={{ width:"100%", background:"rgba(0,0,0,0.3)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"8px 12px", color:"white", fontSize:12, marginBottom:8, boxSizing:"border-box" }} />
+                      <input value={editRecDraft.desc} onChange={e => setEditRecDraft(p => ({ ...p, desc: e.target.value }))}
+                        placeholder="Descrição (opcional)" style={{ width:"100%", background:"rgba(0,0,0,0.3)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"8px 12px", color:"white", fontSize:12, marginBottom:8, boxSizing:"border-box" }} />
+                      <div style={{ display:"flex", gap:8 }}>
+                        <button onClick={() => guardarEdicaoRecurso(r.id)} style={{ flex:1, padding:"9px", background:"rgba(99,102,241,0.25)", border:"1px solid rgba(99,102,241,0.5)", color:"#a5b4fc", borderRadius:10, fontWeight:900, fontSize:12, cursor:"pointer" }}>Guardar</button>
+                        <button onClick={() => setEditRecurso(null)} style={{ padding:"9px 14px", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", color:"#94a3b8", borderRadius:10, fontSize:12, cursor:"pointer" }}>Cancelar</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                      <a href={safeUrl} target="_blank" rel="noreferrer" style={{
+                        flex:1, display:"flex", alignItems:"center", gap:14, padding:"14px 16px", borderRadius:18,
+                        background:"rgba(99,102,241,0.08)", border:"1px solid rgba(99,102,241,0.20)",
+                        textDecoration:"none", transition:"all 0.15s",
+                      }}>
+                        <span style={{ fontSize:26, flexShrink:0 }}>{r.icone || "📄"}</span>
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontSize:13, fontWeight:800, color:"#a5b4fc" }}>{r.titulo}</div>
+                          {r.desc && <div style={{ fontSize:11, color:"#818cf8", marginTop:2 }}>{r.desc}</div>}
+                        </div>
+                        <span style={{ fontSize:14, color:"#818cf8" }}>→</span>
+                      </a>
+                      {isTeresa && !isFixed && (
+                        <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+                          <button onClick={() => { setEditRecDraft({ titulo:r.titulo, icone:r.icone||"📄", url:r.url, desc:r.desc||"" }); setEditRecurso(r.id); }}
+                            style={{ background:"rgba(99,102,241,0.15)", border:"1px solid rgba(99,102,241,0.3)", color:"#a5b4fc", borderRadius:8, padding:"5px 8px", cursor:"pointer", fontSize:13 }}>✏️</button>
+                          <button onClick={() => eliminarRecursoForum(r.id)}
+                            style={{ background:"rgba(244,63,94,0.1)", border:"1px solid rgba(244,63,94,0.25)", color:PNK, borderRadius:8, padding:"5px 8px", cursor:"pointer", fontSize:13 }}>🗑️</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <span style={{ fontSize:14, color:"#818cf8" }}>→</span>
-              </a>
               );
             })
           )}

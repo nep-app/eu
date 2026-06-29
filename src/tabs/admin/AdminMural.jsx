@@ -32,6 +32,8 @@ export default function AdminMural() {
   const [rDesc, setRDesc] = useState("");
   const [notificarRecurso, setNotificarRecurso] = useState(true);
   const [enviandoR, setEnviandoR] = useState(false);
+  const [editandoR, setEditandoR] = useState(null);
+  const [editRDraft, setEditRDraft] = useState({});
 
   useEffect(() => {
     return onSnapshot(collection(db, "forum", channel, "posts"), snap =>
@@ -211,6 +213,19 @@ export default function AdminMural() {
   async function eliminarRecurso(id) {
     if (window.confirm("Eliminar este recurso?"))
       await deleteDoc(doc(db, "recursos", id));
+  }
+
+  async function guardarEdicaoRecurso(id) {
+    if (!editRDraft.titulo?.trim() || !editRDraft.url?.trim()) return alert("Título e URL são obrigatórios.");
+    try {
+      await updateDoc(doc(db, "recursos", id), {
+        titulo: editRDraft.titulo.trim(),
+        icone: editRDraft.icone?.trim() || "📄",
+        url: editRDraft.url.trim(),
+        desc: (editRDraft.desc || "").trim(),
+      });
+      setEditandoR(null);
+    } catch(e) { alert("Erro: " + e.message); }
   }
 
   const activeChannelInfo = CHANNELS.find(c => c.id === channel);
@@ -468,17 +483,50 @@ export default function AdminMural() {
               Ainda não há recursos. Adiciona o primeiro acima.
             </div>
           ) : recursos.map(r => (
-            <div key={r.id} style={{ ...CARD, display:"flex", alignItems:"flex-start", gap:12 }}>
-              <span style={{ fontSize:22, flexShrink:0 }}>{r.icone||"📄"}</span>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:14, fontWeight:800, color:"#f1f5f9", marginBottom:2 }}>{r.titulo}</div>
-                {r.desc && <div style={{ fontSize:12, color:"#94a3b8", marginBottom:4 }}>{r.desc}</div>}
-                <div style={{ fontSize:11, color:`${CYN}90`, wordBreak:"break-all" }}>{r.url}</div>
-              </div>
-              <button onClick={() => eliminarRecurso(r.id)} style={{
-                background:"rgba(244,63,94,0.10)", border:"none", color:PNK,
-                borderRadius:10, padding:"6px 10px", cursor:"pointer", fontSize:12, flexShrink:0
-              }}>🗑️</button>
+            <div key={r.id} style={CARD}>
+              {editandoR === r.id ? (
+                <div>
+                  <div style={{ display:"flex", gap:8 }}>
+                    <input value={editRDraft.icone} onChange={e => setEditRDraft(p => ({ ...p, icone: e.target.value }))}
+                      maxLength={4} style={{ ...INP, width:56, flex:"none", textAlign:"center", fontSize:18, padding:"10px 6px" }} />
+                    <input value={editRDraft.titulo} onChange={e => setEditRDraft(p => ({ ...p, titulo: e.target.value }))}
+                      placeholder="Título" style={{ ...INP, flex:1 }} />
+                  </div>
+                  <input value={editRDraft.url} onChange={e => setEditRDraft(p => ({ ...p, url: e.target.value }))}
+                    placeholder="URL" style={INP} />
+                  <input value={editRDraft.desc} onChange={e => setEditRDraft(p => ({ ...p, desc: e.target.value }))}
+                    placeholder="Descrição (opcional)" style={INP} />
+                  <div style={{ display:"flex", gap:8, marginTop:4 }}>
+                    <button onClick={() => guardarEdicaoRecurso(r.id)} style={{
+                      flex:1, padding:"9px", background:`${CYN}20`, border:`1.5px solid ${CYN}40`,
+                      color:CYN, borderRadius:10, fontWeight:900, fontSize:13, cursor:"pointer"
+                    }}>Guardar</button>
+                    <button onClick={() => setEditandoR(null)} style={{
+                      padding:"9px 16px", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)",
+                      color:"#94a3b8", borderRadius:10, fontSize:13, cursor:"pointer"
+                    }}>Cancelar</button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
+                  <span style={{ fontSize:22, flexShrink:0 }}>{r.icone||"📄"}</span>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:14, fontWeight:800, color:"#f1f5f9", marginBottom:2 }}>{r.titulo}</div>
+                    {r.desc && <div style={{ fontSize:12, color:"#94a3b8", marginBottom:4 }}>{r.desc}</div>}
+                    <div style={{ fontSize:11, color:`${CYN}90`, wordBreak:"break-all" }}>{r.url}</div>
+                  </div>
+                  <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+                    <button onClick={() => { setEditRDraft({ titulo:r.titulo, icone:r.icone||"📄", url:r.url, desc:r.desc||"" }); setEditandoR(r.id); }} style={{
+                      background:"rgba(255,255,255,0.06)", border:"none", color:"#94a3b8",
+                      borderRadius:10, padding:"6px 10px", cursor:"pointer", fontSize:12
+                    }}>✏️</button>
+                    <button onClick={() => eliminarRecurso(r.id)} style={{
+                      background:"rgba(244,63,94,0.10)", border:"none", color:PNK,
+                      borderRadius:10, padding:"6px 10px", cursor:"pointer", fontSize:12
+                    }}>🗑️</button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </>
