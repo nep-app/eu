@@ -14,10 +14,15 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
   const [mencaoStart,    setMencaoStart]    = useState(0);
   const textareaRef = useRef(null);
 
-  const candidatos = JEEP_LIST
+  const mostrarTodos = !mencaoFiltro || "todos".includes(mencaoFiltro) || "equipa".includes(mencaoFiltro) || "toda".includes(mencaoFiltro);
+  const candidatosPessoas = JEEP_LIST
     .filter(j => j.username !== user.username && j.username !== "demo" && j.username !== "ricardo")
     .filter(j => !mencaoFiltro || j.username.toLowerCase().includes(mencaoFiltro) || j.name.toLowerCase().includes(mencaoFiltro))
-    .slice(0, 5);
+    .slice(0, mostrarTodos ? 4 : 5);
+  const candidatos = [
+    ...(mostrarTodos ? [{ username: "todos", name: "Toda a equipa", color: CYN }] : []),
+    ...candidatosPessoas,
+  ];
 
   function handleTextoChange(e) {
     const val = e.target.value;
@@ -96,19 +101,34 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
           texto: textoPost.substring(0, 60), ts: Date.now(), lida: false
         });
       }
-      // @menções — suporta múltiplas
+      // @menções — suporta múltiplas + @todos
+      const textoLower = textoPost.toLowerCase();
+      const mencionouTodos = textoLower.includes("@todos");
       const mencoes = [...textoPost.matchAll(/@(\w+)/g)]
         .map(m => m[1].toLowerCase())
         .filter((u, i, arr) => arr.indexOf(u) === i)
-        .filter(u => u !== user.username && ALLOWED_USERNAMES.includes(u));
-      await Promise.all(mencoes.map(mencionado =>
-        addDoc(collection(db, "notifications", mencionado, "items"), {
-          from: user.username,
-          text: `🔔 ${user.realName} mencionou-te em ${infoCanal?.label || canalAtivo}!`,
-          date: nowFull(), read: false, ts: Date.now(),
-          mencao: true, postId: docRef.id, canal: canalAtivo
-        })
-      ));
+        .filter(u => u !== user.username && u !== "todos" && ALLOWED_USERNAMES.includes(u));
+      const destinatariosTodos = mencionouTodos
+        ? ALLOWED_USERNAMES.filter(u => u !== user.username && u !== "demo" && !mencoes.includes(u))
+        : [];
+      await Promise.all([
+        ...mencoes.map(mencionado =>
+          addDoc(collection(db, "notifications", mencionado, "items"), {
+            from: user.username,
+            text: `🔔 ${user.realName} mencionou-te em ${infoCanal?.label || canalAtivo}!`,
+            date: nowFull(), read: false, ts: Date.now(),
+            mencao: true, postId: docRef.id, canal: canalAtivo
+          })
+        ),
+        ...destinatariosTodos.map(u =>
+          addDoc(collection(db, "notifications", u, "items"), {
+            from: user.username,
+            text: `🔔 ${user.realName} mencionou a equipa toda em ${infoCanal?.label || canalAtivo}!`,
+            date: nowFull(), read: false, ts: Date.now(),
+            mencao: true, postId: docRef.id, canal: canalAtivo
+          })
+        ),
+      ]);
       darXPComStreak("Publicou uma partilha no Fórum");
       setTextoPost(""); setFicheiroMedia(null); setMencaoDropdown(false);
     } catch (e) { alert("Erro ao publicar: " + e.message); }
@@ -143,10 +163,11 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
               onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
               onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                 <div style={{ width:28, height:28, borderRadius:10, flexShrink:0,
-                  background:`linear-gradient(135deg, ${j.color}, ${j.color}66)`,
+                  background: j.username === "todos" ? `rgba(34,211,238,0.15)` : `linear-gradient(135deg, ${j.color}, ${j.color}66)`,
+                  border: j.username === "todos" ? `1px solid ${CYN}40` : "none",
                   display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:12, fontWeight:900, color:"#0f172a" }}>
-                  {j.name[0]}
+                  fontSize: j.username === "todos" ? 14 : 12, fontWeight:900, color: j.username === "todos" ? CYN : "#0f172a" }}>
+                  {j.username === "todos" ? "👥" : j.name[0]}
                 </div>
                 <div>
                   <div style={{ fontSize:12, fontWeight:800, color:j.color }}>{j.name}</div>
