@@ -16,6 +16,8 @@ export default function AdminQuizzes({ allShared = {} }) {
     title: "", badge: "D1 — Comunicação", scenario: "", prazo: "",
     optA: "", revA: "", optB: "", revB: "", optC: "", revC: ""
   });
+  const [editando, setEditando] = useState({});
+  const [editDraft, setEditDraft] = useState({});
 
   useEffect(() => {
     try {
@@ -51,6 +53,34 @@ export default function AdminQuizzes({ allShared = {} }) {
       });
       setNovo({ title: "", badge: "D1 — Comunicação", scenario: "", prazo: "", optA: "", revA: "", optB: "", revB: "", optC: "", revC: "" });
       alert("Novo Dilema publicado! 🚀");
+    } catch (e) { alert("Erro: " + e.message); }
+  }
+
+  function abrirEdicao(quiz) {
+    setEditDraft(p => ({
+      ...p, [quiz.id]: {
+        title: quiz.title, badge: quiz.badge, scenario: quiz.scenario, prazo: quiz.prazo || "",
+        optA: quiz.opts?.[0]?.text || "", revA: quiz.opts?.[0]?.reveal || "",
+        optB: quiz.opts?.[1]?.text || "", revB: quiz.opts?.[1]?.reveal || "",
+        optC: quiz.opts?.[2]?.text || "", revC: quiz.opts?.[2]?.reveal || "",
+      }
+    }));
+    setEditando(p => ({ ...p, [quiz.id]: true }));
+  }
+
+  async function guardarEdicao(quizId) {
+    const d = editDraft[quizId];
+    if (!d?.title || !d?.scenario) return alert("Título e cenário são obrigatórios.");
+    try {
+      await updateDoc(doc(db, "quizzes", quizId), {
+        title: d.title, badge: d.badge, scenario: d.scenario, prazo: d.prazo || null,
+        opts: [
+          { id: "A", text: d.optA, reveal: d.revA },
+          { id: "B", text: d.optB, reveal: d.revB },
+          { id: "C", text: d.optC, reveal: d.revC },
+        ]
+      });
+      setEditando(p => ({ ...p, [quizId]: false }));
     } catch (e) { alert("Erro: " + e.message); }
   }
 
@@ -91,7 +121,7 @@ export default function AdminQuizzes({ allShared = {} }) {
           <option>D2 — Resiliência</option>
           <option>D3 — Proatividade</option>
           <option>D4 — Autoconhecimento</option>
-          <option>D5 — Digital</option>
+          <option>D5 — Digital e Cidadania</option>
           <option>D6 — Intervenção</option>
         </select>
 
@@ -167,10 +197,59 @@ export default function AdminQuizzes({ allShared = {} }) {
                   style={{ background: "none", border: "none", color: "#94a3b8", fontSize: 16, cursor: "pointer", padding: 4 }}>
                   {expandido[quiz.id] ? "▲" : "▼"}
                 </button>
+                <button onClick={() => abrirEdicao(quiz)} title="Editar"
+                  style={{ background: "none", border: "none", color: "#94a3b8", fontSize: 16, cursor: "pointer", padding: 4 }}>✏️</button>
                 <button onClick={() => apagarQuiz(quiz.id)}
                   style={{ background: "none", border: "none", color: "#f43f5e", fontSize: 18, cursor: "pointer", padding: 4 }}>✕</button>
               </div>
             </div>
+
+            {/* Formulário de edição inline */}
+            {editando[quiz.id] && (() => {
+              const d = editDraft[quiz.id] || {};
+              const setD = (patch) => setEditDraft(p => ({ ...p, [quiz.id]: { ...p[quiz.id], ...patch } }));
+              return (
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                  <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>TÍTULO</label>
+                  <input style={INP} value={d.title} onChange={e => setD({ title: e.target.value })} />
+
+                  <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>CATEGORIA</label>
+                  <select style={{ ...INP, background: "rgba(0,0,0,0.3)" }} value={d.badge} onChange={e => setD({ badge: e.target.value })}>
+                    <option>D1 — Comunicação</option>
+                    <option>D2 — Resiliência</option>
+                    <option>D3 — Proatividade</option>
+                    <option>D4 — Autoconhecimento</option>
+                    <option>D5 — Digital e Cidadania</option>
+                    <option>D6 — Intervenção</option>
+                  </select>
+
+                  <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>CENÁRIO</label>
+                  <textarea style={{ ...INP, height: 80 }} value={d.scenario} onChange={e => setD({ scenario: e.target.value })} />
+
+                  {['A', 'B', 'C'].map(letter => (
+                    <div key={letter} style={{ background: "rgba(255,255,255,0.03)", padding: 10, borderRadius: 12, marginBottom: 10, border: "1px solid rgba(255,255,255,0.05)" }}>
+                      <label style={{ fontSize: 10, color: "#94a3b8" }}>OPÇÃO {letter}</label>
+                      <input style={{ ...INP, marginBottom: 5 }} value={d[`opt${letter}`]} onChange={e => setD({ [`opt${letter}`]: e.target.value })} />
+                      <input style={{ ...INP, fontSize: 12, color: CYN }} placeholder="Reveal…" value={d[`rev${letter}`]} onChange={e => setD({ [`rev${letter}`]: e.target.value })} />
+                    </div>
+                  ))}
+
+                  <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>PRAZO (opcional)</label>
+                  <input type="date" style={{ ...INP, marginTop: 6 }} value={d.prazo} onChange={e => setD({ prazo: e.target.value })} />
+
+                  <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                    <button onClick={() => guardarEdicao(quiz.id)}
+                      style={{ flex: 1, padding: "10px", background: "rgba(34,211,238,0.15)", border: "1.5px solid rgba(34,211,238,0.4)", color: CYN, borderRadius: 10, fontWeight: 900, fontSize: 13, cursor: "pointer" }}>
+                      Guardar alterações
+                    </button>
+                    <button onClick={() => setEditando(p => ({ ...p, [quiz.id]: false }))}
+                      style={{ padding: "10px 16px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#94a3b8", borderRadius: 10, fontSize: 13, cursor: "pointer" }}>
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Conteúdo expandido: cenário + opções + reveals */}
             {expandido[quiz.id] && (

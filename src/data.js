@@ -135,7 +135,7 @@ export const DIMS = [
   },
   {
     id:"D5",
-    label:"Competências Digitais e Autonomia Administrativa",
+    label:"Literacia Digital e Autonomia Cívica",
     desc:"Domínio de ferramentas digitais e gestão das exigências práticas do dia a dia. Capacidade de usar a tecnologia de forma útil, navegar processos burocráticos e ser autónomo/a nestas áreas.",
     s:{
       a:"Tenho muita dificuldade com tecnologia e com processos burocráticos. Não consigo usar ferramentas digitais básicas nem tratar dos meus assuntos de forma autónoma.",
