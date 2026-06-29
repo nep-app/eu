@@ -80,6 +80,7 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
         text: textoPost,
         media: urlMedia,
         time: nowFull(),
+        ts: Date.now(),
         reactions: { heart:0, fire:0, clap:0, think:0 },
         reactedBy: { heart:[], fire:[], clap:[], think:[] },
         replies: []
