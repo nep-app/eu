@@ -187,12 +187,12 @@ export const SURVEY_CATS = [
 ];
 
 export const QUIZZES = [
-  { id:"q1", title:"Dilema da Autonomia", badge:"D3 — Proatividade",
+  { id:"q1", title:"Dilema da Autonomia", badge:"D3 — Autonomia e Proatividade",
     scenario:"O Coordenador pediu-te para organizares os materiais de uma sala, mas teve de sair de urgência. O que fazes?",
     opts:[{ id:"A", text:"Faço tudo à minha maneira.", reveal:"Muita autonomia — mas risco de retrabalho." },
           { id:"B", text:"Paro e vou fazer outra tarefa até ele voltar.", reveal:"Respeito pela hierarquia — mas falta de iniciativa." },
           { id:"C", text:"Arrumo uma prateleira, tiro foto e mando WhatsApp.", reveal:"Iniciativa + comunicação proativa. A mais equilibrada." }], mock:{ A:28, B:15, C:57 } },
-  { id:"q2", title:"O Desafio do PIA", badge:"D6 — Intervenção",
+  { id:"q2", title:"O Desafio do PIA", badge:"D6 — Qualidade da Intervenção",
     scenario:"Preparaste uma atividade incrível. Mas os jovens dizem que estão com preguiça. Como dás a volta?",
     opts:[{ id:"A", text:"Sento-me com eles, crio ligação, depois puxo-os.", reveal:"Relação primeiro — boa estratégia." },
           { id:"B", text:"Relembro as regras e dou-lhes a escolher.", reveal:"Limites claros — pode criar resistência." },
