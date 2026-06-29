@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, addDoc, deleteDoc, doc } from "firebase/firestore";
+import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, INP, PNK } from "../../theme.jsx";
 import { nowFull, ALLOWED_USERNAMES } from "../../data.js";
@@ -12,6 +12,8 @@ export default function AdminRecursos() {
   const [desc, setDesc] = useState("");
   const [notificar, setNotificar] = useState(true);
   const [enviando, setEnviando] = useState(false);
+  const [editando, setEditando] = useState(null);
+  const [editDraft, setEditDraft] = useState({});
 
   useEffect(() => {
     return onSnapshot(collection(db, "recursos"), snap =>
@@ -39,6 +41,24 @@ export default function AdminRecursos() {
       alert("Recurso adicionado!" + (notificar ? " Todos os jovens foram notificados." : ""));
     } catch (e) { alert("Erro: " + e.message); }
     setEnviando(false);
+  }
+
+  function abrirEdicao(r) {
+    setEditDraft({ titulo: r.titulo, icone: r.icone || "📄", url: r.url, desc: r.desc || "" });
+    setEditando(r.id);
+  }
+
+  async function guardarEdicao(id) {
+    if (!editDraft.titulo?.trim() || !editDraft.url?.trim()) return alert("Título e URL são obrigatórios.");
+    try {
+      await updateDoc(doc(db, "recursos", id), {
+        titulo: editDraft.titulo.trim(),
+        icone: editDraft.icone.trim() || "📄",
+        url: editDraft.url.trim(),
+        desc: editDraft.desc.trim(),
+      });
+      setEditando(null);
+    } catch (e) { alert("Erro: " + e.message); }
   }
 
   async function eliminarRecurso(id) {
@@ -86,18 +106,51 @@ export default function AdminRecursos() {
         </div>
       ) : (
         recursos.map(r => (
-          <div key={r.id} style={{ ...CARD, display:"flex", alignItems:"flex-start", gap:14 }}>
-            <span style={{ fontSize:24, flexShrink:0 }}>{r.icone || "📄"}</span>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:14, fontWeight:800, color:"#f1f5f9", marginBottom:2 }}>{r.titulo}</div>
-              {r.desc && <div style={{ fontSize:12, color:"#94a3b8", marginBottom:4 }}>{r.desc}</div>}
-              <div style={{ fontSize:11, color:`${CYN}90`, wordBreak:"break-all" }}>{r.url}</div>
-              <div style={{ fontSize:10, color:"#475569", marginTop:4 }}>{r.addedAt}</div>
-            </div>
-            <button onClick={() => eliminarRecurso(r.id)} style={{
-              background:"rgba(244,63,94,0.10)", border:"none", color:PNK,
-              borderRadius:10, padding:"6px 10px", cursor:"pointer", fontSize:12, flexShrink:0
-            }}>🗑️</button>
+          <div key={r.id} style={CARD}>
+            {editando === r.id ? (
+              <div>
+                <div style={{ display:"flex", gap:8, marginBottom:0 }}>
+                  <input value={editDraft.icone} onChange={e => setEditDraft(p => ({ ...p, icone: e.target.value }))}
+                    maxLength={4} style={{ ...INP, width:60, flex:"none", textAlign:"center", fontSize:20, padding:"10px 8px" }} />
+                  <input value={editDraft.titulo} onChange={e => setEditDraft(p => ({ ...p, titulo: e.target.value }))}
+                    placeholder="Título" style={{ ...INP, flex:1 }} />
+                </div>
+                <input value={editDraft.url} onChange={e => setEditDraft(p => ({ ...p, url: e.target.value }))}
+                  placeholder="URL" style={INP} />
+                <input value={editDraft.desc} onChange={e => setEditDraft(p => ({ ...p, desc: e.target.value }))}
+                  placeholder="Descrição (opcional)" style={INP} />
+                <div style={{ display:"flex", gap:8, marginTop:4 }}>
+                  <button onClick={() => guardarEdicao(r.id)} style={{
+                    flex:1, padding:"10px", background:`${CYN}20`, border:`1.5px solid ${CYN}40`,
+                    color:CYN, borderRadius:10, fontWeight:900, fontSize:13, cursor:"pointer"
+                  }}>Guardar</button>
+                  <button onClick={() => setEditando(null)} style={{
+                    padding:"10px 16px", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)",
+                    color:"#94a3b8", borderRadius:10, fontSize:13, cursor:"pointer"
+                  }}>Cancelar</button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display:"flex", alignItems:"flex-start", gap:14 }}>
+                <span style={{ fontSize:24, flexShrink:0 }}>{r.icone || "📄"}</span>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:14, fontWeight:800, color:"#f1f5f9", marginBottom:2 }}>{r.titulo}</div>
+                  {r.desc && <div style={{ fontSize:12, color:"#94a3b8", marginBottom:4 }}>{r.desc}</div>}
+                  <div style={{ fontSize:11, color:`${CYN}90`, wordBreak:"break-all" }}>{r.url}</div>
+                  <div style={{ fontSize:10, color:"#475569", marginTop:4 }}>{r.addedAt}</div>
+                </div>
+                <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+                  <button onClick={() => abrirEdicao(r)} style={{
+                    background:"rgba(255,255,255,0.06)", border:"none", color:"#94a3b8",
+                    borderRadius:10, padding:"6px 10px", cursor:"pointer", fontSize:12
+                  }}>✏️</button>
+                  <button onClick={() => eliminarRecurso(r.id)} style={{
+                    background:"rgba(244,63,94,0.10)", border:"none", color:PNK,
+                    borderRadius:10, padding:"6px 10px", cursor:"pointer", fontSize:12
+                  }}>🗑️</button>
+                </div>
+              </div>
+            )}
           </div>
         ))
       )}
