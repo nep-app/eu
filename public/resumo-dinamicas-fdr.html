@@ -1,241 +1,448 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Educa+ | Dinâmicas Futebol de Rua</title>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dinâmicas Futebol de Rua · Educa+</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,300;9..144,0,700;9..144,0,900;9..144,1,300;9..144,1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Inter',system-ui,sans-serif;background:#0d1120;color:#e2e8f0;min-height:100vh;padding-bottom:60px;}
+  :root {
+    color-scheme: light;
+    --bg: #f2ede4;
+    --surface: #e8e1d5;
+    --card: #faf7f2;
+    --ink: #1a1612;
+    --ink2: #3d3630;
+    --muted: #8a8078;
+    --a1: #2a7a3a;
+    --a2: #c4401a;
+    --a3: #c4973a;
+    --a4: #2a3d8f;
+    --border: rgba(26,22,18,0.1);
+    --border2: rgba(26,22,18,0.06);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { color-scheme:light; scroll-behavior:smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
 
-  .hero{background:linear-gradient(135deg,#1e1040 0%,#0d1120 60%);padding:36px 20px 28px;border-bottom:1px solid rgba(139,92,246,0.2);position:relative;overflow:hidden;}
-  .hero::before{content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,0.18),transparent 65%);pointer-events:none;}
-  .badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#a78bfa;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);border-radius:20px;padding:4px 12px;margin-bottom:14px;}
-  .hero h1{font-size:24px;font-weight:900;color:#ede9fe;line-height:1.2;margin-bottom:12px;}
-  .hero h1 span{color:#a78bfa;}
-  .intro{font-size:13px;color:#94a3b8;line-height:1.7;margin-bottom:10px;}
-  .intro strong{color:#c4b8f3;}
-  .note{font-size:12px;color:#7c6fa8;font-style:italic;margin-top:8px;}
+  /* NAV */
+  .topnav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background: rgba(242,237,228,0.94);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    display:flex; overflow-x:auto; scrollbar-width:none;
+    padding: 0 40px;
+  }
+  .topnav::-webkit-scrollbar { display:none; }
+  .topnav a {
+    text-decoration:none; color:var(--muted);
+    font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
+    padding:15px 16px; white-space:nowrap;
+    border-bottom:2px solid transparent;
+    transition:all 0.2s; display:block; font-weight:500;
+  }
+  .topnav a:hover { color:var(--ink); border-color:var(--a1); }
+  .topnav a.active { color:var(--a1); border-color:var(--a1); }
 
-  .content{padding:0 16px;max-width:540px;margin:0 auto;}
+  /* HERO */
+  #hero {
+    min-height:100vh;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    border-bottom:2px solid var(--ink);
+  }
+  .hero-left {
+    padding:120px 48px 64px;
+    border-right:1px solid var(--border);
+    display:flex; flex-direction:column; justify-content:flex-end;
+  }
+  .hero-right {
+    padding:120px 48px 64px;
+    background:var(--ink);
+    display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .hero-tag {
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:10px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:40px; font-weight:500;
+  }
+  .hero-tag::before { content:''; width:20px; height:1px; background:var(--a1); }
+  #hero h1 {
+    font-family:'Fraunces',serif;
+    font-size:clamp(48px,6vw,88px);
+    font-weight:900; line-height:0.95;
+    letter-spacing:-0.02em;
+    margin-bottom:32px; color:var(--ink);
+  }
+  #hero h1 em { font-style:italic; color:var(--a1); }
+  .hero-desc {
+    font-size:15px; color:var(--ink2); line-height:1.75;
+    max-width:400px; font-weight:300;
+  }
+  .hero-desc strong { font-weight:500; color:var(--ink); }
+  .hero-right-top { color:rgba(242,237,228,0.4); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; }
+  .hero-chips { display:flex; flex-direction:column; gap:12px; }
+  .hero-chip {
+    border:1px solid rgba(242,237,228,0.15);
+    padding:16px 20px; border-radius:4px;
+    font-size:14px; color:rgba(242,237,228,0.8);
+    display:flex; align-items:center; gap:12px;
+  }
+  .hero-chip span:first-child { font-size:20px; }
 
-  .section{margin-top:28px;}
-  .section-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
-  .section-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-  .section-title{font-size:16px;font-weight:800;color:#e2e8f0;line-height:1.2;}
+  /* SECTIONS */
+  section { border-bottom:1px solid var(--border); scroll-margin-top:50px; }
+  .sec-inner { padding:80px 48px; }
+  .slabel {
+    font-size:10px; letter-spacing:0.18em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:48px;
+    display:flex; align-items:center; gap:14px; font-weight:500;
+  }
+  .slabel::after { content:''; flex:1; height:1px; background:var(--border); }
+  h2 {
+    font-family:'Fraunces',serif;
+    font-size:clamp(32px,4vw,60px);
+    font-weight:900; line-height:1.0;
+    letter-spacing:-0.02em; margin-bottom:16px; color:var(--ink);
+  }
+  h2 em { font-style:italic; color:var(--a1); }
+  .lead {
+    color:var(--muted); max-width:520px; font-size:15px;
+    margin-bottom:40px; line-height:1.75; font-weight:300;
+  }
+  .lead strong { color:var(--ink); font-weight:500; }
 
-  table{width:100%;border-collapse:collapse;border-radius:14px;overflow:hidden;margin-bottom:10px;}
-  thead tr{background:rgba(139,92,246,0.18);}
-  thead th{padding:10px 12px;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#a78bfa;text-align:left;}
-  thead th:last-child{text-align:right;}
-  tbody tr{border-bottom:1px solid rgba(255,255,255,0.04);}
-  tbody tr:last-child{border-bottom:none;}
-  tbody tr:nth-child(even){background:rgba(255,255,255,0.02);}
-  tbody td{padding:11px 12px;font-size:13px;font-weight:600;color:#cbd5e1;}
-  tbody td:nth-child(2){color:#7c6fa8;font-size:12px;}
-  tbody td:last-child{text-align:right;color:#6366f1;font-size:12px;font-weight:700;}
+  /* TABLE */
+  .tbl-wrap { border:1px solid var(--border); margin-bottom:24px; }
+  table { width:100%; border-collapse:collapse; }
+  thead tr { background:var(--surface); border-bottom:1px solid var(--border); }
+  thead th {
+    padding:12px 20px; font-size:10px; font-weight:600;
+    letter-spacing:0.14em; text-transform:uppercase; color:var(--muted);
+    text-align:left;
+  }
+  thead th:last-child { text-align:right; }
+  tbody tr { border-bottom:1px solid var(--border2); }
+  tbody tr:last-child { border-bottom:none; }
+  tbody td { padding:14px 20px; font-size:14px; color:var(--ink2); font-weight:300; }
+  tbody td:first-child { font-weight:500; color:var(--ink); }
+  tbody td:nth-child(2) { color:var(--muted); font-size:13px; }
+  tbody td:last-child { text-align:right; color:var(--a1); font-size:13px; font-weight:500; }
 
-  .section-desc{font-size:12px;color:#64748b;line-height:1.65;padding:0 2px;}
-  .section-desc strong{color:#94a3b8;}
+  .sec-note {
+    padding:20px 24px;
+    border-left:3px solid var(--a1);
+    background:var(--card);
+    font-size:14px; color:var(--ink2); line-height:1.7; font-weight:300;
+  }
+  .sec-note strong { color:var(--a1); font-weight:600; }
 
-  .highlight{background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);border-left:3px solid #a78bfa;border-radius:12px;padding:14px 16px;margin-top:10px;font-size:12px;color:#c4b8f3;line-height:1.7;}
+  .sec-note-red {
+    padding:20px 24px;
+    border-left:3px solid var(--a2);
+    background:var(--card);
+    font-size:14px; color:var(--ink2); line-height:1.7; font-weight:300;
+  }
 
-  hr{border:none;border-top:1px solid rgba(255,255,255,0.06);margin:28px 0 0;}
+  /* HIGHLIGHT FINAL */
+  .highlight-block {
+    background:var(--ink);
+    padding:40px 48px;
+    margin-top:0;
+  }
+  .highlight-block h2 { color:var(--bg); }
+  .highlight-block h2 em { color:var(--a3); }
+  .highlight-block .slabel { color:rgba(242,237,228,0.3); }
+  .highlight-block .slabel::after { background:rgba(242,237,228,0.1); }
+  .highlight-block .tbl-wrap { border-color:rgba(242,237,228,0.1); }
+  .highlight-block thead tr { background:rgba(242,237,228,0.05); border-color:rgba(242,237,228,0.08); }
+  .highlight-block thead th { color:rgba(242,237,228,0.4); }
+  .highlight-block tbody tr { border-color:rgba(242,237,228,0.05); }
+  .highlight-block tbody td { color:rgba(242,237,228,0.65); }
+  .highlight-block tbody td:first-child { color:var(--bg); }
+  .highlight-block tbody td:last-child { color:var(--a3); }
+  .highlight-block .lead { color:rgba(242,237,228,0.5); }
+  .callout {
+    border:1px solid rgba(196,151,58,0.4);
+    border-left:3px solid var(--a3);
+    background:rgba(196,151,58,0.08);
+    padding:24px 28px; margin-top:24px;
+    font-size:15px; color:rgba(242,237,228,0.85); line-height:1.75; font-weight:300;
+  }
+  .callout strong { color:var(--a3); font-weight:600; }
 
-  .footer{text-align:center;padding:32px 20px 0;font-size:11px;color:#374151;}
-  .footer span{color:#6366f1;}
+  /* FOOTER */
+  footer {
+    padding:48px;
+    border-top:2px solid var(--ink);
+    background:var(--card);
+    display:flex; align-items:center; justify-content:space-between; gap:24px;
+  }
+  .f-logo {
+    font-family:'Fraunces',serif; font-size:24px;
+    font-weight:900; color:var(--ink); display:block; margin-bottom:6px;
+  }
+  footer p { font-size:12px; color:var(--muted); }
+  .f-mark {
+    font-family:'Fraunces',serif; font-size:72px; font-weight:900;
+    color:var(--border); line-height:1;
+  }
+
+  @media(max-width:640px) {
+    #hero { grid-template-columns:1fr; }
+    .hero-right { display:none; }
+    .sec-inner, .highlight-block, footer { padding:52px 20px; }
+    .topnav { padding:0 16px; }
+  }
 </style>
 </head>
 <body>
 
-<div class="hero">
-  <div class="badge">⚽ Futebol de Rua · Associação CAIS</div>
-  <h1>Educa+ | dinâmicas do manual <span>"Futebol de Rua"</span> 🎯</h1>
-  <p class="intro">Uma seleção de jogos e dinâmicas do manual <strong>Futebol de Rua</strong> (Associação CAIS) para usarem no vosso dia-a-dia. Servem para: <strong>1)</strong> o vosso próprio desenvolvimento de competências; <strong>2)</strong> ganharem ferramentas para dinamizar com as crianças e jovens nos vossos espaços.</p>
-  <p class="intro">Cada dinâmica tem a <strong>página do manual</strong>, a <strong>duração</strong> e o <strong>motivo da escolha</strong>. Isto é para vos ajudar a não terem de ler o manual completo, e conseguirem facilmente ir buscar o que precisam.</p>
-  <p class="note">⚠️ Algumas podem precisar de ser simplificadas para os mais novos!</p>
-</div>
+<nav class="topnav">
+  <a href="#hero">Início</a>
+  <a href="#abrir">Abrir</a>
+  <a href="#auto">Autoconhecimento</a>
+  <a href="#outro">Conhecer o outro</a>
+  <a href="#diferenca">Diferença</a>
+  <a href="#confianca">Confiança</a>
+  <a href="#equipa">Equipa</a>
+  <a href="#comunicar">Comunicar</a>
+  <a href="#liderar">Liderar</a>
+  <a href="#fechar">Fechar</a>
+</nav>
 
-<div class="content">
-
-  <!-- 1 -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-icon" style="background:rgba(251,146,60,0.15);">🔥</div>
-      <div class="section-title">Para abrir e animar um grupo</div>
-    </div>
-    <table>
-      <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
-      <tbody>
-        <tr><td>Salada de frutas</td><td>17</td><td>10 min</td></tr>
-        <tr><td>Ursos, cowboys e ninjas</td><td>17</td><td>10 min</td></tr>
-        <tr><td>Nome e gesto</td><td>18</td><td>10 min</td></tr>
-        <tr><td>Pés, mãos e companhia</td><td>19</td><td>10 min</td></tr>
-      </tbody>
-    </table>
-    <p class="section-desc">Energizers rápidos para quebrar o gelo e pôr toda a gente a mexer. Começar uma sessão sempre com energia, nunca com teoria.</p>
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-left">
+    <div class="hero-tag">⚽ Futebol de Rua · Associação CAIS · Educa+</div>
+    <h1>Dinâmicas<br>do manual<br><em>Futebol<br>de Rua</em></h1>
+    <p class="hero-desc">
+      Uma seleção de jogos e dinâmicas do manual <strong>Futebol de Rua</strong> (Associação CAIS) para usarem no vosso dia-a-dia.<br><br>
+      Cada dinâmica tem a <strong>página do manual</strong>, a <strong>duração</strong> e o <strong>motivo da escolha</strong> — para não terem de ler o manual completo.<br><br>
+      Algumas podem precisar de ser simplificadas para os mais novos.
+    </p>
   </div>
-
-  <hr/>
-
-  <!-- 2 -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-icon" style="background:rgba(99,102,241,0.15);">💡</div>
-      <div class="section-title">Para autoconhecimento e autoestima</div>
-    </div>
-    <table>
-      <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
-      <tbody>
-        <tr><td>2 verdades e 1 mentira</td><td>26</td><td>30 min</td></tr>
-        <tr><td>Boas notícias</td><td>26</td><td>40 min</td></tr>
-        <tr><td>A mão da reflexão</td><td>28</td><td>60 min</td></tr>
-        <tr><td>Eu queria… eu quero</td><td>147</td><td>30 min</td></tr>
-      </tbody>
-    </table>
-    <p class="section-desc">O que gostam em vocês, o que querem melhorar, o que vos move. Conhecermo-nos é o primeiro passo para fazermos melhor. <strong>(Estas são quase todas faladas, não dependem de escrita)</strong></p>
-  </div>
-
-  <hr/>
-
-  <!-- 3 -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-icon" style="background:rgba(34,211,238,0.12);">🤝</div>
-      <div class="section-title">Para conhecer o outro e criar grupo</div>
-    </div>
-    <table>
-      <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
-      <tbody>
-        <tr><td>Aviões amigos</td><td>39</td><td>30 min</td></tr>
-        <tr><td>Problema no papel</td><td>49</td><td>60 min</td></tr>
-        <tr><td>E tu, que animal és?</td><td>56</td><td>45 min</td></tr>
-      </tbody>
-    </table>
-    <p class="section-desc">Conhecer o outro, pôr-se no lugar dele e perceber como nos vêem. A base de grupos que funcionam.</p>
-  </div>
-
-  <hr/>
-
-  <!-- 4 -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-icon" style="background:rgba(52,211,153,0.12);">🌍</div>
-      <div class="section-title">Para consciência e respeito pela diferença</div>
-    </div>
-    <table>
-      <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
-      <tbody>
-        <tr><td>Entrevista</td><td>52</td><td>30 min</td></tr>
-        <tr><td>A história do Capuchinho Vermelho</td><td>138</td><td>30 min</td></tr>
-      </tbody>
-    </table>
-    <p class="section-desc">Perceber que cada um vê o mundo à sua maneira. Trabalha consciência crítica e respeito.</p>
-  </div>
-
-  <hr/>
-
-  <!-- 5 -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-icon" style="background:rgba(251,191,36,0.12);">💪</div>
-      <div class="section-title">Para confiança, calma e não desistir</div>
-    </div>
-    <table>
-      <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
-      <tbody>
-        <tr><td>Régua mágica</td><td>34</td><td>30 min</td></tr>
-        <tr><td>Campo minado</td><td>62</td><td>70 min</td></tr>
-        <tr><td>Pêndulo humano</td><td>159</td><td>30 min</td></tr>
-      </tbody>
-    </table>
-    <p class="section-desc">Gerir a frustração quando os planos correm mal, confiar no grupo e insistir até resolver.</p>
-  </div>
-
-  <hr/>
-
-  <!-- 6 -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-icon" style="background:rgba(139,92,246,0.15);">🚀</div>
-      <div class="section-title">Para trabalho em equipa e cooperação</div>
-    </div>
-    <table>
-      <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
-      <tbody>
-        <tr><td>Jogo de possibilidades</td><td>94</td><td>40 min</td></tr>
-        <tr><td>A missão</td><td>100</td><td>50 min</td></tr>
-        <tr><td>1, 2, 3 macaquinho do chinês</td><td>102</td><td>40 min</td></tr>
-      </tbody>
-    </table>
-    <p class="section-desc">Para fazer COM os outros. Mostra na prática que em conjunto se chega mais longe.</p>
-  </div>
-
-  <hr/>
-
-  <!-- 7 -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-icon" style="background:rgba(244,63,94,0.12);">🗣️</div>
-      <div class="section-title">Para comunicar e resolver conflitos</div>
-    </div>
-    <table>
-      <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
-      <tbody>
-        <tr><td>Desenho às cegas</td><td>85</td><td>15 min</td></tr>
-        <tr><td>Treinador de golfinhos</td><td>88</td><td>80 min</td></tr>
-        <tr><td>Reconhecer sinais + Jogo de papéis</td><td>108–109</td><td>60 min</td></tr>
-      </tbody>
-    </table>
-    <p class="section-desc">Falar de forma clara, ouvir, e desarmar situações tensas. O <strong>"treinador de golfinhos"</strong> ensina algo central no vosso trabalho: guiar pelo reforço positivo, não pela ordem.</p>
-  </div>
-
-  <hr/>
-
-  <!-- 8 -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-icon" style="background:rgba(99,102,241,0.15);">🎤</div>
-      <div class="section-title">Para falar em público e liderar</div>
-    </div>
-    <table>
-      <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
-      <tbody>
-        <tr><td>Cardume</td><td>117</td><td>30 min</td></tr>
-        <tr><td>Follow the leader</td><td>119</td><td>40 min</td></tr>
-        <tr><td>Trrrr… pressão no ar!</td><td>174</td><td>60 min</td></tr>
-      </tbody>
-    </table>
-    <p class="section-desc">Soltar a voz, perder o medo de falar à frente do grupo e experimentar liderar. Toda a gente passa pelo papel de líder.</p>
-  </div>
-
-  <hr/>
-
-  <!-- 9 -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-icon" style="background:rgba(52,211,153,0.15);">✅</div>
-      <div class="section-title">Para fechar e avaliar <em style="font-style:normal;color:#a78bfa">(a parte que mais importa)</em></div>
-    </div>
-    <table>
-      <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
-      <tbody>
-        <tr><td>Debriefing (como conduzir)</td><td>178</td><td>—</td></tr>
-        <tr><td>A teia de aranha</td><td>182</td><td>20 min</td></tr>
-        <tr><td>Ritual celta</td><td>183</td><td>30 min</td></tr>
-      </tbody>
-    </table>
-    <div class="highlight">
-      No fim de cada dinâmica, falem sempre sobre o que aconteceu: como se sentiram, o que aprenderam, o que levam para o terreno. <strong>Sem essa conversa, foi só um jogo. É o debriefing que transforma o jogo em aprendizagem.</strong>
+  <div class="hero-right">
+    <div class="hero-right-top">Serve para</div>
+    <div class="hero-chips">
+      <div class="hero-chip"><span>💪</span><span>O vosso próprio desenvolvimento de competências</span></div>
+      <div class="hero-chip"><span>👦</span><span>Ferramentas para dinamizar com crianças e jovens nos vossos espaços</span></div>
+      <div class="hero-chip"><span>📖</span><span>Ir buscar o que precisam sem ler o manual completo</span></div>
     </div>
   </div>
+</section>
 
-</div>
+<!-- 1 -->
+<section id="abrir">
+  <div class="sec-inner">
+    <div class="slabel">01 — Energizers</div>
+    <h2>Para abrir e<br><em>animar um grupo</em></h2>
+    <p class="lead">Energizers rápidos para quebrar o gelo e pôr toda a gente a mexer. <strong>Começar uma sessão sempre com energia, nunca com teoria.</strong></p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
+        <tbody>
+          <tr><td>Salada de frutas</td><td>17</td><td>10 min</td></tr>
+          <tr><td>Ursos, cowboys e ninjas</td><td>17</td><td>10 min</td></tr>
+          <tr><td>Nome e gesto</td><td>18</td><td>10 min</td></tr>
+          <tr><td>Pés, mãos e companhia</td><td>19</td><td>10 min</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
 
-<div class="footer">
-  Preparado por Teresa · <span>Educa+</span> · Dinâmicas do manual Futebol de Rua (CAIS)
-</div>
+<!-- 2 -->
+<section id="auto" style="background:var(--card);">
+  <div class="sec-inner">
+    <div class="slabel">02 — Identidade</div>
+    <h2>Para autoconhecimento<br><em>e autoestima</em></h2>
+    <p class="lead">O que gostam em vocês, o que querem melhorar, o que vos move. <strong>Conhecermo-nos é o primeiro passo para fazermos melhor.</strong></p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
+        <tbody>
+          <tr><td>2 verdades e 1 mentira</td><td>26</td><td>30 min</td></tr>
+          <tr><td>Boas notícias</td><td>26</td><td>40 min</td></tr>
+          <tr><td>A mão da reflexão</td><td>28</td><td>60 min</td></tr>
+          <tr><td>Eu queria… eu quero</td><td>147</td><td>30 min</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="sec-note">Estas são quase todas <strong>faladas</strong> — não dependem de escrita.</div>
+  </div>
+</section>
 
+<!-- 3 -->
+<section id="outro">
+  <div class="sec-inner">
+    <div class="slabel">03 — Empatia</div>
+    <h2>Para conhecer o outro<br><em>e criar grupo</em></h2>
+    <p class="lead">Conhecer o outro, pôr-se no lugar dele e perceber como nos vêem. <strong>A base de grupos que funcionam.</strong></p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
+        <tbody>
+          <tr><td>Aviões amigos</td><td>39</td><td>30 min</td></tr>
+          <tr><td>Problema no papel</td><td>49</td><td>60 min</td></tr>
+          <tr><td>E tu, que animal és?</td><td>56</td><td>45 min</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section id="diferenca" style="background:var(--surface);">
+  <div class="sec-inner">
+    <div class="slabel">04 — Perspetiva</div>
+    <h2>Para consciência e respeito<br><em>pela diferença</em></h2>
+    <p class="lead">Perceber que cada um vê o mundo à sua maneira. <strong>Trabalha consciência crítica e respeito.</strong></p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
+        <tbody>
+          <tr><td>Entrevista</td><td>52</td><td>30 min</td></tr>
+          <tr><td>A história do Capuchinho Vermelho</td><td>138</td><td>30 min</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section id="confianca">
+  <div class="sec-inner">
+    <div class="slabel">05 — Resiliência</div>
+    <h2>Para confiança, calma<br><em>e não desistir</em></h2>
+    <p class="lead">Gerir a frustração quando os planos correm mal, <strong>confiar no grupo e insistir até resolver.</strong></p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
+        <tbody>
+          <tr><td>Régua mágica</td><td>34</td><td>30 min</td></tr>
+          <tr><td>Campo minado</td><td>62</td><td>70 min</td></tr>
+          <tr><td>Pêndulo humano</td><td>159</td><td>30 min</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section id="equipa" style="background:var(--card);">
+  <div class="sec-inner">
+    <div class="slabel">06 — Cooperação</div>
+    <h2>Para trabalho em equipa<br><em>e cooperação</em></h2>
+    <p class="lead">Para fazer <strong>COM</strong> os outros. Mostra na prática que em conjunto se chega mais longe.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
+        <tbody>
+          <tr><td>Jogo de possibilidades</td><td>94</td><td>40 min</td></tr>
+          <tr><td>A missão</td><td>100</td><td>50 min</td></tr>
+          <tr><td>1, 2, 3 macaquinho do chinês</td><td>102</td><td>40 min</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section id="comunicar">
+  <div class="sec-inner">
+    <div class="slabel">07 — Comunicação</div>
+    <h2>Para comunicar e<br><em>resolver conflitos</em></h2>
+    <p class="lead">Falar de forma clara, ouvir, e desarmar situações tensas.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
+        <tbody>
+          <tr><td>Desenho às cegas</td><td>85</td><td>15 min</td></tr>
+          <tr><td>Treinador de golfinhos</td><td>88</td><td>80 min</td></tr>
+          <tr><td>Reconhecer sinais + Jogo de papéis</td><td>108–109</td><td>60 min</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="sec-note-red">O <strong>"Treinador de golfinhos"</strong> ensina algo central no vosso trabalho: guiar pelo reforço positivo, não pela ordem.</div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section id="liderar" style="background:var(--surface);">
+  <div class="sec-inner">
+    <div class="slabel">08 — Liderança</div>
+    <h2>Para falar em público<br><em>e liderar</em></h2>
+    <p class="lead">Soltar a voz, perder o medo de falar à frente do grupo e experimentar liderar. <strong>Toda a gente passa pelo papel de líder.</strong></p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
+        <tbody>
+          <tr><td>Cardume</td><td>117</td><td>30 min</td></tr>
+          <tr><td>Follow the leader</td><td>119</td><td>40 min</td></tr>
+          <tr><td>Trrrr… pressão no ar!</td><td>174</td><td>60 min</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 9 HIGHLIGHT -->
+<section id="fechar">
+  <div class="highlight-block">
+    <div class="slabel">09 — A parte que mais importa</div>
+    <h2>Para fechar<br><em>e avaliar</em></h2>
+    <p class="lead">No fim de cada dinâmica, falem sempre sobre o que aconteceu.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Dinâmica</th><th>Pág.</th><th>Tempo</th></tr></thead>
+        <tbody>
+          <tr><td>Debriefing (como conduzir)</td><td>178</td><td>—</td></tr>
+          <tr><td>A teia de aranha</td><td>182</td><td>20 min</td></tr>
+          <tr><td>Ritual celta</td><td>183</td><td>30 min</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <strong>Sem debriefing, foi só um jogo.</strong> É a conversa no fim — como se sentiram, o que aprenderam, o que levam para o terreno — que transforma o jogo em aprendizagem.
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <span class="f-logo">JEEP · Educa+</span>
+    <p>Seleção de dinâmicas do manual <em>Futebol de Rua</em> — Associação CAIS</p>
+  </div>
+  <div class="f-mark">⚽</div>
+</footer>
+
+<script>
+  const links = document.querySelectorAll('.topnav a');
+  const sections = document.querySelectorAll('section[id]');
+  function updateActive() {
+    let cur = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 80) cur = s.id; });
+    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur));
+  }
+  window.addEventListener('scroll', updateActive, { passive:true });
+  updateActive();
+  links.forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior:'smooth' });
+    });
+  });
+</script>
 </body>
 </html>
