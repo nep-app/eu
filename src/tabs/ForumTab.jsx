@@ -21,11 +21,11 @@ const RECURSOS_FIXOS = [
   {
     id:"__fdr",
     icone:"⚽",
-    titulo:"Futebol de Rua — Associação CAIS",
-    desc:"Ferramenta para desenvolver valores e competências pessoais e sociais através do Futebol de Rua",
+    titulo:"Manual de Treino de Competências",
+    desc:"Ferramenta da Associação CAIS para desenvolver valores e competências pessoais e sociais com crianças e jovens",
     sublinks: [
-      { label:"📖 Manual Completo", url:"https://drive.google.com/file/d/1T-2eomdfBOgYXnsCAZHkEuV4PBq9N8zq/view?usp=sharing" },
-      { label:"🎯 Resumo de Dinâmicas", url:"resumo-dinamicas-fdr.pdf", desc:"Educa+ | seleção de jogos e dinâmicas para o vosso dia-a-dia e para dinamizar com crianças e jovens" },
+      { label:"🎯 Resumo de Dinâmicas", url:"/eu/resumo-dinamicas-fdr.pdf", desc:"Seleção de dinâmicas do manual, preparada pela Teresa, para usar no dia-a-dia e para dinamizar com crianças e jovens nos vossos espaços" },
+      { label:"📖 Manual Completo", url:"https://drive.google.com/file/d/1T-2eomdfBOgYXnsCAZHkEuV4PBq9N8zq/view?usp=sharing", desc:"Manual original da Associação CAIS com todas as dinâmicas, energizers e indicações de debriefing para 20 competências pessoais e sociais" },
     ],
   },
 ];
