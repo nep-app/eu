@@ -120,6 +120,7 @@ function fieldFilled(f, secData) {
 
 export default function PiaTab({ user, data }) {
   const light = useContext(ThemeCtx);
+  const isTeresa = user?.username === "teresa";
   const uData       = data.userData || {};
   const piaUnlocked = uData.piaUnlocked || {};
   const piaData     = uData.piaData     || {};
@@ -313,9 +314,9 @@ export default function PiaTab({ user, data }) {
           <div style={{ display:"flex", gap:8, marginTop:8 }}>
             <button onClick={() => alert("✓ Guardado! As tuas respostas estão a ser guardadas automaticamente.")} style={{
               flex:1, padding:"14px", borderRadius:14,
-              background: light ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)",
-              border: light ? "1.5px solid rgba(0,0,0,0.15)" : "1.5px solid rgba(255,255,255,0.12)",
-              color: light ? "#334155" : "#94a3b8", fontWeight:900, fontSize:13, cursor:"pointer",
+              background: isTeresa ? "rgba(80,40,140,0.14)" : "rgba(255,255,255,0.06)",
+              border: isTeresa ? "1.5px solid rgba(80,40,140,0.35)" : "1.5px solid rgba(255,255,255,0.12)",
+              color: isTeresa ? "#4a3878" : "#94a3b8", fontWeight:900, fontSize:13, cursor:"pointer",
             }}>
               💾 Guardar Privado
             </button>

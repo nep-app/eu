@@ -15,6 +15,7 @@ function fmtDatePt(str) {
 
 export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, features = {}, notifs = [], onDeleteNotif, setForumCanal, mencaoNotifs = [], previewMode, scrollToAgenda }) {
   const light = useContext(ThemeCtx);
+  const isTeresa = user?.username === "teresa";
   const [novaTarefaTexto, setNovaTarefaTexto]       = useState("");
   const [novaTarefaData, setNovaTarefaData]         = useState("");
   const [partilharTarefaCheck, setPartilharTarefaCheck] = useState(false);
@@ -136,7 +137,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
       {/* ── AÇÕES PENDENTES ─────────────────────────────────────────── */}
       {acoesPendentes.length > 0 && (
         <div style={{ marginBottom:20 }}>
-          <div style={{ ...SL, fontSize:12, color: light ? "#374151" : "#cbd5e1", marginBottom:10 }}>Ações Pendentes</div>
+          <div style={{ ...SL, fontSize:12, ...(isTeresa ? { color:"#4a3878" } : { color:"#94a3b8" }), marginBottom:10 }}>Ações Pendentes</div>
           {acoesPendentes.map((item, idx) => {
             const ICON_C = {
               "💬": { bg:"#7860c8", border:"#5a40a8", dot:"#3e2888", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
@@ -214,7 +215,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
       {notifs.length > 0 && (
         <div style={{ ...CARD, marginBottom:16 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-            <div style={{ ...SL, fontSize:12 }}>🔔 Notificações</div>
+            <div style={{ ...SL, fontSize:12, ...(isTeresa ? { color:"#4a3878" } : { color:"#94a3b8" }) }}>🔔 Notificações</div>
             <div style={{ fontSize:11, fontWeight:900, color:CYN, background:`${CYN}18`, borderRadius:20, padding:"3px 10px" }}>{notifs.length}</div>
           </div>
           {notifs.map(n => {
@@ -337,8 +338,16 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
               + ADD
             </button>
           </div>
-          <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:12, color: light ? "#374151" : TXT_MUT, cursor:"pointer", marginTop:8 }}>
-            <input type="checkbox" checked={partilharTarefaCheck} onChange={e => setPartilharTarefaCheck(e.target.checked)} style={{ accentColor:CYN, width:16, height:16, cursor:"pointer", outline: partilharTarefaCheck ? "none" : `1.5px solid rgba(184,199,218,0.5)`, borderRadius:4 }} />
+          <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:12, color: isTeresa ? "#374151" : TXT_MUT, cursor:"pointer", marginTop:8 }}>
+            <input type="checkbox" checked={partilharTarefaCheck} onChange={e => setPartilharTarefaCheck(e.target.checked)} style={{ display:"none" }} />
+            <div style={{
+              width:18, height:18, borderRadius:5, flexShrink:0,
+              border: partilharTarefaCheck ? `2px solid ${CYN}` : "2px solid #64748b",
+              background: partilharTarefaCheck ? CYN : "transparent",
+              display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.15s",
+            }}>
+              {partilharTarefaCheck && <span style={{ color:"#071529", fontSize:11, fontWeight:900, lineHeight:1 }}>✓</span>}
+            </div>
             Partilhar com a Teresa
           </label>
         </div>
