@@ -309,7 +309,8 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                   </div>
                 </div>
                 <button onClick={e => { e.stopPropagation(); onDeleteNotif && onDeleteNotif(n.id); }}
-                  style={{ background:"none", border:"none", color:"#475569", fontSize:16, cursor:"pointer", paddingTop:2, flexShrink:0, lineHeight:1,
+                  style={{ background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", color:"#94a3b8", fontSize:13, fontWeight:900, cursor:"pointer", flexShrink:0, lineHeight:1,
+                    width:28, height:28, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center",
                     ...(previewMode ? { pointerEvents:"auto" } : {}) }}>✕</button>
               </div>
             );
