@@ -136,7 +136,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
       {/* ── AÇÕES PENDENTES ─────────────────────────────────────────── */}
       {acoesPendentes.length > 0 && (
         <div style={{ marginBottom:20 }}>
-          <div style={{ ...SL, color: light ? "#4a5568" : undefined, marginBottom:10 }}>Ações Pendentes</div>
+          <div style={{ ...SL, fontSize:12, color: light ? "#374151" : "#cbd5e1", marginBottom:10 }}>Ações Pendentes</div>
           {acoesPendentes.map((item, idx) => {
             const ICON_C = {
               "💬": { bg:"#7860c8", border:"#5a40a8", dot:"#3e2888", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
@@ -214,7 +214,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
       {notifs.length > 0 && (
         <div style={{ ...CARD, marginBottom:16 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-            <div style={SL}>🔔 Notificações</div>
+            <div style={{ ...SL, fontSize:12 }}>🔔 Notificações</div>
             <div style={{ fontSize:11, fontWeight:900, color:CYN, background:`${CYN}18`, borderRadius:20, padding:"3px 10px" }}>{notifs.length}</div>
           </div>
           {notifs.map(n => {
@@ -310,8 +310,8 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                   </div>
                 </div>
                 <button onClick={e => { e.stopPropagation(); onDeleteNotif && onDeleteNotif(n.id); }}
-                  style={{ background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", color:"#94a3b8", fontSize:13, fontWeight:900, cursor:"pointer", flexShrink:0, lineHeight:1,
-                    width:28, height:28, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center",
+                  style={{ background:"rgba(244,63,94,0.12)", border:"1px solid rgba(244,63,94,0.3)", color:"#f87171", fontSize:14, fontWeight:900, cursor:"pointer", flexShrink:0, lineHeight:1,
+                    width:32, height:32, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center",
                     ...(previewMode ? { pointerEvents:"auto" } : {}) }}>✕</button>
               </div>
             );
