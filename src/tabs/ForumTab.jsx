@@ -18,6 +18,7 @@ const CHANNEL_COLORS = {
 
 const RECURSOS_FIXOS = [
   { id:"__bem-estar", icone:"📱", titulo:"Guia Bem-estar Digital", url:"bem-estar-digital.html", desc:"Conceitos, hábitos e ferramentas para uma relação saudável com o digital" },
+  { id:"__manual-fdr", icone:"⚽", titulo:"Manual de Treino de Competências — Futebol de Rua", url:"https://drive.google.com/file/d/1T-2eomdfBOgYXnsCAZHkEuV4PBq9N8zq/view?usp=sharing", desc:"Ferramenta da Associação CAIS para desenvolver valores e competências pessoais e sociais através do Futebol de Rua" },
 ];
 
 const isAdmin = (u) => u?.username === "admin";
