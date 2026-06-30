@@ -237,9 +237,9 @@ export default function PiaTab({ user, data }) {
                 <button key={t.id} onClick={() => setSubTab(t.id)} style={{
                   flexShrink:0, padding:"8px 14px", borderRadius:20, fontSize:12, fontWeight:800,
                   cursor:"pointer", transition:"all 0.18s",
-                  border: subTab === t.id ? `1.5px solid ${CYN}` : (light ? "1.5px solid rgba(0,0,0,0.12)" : "1.5px solid rgba(255,255,255,0.08)"),
-                  background: subTab === t.id ? `${CYN}18` : (light ? "rgba(0,0,0,0.04)" : "rgba(255,255,255,0.03)"),
-                  color: subTab === t.id ? CYN : hasUnlocked ? (light ? "#334155" : "#94a3b8") : "#334155",
+                  border: subTab === t.id ? `1.5px solid ${CYN}` : isTeresa ? "1.5px solid rgba(100,80,180,0.40)" : "1.5px solid rgba(255,255,255,0.08)",
+                  background: subTab === t.id ? `${CYN}18` : isTeresa ? "rgba(18,14,38,0.72)" : "rgba(255,255,255,0.03)",
+                  color: subTab === t.id ? CYN : hasUnlocked ? (isTeresa ? "#c4b8f3" : "#94a3b8") : (isTeresa ? "#9880c0" : "#64748b"),
                   position:"relative",
                 }}>
                   {t.label}

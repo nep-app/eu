@@ -234,7 +234,10 @@ export default function HomeExtras({ user, data, setTab }) {
               placeholder="Dúvida, sugestão ou desabafo..." />
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:12, color:"#94a3b8", cursor:"pointer" }}>
-                <input type="checkbox" checked={mensagemAnonima} onChange={() => setMensagemAnonima(!mensagemAnonima)} style={{ accentColor:PNK, width:16, height:16 }} />
+                <input type="checkbox" checked={mensagemAnonima} onChange={() => setMensagemAnonima(!mensagemAnonima)} style={{ display:"none" }} />
+                <div style={{ width:18, height:18, borderRadius:5, flexShrink:0, border: mensagemAnonima ? `2px solid ${PNK}` : "2px solid #64748b", background: mensagemAnonima ? PNK : "transparent", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.15s" }}>
+                  {mensagemAnonima && <span style={{ color:"#fff", fontSize:11, fontWeight:900, lineHeight:1 }}>✓</span>}
+                </div>
                 Anónimo
               </label>
               <button onClick={enviarMensagem} disabled={destinatarios.length === 0} style={{

@@ -379,7 +379,8 @@ export default function PerfilTab({ user, data, features = {} }) {
       <SubTabs
         options={[["roda","🌸 Roda"],["hist","📜 Hist."],["cap","💌 Cápsula"],["info","📤 Info"]]}
         active={subTab} onChange={setSubTab} color={PNK}
-        wrapStyle={light ? { background:"rgba(255,255,255,0.55)", border:"1px solid rgba(0,0,0,0.10)" } : {}}
+        wrapStyle={light ? { background:"rgba(18,14,38,0.80)", border:"1px solid rgba(139,92,246,0.20)" } : {}}
+        inactiveColor={light ? "#c4b8f3" : TXT_MUT}
       />
 
       {/* ── RODA DA VIDA ── */}

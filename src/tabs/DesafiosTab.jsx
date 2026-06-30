@@ -11,8 +11,8 @@ function LockedFeature({ label, light }) {
   return (
     <div style={{ ...CARD, textAlign:"center", padding:"48px 20px", marginTop:16 }}>
       <div style={{ fontSize:48, marginBottom:12 }}>🔐</div>
-      <div style={{ fontWeight:900, fontSize:15, color: light ? "#334155" : "#64748b", marginBottom:8 }}>{label}</div>
-      <div style={{ fontSize:13, color: light ? "#475569" : "#475569", lineHeight:1.6 }}>
+      <div style={{ fontWeight:900, fontSize:15, color:"#94a3b8", marginBottom:8 }}>{label}</div>
+      <div style={{ fontSize:13, color:"#94a3b8", lineHeight:1.6 }}>
         A Teresa ainda não lançou esta secção.<br/>Fica atento!
       </div>
     </div>

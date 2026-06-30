@@ -95,13 +95,13 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
     <ThemeCtx.Provider value={light}>
     <div style={{ minHeight:"100vh", background: isTeresa ? TERESA_BG : BG, maxWidth:420, margin:"0 auto", display:"flex", flexDirection:"column", fontFamily:"'Inter',system-ui,sans-serif",
       ...(isTeresa && {
-        "--card-bg": "rgba(16,14,32,0.92)",
+        "--card-bg": "rgba(18,14,38,0.94)",
         "--card-text": "#e8e4f8",
         "--card-border": "rgba(139,92,246,0.16)",
         "--card-shadow": "0 4px 24px rgba(0,0,0,0.40), inset 0 1px 0 rgba(139,92,246,0.08)",
         "--inp-bg": "rgba(10,8,24,0.80)",
         "--inp-border": "rgba(139,92,246,0.22)",
-        "--sl-color": "#9490b8",
+        "--sl-color": "#c4b8f3",
         "--subtabs-bg": "rgba(10,8,24,0.65)",
       })
     }}>

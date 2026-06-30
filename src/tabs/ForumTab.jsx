@@ -89,9 +89,9 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
             <button key={ch.id} onClick={() => setCanalAtivo(ch.id)} style={{
               display:"flex", flexDirection:"column", alignItems:"center", gap:4,
               padding:"12px 8px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
-              border: sel ? `1px solid ${chColor}60` : isTeresa ? `1px solid rgba(100,80,180,0.35)` : "1px solid rgba(255,255,255,0.10)",
-              background: sel ? `${chColor}14` : isTeresa ? "rgba(100,80,180,0.08)" : "rgba(255,255,255,0.06)",
-              color: sel ? chColor : isTeresa ? "#5b4fa3" : TXT_MUT,
+              border: sel ? `1px solid ${chColor}60` : isTeresa ? `1px solid rgba(139,92,246,0.22)` : "1px solid rgba(255,255,255,0.10)",
+              background: sel ? `${chColor}14` : isTeresa ? "rgba(18,14,38,0.82)" : "rgba(255,255,255,0.06)",
+              color: sel ? chColor : isTeresa ? "#c4b8f3" : TXT_MUT,
               boxShadow: sel ? `0 0 0 1px ${chColor}25` : "none",
             }}>
               <span style={{ fontSize:20 }}>{ch.icon}</span>
@@ -111,9 +111,9 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
         }} style={{
           display:"flex", flexDirection:"column", alignItems:"center", gap:4,
           padding:"12px 8px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
-          border: canalAtivo === "__recursos" ? "1px solid rgba(99,102,241,0.55)" : isTeresa ? "1px solid rgba(99,102,241,0.45)" : "1px solid rgba(99,102,241,0.22)",
-          background: canalAtivo === "__recursos" ? "rgba(99,102,241,0.16)" : isTeresa ? "rgba(99,102,241,0.07)" : "rgba(255,255,255,0.06)",
-          color: canalAtivo === "__recursos" ? "#818cf8" : isTeresa ? "#6d28d9" : "#6b7cb8",
+          border: canalAtivo === "__recursos" ? "1px solid rgba(139,92,246,0.55)" : isTeresa ? "1px solid rgba(139,92,246,0.22)" : "1px solid rgba(99,102,241,0.22)",
+          background: canalAtivo === "__recursos" ? "rgba(139,92,246,0.18)" : isTeresa ? "rgba(18,14,38,0.82)" : "rgba(255,255,255,0.06)",
+          color: canalAtivo === "__recursos" ? "#a78bfa" : isTeresa ? "#c4b8f3" : "#6b7cb8",
           boxShadow: canalAtivo === "__recursos" ? "0 0 0 1px rgba(99,102,241,0.25)" : "none",
         }}>
           <span style={{ fontSize:20 }}>📚</span>

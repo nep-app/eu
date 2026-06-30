@@ -143,7 +143,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
               "💬": { bg:"#7860c8", border:"#5a40a8", dot:"#3e2888", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
               "📊": { bg:"#4a78c8", border:"#3060a8", dot:"#1e4888", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
               "😊": { bg:"#4aada0", border:"#388a7e", dot:"#286a60", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
-              "🚀": { bg:"#c8a06a", border:"#a87e48", dot:"#886020", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
+              "🚀": { bg:"#5a3fa8", border:"#4a30a0", dot:"#3820a0", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
               "🧠": { bg:"#c07848", border:"#a05828", dot:"#804010", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
               "🔒": { bg:"#9878c8", border:"#7858a8", dot:"#584088", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
               "🔐": { bg:"#9878c8", border:"#7858a8", dot:"#584088", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
@@ -271,8 +271,8 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                     const m = n.text?.match(/^(.+?) — sobre: "(.+?)": (.+)$/s);
                     if (m) return (
                       <>
-                        <div style={{ fontSize:11, color:"#64748b", marginBottom:4 }}>{m[1]}</div>
-                        <div style={{ fontSize:11, color:"#94a3b8", fontStyle:"italic", paddingLeft:8, borderLeft:"2px solid rgba(255,255,255,0.1)", marginBottom:6, lineHeight:1.4 }}>"{m[2]}"</div>
+                        <div style={{ fontSize:11, color:"#94a3b8", marginBottom:4 }}>{m[1]}</div>
+                        <div style={{ fontSize:11, color:"#94a3b8", fontStyle:"italic", paddingLeft:8, borderLeft:"2px solid rgba(255,255,255,0.15)", marginBottom:6, lineHeight:1.4 }}>"{m[2]}"</div>
                         <div style={{ fontSize:13, color:"#f1f5f9", fontWeight:600, lineHeight:1.5 }}>{m[3]}</div>
                       </>
                     );
@@ -288,7 +288,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                       const ci = n.text.indexOf(": ");
                       if (ci < 90) return (
                         <>
-                          <div style={{ fontSize:11, color:"#64748b", marginBottom:4 }}>{n.text.substring(0, ci)}</div>
+                          <div style={{ fontSize:11, color:"#94a3b8", marginBottom:4 }}>{n.text.substring(0, ci)}</div>
                           <div style={{ fontSize:13, color:"#f1f5f9", fontWeight:600, lineHeight:1.5 }}>{n.text.substring(ci + 2)}</div>
                         </>
                       );
@@ -297,7 +297,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                   })()}
                   <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:3 }}>
                     {(n.date || n.ts) && (
-                      <span style={{ fontSize:10, color:"#475569", fontWeight:600 }}>
+                      <span style={{ fontSize:10, color:"#7a8fab", fontWeight:600 }}>
                         {n.ts ? new Date(n.ts).toLocaleString("pt-PT", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }) : n.date}
                       </span>
                     )}

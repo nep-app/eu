@@ -167,7 +167,7 @@ export function AppIcon({ size = 70 }) {
 }
 
 // ── SUB-TABS ─────────────────────────────────────────────────────────────────
-export function SubTabs({ options, active, onChange, color = CYN, wrapStyle = {} }) {
+export function SubTabs({ options, active, onChange, color = CYN, wrapStyle = {}, inactiveColor = TXT_MUT }) {
   return (
     <div style={{ display:"flex", gap:4, marginBottom:18, padding:4, background:"var(--subtabs-bg, rgba(7,21,41,0.6))", borderRadius:16, overflowX:"auto", border:"1px solid rgba(50,199,255,0.10)", ...wrapStyle }}>
       {options.map(opt => {
@@ -177,7 +177,7 @@ export function SubTabs({ options, active, onChange, color = CYN, wrapStyle = {}
             flex:1, padding:"10px 6px", borderRadius:12, border:"none",
             background: isA ? `${color}20` : "transparent",
             fontSize:11, fontWeight:800, cursor:"pointer",
-            color: isA ? color : TXT_MUT,
+            color: isA ? color : inactiveColor,
             boxShadow: isA ? `0 0 0 1px ${color}35` : "none",
             whiteSpace:"nowrap", minWidth:50, transition:"all 0.2s",
           }}>
@@ -298,7 +298,7 @@ export function RadarChart({ scores, color, prev }) {
         <polygon key={f} points={polyStr(Array(NR).fill(f))} fill="none" stroke="rgba(50,199,255,0.08)" strokeWidth="1"/>
       ))}
       {IDS.map((_,i) => { const c = pt(i,1); return <line key={i} x1={CX} y1={CY} x2={c[0]} y2={c[1]} stroke="rgba(50,199,255,0.08)" strokeWidth="1"/>; })}
-      {pF && <polygon points={polyStr(pF)} fill="none" stroke={`${color}50`} strokeWidth="1.5" strokeDasharray="4,3"/>}
+      {pF && <polygon points={polyStr(pF)} fill="none" stroke={`${color}90`} strokeWidth="2" strokeDasharray="5,3"/>}
       <polygon points={polyStr(fracs)} fill={`${color}20`} stroke={color} strokeWidth="2.5" strokeLinejoin="round"/>
       {IDS.map((_,i) => { const c = pt(i,fracs[i]); return <circle key={i} cx={c[0]} cy={c[1]} r="5" fill={color} stroke={BG} strokeWidth="2"/>; })}
       {LBL.map((lb,i) => {
