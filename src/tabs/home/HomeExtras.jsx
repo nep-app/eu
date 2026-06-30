@@ -151,8 +151,13 @@ export default function HomeExtras({ user, data, setTab }) {
 
       {/* ── DESTAQUES DA SEMANA ───────────────────────────────────── */}
       <div style={{ ...CARD }}>
-        <div style={{ fontSize:11, fontWeight:800, letterSpacing:1.5, color: light ? "#4b5563" : "#7da3c4", textTransform:"uppercase", marginBottom:12 }}>
-          ⭐ Destaques da semana
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+          <div style={{ fontSize:11, fontWeight:800, letterSpacing:1.5, color: light ? "#4b5563" : "#7da3c4", textTransform:"uppercase" }}>
+            ⭐ Destaques da semana
+          </div>
+          <div style={{ fontSize:9, fontWeight:700, color: light ? "#9ca3af" : "#4a6080", letterSpacing:0.5, textTransform:"uppercase" }}>
+            ordem aleatória
+          </div>
         </div>
         {destaquesXp.length > 0 ? (
           <div style={{ fontSize:16, fontWeight:800, lineHeight:1.8, color:"#94a3b8" }}>
