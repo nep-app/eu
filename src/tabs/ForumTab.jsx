@@ -89,9 +89,9 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
             <button key={ch.id} onClick={() => setCanalAtivo(ch.id)} style={{
               display:"flex", flexDirection:"column", alignItems:"center", gap:4,
               padding:"12px 8px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
-              border: sel ? `1px solid ${chColor}60` : isTeresa ? `1px solid rgba(139,92,246,0.22)` : "1px solid rgba(255,255,255,0.10)",
-              background: sel ? `${chColor}14` : isTeresa ? "rgba(18,14,38,0.82)" : "rgba(255,255,255,0.06)",
-              color: sel ? chColor : isTeresa ? "#c4b8f3" : TXT_MUT,
+              border: sel ? `1px solid ${chColor}60` : `1px solid ${chColor}35`,
+              background: sel ? `${chColor}18` : `${chColor}0c`,
+              color: sel ? chColor : `${chColor}cc`,
               boxShadow: sel ? `0 0 0 1px ${chColor}25` : "none",
             }}>
               <span style={{ fontSize:20 }}>{ch.icon}</span>
@@ -111,9 +111,9 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
         }} style={{
           display:"flex", flexDirection:"column", alignItems:"center", gap:4,
           padding:"12px 8px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
-          border: canalAtivo === "__recursos" ? "1px solid rgba(139,92,246,0.55)" : isTeresa ? "1px solid rgba(139,92,246,0.22)" : "1px solid rgba(99,102,241,0.22)",
-          background: canalAtivo === "__recursos" ? "rgba(139,92,246,0.18)" : isTeresa ? "rgba(18,14,38,0.82)" : "rgba(255,255,255,0.06)",
-          color: canalAtivo === "__recursos" ? "#a78bfa" : isTeresa ? "#c4b8f3" : "#6b7cb8",
+          border: canalAtivo === "__recursos" ? "1px solid rgba(139,92,246,0.60)" : "1px solid rgba(139,92,246,0.35)",
+          background: canalAtivo === "__recursos" ? "rgba(139,92,246,0.18)" : "rgba(139,92,246,0.07)",
+          color: canalAtivo === "__recursos" ? "#a78bfa" : "#a78bfacc",
           boxShadow: canalAtivo === "__recursos" ? "0 0 0 1px rgba(99,102,241,0.25)" : "none",
         }}>
           <span style={{ fontSize:20 }}>📚</span>

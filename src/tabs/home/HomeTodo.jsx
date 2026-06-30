@@ -143,7 +143,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
               "💬": { bg:"#7860c8", border:"#5a40a8", dot:"#3e2888", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
               "📊": { bg:"#4a78c8", border:"#3060a8", dot:"#1e4888", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
               "😊": { bg:"#4aada0", border:"#388a7e", dot:"#286a60", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
-              "🚀": { bg:"#5a3fa8", border:"#4a30a0", dot:"#3820a0", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
+              "🚀": { bg:"#c2410c", border:"#9a3412", dot:"#fb923c", text:"#ffffff", sub:"rgba(255,255,255,0.82)" },
               "🧠": { bg:"#c07848", border:"#a05828", dot:"#804010", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
               "🔒": { bg:"#9878c8", border:"#7858a8", dot:"#584088", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
               "🔐": { bg:"#9878c8", border:"#7858a8", dot:"#584088", text:"#ffffff", sub:"rgba(255,255,255,0.78)" },
@@ -215,7 +215,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
       {notifs.length > 0 && (
         <div style={{ ...CARD, marginBottom:16 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-            <div style={{ ...SL, fontSize:12, ...(isTeresa ? { color:"#4a3878" } : { color:"#94a3b8" }) }}>🔔 Notificações</div>
+            <div style={{ ...SL, fontSize:12, ...(isTeresa ? { color:"#c4b8f3" } : { color:"#94a3b8" }) }}>🔔 Notificações</div>
             <div style={{ fontSize:11, fontWeight:900, color:CYN, background:`${CYN}18`, borderRadius:20, padding:"3px 10px" }}>{notifs.length}</div>
           </div>
           {notifs.map(n => {
@@ -338,7 +338,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
               + ADD
             </button>
           </div>
-          <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:12, color: isTeresa ? "#374151" : TXT_MUT, cursor:"pointer", marginTop:8 }}>
+          <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:12, color: isTeresa ? "#c4b8f3" : TXT_MUT, cursor:"pointer", marginTop:8 }}>
             <input type="checkbox" checked={partilharTarefaCheck} onChange={e => setPartilharTarefaCheck(e.target.checked)} style={{ display:"none" }} />
             <div style={{
               width:18, height:18, borderRadius:5, flexShrink:0,

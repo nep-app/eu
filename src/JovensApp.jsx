@@ -100,11 +100,16 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
         "--card-border": "rgba(139,92,246,0.16)",
         "--card-shadow": "0 4px 24px rgba(0,0,0,0.40), inset 0 1px 0 rgba(139,92,246,0.08)",
         "--inp-bg": "rgba(10,8,24,0.80)",
-        "--inp-border": "rgba(139,92,246,0.22)",
+        "--inp-border": "rgba(139,92,246,0.50)",
         "--sl-color": "#c4b8f3",
         "--subtabs-bg": "rgba(10,8,24,0.65)",
       })
     }}>
+      {isTeresa && (
+        <style>{`
+          input::placeholder, textarea::placeholder { color: rgba(196,184,243,0.55) !important; }
+        `}</style>
+      )}
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       {isTeresa ? (
