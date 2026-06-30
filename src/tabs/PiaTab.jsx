@@ -285,7 +285,7 @@ export default function PiaTab({ user, data }) {
                   {visibleFields.map(f => (
                     <div key={f.key}>
                       {f.type !== "swot" && (
-                        <div style={{ fontSize:11, fontWeight:800, color:"#94a3b8", marginBottom:6, textTransform:"uppercase", letterSpacing:0.6 }}>
+                        <div style={{ fontSize:11, fontWeight:800, color: light ? "#475569" : "#94a3b8", marginBottom:6, textTransform:"uppercase", letterSpacing:0.6 }}>
                           {f.label}
                         </div>
                       )}

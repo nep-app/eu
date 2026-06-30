@@ -554,9 +554,9 @@ export default function PerfilTab({ user, data, features = {} }) {
           </div>
 
           {user.username === "teresa" && (
-            <div style={{ ...thm.card, background:"rgba(244,63,94,0.1)", border:"2px dashed #f43f5e", marginTop:20 }}>
+            <div style={{ ...thm.card, background: light ? "rgba(80,10,30,0.80)" : "rgba(244,63,94,0.1)", border:"2px dashed #f43f5e", marginTop:20 }}>
               <div style={{ ...thm.sl, color:"#f43f5e" }}>🔧 Ferramentas de Teste</div>
-              <p style={{ fontSize:"12px", color:"#cbd5e1", marginTop:0, marginBottom:"15px" }}>
+              <p style={{ fontSize:"12px", color: light ? "#fca5a5" : "#cbd5e1", marginTop:0, marginBottom:"15px" }}>
                 Como és a conta de testes, podes limpar o teu progresso para veres as "Ações Pendentes" novamente na Home.
               </p>
               <button onClick={limparTudoDev} style={{ width:"100%", padding:"12px", background:"#f43f5e", color:"white", fontWeight:"900", border:"none", borderRadius:"12px", cursor:"pointer", fontSize:"13px" }}>

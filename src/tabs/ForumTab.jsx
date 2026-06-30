@@ -22,8 +22,19 @@ const RECURSOS_FIXOS = [
 
 const isAdmin = (u) => u?.username === "admin";
 
+function parseTimeStr(t) {
+  if (!t) return 0;
+  const MTHS_PT = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+  const m = t.match(/^(\d{1,2})\s+(\w+)\s+(\d{4}),\s*(\d{1,2}):(\d{2})/);
+  if (!m) return 0;
+  const mon = MTHS_PT.indexOf(m[2].toLowerCase());
+  if (mon < 0) return 0;
+  return new Date(+m[3], mon, +m[1], +m[4], +m[5]).getTime();
+}
+
 export default function ForumTab({ user, data = {}, forumCollection = "forum", initialCanal = null }) {
   const light = useContext(ThemeCtx);
+  const isTeresa = user?.username === "teresa";
   const [canalAtivo, setCanalAtivo] = useState(initialCanal || "anuncios");
   const [listaPosts, setListaPosts]  = useState([]);
   const [allMedals,  setAllMedals]   = useState({});
@@ -46,10 +57,11 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
   useEffect(() => {
     const q = query(collection(db, forumCollection, canalAtivo, "posts"));
     return onSnapshot(q, snap => {
-      const posts = snap.docs.map((d, i) => ({ id:d.id, ...d.data(), _idx: i }));
+      const posts = snap.docs.map(d => ({ id:d.id, ...d.data() }));
       posts.sort((a, b) => {
-        const diff = (b.ts || 0) - (a.ts || 0);
-        return diff !== 0 ? diff : b._idx - a._idx;
+        const ta = a.ts || parseTimeStr(a.time);
+        const tb = b.ts || parseTimeStr(b.time);
+        return tb - ta;
       });
       setListaPosts(posts);
     });
@@ -77,13 +89,13 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
             <button key={ch.id} onClick={() => setCanalAtivo(ch.id)} style={{
               display:"flex", flexDirection:"column", alignItems:"center", gap:4,
               padding:"12px 8px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
-              border: sel ? `1px solid ${chColor}60` : "1px solid rgba(255,255,255,0.10)",
-              background: sel ? `${chColor}14` : "rgba(255,255,255,0.06)",
-              color: sel ? chColor : TXT_MUT,
+              border: sel ? `1px solid ${chColor}60` : isTeresa ? `1px solid rgba(100,80,180,0.35)` : "1px solid rgba(255,255,255,0.10)",
+              background: sel ? `${chColor}14` : isTeresa ? "rgba(100,80,180,0.08)" : "rgba(255,255,255,0.06)",
+              color: sel ? chColor : isTeresa ? "#5b4fa3" : TXT_MUT,
               boxShadow: sel ? `0 0 0 1px ${chColor}25` : "none",
             }}>
               <span style={{ fontSize:20 }}>{ch.icon}</span>
-              <span style={{ fontSize:8, fontWeight:900, textAlign:"center", letterSpacing:0.3, textTransform:"uppercase", lineHeight:1.3 }}>{ch.label}</span>
+              <span style={{ fontSize:9, fontWeight:900, textAlign:"center", letterSpacing:0.3, textTransform:"uppercase", lineHeight:1.3 }}>{ch.label}</span>
             </button>
           );
         })}
@@ -99,20 +111,20 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
         }} style={{
           display:"flex", flexDirection:"column", alignItems:"center", gap:4,
           padding:"12px 8px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
-          border: canalAtivo === "__recursos" ? "1px solid rgba(99,102,241,0.55)" : "1px solid rgba(99,102,241,0.22)",
-          background: canalAtivo === "__recursos" ? "rgba(99,102,241,0.16)" : "rgba(255,255,255,0.06)",
-          color: canalAtivo === "__recursos" ? "#818cf8" : "#6b7cb8",
+          border: canalAtivo === "__recursos" ? "1px solid rgba(99,102,241,0.55)" : isTeresa ? "1px solid rgba(99,102,241,0.45)" : "1px solid rgba(99,102,241,0.22)",
+          background: canalAtivo === "__recursos" ? "rgba(99,102,241,0.16)" : isTeresa ? "rgba(99,102,241,0.07)" : "rgba(255,255,255,0.06)",
+          color: canalAtivo === "__recursos" ? "#818cf8" : isTeresa ? "#6d28d9" : "#6b7cb8",
           boxShadow: canalAtivo === "__recursos" ? "0 0 0 1px rgba(99,102,241,0.25)" : "none",
         }}>
           <span style={{ fontSize:20 }}>📚</span>
-          <span style={{ fontSize:8, fontWeight:900, textAlign:"center", letterSpacing:0.3, textTransform:"uppercase", lineHeight:1.3 }}>Recursos</span>
+          <span style={{ fontSize:9, fontWeight:900, textAlign:"center", letterSpacing:0.3, textTransform:"uppercase", lineHeight:1.3 }}>Recursos</span>
         </button>
       </div>
 
       {canalAtivo === "__recursos" ? (
         /* ── VISTA DE RECURSOS ──────────────────────────────────────── */
         <div style={{ padding:"16px 16px 0" }}>
-          <div style={{ fontSize:10, fontWeight:900, letterSpacing:2, color: light ? "#4a3f80" : "#6366f1", textTransform:"uppercase", marginBottom:12 }}>
+          <div style={{ fontSize:10, fontWeight:900, letterSpacing:2, color: isTeresa ? "#4a3f80" : "#6366f1", textTransform:"uppercase", marginBottom:12 }}>
             📚 Recursos
           </div>
           {recursos.length === 0 ? (
@@ -125,15 +137,16 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
               return (
                 <a key={r.id} href={safeUrl} target="_blank" rel="noreferrer" style={{
                   display:"flex", alignItems:"center", gap:14, padding:"14px 16px", borderRadius:18,
-                  background:"rgba(99,102,241,0.08)", border:"1px solid rgba(99,102,241,0.20)",
+                  background: isTeresa ? "rgba(99,102,241,0.10)" : "rgba(99,102,241,0.08)",
+                  border: isTeresa ? "1px solid rgba(99,102,241,0.40)" : "1px solid rgba(99,102,241,0.20)",
                   textDecoration:"none", marginBottom:10, transition:"all 0.15s",
                 }}>
                   <span style={{ fontSize:26, flexShrink:0 }}>{r.icone || "📄"}</span>
                   <div style={{ flex:1 }}>
-                    <div style={{ fontSize:13, fontWeight:800, color:"#a5b4fc" }}>{r.titulo}</div>
-                    {r.desc && <div style={{ fontSize:11, color:"#818cf8", marginTop:2 }}>{r.desc}</div>}
+                    <div style={{ fontSize:13, fontWeight:800, color: isTeresa ? "#6d28d9" : "#a5b4fc" }}>{r.titulo}</div>
+                    {r.desc && <div style={{ fontSize:11, color: isTeresa ? "#7c3aed" : "#818cf8", marginTop:2 }}>{r.desc}</div>}
                   </div>
-                  <span style={{ fontSize:14, color:"#818cf8" }}>→</span>
+                  <span style={{ fontSize:14, color: isTeresa ? "#7c3aed" : "#818cf8" }}>→</span>
                 </a>
               );
             })
@@ -143,9 +156,9 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
         <>
           {/* ── INFO DO CANAL ────────────────────────────────────────── */}
           <div style={{ margin:"12px 16px 0", padding:"12px 16px", borderRadius:16,
-            background:"rgba(255,255,255,0.04)",
+            background: isTeresa ? "rgba(100,80,180,0.08)" : "rgba(255,255,255,0.04)",
             borderLeft:`2px solid ${CHANNEL_COLORS[canalAtivo] || CYN}60`,
-            fontSize:12, color:TXT_MUT, lineHeight:1.6 }}>
+            fontSize:12, color: isTeresa ? "#4a3f80" : TXT_MUT, lineHeight:1.6 }}>
             {canalInfo?.desc}
             {canalInfo?.adminOnly && <span style={{ marginLeft:6, fontSize:10, fontWeight:900, color:"#f59e0b" }}>· apenas a Teresa publica</span>}
           </div>

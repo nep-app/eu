@@ -151,7 +151,7 @@ export default function HomeExtras({ user, data, setTab }) {
 
       {/* ── DESTAQUES DA SEMANA ───────────────────────────────────── */}
       <div style={{ ...CARD }}>
-        <div style={{ fontSize:10, fontWeight:800, letterSpacing:2, color:"#5a7a9a", textTransform:"uppercase", marginBottom:12 }}>
+        <div style={{ fontSize:11, fontWeight:800, letterSpacing:1.5, color: light ? "#4b5563" : "#7da3c4", textTransform:"uppercase", marginBottom:12 }}>
           ⭐ Destaques da semana
         </div>
         {destaquesXp.length > 0 ? (
@@ -204,7 +204,7 @@ export default function HomeExtras({ user, data, setTab }) {
           <>
             {/* Seletor de destinatários */}
             <div style={{ marginBottom:10 }}>
-              <div style={{ fontSize:10, fontWeight:900, color:"#5a7a9a", textTransform:"uppercase", letterSpacing:1, marginBottom:6 }}>Para:</div>
+              <div style={{ fontSize:11, fontWeight:900, color: light ? "#4b5563" : "#7da3c4", textTransform:"uppercase", letterSpacing:1, marginBottom:6 }}>Para:</div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
                 {/* Teresa (GO) */}
                 <button onClick={() => toggleDestinatario("admin")} style={{

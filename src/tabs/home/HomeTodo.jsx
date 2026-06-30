@@ -337,8 +337,8 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
               + ADD
             </button>
           </div>
-          <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:11, color:TXT_MUT, cursor:"pointer", marginTop:8 }}>
-            <input type="checkbox" checked={partilharTarefaCheck} onChange={e => setPartilharTarefaCheck(e.target.checked)} style={{ accentColor:CYN }} />
+          <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:12, color: light ? "#374151" : TXT_MUT, cursor:"pointer", marginTop:8 }}>
+            <input type="checkbox" checked={partilharTarefaCheck} onChange={e => setPartilharTarefaCheck(e.target.checked)} style={{ accentColor:CYN, width:16, height:16, cursor:"pointer", outline: partilharTarefaCheck ? "none" : `1.5px solid rgba(184,199,218,0.5)`, borderRadius:4 }} />
             Partilhar com a Teresa
           </label>
         </div>
