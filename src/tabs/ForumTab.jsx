@@ -18,7 +18,16 @@ const CHANNEL_COLORS = {
 
 const RECURSOS_FIXOS = [
   { id:"__bem-estar", icone:"📱", titulo:"Guia Bem-estar Digital", url:"bem-estar-digital.html", desc:"Conceitos, hábitos e ferramentas para uma relação saudável com o digital" },
-  { id:"__manual-fdr", icone:"⚽", titulo:"Manual de Treino de Competências — Futebol de Rua", url:"https://drive.google.com/file/d/1T-2eomdfBOgYXnsCAZHkEuV4PBq9N8zq/view?usp=sharing", desc:"Ferramenta da Associação CAIS para desenvolver valores e competências pessoais e sociais através do Futebol de Rua" },
+  {
+    id:"__fdr",
+    icone:"⚽",
+    titulo:"Futebol de Rua — Associação CAIS",
+    desc:"Ferramenta para desenvolver valores e competências pessoais e sociais através do Futebol de Rua",
+    sublinks: [
+      { label:"📖 Manual Completo", url:"https://drive.google.com/file/d/1T-2eomdfBOgYXnsCAZHkEuV4PBq9N8zq/view?usp=sharing" },
+      { label:"🎯 Resumo de Dinâmicas", url:"resumo-dinamicas-fdr.pdf", desc:"Educa+ | seleção de jogos e dinâmicas para o vosso dia-a-dia e para dinamizar com crianças e jovens" },
+    ],
+  },
 ];
 
 const isAdmin = (u) => u?.username === "admin";
@@ -134,13 +143,47 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
             </div>
           ) : (
             recursos.map(r => {
+              const cardStyle = {
+                padding:"14px 16px", borderRadius:18, marginBottom:10,
+                background: isTeresa ? "rgba(99,102,241,0.10)" : "rgba(99,102,241,0.08)",
+                border: isTeresa ? "1px solid rgba(99,102,241,0.40)" : "1px solid rgba(99,102,241,0.20)",
+              };
+              if (r.sublinks) {
+                return (
+                  <div key={r.id} style={cardStyle}>
+                    <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:12 }}>
+                      <span style={{ fontSize:26, flexShrink:0 }}>{r.icone || "📄"}</span>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontSize:13, fontWeight:800, color: isTeresa ? "#6d28d9" : "#a5b4fc" }}>{r.titulo}</div>
+                        {r.desc && <div style={{ fontSize:11, color: isTeresa ? "#7c3aed" : "#818cf8", marginTop:2 }}>{r.desc}</div>}
+                      </div>
+                    </div>
+                    <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                      {r.sublinks.map((sl, i) => {
+                        const slUrl = /^https?:\/\//i.test(sl.url) ? sl.url : sl.url;
+                        return (
+                          <a key={i} href={slUrl} target="_blank" rel="noreferrer" style={{
+                            display:"flex", flexDirection:"column", gap:2, padding:"10px 14px", borderRadius:12,
+                            background: isTeresa ? "rgba(99,102,241,0.12)" : "rgba(99,102,241,0.10)",
+                            border: isTeresa ? "1px solid rgba(99,102,241,0.35)" : "1px solid rgba(99,102,241,0.18)",
+                            textDecoration:"none", transition:"all 0.15s",
+                          }}>
+                            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                              <span style={{ fontSize:12, fontWeight:800, color: isTeresa ? "#5b21b6" : "#a5b4fc" }}>{sl.label}</span>
+                              <span style={{ fontSize:12, color: isTeresa ? "#7c3aed" : "#818cf8" }}>→</span>
+                            </div>
+                            {sl.desc && <div style={{ fontSize:10, color: isTeresa ? "#7c3aed" : "#818cf8", lineHeight:1.4 }}>{sl.desc}</div>}
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              }
               const safeUrl = /^https?:\/\//i.test(r.url) ? r.url : "#";
               return (
                 <a key={r.id} href={safeUrl} target="_blank" rel="noreferrer" style={{
-                  display:"flex", alignItems:"center", gap:14, padding:"14px 16px", borderRadius:18,
-                  background: isTeresa ? "rgba(99,102,241,0.10)" : "rgba(99,102,241,0.08)",
-                  border: isTeresa ? "1px solid rgba(99,102,241,0.40)" : "1px solid rgba(99,102,241,0.20)",
-                  textDecoration:"none", marginBottom:10, transition:"all 0.15s",
+                  ...cardStyle, display:"flex", alignItems:"center", gap:14, textDecoration:"none", transition:"all 0.15s",
                 }}>
                   <span style={{ fontSize:26, flexShrink:0 }}>{r.icone || "📄"}</span>
                   <div style={{ flex:1 }}>
