@@ -161,19 +161,20 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
                     <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                       {r.sublinks.map((sl, i) => {
                         const slUrl = /^(https?:\/\/|\/)/.test(sl.url) ? sl.url : "#";
+                        const isPdf = sl.url.endsWith(".pdf");
                         return (
-                          <a key={i} href={slUrl} target="_blank" rel="noreferrer" style={{
+                          <div key={i} onClick={() => window.open(slUrl, "_blank")} style={{
                             display:"flex", flexDirection:"column", gap:2, padding:"10px 14px", borderRadius:12,
                             background: isTeresa ? "rgba(99,102,241,0.12)" : "rgba(99,102,241,0.10)",
                             border: isTeresa ? "1px solid rgba(99,102,241,0.35)" : "1px solid rgba(99,102,241,0.18)",
-                            textDecoration:"none", transition:"all 0.15s",
+                            cursor:"pointer", transition:"all 0.15s",
                           }}>
                             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                               <span style={{ fontSize:12, fontWeight:800, color: isTeresa ? "#5b21b6" : "#a5b4fc" }}>{sl.label}</span>
-                              <span style={{ fontSize:12, color: isTeresa ? "#7c3aed" : "#818cf8" }}>→</span>
+                              <span style={{ fontSize:12, color: isTeresa ? "#7c3aed" : "#818cf8" }}>{isPdf ? "⬇️" : "→"}</span>
                             </div>
                             {sl.desc && <div style={{ fontSize:10, color: isTeresa ? "#7c3aed" : "#818cf8", lineHeight:1.4 }}>{sl.desc}</div>}
-                          </a>
+                          </div>
                         );
                       })}
                     </div>
