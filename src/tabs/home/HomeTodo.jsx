@@ -252,6 +252,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
               } else if (isAutoNotif) {
                 setTab("desafios");
               }
+              onDeleteNotif && onDeleteNotif(n.id);
             }
             return (
               <div key={n.id} onClick={handleClick}
