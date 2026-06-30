@@ -17,7 +17,7 @@ const CHANNEL_COLORS = {
 };
 
 const RECURSOS_FIXOS = [
-  { id:"__bem-estar", icone:"📱", titulo:"Guia Bem-estar Digital", url:"bem-estar-digital.html", desc:"Conceitos, hábitos e ferramentas para uma relação saudável com o digital" },
+  { id:"__bem-estar", icone:"📱", titulo:"Guia Bem-estar Digital", url:"/eu/bem-estar-digital.html", desc:"Conceitos, hábitos e ferramentas para uma relação saudável com o digital" },
   {
     id:"__fdr",
     icone:"⚽",
@@ -160,7 +160,7 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
                     </div>
                     <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                       {r.sublinks.map((sl, i) => {
-                        const slUrl = /^https?:\/\//i.test(sl.url) ? sl.url : sl.url;
+                        const slUrl = /^(https?:\/\/|\/)/.test(sl.url) ? sl.url : "#";
                         return (
                           <a key={i} href={slUrl} target="_blank" rel="noreferrer" style={{
                             display:"flex", flexDirection:"column", gap:2, padding:"10px 14px", borderRadius:12,
@@ -180,7 +180,7 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
                   </div>
                 );
               }
-              const safeUrl = /^https?:\/\//i.test(r.url) ? r.url : "#";
+              const safeUrl = /^(https?:\/\/|\/)/.test(r.url) ? r.url : "#";
               return (
                 <a key={r.id} href={safeUrl} target="_blank" rel="noreferrer" style={{
                   ...cardStyle, display:"flex", alignItems:"center", gap:14, textDecoration:"none", transition:"all 0.15s",
