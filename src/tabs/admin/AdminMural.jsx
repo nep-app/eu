@@ -106,7 +106,7 @@ export default function AdminMural() {
       }
       const docRef = await addDoc(collection(db, "forum", channel, "posts"), {
         user:"Teresa (GO)", username:"admin", color:"#22d3ee",
-        text:fPost, media:mediaUrl, time:nowFull(),
+        text:fPost, media:mediaUrl, time:nowFull(), ts:Date.now(),
         reactions:{ heart:0, fire:0, clap:0, think:0 }, reactedBy:{}, replies:[]
       });
       if (notificarForum && fPost.trim()) {
