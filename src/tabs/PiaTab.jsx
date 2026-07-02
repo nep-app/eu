@@ -137,7 +137,7 @@ function PersonaHint({ persona }) {
   );
 }
 
-function PanicBar({ question, user, onSkip }) {
+function PanicBar({ question, user }) {
   const [sent, setSent] = useState(false);
   async function pedirAjuda() {
     if (sent) return;
@@ -149,7 +149,7 @@ function PanicBar({ question, user, onSkip }) {
     setTimeout(() => setSent(false), 4000);
   }
   return (
-    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:10 }}>
+    <div style={{ marginTop:10 }}>
       {sent ? (
         <span style={{ fontSize:11, color:GRN, fontWeight:800 }}>✓ Teresa foi avisada!</span>
       ) : (
@@ -159,14 +159,6 @@ function PanicBar({ question, user, onSkip }) {
           fontSize:11, fontWeight:800, color:"#f43f5e",
         }}>
           🆘 Pedir ajuda à Teresa
-        </button>
-      )}
-      {onSkip && (
-        <button onClick={onSkip} style={{
-          background:"none", border:"none", cursor:"pointer",
-          fontSize:11, color:"#475569", textDecoration:"underline", padding:0,
-        }}>
-          Saltar →
         </button>
       )}
     </div>
@@ -363,10 +355,6 @@ export default function PiaTab({ user, data }) {
     saveField(q.sectionId, q.key, cur ? cur + ", " + chip : chip);
   }
 
-  function skipStep() {
-    if (safeStep < totalSteps - 1) setWizStep(s => s + 1);
-  }
-
   return (
     <div style={{ padding:"18px 16px", paddingBottom:100 }}>
 
@@ -516,7 +504,7 @@ export default function PiaTab({ user, data }) {
 
                 {/* Botão de pânico + saltar */}
                 {currentQ?.type !== "locked" && (
-                  <PanicBar question={currentQ.q} user={user} onSkip={safeStep < totalSteps - 1 ? skipStep : null} />
+                  <PanicBar question={currentQ.q} user={user} />
                 )}
 
                 {/* Navegação */}
