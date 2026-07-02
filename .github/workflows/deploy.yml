@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy to GitHub Pages
 
 on:
   push:
@@ -11,10 +11,10 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
-  build-and-deploy-pages:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,8 +22,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          # Tirei a linha do cache que estava a causar o erro do package-lock
 
-      - name: Instalar Dependências
+      - name: Instalar Dependências à Força
         run: npm install --no-package-lock
 
       - name: Build
@@ -35,14 +36,13 @@ jobs:
           VITE_FIREBASE_STORAGE_BUCKET:      ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID:              ${{ secrets.VITE_FIREBASE_APP_ID }}
-          VITE_FIREBASE_VAPID_KEY:           ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
 
-  deploy-pages:
-    needs: build-and-deploy-pages
+  deploy:
+    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -51,47 +51,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-  deploy-functions:
-    runs-on: ubuntu-latest
-    continue-on-error: true  # não bloqueia o site se as Functions falharem
-    steps:
-      - name: Verificar se o secret está configurado
-        id: check
-        env:
-          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: |
-          if [ -n "$SA" ]; then
-            echo "ok=true" >> $GITHUB_OUTPUT
-          else
-            echo "ok=false" >> $GITHUB_OUTPUT
-            echo "⚠️  FIREBASE_SERVICE_ACCOUNT não configurado — deploy das Functions saltado."
-            echo "    Segue as instruções em CLAUDE.md para ativar push notifications."
-          fi
-
-      - uses: actions/checkout@v4
-        if: steps.check.outputs.ok == 'true'
-
-      - uses: actions/setup-node@v4
-        if: steps.check.outputs.ok == 'true'
-        with:
-          node-version: 20
-
-      - name: Instalar firebase-tools
-        if: steps.check.outputs.ok == 'true'
-        run: npm install -g firebase-tools
-
-      - name: Instalar dependências das Functions
-        if: steps.check.outputs.ok == 'true'
-        run: npm install --no-package-lock
-        working-directory: functions
-
-      - name: Autenticar no Google Cloud
-        if: steps.check.outputs.ok == 'true'
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-
-      - name: Deploy Firebase Functions
-        if: steps.check.outputs.ok == 'true'
-        run: firebase deploy --only functions --project ${{ secrets.VITE_FIREBASE_PROJECT_ID }} --non-interactive
