@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { onSnapshot, doc, collection } from "firebase/firestore";
-import { db } from "./firebase.js";
+import { onSnapshot, doc, collection, setDoc } from "firebase/firestore";
+import { getToken } from "firebase/messaging";
+import { db, getMessagingInstance } from "./firebase.js";
 import { BG, CYN, BLUE, PRP, TXT_MUT } from "./theme.jsx";
 import logoImg from "./logo.png";
 
@@ -54,6 +55,28 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
       onSnapshot(doc(db, "medals", user.username), s => setAllData(p => ({...p, medals: s.exists() ? s.data() : {}}))),
     ];
     return () => unsubs.forEach(u => u());
+  }, [user]);
+
+  // Registo FCM push notifications
+  useEffect(() => {
+    if (!messaging || !user) return;
+    const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+    if (!vapidKey) return;
+
+    async function registarPush() {
+      try {
+        const perm = await Notification.requestPermission();
+        if (perm !== "granted") return;
+        const msging = await getMessagingInstance();
+        if (!msging) return;
+        const swReg = await navigator.serviceWorker.register("/eu/firebase-messaging-sw.js");
+        const token = await getToken(msging, { vapidKey, serviceWorkerRegistration: swReg });
+        if (token) {
+          await setDoc(doc(db, "fcmTokens", user.username), { token, updatedAt: Date.now() }, { merge: true });
+        }
+      } catch { /* silencioso — push é best-effort */ }
+    }
+    registarPush();
   }, [user]);
 
   // Tema escuro-violeta para teresa
