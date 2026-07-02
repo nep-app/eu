@@ -17,39 +17,39 @@ const SUB_TABS = [
 // sid (optional) overrides the parent section when saving — used for cross-section fusion
 const WIZARD_QUESTIONS = {
   s3b: [
-    { key:"swotF",    emoji:"💪", q:"O que faço bem e quais os pontos fortes do projeto?", ph:"Criatividade, boa comunicação, apoio da equipa...", rows:4,
+    { key:"swotF",    emoji:"💪", q:"O que faço bem e quais os pontos fortes do projeto?", ph:'Ex: "Sou boa a comunicar com os jovens e a equipa apoia sempre as minhas ideias."', rows:4,
       chips:["Criatividade","Comunicação","Empatia","Conhecimento local","Boa equipa","Motivação","Rede de contactos"] },
-    { key:"swotFraq", emoji:"⚠️", q:"Onde posso melhorar? Quais os pontos fracos?", ph:"Falta de experiência, recursos limitados, tempo escasso...", rows:4,
+    { key:"swotFraq", emoji:"⚠️", q:"Onde posso melhorar? Quais os pontos fracos?", ph:'Ex: "Ainda não tenho muita experiência e tenho pouco tempo para preparar as sessões."', rows:4,
       chips:["Pouca experiência","Recursos limitados","Tempo curto","Equipa pequena","Pouca visibilidade"] },
-    { key:"swotOp",   emoji:"🌟", q:"Que oportunidades externas posso aproveitar?", ph:"Apoios da câmara, interesse da comunidade, parcerias...", rows:4,
+    { key:"swotOp",   emoji:"🌟", q:"Que oportunidades externas posso aproveitar?", ph:'Ex: "A câmara tem verba disponível este ano e há jovens interessados em participar."', rows:4,
       chips:["Apoio da câmara","Parceiros locais","Interesse dos jovens","Espaços disponíveis","Financiamento disponível"] },
-    { key:"swotR",    emoji:"🚨", q:"Que riscos ou obstáculos posso encontrar?", ph:"Falta de participação, orçamento incerto, conflitos de agenda...", rows:4,
+    { key:"swotR",    emoji:"🚨", q:"Que riscos ou obstáculos posso encontrar?", ph:'Ex: "Pode ser difícil manter os jovens motivados se houver conflitos de horário com a escola."', rows:4,
       chips:["Falta de participação","Orçamento incerto","Conflitos de agenda","Resistência inicial","Falta de espaço"] },
   ],
   s4: [
-    { key:"oQue",       emoji:"🎯", q:"O meu projeto é...", ph:'"Organizar sessões de cinema seguidas de debates."', rows:3,
+    { key:"oQue",       emoji:"🎯", q:"O meu projeto é...", ph:'Ex: "Um clube de leitura com discussão em grupo todas as sextas-feiras."', rows:3,
       chips:["Sessões de cinema + debate","Ateliers criativos","Workshops de competências","Atividades desportivas","Espaço de conversa aberto"] },
-    { key:"fundamento", emoji:"💡", q:"Faço isto porque...", ph:'"Muitos jovens não têm espaço para falar entre si."', rows:3,
+    { key:"fundamento", emoji:"💡", q:"Faço isto porque...", ph:'Ex: "Muitos jovens não têm espaço para falar entre si."', rows:3,
       chips:["Vi uma necessidade nos jovens","Os jovens pediram","Faz parte do projeto de estágio","A instituição precisa de dinamismo","Não há espaço seguro para isso na comunidade"],
-      persona:{ name:"Rita (ludoteca Parede)", text:"No meu espaço os jovens ficam sempre no telemóvel e nunca falam entre si. Quero criar momentos para isso." } },
-    { key:"objetivos",  emoji:"🏁", q:"O objetivo é...", ph:'"Promover reflexão crítica, diálogo e consciência social."', rows:3,
+      persona:{ name:"Rita (ludoteca Parede)", text:"Nos últimos 3 meses reparei que os 15 jovens que frequentam a ludoteca quase não interagem entre si — cada um no seu telemóvel, mesmo sentados lado a lado. Foi isso que me fez querer criar um espaço estruturado para conversarem." } },
+    { key:"objetivos",  emoji:"🏁", q:"O objetivo é...", ph:'Ex: "Promover reflexão crítica, diálogo e consciência social."', rows:3,
       chips:["Desenvolver competências sociais","Aumentar a autoestima","Criar laços entre jovens","Promover participação ativa","Reduzir comportamentos de risco","Capacitar para a vida adulta"],
-      persona:{ name:"Tiago (polo Alcabideche)", text:"Para que os jovens aprendam a exprimir-se, a trabalhar em equipa e a lidar com conflitos de forma saudável." } },
-    { key:"metas",      emoji:"📊", q:"A minha meta concreta é...", ph:'"4 sessões por mês, de outubro a junho, com 8+ participantes."', rows:3,
+      persona:{ name:"Tiago (polo Alcabideche)", text:"Trabalho com um grupo de 12 jovens entre os 14 e os 17 anos que têm dificuldade em resolver conflitos sem gritar ou desistir da conversa. Quero que, até ao final do ano, consigam usar pelo menos uma técnica de mediação que aprenderam nas sessões." } },
+    { key:"metas",      emoji:"📊", q:"A minha meta concreta é...", ph:'Ex: "4 sessões por mês, de outubro a junho, com 8+ participantes."', rows:3,
       chips:["1 sessão por semana","2 sessões por mês","4 sessões por mês","6 sessões ao longo do ano","8+ participantes por sessão","10+ participantes"],
-      persona:{ name:"Rita (ludoteca Parede)", text:"Quatro sessões por mês, de outubro a junho, com pelo menos 6 jovens em cada." } },
+      persona:{ name:"Rita (ludoteca Parede)", text:"Defini 4 sessões por mês porque é o ritmo que consigo preparar bem sem sobrecarregar a equipa — testei em outubro, correu bem, e por isso mantive esse número o resto do ano." } },
     { key:"onde",          emoji:"📍", q:"Vai acontecer em...", ph:"Sala polivalente da ludoteca", rows:1, chips:[] },
     { key:"atividadesList", emoji:"📅", q:"As atividades planeadas:", type:"activities" },
-    { key:"recursos",      emoji:"🧰", q:"Vou precisar de...", ph:'"Projetor, computador, filmes, cadeiras."', rows:3,
+    { key:"recursos",      emoji:"🧰", q:"Vou precisar de...", ph:'Ex: "Um espaço fechado, ligação à internet e alguns snacks para os intervalos."', rows:3,
       chips:["Projetor","Computador","Material impresso","Sala","Microfone","Câmara fotográfica"] },
     // avaliacao moved to mon tab (s5 wizard, sid:"s4")
   ],
   s5: [
     // Cross-section fusion: avaliacao belongs to s4 but flows naturally here
-    { key:"avaliacao", sid:"s4", emoji:"📏", q:"Como vou saber que correu bem?", ph:'"Se os jovens vierem voluntariamente e trouxerem amigos, correu bem."', rows:3,
+    { key:"avaliacao", sid:"s4", emoji:"📏", q:"Como vou saber que correu bem?", ph:'Ex: "Registo o número de participantes em cada sessão e peço um feedback rápido no final."', rows:3,
       chips:["Aumento da participação","Feedback positivo dos jovens","Objetivos cumpridos","Jovens voltam às sessões","Menos conflitos no espaço"],
-      persona:{ name:"Tiago (polo Alcabideche)", text:"Se os jovens vierem voluntariamente e trouxerem amigos, é porque correu bem." } },
-    { key:"periodicidade", emoji:"🔄", q:"Vou fazer revisões...", ph:'"Todos os meses vou verificar se as sessões estão a acontecer."', rows:2,
+      persona:{ name:"Tiago (polo Alcabideche)", text:"Uso uma folha de presenças em cada sessão e, no fim de cada mês, peço aos jovens para responderem a 3 perguntas rápidas sobre o que gostaram e o que mudavam. Se a taxa de participação subir e as respostas forem positivas, sei que está a resultar." } },
+    { key:"periodicidade", emoji:"🔄", q:"Vou fazer revisões...", ph:'Ex: "Reservo a última sexta-feira de cada mês para rever como está a correr o projeto."', rows:2,
       chips:["Semanalmente","De 2 em 2 semanas","Mensalmente","Bimensalmente","Depois de cada sessão"] },
     { key:"revisoesList",  emoji:"📝", q:"Registo de revisões:", type:"revisoes" },
   ],
@@ -317,9 +317,7 @@ export default function PiaTab({ user, data }) {
     const sd = piaData[sec.id] || {};
     return s + sec.fields.filter(f => fieldFilled(f, sd)).length;
   }, 0);
-  const sentFilled = uData.piaSentFilled || 0;
-  const sentTotal  = uData.piaSentTotal  || totalFields || 1;
-  const progress   = uData.piaSaved ? Math.round((sentFilled / sentTotal) * 100) : 0;
+  const progress   = totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0;
   const sectionsForTab = PIA_SECTIONS.filter(s => s.sub === subTab);
 
   function tabHasUnlocked(tabId) {
@@ -334,7 +332,7 @@ export default function PiaTab({ user, data }) {
   }
 
   // Wizard: Teresa on raiox / proj / mon
-  const isWizardTab = isTeresa && ["raiox","proj","mon"].includes(subTab);
+  const isWizardTab = ["raiox","proj","mon"].includes(subTab);
   const wizardSids  = WIZARD_SIDS[subTab] || [];
   const wizardQuestions = wizardSids.flatMap(sid => {
     // For mon: s5 wizard may reference s4 data (avaliacao) even if s5 is unlocked
