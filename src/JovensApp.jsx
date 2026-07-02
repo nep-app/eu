@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { onSnapshot, doc, collection, setDoc } from "firebase/firestore";
-import { getToken } from "firebase/messaging";
 import { db, getMessagingInstance } from "./firebase.js";
 import { BG, CYN, BLUE, PRP, TXT_MUT } from "./theme.jsx";
 import logoImg from "./logo.png";
@@ -69,6 +68,7 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
         if (perm !== "granted") return;
         const msging = await getMessagingInstance();
         if (!msging) return;
+        const { getToken } = await import("firebase/messaging");
         const swReg = await navigator.serviceWorker.register("/eu/firebase-messaging-sw.js");
         const token = await getToken(msging, { vapidKey, serviceWorkerRegistration: swReg });
         if (token) {
