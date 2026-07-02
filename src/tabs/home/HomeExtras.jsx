@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { doc, setDoc, addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, BLUE, PNK, YLW, INP, Btn, TXT_MUT, GRN } from "../../theme.jsx";
-import { nowFull, getWeekKey, fmtDate, isOverdue, SPECIAL_USERS, JEEP_LIST } from "../../data.js";
+import { nowFull, getWeekKey, fmtDate, isOverdue, SPECIAL_USERS } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
 
 export default function HomeExtras({ user, data, setTab }) {
@@ -10,7 +10,7 @@ export default function HomeExtras({ user, data, setTab }) {
   const [mensagemTexto, setMensagemTexto]           = useState("");
   const [mensagemAnonima, setMensagemAnonima]       = useState(false);
   const [mensagemEnviadaSucesso, setMensagemEnviadaSucesso] = useState(false);
-  const [destinatarios, setDestinatarios]           = useState(["admin"]);
+  const destinatarios = ["admin"];
 
   const uData              = data.userData || {};
   const rankingDados       = data.leaderboard || {};
@@ -28,17 +28,6 @@ export default function HomeExtras({ user, data, setTab }) {
     .sort((a, b) => (b.xp || 0) - (a.xp || 0))
     .slice(0, 3)
     .sort(() => Math.random() - 0.5);
-
-  // Peers visíveis no seletor (excluir próprio user, demo, ricardo)
-  const peerList = JEEP_LIST.filter(j =>
-    j.username !== user.username && j.username !== "demo" && j.username !== "ricardo"
-  );
-
-  function toggleDestinatario(id) {
-    setDestinatarios(prev =>
-      prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]
-    );
-  }
 
   function getDayStreakUpdate() {
     const today     = new Date().toDateString();
@@ -78,17 +67,6 @@ export default function HomeExtras({ user, data, setTab }) {
         ts, lida: false
       });
     }
-
-    const peers = destinatarios.filter(d => d !== "admin");
-    const remetente = mensagemAnonima ? "Alguém" : user.realName;
-    const preview = mensagemTexto.trim().substring(0, 50);
-    await Promise.all(peers.map(uname =>
-      addDoc(collection(db, "notifications", uname, "items"), {
-        from: mensagemAnonima ? "anonimo" : user.username,
-        text: `💬 ${remetente}: "${preview}${mensagemTexto.length > 50 ? "…" : ""}"`,
-        date: nowFull(), read: false, ts: Date.now()
-      })
-    ));
 
     const newHistory = [...(data.history || []), { date:nowFull(), action:"Enviou uma mensagem", ts, xp:5 }];
     await setDoc(doc(db, "userData", user.username), { history:newHistory, weekXp:(uData.weekXp||0)+5 }, { merge:true });
@@ -207,32 +185,7 @@ export default function HomeExtras({ user, data, setTab }) {
           </div>
         ) : (
           <>
-            {/* Seletor de destinatários */}
-            <div style={{ marginBottom:10 }}>
-              <div style={{ fontSize:11, fontWeight:900, color: light ? "#4b5563" : "#7da3c4", textTransform:"uppercase", letterSpacing:1, marginBottom:6 }}>Para:</div>
-              <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                {/* Teresa (GO) */}
-                <button onClick={() => toggleDestinatario("admin")} style={{
-                  padding:"5px 12px", borderRadius:20, fontSize:11, fontWeight:800, cursor:"pointer", border:"none",
-                  background: destinatarios.includes("admin") ? `${CYN}20` : "rgba(255,255,255,0.06)",
-                  color: destinatarios.includes("admin") ? CYN : "#64748b",
-                  boxShadow: destinatarios.includes("admin") ? `0 0 0 1.5px ${CYN}50` : "none",
-                }}>
-                  {destinatarios.includes("admin") ? "✓ " : ""}Teresa (GO)
-                </button>
-                {/* Peers */}
-                {peerList.map(peer => (
-                  <button key={peer.username} onClick={() => toggleDestinatario(peer.username)} style={{
-                    padding:"5px 12px", borderRadius:20, fontSize:11, fontWeight:800, cursor:"pointer", border:"none",
-                    background: destinatarios.includes(peer.username) ? `${peer.color || CYN}20` : "rgba(255,255,255,0.06)",
-                    color: destinatarios.includes(peer.username) ? (peer.color || CYN) : "#64748b",
-                    boxShadow: destinatarios.includes(peer.username) ? `0 0 0 1.5px ${peer.color || CYN}50` : "none",
-                  }}>
-                    {destinatarios.includes(peer.username) ? "✓ " : ""}{peer.name.split(" ")[0]}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <div style={{ fontSize:11, fontWeight:900, color: light ? "#4b5563" : "#7da3c4", textTransform:"uppercase", letterSpacing:1, marginBottom:8 }}>Para: Teresa (GO)</div>
 
             <textarea value={mensagemTexto} onChange={e => setMensagemTexto(e.target.value)}
               style={{ ...INP, minHeight:80, resize:"none", marginBottom:10 }}
