@@ -10,8 +10,10 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: "pages"
+  # Não cancelar deployments em progresso: deixar as produções em curso
+  # terminarem evita deployments órfãos presos no environment do Pages.
+  cancel-in-progress: false
 
 jobs:
   build:
