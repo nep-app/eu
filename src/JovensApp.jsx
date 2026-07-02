@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { onSnapshot, doc, collection, setDoc } from "firebase/firestore";
-import { db, getMessagingInstance } from "./firebase.js";
+import { onSnapshot, doc, collection } from "firebase/firestore";
+import { db } from "./firebase.js";
 import { BG, CYN, BLUE, PRP, TXT_MUT } from "./theme.jsx";
 import logoImg from "./logo.png";
 
@@ -56,28 +56,19 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
     return () => unsubs.forEach(u => u());
   }, [user]);
 
-  // Registo FCM push notifications
+  // Limpeza: remove qualquer service worker de push (firebase-messaging-sw.js)
+  // registado por uma versão anterior — estava a entrar em conflito com o
+  // service worker da PWA e a deixar a app com ecrã preto.
   useEffect(() => {
-    if (!messaging || !user) return;
-    const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
-    if (!vapidKey) return;
-
-    async function registarPush() {
-      try {
-        const perm = await Notification.requestPermission();
-        if (perm !== "granted") return;
-        const msging = await getMessagingInstance();
-        if (!msging) return;
-        const { getToken } = await import("firebase/messaging");
-        const swReg = await navigator.serviceWorker.register("/eu/firebase-messaging-sw.js");
-        const token = await getToken(msging, { vapidKey, serviceWorkerRegistration: swReg });
-        if (token) {
-          await setDoc(doc(db, "fcmTokens", user.username), { token, updatedAt: Date.now() }, { merge: true });
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      regs.forEach(reg => {
+        if (reg.active?.scriptURL?.includes("firebase-messaging-sw.js")) {
+          reg.unregister();
         }
-      } catch { /* silencioso — push é best-effort */ }
-    }
-    registarPush();
-  }, [user]);
+      });
+    }).catch(() => {});
+  }, []);
 
   // Tema escuro-violeta para teresa
   useEffect(() => {

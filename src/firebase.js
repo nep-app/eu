@@ -16,14 +16,3 @@ export const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
-
-// Dynamic import — só carrega firebase/messaging quando chamado, nunca ao iniciar
-export async function getMessagingInstance() {
-  try {
-    const { getMessaging, isSupported } = await import("firebase/messaging");
-    const ok = await isSupported();
-    return ok ? getMessaging(app) : null;
-  } catch {
-    return null;
-  }
-}
