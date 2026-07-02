@@ -137,6 +137,42 @@ function PersonaHint({ persona }) {
   );
 }
 
+function PanicBar({ question, user, onSkip }) {
+  const [sent, setSent] = useState(false);
+  async function pedirAjuda() {
+    if (sent) return;
+    await addDoc(collection(db, "adminNotificacoes"), {
+      tipo: "AJUDA_PIA", jovem: user.username,
+      pergunta: question, ts: Date.now(), lida: false,
+    });
+    setSent(true);
+    setTimeout(() => setSent(false), 4000);
+  }
+  return (
+    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:10 }}>
+      {sent ? (
+        <span style={{ fontSize:11, color:GRN, fontWeight:800 }}>✓ Teresa foi avisada!</span>
+      ) : (
+        <button onClick={pedirAjuda} style={{
+          background:"rgba(244,63,94,0.08)", border:"1px solid rgba(244,63,94,0.25)",
+          borderRadius:8, padding:"6px 12px", cursor:"pointer",
+          fontSize:11, fontWeight:800, color:"#f43f5e",
+        }}>
+          🆘 Pedir ajuda à Teresa
+        </button>
+      )}
+      {onSkip && (
+        <button onClick={onSkip} style={{
+          background:"none", border:"none", cursor:"pointer",
+          fontSize:11, color:"#475569", textDecoration:"underline", padding:0,
+        }}>
+          Saltar →
+        </button>
+      )}
+    </div>
+  );
+}
+
 function SwotGrid({ secData, onSave }) {
   const quadrants = [
     { key:"swotF",    label:"💪 Pontos Fortes",  color:"#22c55e", bg:"rgba(34,197,94,0.08)",  border:"rgba(34,197,94,0.25)",  ph:"O que fazes bem? Quais os teus pontos fortes pessoais e do projeto?" },
@@ -478,16 +514,9 @@ export default function PiaTab({ user, data }) {
                   </div>
                 )}
 
-                {/* Botão de pânico */}
-                {currentQ?.type !== "locked" && safeStep < totalSteps - 1 && (
-                  <div style={{ textAlign:"center", marginTop:8 }}>
-                    <button onClick={skipStep} style={{
-                      background:"none", border:"none", cursor:"pointer",
-                      fontSize:11, color:"#475569", textDecoration:"underline", padding:0,
-                    }}>
-                      Não sei agora — saltar →
-                    </button>
-                  </div>
+                {/* Botão de pânico + saltar */}
+                {currentQ?.type !== "locked" && (
+                  <PanicBar question={currentQ.q} user={user} onSkip={safeStep < totalSteps - 1 ? skipStep : null} />
                 )}
 
                 {/* Navegação */}
