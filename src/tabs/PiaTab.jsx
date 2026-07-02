@@ -1,9 +1,10 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { doc, setDoc, updateDoc, addDoc, collection, arrayUnion } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { CARD, SL, INP, CYN, GRN, TXT_MUT, PNK } from "../theme.jsx";
 import { PIA_SECTIONS, nowFull, nowLabel, getWeekKey } from "../data.js";
 import { ThemeCtx } from "../JovensApp.jsx";
+import { openPiaPrint } from "../piaPrint.js";
 
 const SUB_TABS = [
   { id:"diag",  label:"🔍 Diagnóstico" },
@@ -12,6 +13,60 @@ const SUB_TABS = [
   { id:"proj",  label:"🚀 Projeto" },
   { id:"mon",   label:"📈 Monitorização" },
 ];
+
+const WIZARD_QUESTIONS = {
+  s3b: [
+    { key:"swotF",    emoji:"💪", q:"O que faço bem e quais os pontos fortes do projeto?", ph:"Criatividade, boa comunicação, apoio da equipa...", rows:4, chips:["Criatividade","Comunicação","Empatia","Conhecimento local","Boa equipa","Motivação"] },
+    { key:"swotFraq", emoji:"⚠️", q:"Onde posso melhorar? Quais os pontos fracos?",        ph:"Falta de experiência, recursos limitados, tempo escasso...", rows:4, chips:["Pouca experiência","Recursos limitados","Tempo curto","Equipa pequena","Pouca visibilidade"] },
+    { key:"swotOp",   emoji:"🌟", q:"Que oportunidades externas posso aproveitar?",         ph:"Apoios da câmara, interesse da comunidade, parcerias...", rows:4, chips:["Apoio da câmara","Parceiros locais","Interesse dos jovens","Espaços disponíveis","Financiamento"] },
+    { key:"swotR",    emoji:"🚨", q:"Que riscos ou obstáculos posso encontrar?",            ph:"Falta de participação, orçamento incerto, conflitos de agenda...", rows:4, chips:["Falta de participação","Orçamento incerto","Conflitos de agenda","Resistência inicial","Falta de espaço"] },
+  ],
+  s4: [
+    { key:"oQue",          emoji:"🎯", q:"O meu projeto é...",               ph:'"Organizar sessões de cinema seguidas de debates."', rows:3, chips:["Sessões de cinema + debate","Ateliers criativos","Workshops de competências","Atividades desportivas","Espaço de conversa aberto"] },
+    { key:"fundamento",    emoji:"💡", q:"Faço isto porque...",               ph:'"Muitos jovens não têm espaço para falar e refletir juntos."', rows:3, chips:[] },
+    { key:"objetivos",     emoji:"🏁", q:"O objetivo é...",                   ph:'"Promover reflexão crítica, diálogo e consciência social."', rows:3, chips:[] },
+    { key:"metas",         emoji:"📊", q:"A minha meta concreta é...",        ph:'"Realizar 6 sessões durante o ano com 8+ participantes cada."', rows:3, chips:[] },
+    { key:"onde",          emoji:"📍", q:"Vai acontecer em...",               ph:"Sala polivalente da ludoteca", rows:1, chips:[] },
+    { key:"atividadesList", emoji:"📅", q:"As atividades planeadas:",         type:"activities" },
+    { key:"recursos",      emoji:"🧰", q:"Vou precisar de...",                ph:'"Projetor, computador, filmes, cadeiras."', rows:3, chips:["Projetor","Computador","Material impresso","Sala","Microfone","Câmara fotográfica"] },
+    { key:"avaliacao",     emoji:"📏", q:"Sei que correu bem quando...",      ph:'"Os participantes ficam satisfeitos e continuam a vir."', rows:3, chips:[] },
+  ],
+  s5: [
+    { key:"periodicidade", emoji:"🔄", q:"Vou fazer revisões...", ph:'"Todos os meses vou verificar se as sessões estão a acontecer."', rows:2, chips:["Semanalmente","De 2 em 2 semanas","Mensalmente","Bimensalmente","Depois de cada sessão"] },
+    { key:"revisoesList",  emoji:"📝", q:"Registo de revisões:",  type:"revisoes" },
+  ],
+};
+
+const WIZARD_SIDS = { raiox:["s3b"], proj:["s4"], mon:["s5"] };
+
+function VoiceButton({ onResult }) {
+  const [listening, setListening] = useState(false);
+  const SR = typeof window !== "undefined" && (window.SpeechRecognition || window.webkitSpeechRecognition);
+  if (!SR) return null;
+  function start() {
+    if (listening) return;
+    setListening(true);
+    const rec = new SR();
+    rec.lang = "pt-PT";
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.onresult = e => { onResult(e.results[0][0].transcript); setListening(false); };
+    rec.onerror = () => setListening(false);
+    rec.onend = () => setListening(false);
+    rec.start();
+  }
+  return (
+    <button onClick={start} style={{
+      flexShrink:0, background: listening ? "rgba(239,68,68,0.15)" : "rgba(139,92,246,0.12)",
+      border: listening ? "1.5px solid rgba(239,68,68,0.5)" : "1.5px solid rgba(139,92,246,0.35)",
+      borderRadius:10, padding:"10px 12px", cursor:"pointer",
+      color: listening ? "#ef4444" : "#a78bfa", fontWeight:800, fontSize:11,
+      display:"flex", alignItems:"center", gap:4,
+    }}>
+      {listening ? "⏹" : "🎙"}
+    </button>
+  );
+}
 
 function SwotGrid({ secData, onSave }) {
   const quadrants = [
@@ -126,6 +181,9 @@ export default function PiaTab({ user, data }) {
   const piaData     = uData.piaData     || {};
   const [subTab, setSubTab] = useState("diag");
   const [sending, setSending] = useState(false);
+  const [wizStep, setWizStep] = useState(0);
+
+  useEffect(() => { setWizStep(0); }, [subTab]);
 
   function saveField(sectionId, key, val) {
     const newSectionData = { ...(piaData[sectionId] || {}), [key]: val };
@@ -179,7 +237,6 @@ export default function PiaTab({ user, data }) {
     const sd = piaData[sec.id] || {};
     return s + sec.fields.filter(f => fieldFilled(f, sd)).length;
   }, 0);
-  // Progress only reflects what was sent to Teresa, not just filled locally
   const sentFilled = uData.piaSentFilled || 0;
   const sentTotal  = uData.piaSentTotal  || totalFields || 1;
   const progress   = uData.piaSaved ? Math.round((sentFilled / sentTotal) * 100) : 0;
@@ -198,12 +255,40 @@ export default function PiaTab({ user, data }) {
     });
   }
 
+  // Wizard mode: Teresa user on raiox/proj/mon
+  const isWizardTab = isTeresa && ["raiox","proj","mon"].includes(subTab);
+  const wizardSids = WIZARD_SIDS[subTab] || [];
+  const wizardQuestions = wizardSids.flatMap(sid =>
+    piaUnlocked[sid]
+      ? (WIZARD_QUESTIONS[sid] || []).map(q => ({ ...q, sectionId:sid }))
+      : [{ type:"locked", sectionId:sid }]
+  );
+  const totalSteps = wizardQuestions.length;
+  const safeStep = Math.min(wizStep, Math.max(0, totalSteps - 1));
+  const currentQ = wizardQuestions[safeStep];
+
+  function appendChip(q, chip) {
+    const cur = piaData[q.sectionId]?.[q.key] || "";
+    const newVal = cur ? cur + ", " + chip : chip;
+    saveField(q.sectionId, q.key, newVal);
+  }
+
   return (
     <div style={{ padding:"18px 16px", paddingBottom:100 }}>
 
       {/* HEADER */}
       <div style={{ ...CARD, background:"rgba(14,36,68,0.9)", marginBottom:16 }}>
-        <div style={{ fontSize:13, fontWeight:900, color:CYN, marginBottom:4 }}>📋 Plano Individual de Ação</div>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+          <div style={{ fontSize:13, fontWeight:900, color:CYN, marginBottom:4 }}>📋 Plano Individual de Ação</div>
+          {unlockedCount > 0 && (
+            <button onClick={() => openPiaPrint(piaData, piaUnlocked, user.name || user.username)} style={{
+              flexShrink:0, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.14)",
+              borderRadius:10, padding:"6px 12px", color:"#94a3b8", fontWeight:800, fontSize:11, cursor:"pointer",
+            }}>
+              ⬇ PDF
+            </button>
+          )}
+        </div>
         <div style={{ fontSize:12, color:"#94a3b8", lineHeight:1.6, marginBottom: unlockedCount > 0 ? 14 : 0 }}>
           A Teresa vai desbloqueando as secções à medida que o programa avança.
         </div>
@@ -250,90 +335,216 @@ export default function PiaTab({ user, data }) {
             })}
           </div>
 
-          {/* SECTIONS FOR ACTIVE SUB-TAB */}
-          {sectionsForTab.map((sec) => {
-            const unlocked = piaUnlocked[sec.id];
-            const secData  = piaData[sec.id] || {};
-            const visibleFields = sec.fields;
-            const filled = visibleFields.filter(f => fieldFilled(f, secData)).length;
-
-            if (!unlocked) {
-              return (
-                <div key={sec.id + subTab} style={{ ...CARD, opacity:0.5, marginBottom:12 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                    <span style={{ fontSize:28 }}>🔐</span>
-                    <div>
-                      <div style={{ fontSize:13, fontWeight:900, color:"#64748b" }}>{sec.title}</div>
-                      <div style={{ fontSize:11, color:"#475569", marginTop:2 }}>A Teresa vai desbloquear esta secção quando for altura</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            }
-
-            return (
-              <div key={sec.id + subTab} style={{ ...CARD, marginBottom:12 }}>
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                    <span style={{ fontSize:22 }}>{sec.icon}</span>
-                    <div style={{ fontSize:13, fontWeight:900, color:"#f1f5f9" }}>{sec.title}</div>
-                  </div>
-                  <div style={{ fontSize:10, fontWeight:900, color: filled === visibleFields.length ? GRN : CYN }}>
-                    {filled}/{visibleFields.length}
-                  </div>
-                </div>
-                <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-                  {visibleFields.map(f => (
-                    <div key={f.key}>
-                      {f.type !== "swot" && (
-                        <div style={{ fontSize:11, fontWeight:800, color: light ? "#475569" : "#94a3b8", marginBottom:6, textTransform:"uppercase", letterSpacing:0.6 }}>
-                          {f.label}
-                        </div>
-                      )}
-                      {f.type === "swot" ? (
-                        <SwotGrid secData={secData} onSave={(key, val) => saveField(sec.id, key, val)} />
-                      ) : f.type === "activities" ? (
-                        <AtividadesEditor list={secData[f.key] || []} onChange={val => saveField(sec.id, f.key, val)} />
-                      ) : f.type === "revisoes" ? (
-                        <RevisoesEditor list={secData[f.key] || []} onChange={val => saveField(sec.id, f.key, val)} />
-                      ) : f.rows === 1 ? (
-                        <input value={secData[f.key] || ""} onChange={e => saveField(sec.id, f.key, e.target.value)}
-                          placeholder={f.ph} style={{ ...INP, marginBottom:0 }} />
-                      ) : (
-                        <textarea value={secData[f.key] || ""} onChange={e => saveField(sec.id, f.key, e.target.value)}
-                          placeholder={f.ph} rows={f.rows} style={{ ...INP, resize:"vertical", marginBottom:0 }} />
-                      )}
-                    </div>
-                  ))}
-                </div>
+          {/* ── WIZARD VIEW (Teresa, raiox / proj / mon) ───────────────── */}
+          {isWizardTab ? (
+            totalSteps === 0 ? (
+              <div style={{ ...CARD, textAlign:"center", padding:"40px 20px" }}>
+                <div style={{ fontSize:36, marginBottom:10 }}>🔐</div>
+                <div style={{ fontSize:13, fontWeight:800, color:"#64748b" }}>Secção bloqueada</div>
+                <div style={{ fontSize:11, color:"#475569", marginTop:4 }}>A Teresa vai desbloquear quando for altura.</div>
               </div>
-            );
-          })}
+            ) : (
+              <>
+                {/* Progress bar */}
+                <div style={{ marginBottom:6 }}>
+                  <div style={{ height:4, background:"rgba(255,255,255,0.07)", borderRadius:4, overflow:"hidden" }}>
+                    <div style={{ height:"100%", width:`${((safeStep+1)/totalSteps)*100}%`, background:`linear-gradient(90deg,${CYN},${GRN})`, borderRadius:4, transition:"width 0.35s" }} />
+                  </div>
+                  <div style={{ display:"flex", justifyContent:"flex-end", marginTop:4, fontSize:10, fontWeight:800, color:"#64748b" }}>
+                    {safeStep+1} / {totalSteps}
+                  </div>
+                </div>
 
-          {/* GUARDAR / ENVIAR */}
-          <div style={{ display:"flex", gap:8, marginTop:8 }}>
-            <button onClick={() => alert("✓ Guardado! As tuas respostas estão a ser guardadas automaticamente.")} style={{
-              flex:1, padding:"14px", borderRadius:14,
-              background: isTeresa ? "rgba(80,40,140,0.14)" : "rgba(255,255,255,0.06)",
-              border: isTeresa ? "1.5px solid rgba(80,40,140,0.35)" : "1.5px solid rgba(255,255,255,0.12)",
-              color: isTeresa ? "#4a3878" : "#94a3b8", fontWeight:900, fontSize:13, cursor:"pointer",
-            }}>
-              💾 Guardar Privado
-            </button>
-            <button onClick={enviarTeresa} disabled={sending} style={{
-              flex:2, padding:"14px", borderRadius:14,
-              background: uData.piaSaved ? `${GRN}18` : GRN,
-              border: uData.piaSaved ? `1.5px solid ${GRN}50` : "none",
-              color: uData.piaSaved ? GRN : "#071529",
-              fontWeight:900, fontSize:13, cursor:sending ? "default" : "pointer",
-            }}>
-              {sending ? "A enviar..." : uData.piaSaved ? "🔄 Atualizar PIA" : "🚀 Enviar à Teresa"}
-            </button>
-          </div>
-          {uData.piaSaved && uData.piaSavedAt && (
-            <div style={{ textAlign:"center", fontSize:10, color: light ? "#334155" : "#475569", marginTop:6 }}>
-              Último envio: {uData.piaSavedAt}
-            </div>
+                {currentQ?.type === "locked" ? (
+                  <div style={{ ...CARD, textAlign:"center", padding:"40px 20px", opacity:0.6 }}>
+                    <div style={{ fontSize:40, marginBottom:10 }}>🔐</div>
+                    <div style={{ fontSize:13, fontWeight:800, color:"#64748b" }}>Secção bloqueada</div>
+                  </div>
+                ) : (
+                  <div style={{ ...CARD }}>
+                    <div style={{ fontSize:28, marginBottom:12 }}>{currentQ.emoji}</div>
+                    <div style={{ fontSize:17, fontWeight:800, color: isTeresa ? "#c4b8f3" : "#f1f5f9", marginBottom:18, lineHeight:1.5 }}>
+                      {currentQ.q}
+                    </div>
+
+                    {currentQ.type === "activities" ? (
+                      <AtividadesEditor
+                        list={piaData[currentQ.sectionId]?.[currentQ.key] || []}
+                        onChange={val => saveField(currentQ.sectionId, currentQ.key, val)}
+                      />
+                    ) : currentQ.type === "revisoes" ? (
+                      <RevisoesEditor
+                        list={piaData[currentQ.sectionId]?.[currentQ.key] || []}
+                        onChange={val => saveField(currentQ.sectionId, currentQ.key, val)}
+                      />
+                    ) : (
+                      <>
+                        {currentQ.chips?.length > 0 && (
+                          <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:12 }}>
+                            {currentQ.chips.map(chip => (
+                              <button key={chip} onClick={() => appendChip(currentQ, chip)} style={{
+                                padding:"6px 13px", borderRadius:20, fontSize:11, fontWeight:800, cursor:"pointer",
+                                background:"rgba(255,255,255,0.05)", border:"1.5px solid rgba(255,255,255,0.10)",
+                                color:"#94a3b8", transition:"all 0.15s",
+                              }}>
+                                {chip}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        <div style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
+                          {currentQ.rows === 1 ? (
+                            <input
+                              value={piaData[currentQ.sectionId]?.[currentQ.key] || ""}
+                              onChange={e => saveField(currentQ.sectionId, currentQ.key, e.target.value)}
+                              placeholder={currentQ.ph}
+                              style={{ ...INP, flex:1, marginBottom:0 }}
+                              autoFocus
+                            />
+                          ) : (
+                            <textarea
+                              value={piaData[currentQ.sectionId]?.[currentQ.key] || ""}
+                              onChange={e => saveField(currentQ.sectionId, currentQ.key, e.target.value)}
+                              placeholder={currentQ.ph}
+                              rows={currentQ.rows || 3}
+                              style={{ ...INP, flex:1, resize:"vertical", marginBottom:0 }}
+                              autoFocus
+                            />
+                          )}
+                          <VoiceButton onResult={text => {
+                            const cur = piaData[currentQ.sectionId]?.[currentQ.key] || "";
+                            saveField(currentQ.sectionId, currentQ.key, cur ? cur + " " + text : text);
+                          }} />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Nav buttons */}
+                <div style={{ display:"flex", gap:8, marginTop:12 }}>
+                  {safeStep > 0 && (
+                    <button onClick={() => setWizStep(s => s - 1)} style={{
+                      flex:1, padding:14, borderRadius:14,
+                      border: isTeresa ? "1.5px solid rgba(100,80,180,0.35)" : "1.5px solid rgba(255,255,255,0.1)",
+                      background: isTeresa ? "rgba(18,14,38,0.72)" : "rgba(255,255,255,0.04)",
+                      color: isTeresa ? "#c4b8f3" : "#94a3b8", fontWeight:900, fontSize:13, cursor:"pointer",
+                    }}>← Anterior</button>
+                  )}
+                  {safeStep < totalSteps - 1 ? (
+                    <button onClick={() => setWizStep(s => s + 1)} style={{
+                      flex:2, padding:14, borderRadius:14,
+                      background:`${CYN}18`, border:`1.5px solid ${CYN}50`,
+                      color:CYN, fontWeight:900, fontSize:13, cursor:"pointer",
+                    }}>Seguinte →</button>
+                  ) : (
+                    <button onClick={enviarTeresa} disabled={sending} style={{
+                      flex:2, padding:14, borderRadius:14, border:"none",
+                      background: uData.piaSaved ? `${GRN}18` : GRN,
+                      border: uData.piaSaved ? `1.5px solid ${GRN}50` : "none",
+                      color: uData.piaSaved ? GRN : "#071529",
+                      fontWeight:900, fontSize:13, cursor:sending ? "default" : "pointer",
+                    }}>
+                      {sending ? "A enviar..." : uData.piaSaved ? "🔄 Atualizar PIA" : "🚀 Enviar à Teresa"}
+                    </button>
+                  )}
+                </div>
+
+                {uData.piaSaved && uData.piaSavedAt && (
+                  <div style={{ textAlign:"center", fontSize:10, color:"#475569", marginTop:6 }}>
+                    Último envio: {uData.piaSavedAt}
+                  </div>
+                )}
+              </>
+            )
+          ) : (
+            /* ── CLASSIC VIEW (diag / atrib, or non-Teresa on any tab) ─ */
+            <>
+              {sectionsForTab.map((sec) => {
+                const unlocked = piaUnlocked[sec.id];
+                const secData  = piaData[sec.id] || {};
+                const visibleFields = sec.fields;
+                const filled = visibleFields.filter(f => fieldFilled(f, secData)).length;
+
+                if (!unlocked) {
+                  return (
+                    <div key={sec.id + subTab} style={{ ...CARD, opacity:0.5, marginBottom:12 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                        <span style={{ fontSize:28 }}>🔐</span>
+                        <div>
+                          <div style={{ fontSize:13, fontWeight:900, color:"#64748b" }}>{sec.title}</div>
+                          <div style={{ fontSize:11, color:"#475569", marginTop:2 }}>A Teresa vai desbloquear esta secção quando for altura</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={sec.id + subTab} style={{ ...CARD, marginBottom:12 }}>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                        <span style={{ fontSize:22 }}>{sec.icon}</span>
+                        <div style={{ fontSize:13, fontWeight:900, color:"#f1f5f9" }}>{sec.title}</div>
+                      </div>
+                      <div style={{ fontSize:10, fontWeight:900, color: filled === visibleFields.length ? GRN : CYN }}>
+                        {filled}/{visibleFields.length}
+                      </div>
+                    </div>
+                    <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+                      {visibleFields.map(f => (
+                        <div key={f.key}>
+                          {f.type !== "swot" && (
+                            <div style={{ fontSize:11, fontWeight:800, color: light ? "#475569" : "#94a3b8", marginBottom:6, textTransform:"uppercase", letterSpacing:0.6 }}>
+                              {f.label}
+                            </div>
+                          )}
+                          {f.type === "swot" ? (
+                            <SwotGrid secData={secData} onSave={(key, val) => saveField(sec.id, key, val)} />
+                          ) : f.type === "activities" ? (
+                            <AtividadesEditor list={secData[f.key] || []} onChange={val => saveField(sec.id, f.key, val)} />
+                          ) : f.type === "revisoes" ? (
+                            <RevisoesEditor list={secData[f.key] || []} onChange={val => saveField(sec.id, f.key, val)} />
+                          ) : f.rows === 1 ? (
+                            <input value={secData[f.key] || ""} onChange={e => saveField(sec.id, f.key, e.target.value)}
+                              placeholder={f.ph} style={{ ...INP, marginBottom:0 }} />
+                          ) : (
+                            <textarea value={secData[f.key] || ""} onChange={e => saveField(sec.id, f.key, e.target.value)}
+                              placeholder={f.ph} rows={f.rows} style={{ ...INP, resize:"vertical", marginBottom:0 }} />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* GUARDAR / ENVIAR */}
+              <div style={{ display:"flex", gap:8, marginTop:8 }}>
+                <button onClick={() => alert("✓ Guardado! As tuas respostas estão a ser guardadas automaticamente.")} style={{
+                  flex:1, padding:"14px", borderRadius:14,
+                  background: isTeresa ? "rgba(80,40,140,0.14)" : "rgba(255,255,255,0.06)",
+                  border: isTeresa ? "1.5px solid rgba(80,40,140,0.35)" : "1.5px solid rgba(255,255,255,0.12)",
+                  color: isTeresa ? "#4a3878" : "#94a3b8", fontWeight:900, fontSize:13, cursor:"pointer",
+                }}>
+                  💾 Guardar Privado
+                </button>
+                <button onClick={enviarTeresa} disabled={sending} style={{
+                  flex:2, padding:"14px", borderRadius:14,
+                  background: uData.piaSaved ? `${GRN}18` : GRN,
+                  border: uData.piaSaved ? `1.5px solid ${GRN}50` : "none",
+                  color: uData.piaSaved ? GRN : "#071529",
+                  fontWeight:900, fontSize:13, cursor:sending ? "default" : "pointer",
+                }}>
+                  {sending ? "A enviar..." : uData.piaSaved ? "🔄 Atualizar PIA" : "🚀 Enviar à Teresa"}
+                </button>
+              </div>
+              {uData.piaSaved && uData.piaSavedAt && (
+                <div style={{ textAlign:"center", fontSize:10, color: light ? "#334155" : "#475569", marginTop:6 }}>
+                  Último envio: {uData.piaSavedAt}
+                </div>
+              )}
+            </>
           )}
         </>
       )}

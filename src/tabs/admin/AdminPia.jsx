@@ -3,6 +3,7 @@ import { doc, setDoc, addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, INP } from "../../theme.jsx";
 import { ALLOWED_USERNAMES, JEEP_LIST, PIA_SECTIONS, nowFull } from "../../data.js";
+import { openPiaPrint } from "../../piaPrint.js";
 
 const JEEP_8 = JEEP_LIST.filter(j => !["teresa","ricardo","demo"].includes(j.username));
 
@@ -104,6 +105,12 @@ export default function AdminPia({ allShared }) {
                     <button onClick={() => setExpanded(p => ({ ...p, [j.username]: !p[j.username] }))}
                       style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:6, padding:"3px 8px", fontSize:10, fontWeight:800, color:"#94a3b8", cursor:"pointer" }}>
                       {isExpanded ? "▲ fechar" : "▼ ver tudo"}
+                    </button>
+                  )}
+                  {filledSections.length > 0 && (
+                    <button onClick={() => openPiaPrint(piaData, uData.piaUnlocked || {}, j.name || j.username)}
+                      style={{ background:"rgba(56,189,248,0.08)", border:"1px solid rgba(56,189,248,0.2)", borderRadius:6, padding:"3px 8px", fontSize:10, fontWeight:800, color:CYN, cursor:"pointer" }}>
+                      ⬇ PDF
                     </button>
                   )}
                   {filledSections.length > 0 && (
