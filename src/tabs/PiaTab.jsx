@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { doc, setDoc, updateDoc, addDoc, collection, arrayUnion } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { CARD, SL, INP, CYN, GRN, TXT_MUT, PNK } from "../theme.jsx";
@@ -14,57 +14,126 @@ const SUB_TABS = [
   { id:"mon",   label:"📈 Monitorização" },
 ];
 
+// sid (optional) overrides the parent section when saving — used for cross-section fusion
 const WIZARD_QUESTIONS = {
   s3b: [
-    { key:"swotF",    emoji:"💪", q:"O que faço bem e quais os pontos fortes do projeto?", ph:"Criatividade, boa comunicação, apoio da equipa...", rows:4, chips:["Criatividade","Comunicação","Empatia","Conhecimento local","Boa equipa","Motivação"] },
-    { key:"swotFraq", emoji:"⚠️", q:"Onde posso melhorar? Quais os pontos fracos?",        ph:"Falta de experiência, recursos limitados, tempo escasso...", rows:4, chips:["Pouca experiência","Recursos limitados","Tempo curto","Equipa pequena","Pouca visibilidade"] },
-    { key:"swotOp",   emoji:"🌟", q:"Que oportunidades externas posso aproveitar?",         ph:"Apoios da câmara, interesse da comunidade, parcerias...", rows:4, chips:["Apoio da câmara","Parceiros locais","Interesse dos jovens","Espaços disponíveis","Financiamento"] },
-    { key:"swotR",    emoji:"🚨", q:"Que riscos ou obstáculos posso encontrar?",            ph:"Falta de participação, orçamento incerto, conflitos de agenda...", rows:4, chips:["Falta de participação","Orçamento incerto","Conflitos de agenda","Resistência inicial","Falta de espaço"] },
+    { key:"swotF",    emoji:"💪", q:"O que faço bem e quais os pontos fortes do projeto?", ph:"Criatividade, boa comunicação, apoio da equipa...", rows:4,
+      chips:["Criatividade","Comunicação","Empatia","Conhecimento local","Boa equipa","Motivação","Rede de contactos"] },
+    { key:"swotFraq", emoji:"⚠️", q:"Onde posso melhorar? Quais os pontos fracos?", ph:"Falta de experiência, recursos limitados, tempo escasso...", rows:4,
+      chips:["Pouca experiência","Recursos limitados","Tempo curto","Equipa pequena","Pouca visibilidade"] },
+    { key:"swotOp",   emoji:"🌟", q:"Que oportunidades externas posso aproveitar?", ph:"Apoios da câmara, interesse da comunidade, parcerias...", rows:4,
+      chips:["Apoio da câmara","Parceiros locais","Interesse dos jovens","Espaços disponíveis","Financiamento disponível"] },
+    { key:"swotR",    emoji:"🚨", q:"Que riscos ou obstáculos posso encontrar?", ph:"Falta de participação, orçamento incerto, conflitos de agenda...", rows:4,
+      chips:["Falta de participação","Orçamento incerto","Conflitos de agenda","Resistência inicial","Falta de espaço"] },
   ],
   s4: [
-    { key:"oQue",          emoji:"🎯", q:"O meu projeto é...",               ph:'"Organizar sessões de cinema seguidas de debates."', rows:3, chips:["Sessões de cinema + debate","Ateliers criativos","Workshops de competências","Atividades desportivas","Espaço de conversa aberto"] },
-    { key:"fundamento",    emoji:"💡", q:"Faço isto porque...",               ph:'"Muitos jovens não têm espaço para falar e refletir juntos."', rows:3, chips:[] },
-    { key:"objetivos",     emoji:"🏁", q:"O objetivo é...",                   ph:'"Promover reflexão crítica, diálogo e consciência social."', rows:3, chips:[] },
-    { key:"metas",         emoji:"📊", q:"A minha meta concreta é...",        ph:'"Realizar 6 sessões durante o ano com 8+ participantes cada."', rows:3, chips:[] },
-    { key:"onde",          emoji:"📍", q:"Vai acontecer em...",               ph:"Sala polivalente da ludoteca", rows:1, chips:[] },
-    { key:"atividadesList", emoji:"📅", q:"As atividades planeadas:",         type:"activities" },
-    { key:"recursos",      emoji:"🧰", q:"Vou precisar de...",                ph:'"Projetor, computador, filmes, cadeiras."', rows:3, chips:["Projetor","Computador","Material impresso","Sala","Microfone","Câmara fotográfica"] },
-    { key:"avaliacao",     emoji:"📏", q:"Sei que correu bem quando...",      ph:'"Os participantes ficam satisfeitos e continuam a vir."', rows:3, chips:[] },
+    { key:"oQue",       emoji:"🎯", q:"O meu projeto é...", ph:'"Organizar sessões de cinema seguidas de debates."', rows:3,
+      chips:["Sessões de cinema + debate","Ateliers criativos","Workshops de competências","Atividades desportivas","Espaço de conversa aberto"] },
+    { key:"fundamento", emoji:"💡", q:"Faço isto porque...", ph:'"Muitos jovens não têm espaço para falar entre si."', rows:3,
+      chips:["Vi uma necessidade nos jovens","Os jovens pediram","Faz parte do projeto de estágio","A instituição precisa de dinamismo","Não há espaço seguro para isso na comunidade"],
+      persona:{ name:"Rita (ludoteca Parede)", text:"No meu espaço os jovens ficam sempre no telemóvel e nunca falam entre si. Quero criar momentos para isso." } },
+    { key:"objetivos",  emoji:"🏁", q:"O objetivo é...", ph:'"Promover reflexão crítica, diálogo e consciência social."', rows:3,
+      chips:["Desenvolver competências sociais","Aumentar a autoestima","Criar laços entre jovens","Promover participação ativa","Reduzir comportamentos de risco","Capacitar para a vida adulta"],
+      persona:{ name:"Tiago (polo Alcabideche)", text:"Para que os jovens aprendam a exprimir-se, a trabalhar em equipa e a lidar com conflitos de forma saudável." } },
+    { key:"metas",      emoji:"📊", q:"A minha meta concreta é...", ph:'"4 sessões por mês, de outubro a junho, com 8+ participantes."', rows:3,
+      chips:["1 sessão por semana","2 sessões por mês","4 sessões por mês","6 sessões ao longo do ano","8+ participantes por sessão","10+ participantes"],
+      persona:{ name:"Rita (ludoteca Parede)", text:"Quatro sessões por mês, de outubro a junho, com pelo menos 6 jovens em cada." } },
+    { key:"onde",          emoji:"📍", q:"Vai acontecer em...", ph:"Sala polivalente da ludoteca", rows:1, chips:[] },
+    { key:"atividadesList", emoji:"📅", q:"As atividades planeadas:", type:"activities" },
+    { key:"recursos",      emoji:"🧰", q:"Vou precisar de...", ph:'"Projetor, computador, filmes, cadeiras."', rows:3,
+      chips:["Projetor","Computador","Material impresso","Sala","Microfone","Câmara fotográfica"] },
+    // avaliacao moved to mon tab (s5 wizard, sid:"s4")
   ],
   s5: [
-    { key:"periodicidade", emoji:"🔄", q:"Vou fazer revisões...", ph:'"Todos os meses vou verificar se as sessões estão a acontecer."', rows:2, chips:["Semanalmente","De 2 em 2 semanas","Mensalmente","Bimensalmente","Depois de cada sessão"] },
-    { key:"revisoesList",  emoji:"📝", q:"Registo de revisões:",  type:"revisoes" },
+    // Cross-section fusion: avaliacao belongs to s4 but flows naturally here
+    { key:"avaliacao", sid:"s4", emoji:"📏", q:"Como vou saber que correu bem?", ph:'"Se os jovens vierem voluntariamente e trouxerem amigos, correu bem."', rows:3,
+      chips:["Aumento da participação","Feedback positivo dos jovens","Objetivos cumpridos","Jovens voltam às sessões","Menos conflitos no espaço"],
+      persona:{ name:"Tiago (polo Alcabideche)", text:"Se os jovens vierem voluntariamente e trouxerem amigos, é porque correu bem." } },
+    { key:"periodicidade", emoji:"🔄", q:"Vou fazer revisões...", ph:'"Todos os meses vou verificar se as sessões estão a acontecer."', rows:2,
+      chips:["Semanalmente","De 2 em 2 semanas","Mensalmente","Bimensalmente","Depois de cada sessão"] },
+    { key:"revisoesList",  emoji:"📝", q:"Registo de revisões:", type:"revisoes" },
   ],
 };
 
 const WIZARD_SIDS = { raiox:["s3b"], proj:["s4"], mon:["s5"] };
+const VOICE_ERRORS = {
+  "not-allowed":  "Microfone bloqueado. Vai às definições e autoriza o microfone.",
+  "audio-capture":"Não foi possível aceder ao microfone.",
+  "network":      "Erro de rede — o reconhecimento de voz precisa de ligação.",
+  "no-speech":    null, // silencioso
+};
 
 function VoiceButton({ onResult }) {
   const [listening, setListening] = useState(false);
-  function start() {
+  const recRef = useRef(null);
+
+  async function toggle() {
+    if (listening) { recRef.current?.stop(); return; }
+
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { alert("O teu browser não suporta reconhecimento de voz. Tenta no Chrome."); return; }
-    if (listening) return;
+
+    // Pedir permissão de microfone explicitamente primeiro
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(t => t.stop()); // só para o trigger de permissão
+    } catch {
+      alert("Precisas de autorizar o microfone nas definições do browser.");
+      return;
+    }
+
     setListening(true);
     const rec = new SR();
+    recRef.current = rec;
     rec.lang = "pt-PT";
     rec.continuous = false;
     rec.interimResults = false;
     rec.onresult = e => { onResult(e.results[0][0].transcript); setListening(false); };
-    rec.onerror = () => setListening(false);
+    rec.onerror = e => {
+      const msg = VOICE_ERRORS[e.error];
+      if (msg !== null) alert(msg || `Erro: ${e.error}`);
+      setListening(false);
+    };
     rec.onend = () => setListening(false);
-    try { rec.start(); } catch { setListening(false); }
+    try { rec.start(); } catch(e) { alert(`Não foi possível iniciar: ${e.message}`); setListening(false); }
   }
+
   return (
-    <button onClick={start} style={{
-      flexShrink:0, background: listening ? "rgba(239,68,68,0.15)" : "rgba(139,92,246,0.12)",
-      border: listening ? "1.5px solid rgba(239,68,68,0.5)" : "1.5px solid rgba(139,92,246,0.35)",
+    <button onClick={toggle} title={listening ? "Parar" : "Falar"} style={{
+      flexShrink:0, background: listening ? "rgba(239,68,68,0.18)" : "rgba(139,92,246,0.12)",
+      border: listening ? "1.5px solid rgba(239,68,68,0.55)" : "1.5px solid rgba(139,92,246,0.35)",
       borderRadius:10, padding:"10px 12px", cursor:"pointer",
-      color: listening ? "#ef4444" : "#a78bfa", fontWeight:800, fontSize:14,
-      display:"flex", alignItems:"center", gap:4,
+      color: listening ? "#ef4444" : "#a78bfa", fontWeight:800, fontSize:15,
+      display:"flex", alignItems:"center", gap:4, transition:"all 0.15s",
     }}>
       {listening ? "⏹" : "🎙"}
     </button>
+  );
+}
+
+function PersonaHint({ persona }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ marginBottom:10 }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        background:"none", border:"none", cursor:"pointer",
+        fontSize:11, fontWeight:800, color:"#7c3aed", padding:0,
+        display:"flex", alignItems:"center", gap:4,
+      }}>
+        <span style={{ fontSize:13 }}>💡</span>
+        {open ? "Fechar exemplo" : `Ver exemplo — ${persona.name}`}
+      </button>
+      {open && (
+        <div style={{ marginTop:8, padding:"10px 14px", borderRadius:10,
+          background:"rgba(139,92,246,0.08)", border:"1px solid rgba(139,92,246,0.22)",
+          fontSize:12, color:"#a78bfa", fontStyle:"italic", lineHeight:1.6 }}>
+          "{persona.text}"
+          <div style={{ fontSize:10, color:"#6d28d9", marginTop:4, fontStyle:"normal", fontWeight:800 }}>
+            — {persona.name}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -94,15 +163,9 @@ function SwotGrid({ secData, onSave }) {
 }
 
 function AtividadesEditor({ list = [], onChange }) {
-  function add() {
-    onChange([...list, { id: Date.now(), titulo:"", data:"", hora:"", local:"", descricao:"", recursos:"" }]);
-  }
-  function upd(idx, key, val) {
-    onChange(list.map((a, i) => i === idx ? { ...a, [key]: val } : a));
-  }
-  function remove(idx) {
-    onChange(list.filter((_, i) => i !== idx));
-  }
+  function add() { onChange([...list, { id: Date.now(), titulo:"", data:"", hora:"", local:"", descricao:"", recursos:"" }]); }
+  function upd(idx, key, val) { onChange(list.map((a, i) => i === idx ? { ...a, [key]: val } : a)); }
+  function remove(idx) { onChange(list.filter((_, i) => i !== idx)); }
   return (
     <div>
       {list.map((atv, idx) => (
@@ -135,15 +198,9 @@ function AtividadesEditor({ list = [], onChange }) {
 }
 
 function RevisoesEditor({ list = [], onChange }) {
-  function add() {
-    onChange([...list, { id: Date.now(), data: new Date().toISOString().split("T")[0], notas:"", ajustes:"" }]);
-  }
-  function upd(idx, key, val) {
-    onChange(list.map((r, i) => i === idx ? { ...r, [key]: val } : r));
-  }
-  function remove(idx) {
-    if (window.confirm("Apagar esta revisão?")) onChange(list.filter((_, i) => i !== idx));
-  }
+  function add() { onChange([...list, { id: Date.now(), data: new Date().toISOString().split("T")[0], notas:"", ajustes:"" }]); }
+  function upd(idx, key, val) { onChange(list.map((r, i) => i === idx ? { ...r, [key]: val } : r)); }
+  function remove(idx) { if (window.confirm("Apagar esta revisão?")) onChange(list.filter((_, i) => i !== idx)); }
   return (
     <div>
       {list.map((rev, idx) => (
@@ -215,24 +272,19 @@ export default function PiaTab({ user, data }) {
       weekXp: (uData.weekXp || 0) + xpGanho,
     }, { merge: true });
     await updateDoc(doc(db, "userData", user.username), {
-      piaHistorico: arrayUnion({
-        week: getWeekKey(), sentAt: ts,
-        piaData: piaData, ts: Date.now()
-      })
+      piaHistorico: arrayUnion({ week: getWeekKey(), sentAt: ts, piaData, ts: Date.now() })
     });
     const seccoesNomes = novasSeccoes.map(s => s.title).join(", ") || PIA_SECTIONS.filter(s => piaUnlocked[s.id]).map(s => s.title).join(", ");
     await addDoc(collection(db, "adminNotificacoes"), {
-      tipo: "PIA", jovem: user.username, ts: Date.now(), lida: false,
-      atualizado: jaEnviou, texto: seccoesNomes
+      tipo: "PIA", jovem: user.username, ts: Date.now(), lida: false, atualizado: jaEnviou, texto: seccoesNomes
     });
     setSending(false);
     alert(jaEnviou ? "PIA atualizado! 🔄" : "PIA enviado à Teresa! 🚀");
   }
 
   const unlockedCount = PIA_SECTIONS.filter(s => piaUnlocked[s.id]).length;
-
-  const totalFields = PIA_SECTIONS.reduce((s, sec) => piaUnlocked[sec.id] ? s + sec.fields.length : s, 0);
-  const filledFields = PIA_SECTIONS.reduce((s, sec) => {
+  const totalFields   = PIA_SECTIONS.reduce((s, sec) => piaUnlocked[sec.id] ? s + sec.fields.length : s, 0);
+  const filledFields  = PIA_SECTIONS.reduce((s, sec) => {
     if (!piaUnlocked[sec.id]) return s;
     const sd = piaData[sec.id] || {};
     return s + sec.fields.filter(f => fieldFilled(f, sd)).length;
@@ -240,13 +292,11 @@ export default function PiaTab({ user, data }) {
   const sentFilled = uData.piaSentFilled || 0;
   const sentTotal  = uData.piaSentTotal  || totalFields || 1;
   const progress   = uData.piaSaved ? Math.round((sentFilled / sentTotal) * 100) : 0;
-
   const sectionsForTab = PIA_SECTIONS.filter(s => s.sub === subTab);
 
   function tabHasUnlocked(tabId) {
     return PIA_SECTIONS.filter(s => s.sub === tabId).some(s => piaUnlocked[s.id]);
   }
-
   function tabAllFilled(tabId) {
     return PIA_SECTIONS.filter(s => s.sub === tabId).every(sec => {
       if (!piaUnlocked[sec.id]) return true;
@@ -255,22 +305,30 @@ export default function PiaTab({ user, data }) {
     });
   }
 
-  // Wizard mode: Teresa user on raiox/proj/mon
+  // Wizard: Teresa on raiox / proj / mon
   const isWizardTab = isTeresa && ["raiox","proj","mon"].includes(subTab);
-  const wizardSids = WIZARD_SIDS[subTab] || [];
-  const wizardQuestions = wizardSids.flatMap(sid =>
-    piaUnlocked[sid]
-      ? (WIZARD_QUESTIONS[sid] || []).map(q => ({ ...q, sectionId:sid }))
-      : [{ type:"locked", sectionId:sid }]
-  );
+  const wizardSids  = WIZARD_SIDS[subTab] || [];
+  const wizardQuestions = wizardSids.flatMap(sid => {
+    // For mon: s5 wizard may reference s4 data (avaliacao) even if s5 is unlocked
+    // We only gate on whether the parent sid is unlocked
+    if (!piaUnlocked[sid] && sid !== "s5") return [{ type:"locked", sectionId:sid }];
+    if (!piaUnlocked[sid]) return [{ type:"locked", sectionId:sid }];
+    return (WIZARD_QUESTIONS[sid] || []).map(q => ({
+      ...q,
+      sectionId: q.sid || sid, // sid override for cross-section fusion
+    }));
+  });
   const totalSteps = wizardQuestions.length;
-  const safeStep = Math.min(wizStep, Math.max(0, totalSteps - 1));
-  const currentQ = wizardQuestions[safeStep];
+  const safeStep   = Math.min(wizStep, Math.max(0, totalSteps - 1));
+  const currentQ   = wizardQuestions[safeStep];
 
   function appendChip(q, chip) {
     const cur = piaData[q.sectionId]?.[q.key] || "";
-    const newVal = cur ? cur + ", " + chip : chip;
-    saveField(q.sectionId, q.key, newVal);
+    saveField(q.sectionId, q.key, cur ? cur + ", " + chip : chip);
+  }
+
+  function skipStep() {
+    if (safeStep < totalSteps - 1) setWizStep(s => s + 1);
   }
 
   return (
@@ -317,7 +375,7 @@ export default function PiaTab({ user, data }) {
           <div style={{ display:"flex", gap:6, marginBottom:16, overflowX:"auto", paddingBottom:2 }}>
             {SUB_TABS.map(t => {
               const hasUnlocked = tabHasUnlocked(t.id);
-              const allFilled = hasUnlocked && tabAllFilled(t.id);
+              const allFilled   = hasUnlocked && tabAllFilled(t.id);
               return (
                 <button key={t.id} onClick={() => setSubTab(t.id)} style={{
                   flexShrink:0, padding:"8px 14px", borderRadius:20, fontSize:12, fontWeight:800,
@@ -325,7 +383,6 @@ export default function PiaTab({ user, data }) {
                   border: subTab === t.id ? `1.5px solid ${CYN}` : isTeresa ? "1.5px solid rgba(100,80,180,0.40)" : "1.5px solid rgba(255,255,255,0.08)",
                   background: subTab === t.id ? `${CYN}18` : isTeresa ? "rgba(18,14,38,0.72)" : "rgba(255,255,255,0.03)",
                   color: subTab === t.id ? CYN : hasUnlocked ? (isTeresa ? "#c4b8f3" : "#94a3b8") : (isTeresa ? "#9880c0" : "#64748b"),
-                  position:"relative",
                 }}>
                   {t.label}
                   {hasUnlocked && allFilled && <span style={{ marginLeft:4, color:GRN }}>✓</span>}
@@ -335,7 +392,7 @@ export default function PiaTab({ user, data }) {
             })}
           </div>
 
-          {/* ── WIZARD VIEW (Teresa, raiox / proj / mon) ───────────────── */}
+          {/* ── WIZARD (Teresa — raiox / proj / mon) ─────────────────── */}
           {isWizardTab ? (
             totalSteps === 0 ? (
               <div style={{ ...CARD, textAlign:"center", padding:"40px 20px" }}>
@@ -345,7 +402,7 @@ export default function PiaTab({ user, data }) {
               </div>
             ) : (
               <>
-                {/* Progress bar */}
+                {/* Progress */}
                 <div style={{ marginBottom:6 }}>
                   <div style={{ height:4, background:"rgba(255,255,255,0.07)", borderRadius:4, overflow:"hidden" }}>
                     <div style={{ height:"100%", width:`${((safeStep+1)/totalSteps)*100}%`, background:`linear-gradient(90deg,${CYN},${GRN})`, borderRadius:4, transition:"width 0.35s" }} />
@@ -362,10 +419,12 @@ export default function PiaTab({ user, data }) {
                   </div>
                 ) : (
                   <div style={{ ...CARD }}>
-                    <div style={{ fontSize:28, marginBottom:12 }}>{currentQ.emoji}</div>
-                    <div style={{ fontSize:17, fontWeight:800, color: isTeresa ? "#c4b8f3" : "#f1f5f9", marginBottom:18, lineHeight:1.5 }}>
+                    <div style={{ fontSize:26, marginBottom:10 }}>{currentQ.emoji}</div>
+                    <div style={{ fontSize:17, fontWeight:800, color: isTeresa ? "#c4b8f3" : "#f1f5f9", marginBottom:14, lineHeight:1.5 }}>
                       {currentQ.q}
                     </div>
+
+                    {currentQ.persona && <PersonaHint persona={currentQ.persona} />}
 
                     {currentQ.type === "activities" ? (
                       <AtividadesEditor
@@ -399,7 +458,6 @@ export default function PiaTab({ user, data }) {
                               onChange={e => saveField(currentQ.sectionId, currentQ.key, e.target.value)}
                               placeholder={currentQ.ph}
                               style={{ ...INP, flex:1, marginBottom:0 }}
-                              autoFocus
                             />
                           ) : (
                             <textarea
@@ -408,7 +466,6 @@ export default function PiaTab({ user, data }) {
                               placeholder={currentQ.ph}
                               rows={currentQ.rows || 3}
                               style={{ ...INP, flex:1, resize:"vertical", marginBottom:0 }}
-                              autoFocus
                             />
                           )}
                           <VoiceButton onResult={text => {
@@ -421,8 +478,20 @@ export default function PiaTab({ user, data }) {
                   </div>
                 )}
 
-                {/* Nav buttons */}
-                <div style={{ display:"flex", gap:8, marginTop:12 }}>
+                {/* Botão de pânico */}
+                {currentQ?.type !== "locked" && safeStep < totalSteps - 1 && (
+                  <div style={{ textAlign:"center", marginTop:8 }}>
+                    <button onClick={skipStep} style={{
+                      background:"none", border:"none", cursor:"pointer",
+                      fontSize:11, color:"#475569", textDecoration:"underline", padding:0,
+                    }}>
+                      Não sei agora — saltar →
+                    </button>
+                  </div>
+                )}
+
+                {/* Navegação */}
+                <div style={{ display:"flex", gap:8, marginTop:10 }}>
                   {safeStep > 0 && (
                     <button onClick={() => setWizStep(s => s - 1)} style={{
                       flex:1, padding:14, borderRadius:14,
@@ -439,7 +508,7 @@ export default function PiaTab({ user, data }) {
                     }}>Seguinte →</button>
                   ) : (
                     <button onClick={enviarTeresa} disabled={sending} style={{
-                      flex:2, padding:14, borderRadius:14, border:"none",
+                      flex:2, padding:14, borderRadius:14,
                       background: uData.piaSaved ? `${GRN}18` : GRN,
                       border: uData.piaSaved ? `1.5px solid ${GRN}50` : "none",
                       color: uData.piaSaved ? GRN : "#071529",
@@ -458,7 +527,7 @@ export default function PiaTab({ user, data }) {
               </>
             )
           ) : (
-            /* ── CLASSIC VIEW (diag / atrib, or non-Teresa on any tab) ─ */
+            /* ── CLASSIC VIEW (diag / atrib, ou jovens não-Teresa) ────── */
             <>
               {sectionsForTab.map((sec) => {
                 const unlocked = piaUnlocked[sec.id];
@@ -466,19 +535,17 @@ export default function PiaTab({ user, data }) {
                 const visibleFields = sec.fields;
                 const filled = visibleFields.filter(f => fieldFilled(f, secData)).length;
 
-                if (!unlocked) {
-                  return (
-                    <div key={sec.id + subTab} style={{ ...CARD, opacity:0.5, marginBottom:12 }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                        <span style={{ fontSize:28 }}>🔐</span>
-                        <div>
-                          <div style={{ fontSize:13, fontWeight:900, color:"#64748b" }}>{sec.title}</div>
-                          <div style={{ fontSize:11, color:"#475569", marginTop:2 }}>A Teresa vai desbloquear esta secção quando for altura</div>
-                        </div>
+                if (!unlocked) return (
+                  <div key={sec.id + subTab} style={{ ...CARD, opacity:0.5, marginBottom:12 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                      <span style={{ fontSize:28 }}>🔐</span>
+                      <div>
+                        <div style={{ fontSize:13, fontWeight:900, color:"#64748b" }}>{sec.title}</div>
+                        <div style={{ fontSize:11, color:"#475569", marginTop:2 }}>A Teresa vai desbloquear esta secção quando for altura</div>
                       </div>
                     </div>
-                  );
-                }
+                  </div>
+                );
 
                 return (
                   <div key={sec.id + subTab} style={{ ...CARD, marginBottom:12 }}>
@@ -519,16 +586,13 @@ export default function PiaTab({ user, data }) {
                 );
               })}
 
-              {/* GUARDAR / ENVIAR */}
               <div style={{ display:"flex", gap:8, marginTop:8 }}>
-                <button onClick={() => alert("✓ Guardado! As tuas respostas estão a ser guardadas automaticamente.")} style={{
+                <button onClick={() => alert("✓ As tuas respostas estão a ser guardadas automaticamente.")} style={{
                   flex:1, padding:"14px", borderRadius:14,
                   background: isTeresa ? "rgba(80,40,140,0.14)" : "rgba(255,255,255,0.06)",
                   border: isTeresa ? "1.5px solid rgba(80,40,140,0.35)" : "1.5px solid rgba(255,255,255,0.12)",
                   color: isTeresa ? "#4a3878" : "#94a3b8", fontWeight:900, fontSize:13, cursor:"pointer",
-                }}>
-                  💾 Guardar Privado
-                </button>
+                }}>💾 Guardar Privado</button>
                 <button onClick={enviarTeresa} disabled={sending} style={{
                   flex:2, padding:"14px", borderRadius:14,
                   background: uData.piaSaved ? `${GRN}18` : GRN,
