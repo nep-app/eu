@@ -41,9 +41,9 @@ const WIZARD_SIDS = { raiox:["s3b"], proj:["s4"], mon:["s5"] };
 
 function VoiceButton({ onResult }) {
   const [listening, setListening] = useState(false);
-  const SR = typeof window !== "undefined" && (window.SpeechRecognition || window.webkitSpeechRecognition);
-  if (!SR) return null;
   function start() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert("O teu browser não suporta reconhecimento de voz. Tenta no Chrome."); return; }
     if (listening) return;
     setListening(true);
     const rec = new SR();
@@ -53,14 +53,14 @@ function VoiceButton({ onResult }) {
     rec.onresult = e => { onResult(e.results[0][0].transcript); setListening(false); };
     rec.onerror = () => setListening(false);
     rec.onend = () => setListening(false);
-    rec.start();
+    try { rec.start(); } catch { setListening(false); }
   }
   return (
     <button onClick={start} style={{
       flexShrink:0, background: listening ? "rgba(239,68,68,0.15)" : "rgba(139,92,246,0.12)",
       border: listening ? "1.5px solid rgba(239,68,68,0.5)" : "1.5px solid rgba(139,92,246,0.35)",
       borderRadius:10, padding:"10px 12px", cursor:"pointer",
-      color: listening ? "#ef4444" : "#a78bfa", fontWeight:800, fontSize:11,
+      color: listening ? "#ef4444" : "#a78bfa", fontWeight:800, fontSize:14,
       display:"flex", alignItems:"center", gap:4,
     }}>
       {listening ? "⏹" : "🎙"}
