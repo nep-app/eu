@@ -96,4 +96,4 @@ jobs:
 
       - name: Deploy Firebase Functions
         if: steps.check.outputs.ok == 'true'
-        run: firebase deploy --only functions --project ${{ secrets.VITE_FIREBASE_PROJECT_ID }} --non-interactive
+        run: firebase deploy --only functions --project ${{ secrets.VITE_FIREBASE_PROJECT_ID }} --non-interactive --force
