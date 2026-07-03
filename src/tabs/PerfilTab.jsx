@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { doc, setDoc, collection, addDoc, getDocs, deleteDoc, query, where } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "../firebase.js";
+import { db, storage, registarPushNotifications } from "../firebase.js";
 import { CARD, SL, CYN, PNK, INP, Btn, SubTabs, RadarChart, BG, TXT_MUT } from "../theme.jsx";
 import {
   upd, nowLabel, nowFull, RODA_DIMS, ALL_MEDALS, DEF_RODA, DEF_CAP, getWeekKey
@@ -12,6 +12,25 @@ const DEF_CAP2 = { text:"", locked:false, revealed:false, lockedDate:"" };
 export default function PerfilTab({ user, data, features = {} }) {
   const [subTab, setSubTab] = useState("roda");
   const [expandedDim, setExpandedDim] = useState(null);
+  const [ativandoPush, setAtivandoPush] = useState(false);
+
+  const PUSH_ERROS = {
+    "sem-vapid-key":           "Configuração em falta — fala com quem geriu a app.",
+    "sem-service-worker":      "Este browser não suporta notificações push.",
+    "sem-notification-api":    "Este browser não suporta notificações push.",
+    "permissao-denied":        "Bloqueaste as notificações para esta app. Vai às definições do browser/telemóvel e permite notificações para este site.",
+    "permissao-default":       "Não confirmaste o pedido de permissão. Tenta novamente.",
+    "messaging-nao-suportado": "Este browser não suporta notificações push.",
+    "sem-token":               "Não foi possível gerar o registo. Tenta fechar e reabrir a app.",
+  };
+
+  async function ativarPush() {
+    setAtivandoPush(true);
+    const res = await registarPushNotifications(user.username);
+    setAtivandoPush(false);
+    if (res.ok) alert("✓ Notificações push ativadas com sucesso!");
+    else alert("Não foi possível ativar: " + (PUSH_ERROS[res.reason] || res.reason));
+  }
 
   const uData = data.userData || {};
   const roda = uData.roda || DEF_RODA;
@@ -544,6 +563,16 @@ export default function PerfilTab({ user, data, features = {} }) {
                 </div>
               </div>
             ))}
+          </div>
+
+          <div style={thm.card}>
+            <div style={thm.sl}>🔔 Notificações Push</div>
+            <div style={{ fontSize:13, color:thm.muted, lineHeight:1.6, marginBottom:20 }}>
+              Ativa para receberes avisos no telemóvel mesmo com a app fechada (mensagens, feedback da Teresa, etc.). Se já tinhas ativado antes, não faz mal carregar outra vez.
+            </div>
+            <Btn variant="dark" onClick={ativarPush} disabled={ativandoPush}>
+              {ativandoPush ? "A ativar..." : "🔔 ATIVAR NOTIFICAÇÕES PUSH"}
+            </Btn>
           </div>
 
           <div style={thm.card}>

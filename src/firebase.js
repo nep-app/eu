@@ -30,23 +30,30 @@ export async function getMessagingInstance() {
 
 // Pede permissão e guarda o token FCM para este username — chamado tanto
 // pelo JovensApp (jovens + conta teresa) como pelo TeresaAdmin (conta admin),
-// que são componentes completamente separados.
+// que são componentes completamente separados. Devolve { ok, reason } para
+// quem chamar (ex: botão manual no Perfil) poder mostrar o resultado real
+// em vez de falhar sempre em silêncio.
 export async function registarPushNotifications(username) {
   const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
-  if (!username || !vapidKey || !("serviceWorker" in navigator) || !("Notification" in window)) return;
+  if (!username)  return { ok:false, reason:"sem-username" };
+  if (!vapidKey)  return { ok:false, reason:"sem-vapid-key" };
+  if (!("serviceWorker" in navigator)) return { ok:false, reason:"sem-service-worker" };
+  if (!("Notification" in window))     return { ok:false, reason:"sem-notification-api" };
 
   try {
     if (Notification.permission !== "granted") {
       const perm = await Notification.requestPermission();
-      if (perm !== "granted") return;
+      if (perm !== "granted") return { ok:false, reason:`permissao-${perm}` };
     }
     const swReg = await navigator.serviceWorker.ready;
     const messaging = await getMessagingInstance();
-    if (!messaging) return;
+    if (!messaging) return { ok:false, reason:"messaging-nao-suportado" };
     const { getToken } = await import("firebase/messaging");
     const token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: swReg });
-    if (token) {
-      await setDoc(doc(db, "fcmTokens", username), { token, updatedAt: Date.now() }, { merge: true });
-    }
-  } catch { /* push é best-effort — nunca deve rebentar a app */ }
+    if (!token) return { ok:false, reason:"sem-token" };
+    await setDoc(doc(db, "fcmTokens", username), { token, updatedAt: Date.now() }, { merge: true });
+    return { ok:true };
+  } catch (err) {
+    return { ok:false, reason: err?.message || "erro-desconhecido" };
+  }
 }
