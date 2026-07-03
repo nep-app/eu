@@ -46,6 +46,7 @@ export async function registarPushNotifications(username) {
       if (perm !== "granted") return { ok:false, reason:`permissao-${perm}` };
     }
     const swReg = await navigator.serviceWorker.ready;
+    console.log("SW ready:", swReg.scope, swReg.active?.state);
     const messaging = await getMessagingInstance();
     if (!messaging) return { ok:false, reason:"messaging-nao-suportado" };
     const { getToken } = await import("firebase/messaging");
@@ -54,6 +55,8 @@ export async function registarPushNotifications(username) {
     await setDoc(doc(db, "fcmTokens", username), { token, updatedAt: Date.now() }, { merge: true });
     return { ok:true };
   } catch (err) {
-    return { ok:false, reason: err?.message || "erro-desconhecido" };
+    console.error("registarPushNotifications falhou:", err);
+    const detalhe = [err?.name, err?.code, err?.message].filter(Boolean).join(" | ");
+    return { ok:false, reason: detalhe || "erro-desconhecido" };
   }
 }
