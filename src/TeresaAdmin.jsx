@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { collection, onSnapshot, doc, getDoc, setDoc, query, orderBy } from "firebase/firestore";
-import { db } from "./firebase.js";
+import { db, registarPushNotifications } from "./firebase.js";
 import { BG, CYN, AppIcon } from "./theme.jsx";
 import { upd, getWeekKey, nowLabel, ALLOWED_USERNAMES, JEEP_LIST } from "./data.js";
 
@@ -30,6 +30,13 @@ export default function TeresaAdmin({ user, onLogout }) {
   const [adminNotifs, setAdminNotifs] = useState([]);
   const [activeQ, setActiveQ] = useState("");
   const [weekStartTs, setWeekStartTs] = useState(0);
+
+  // Registo de notificações push para a conta admin — este ecrã é um
+  // componente totalmente separado do JovensApp, por isso precisa do seu
+  // próprio registo (é aqui que o telemóvel da Teresa fica a "ouvir").
+  useEffect(() => {
+    if (user) registarPushNotifications(user.username);
+  }, [user]);
 
   // ── LIGAÇÃO CENTRAL AO FIREBASE ──
   useEffect(() => {

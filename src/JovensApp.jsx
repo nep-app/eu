@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { onSnapshot, doc, collection, setDoc } from "firebase/firestore";
-import { db, getMessagingInstance } from "./firebase.js";
+import { onSnapshot, doc, collection } from "firebase/firestore";
+import { db, registarPushNotifications } from "./firebase.js";
 import { BG, CYN, BLUE, PRP, TXT_MUT } from "./theme.jsx";
 import logoImg from "./logo.png";
 
@@ -70,27 +70,7 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
   // Registo de notificações push — reutiliza o ÚNICO service worker da PWA
   // (nunca regista um segundo), e falha em silêncio se algo não suportar.
   useEffect(() => {
-    if (!user) return;
-    const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
-    if (!vapidKey || !("serviceWorker" in navigator) || !("Notification" in window)) return;
-
-    async function registarPush() {
-      try {
-        if (Notification.permission !== "granted") {
-          const perm = await Notification.requestPermission();
-          if (perm !== "granted") return;
-        }
-        const swReg = await navigator.serviceWorker.ready;
-        const messaging = await getMessagingInstance();
-        if (!messaging) return;
-        const { getToken } = await import("firebase/messaging");
-        const token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: swReg });
-        if (token) {
-          await setDoc(doc(db, "fcmTokens", user.username), { token, updatedAt: Date.now() }, { merge: true });
-        }
-      } catch { /* push é best-effort — nunca deve rebentar a app */ }
-    }
-    registarPush();
+    if (user) registarPushNotifications(user.username);
   }, [user]);
 
   // Tema escuro-violeta para teresa

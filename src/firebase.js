@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, browserLocalPersistence, setPersistence } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -26,4 +26,27 @@ export async function getMessagingInstance() {
   } catch {
     return null;
   }
+}
+
+// Pede permissão e guarda o token FCM para este username — chamado tanto
+// pelo JovensApp (jovens + conta teresa) como pelo TeresaAdmin (conta admin),
+// que são componentes completamente separados.
+export async function registarPushNotifications(username) {
+  const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+  if (!username || !vapidKey || !("serviceWorker" in navigator) || !("Notification" in window)) return;
+
+  try {
+    if (Notification.permission !== "granted") {
+      const perm = await Notification.requestPermission();
+      if (perm !== "granted") return;
+    }
+    const swReg = await navigator.serviceWorker.ready;
+    const messaging = await getMessagingInstance();
+    if (!messaging) return;
+    const { getToken } = await import("firebase/messaging");
+    const token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: swReg });
+    if (token) {
+      await setDoc(doc(db, "fcmTokens", username), { token, updatedAt: Date.now() }, { merge: true });
+    }
+  } catch { /* push é best-effort — nunca deve rebentar a app */ }
 }
