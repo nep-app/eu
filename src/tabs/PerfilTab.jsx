@@ -539,6 +539,16 @@ export default function PerfilTab({ user, data, features = {} }) {
       {subTab === "info" && (
         <>
           <div style={thm.card}>
+            <div style={thm.sl}>🔔 Notificações Push</div>
+            <div style={{ fontSize:13, color:thm.muted, lineHeight:1.6, marginBottom:20 }}>
+              Ativa para receberes avisos no telemóvel mesmo com a app fechada (mensagens, feedback da Teresa, etc.). Se já tinhas ativado antes, não faz mal carregar outra vez.
+            </div>
+            <Btn variant="dark" onClick={ativarPush} disabled={ativandoPush}>
+              {ativandoPush ? "A ativar..." : "🔔 ATIVAR NOTIFICAÇÕES PUSH"}
+            </Btn>
+          </div>
+
+          <div style={thm.card}>
             <div style={thm.sl}>Como Usar a App</div>
             <div style={{ fontSize:12, color:thm.muted, lineHeight:1.6, marginBottom:16 }}>
               O JEEP EDUCA+ acompanha o teu percurso no programa. Aqui está um resumo rápido de cada área:
@@ -563,16 +573,6 @@ export default function PerfilTab({ user, data, features = {} }) {
                 </div>
               </div>
             ))}
-          </div>
-
-          <div style={thm.card}>
-            <div style={thm.sl}>🔔 Notificações Push</div>
-            <div style={{ fontSize:13, color:thm.muted, lineHeight:1.6, marginBottom:20 }}>
-              Ativa para receberes avisos no telemóvel mesmo com a app fechada (mensagens, feedback da Teresa, etc.). Se já tinhas ativado antes, não faz mal carregar outra vez.
-            </div>
-            <Btn variant="dark" onClick={ativarPush} disabled={ativandoPush}>
-              {ativandoPush ? "A ativar..." : "🔔 ATIVAR NOTIFICAÇÕES PUSH"}
-            </Btn>
           </div>
 
           <div style={thm.card}>
