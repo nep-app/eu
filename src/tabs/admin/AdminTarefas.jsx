@@ -16,6 +16,8 @@ export default function AdminTarefas() {
   const [editDue,     setEditDue]     = useState("");
   const [feedbackTxts, setFeedbackTxts] = useState({});
   const [feedbackOpen, setFeedbackOpen] = useState({});
+  const [feedbackPush, setFeedbackPush] = useState({});
+  const [pushTarefa,   setPushTarefa]   = useState(false);
 
   async function enviarFeedbackTarefa(t) {
     const txt = feedbackTxts[t.id]?.trim();
@@ -23,10 +25,11 @@ export default function AdminTarefas() {
     const contexto = t.text ? ` — sobre: "${t.text.substring(0, 60)}${t.text.length > 60 ? "…" : ""}"` : "";
     await addDoc(collection(db, "notifications", t.userId, "items"), {
       from:"teresa", text:`Teresa reagiu ao teu tarefa partilhada${contexto}: ${txt}`,
-      date:nowFull(), read:false, ts:Date.now(), tipo:"tarefa"
+      date:nowFull(), read:false, ts:Date.now(), tipo:"tarefa", push: !!feedbackPush[t.id]
     });
     setFeedbackTxts(p => ({ ...p, [t.id]: "" }));
     setFeedbackOpen(p => ({ ...p, [t.id]: false }));
+    setFeedbackPush(p => ({ ...p, [t.id]: false }));
     alert("Feedback enviado! ✓");
   }
 
@@ -65,9 +68,9 @@ export default function AdminTarefas() {
       ? `📋 A Teresa adicionou uma tarefa à tua lista: "${adminSuggTxt}"`
       : `📋 A Teresa propôs-te uma tarefa: "${adminSuggTxt}". Vai ao Início para aceitar ou recusar!`;
     await addDoc(collection(db, "notifications", targetUsr, "items"), {
-      from: "teresa", text: notifText, date: nowFull(), read: false, ts: Date.now(), tipo: "proposta"
+      from: "teresa", text: notifText, date: nowFull(), read: false, ts: Date.now(), tipo: "proposta", push: pushTarefa
     });
-    setAdminSuggTxt(""); setAdminSuggDue("");
+    setAdminSuggTxt(""); setAdminSuggDue(""); setPushTarefa(false);
     alert(isForcar ? "Tarefa adicionada diretamente!" : "Sugestão de tarefa enviada!");
   }
 
@@ -130,7 +133,12 @@ export default function AdminTarefas() {
         <input value={adminSuggTxt} onChange={e => setAdminSuggTxt(e.target.value)}
           placeholder="O que é preciso fazer?" style={INP} />
         <input type="date" value={adminSuggDue} onChange={e => setAdminSuggDue(e.target.value)}
-          style={{ ...INP, marginBottom:15 }} />
+          style={{ ...INP, marginBottom:10 }} />
+        <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom:12 }}>
+          <input type="checkbox" checked={pushTarefa} onChange={() => setPushTarefa(v => !v)}
+            style={{ accentColor:CYN, width:14, height:14 }} />
+          🔔 Enviar também como notificação push
+        </label>
         <Btn onClick={addAdminTodo}>
           {modo === "forcar" ? "Adicionar Tarefa ✅" : "Enviar Sugestão 📩"}
         </Btn>
@@ -177,14 +185,21 @@ export default function AdminTarefas() {
                       <button onClick={() => setFeedbackOpen(p => ({ ...p, [t.id]: !p[t.id] }))} style={{ background:"none", border:"none", color: feedbackOpen[t.id] ? CYN : "#64748b", fontSize:13, cursor:"pointer", padding:"2px 4px" }}>💬</button>
                     </div>
                     {feedbackOpen[t.id] && (
-                      <div style={{ display:"flex", gap:8, marginTop:8 }}>
-                        <input value={feedbackTxts[t.id] || ""} onChange={e => setFeedbackTxts(p => ({ ...p, [t.id]: e.target.value }))}
-                          placeholder={`Comentar tarefa de ${nomeJovem}…`}
-                          style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
-                        <button onClick={() => enviarFeedbackTarefa(t)}
-                          style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
-                          Enviar
-                        </button>
+                      <div style={{ marginTop:8 }}>
+                        <div style={{ display:"flex", gap:8, marginBottom:6 }}>
+                          <input value={feedbackTxts[t.id] || ""} onChange={e => setFeedbackTxts(p => ({ ...p, [t.id]: e.target.value }))}
+                            placeholder={`Comentar tarefa de ${nomeJovem}…`}
+                            style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                          <button onClick={() => enviarFeedbackTarefa(t)}
+                            style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
+                            Enviar
+                          </button>
+                        </div>
+                        <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:11, color:"#94a3b8", cursor:"pointer" }}>
+                          <input type="checkbox" checked={!!feedbackPush[t.id]} onChange={() => setFeedbackPush(p => ({ ...p, [t.id]: !p[t.id] }))}
+                            style={{ accentColor:CYN, width:13, height:13 }} />
+                          🔔 Enviar também como notificação push
+                        </label>
                       </div>
                     )}
                   </>

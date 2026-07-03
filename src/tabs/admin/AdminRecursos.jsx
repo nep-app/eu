@@ -11,6 +11,7 @@ export default function AdminRecursos() {
   const [url, setUrl] = useState("");
   const [desc, setDesc] = useState("");
   const [notificar, setNotificar] = useState(true);
+  const [pushRecurso, setPushRecurso] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [editando, setEditando] = useState(null);
   const [editDraft, setEditDraft] = useState({});
@@ -33,11 +34,11 @@ export default function AdminRecursos() {
         const preview = titulo.trim().substring(0, 60);
         await Promise.all(ALLOWED_USERNAMES.map(u =>
           addDoc(collection(db, "notifications", u, "items"), {
-            from:"teresa", text:`📚 Novo recurso disponível: ${preview}`, date:nowFull(), read:false, tipo:"recurso", ts:Date.now()
+            from:"teresa", text:`📚 Novo recurso disponível: ${preview}`, date:nowFull(), read:false, tipo:"recurso", ts:Date.now(), push: pushRecurso
           })
         ));
       }
-      setTitulo(""); setUrl(""); setDesc(""); setIcone("📄");
+      setTitulo(""); setUrl(""); setDesc(""); setIcone("📄"); setPushRecurso(false);
       alert("Recurso adicionado!" + (notificar ? " Todos os jovens foram notificados." : ""));
     } catch (e) { alert("Erro: " + e.message); }
     setEnviando(false);
@@ -84,19 +85,26 @@ export default function AdminRecursos() {
         <input value={desc} onChange={e => setDesc(e.target.value)}
           placeholder="Descrição curta (opcional)" style={{ ...INP }} />
 
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:4 }}>
+        <div style={{ display:"flex", flexDirection:"column", gap:6, marginTop:4, marginBottom:10 }}>
           <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:12, color:"#94a3b8", cursor:"pointer" }}>
             <input type="checkbox" checked={notificar} onChange={() => setNotificar(!notificar)}
               style={{ accentColor:CYN, width:15, height:15 }} />
             Notificar todos os jovens
           </label>
-          <button onClick={adicionarRecurso} disabled={enviando} style={{
-            background:`${CYN}20`, border:`1.5px solid ${CYN}40`, color:CYN,
-            borderRadius:12, padding:"10px 20px", fontWeight:900, fontSize:13, cursor:"pointer"
-          }}>
-            {enviando ? "A adicionar..." : "Adicionar"}
-          </button>
+          {notificar && (
+            <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:11, color:"#94a3b8", cursor:"pointer", marginLeft:23 }}>
+              <input type="checkbox" checked={pushRecurso} onChange={() => setPushRecurso(v => !v)}
+                style={{ accentColor:CYN, width:13, height:13 }} />
+              🔔 Enviar também como notificação push
+            </label>
+          )}
         </div>
+        <button onClick={adicionarRecurso} disabled={enviando} style={{
+          width:"100%", background:`${CYN}20`, border:`1.5px solid ${CYN}40`, color:CYN,
+          borderRadius:12, padding:"10px 20px", fontWeight:900, fontSize:13, cursor:"pointer"
+        }}>
+          {enviando ? "A adicionar..." : "Adicionar"}
+        </button>
       </div>
 
       {/* LISTA */}

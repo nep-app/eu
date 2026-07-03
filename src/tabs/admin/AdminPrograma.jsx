@@ -40,6 +40,8 @@ function PerguntaManager({ allShared, activeQ }) {
   const [arquivoOpen, setArquivoOpen] = useState(null);
   const [fbTxts, setFbTxts] = useState({});
   const [fbOpen, setFbOpen] = useState({});
+  const [fbPush, setFbPush] = useState({});
+  const [pushNovaPergunta, setPushNovaPergunta] = useState(false);
 
   async function enviarFbPergunta(j, resposta) {
     const txt = fbTxts[j.username]?.trim();
@@ -47,10 +49,11 @@ function PerguntaManager({ allShared, activeQ }) {
     const contexto = resposta ? ` — sobre: "${resposta.substring(0, 60)}${resposta.length > 60 ? "…" : ""}"` : "";
     await addDoc(collection(db, "notifications", j.username, "items"), {
       from:"teresa", text:`Teresa reagiu à tua resposta à Pergunta da Semana${contexto}: ${txt}`,
-      date:nowFull(), read:false, ts:Date.now(), tipo:"auto"
+      date:nowFull(), read:false, ts:Date.now(), tipo:"auto", push: !!fbPush[j.username]
     });
     setFbTxts(p => ({ ...p, [j.username]: "" }));
     setFbOpen(p => ({ ...p, [j.username]: false }));
+    setFbPush(p => ({ ...p, [j.username]: false }));
     alert("Feedback enviado! ✓");
   }
 
@@ -95,11 +98,11 @@ function PerguntaManager({ allShared, activeQ }) {
     for (const u of ALLOWED_USERNAMES) {
       await setDoc(doc(db, "userData", u), { answered: false }, { merge: true });
       await addDoc(collection(db, "notifications", u, "items"), {
-        from:"teresa", text:"💬 Nova pergunta da semana!", date:nowLabel(), read:false, tipo:"proposta"
+        from:"teresa", text:"💬 Nova pergunta da semana!", date:nowLabel(), read:false, tipo:"proposta", push: pushNovaPergunta
       });
     }
     alert("Pergunta publicada!");
-    setActiveQEdit(""); setOpt1(""); setOpt2(""); setOpt3("");
+    setActiveQEdit(""); setOpt1(""); setOpt2(""); setOpt3(""); setPushNovaPergunta(false);
   }
 
   return (
@@ -128,14 +131,21 @@ function PerguntaManager({ allShared, activeQ }) {
                 )}
               </div>
               {d.answered && fbOpen[j.username] && (
-                <div style={{ display:"flex", gap:8, marginTop:8 }}>
-                  <input value={fbTxts[j.username] || ""} onChange={e => setFbTxts(p => ({ ...p, [j.username]: e.target.value }))}
-                    placeholder={`Comentar resposta de ${j.name}…`}
-                    style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
-                  <button onClick={() => enviarFbPergunta(j, d.answerText)}
-                    style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
-                    Enviar
-                  </button>
+                <div style={{ marginTop:8 }}>
+                  <div style={{ display:"flex", gap:8, marginBottom:6 }}>
+                    <input value={fbTxts[j.username] || ""} onChange={e => setFbTxts(p => ({ ...p, [j.username]: e.target.value }))}
+                      placeholder={`Comentar resposta de ${j.name}…`}
+                      style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                    <button onClick={() => enviarFbPergunta(j, d.answerText)}
+                      style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
+                      Enviar
+                    </button>
+                  </div>
+                  <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:11, color:"#94a3b8", cursor:"pointer" }}>
+                    <input type="checkbox" checked={!!fbPush[j.username]} onChange={() => setFbPush(p => ({ ...p, [j.username]: !p[j.username] }))}
+                      style={{ accentColor:CYN, width:13, height:13 }} />
+                    🔔 Enviar também como notificação push
+                  </label>
                 </div>
               )}
             </div>
@@ -174,6 +184,11 @@ function PerguntaManager({ allShared, activeQ }) {
           </div>
         </div>
 
+        <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom:12 }}>
+          <input type="checkbox" checked={pushNovaPergunta} onChange={() => setPushNovaPergunta(v => !v)}
+            style={{ accentColor:CYN, width:14, height:14 }} />
+          🔔 Enviar também como notificação push
+        </label>
         <button onClick={publicar} style={{
           width:"100%", padding:"14px 20px", fontSize:13, fontWeight:800, letterSpacing:1.2,
           textTransform:"uppercase", background:CYN, color:"#0f172a", border:"none", borderRadius:14, cursor:"pointer"
@@ -268,16 +283,18 @@ function AutoavAdmin({ allShared }) {
   const [guardando, setGuardando] = useState(false);
   const [fbTxts,    setFbTxts]    = useState({});
   const [fbOpen,    setFbOpen]    = useState({});
+  const [fbPush,    setFbPush]    = useState({});
 
   async function enviarFbAutoav(j) {
     const txt = fbTxts[j.username]?.trim();
     if (!txt) return;
     await addDoc(collection(db, "notifications", j.username, "items"), {
       from:"teresa", text:`Teresa reagiu à tua Autoavaliação: ${txt}`,
-      date:nowFull(), read:false, ts:Date.now(), tipo:"auto"
+      date:nowFull(), read:false, ts:Date.now(), tipo:"auto", push: !!fbPush[j.username]
     });
     setFbTxts(p => ({ ...p, [j.username]: "" }));
     setFbOpen(p => ({ ...p, [j.username]: false }));
+    setFbPush(p => ({ ...p, [j.username]: false }));
     alert("Feedback enviado! ✓");
   }
 
@@ -341,14 +358,21 @@ function AutoavAdmin({ allShared }) {
             </div>
             {hasData && <ScoresGrid scores={scores} notas={notas} />}
             {uData.autoSaved && fbOpen[j.username] && (
-              <div style={{ display:"flex", gap:8, marginTop:10 }}>
-                <input value={fbTxts[j.username] || ""} onChange={e => setFbTxts(p => ({ ...p, [j.username]: e.target.value }))}
-                  placeholder={`Comentar autoavaliação de ${j.name}…`}
-                  style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
-                <button onClick={() => enviarFbAutoav(j)}
-                  style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
-                  Enviar
-                </button>
+              <div style={{ marginTop:10 }}>
+                <div style={{ display:"flex", gap:8, marginBottom:6 }}>
+                  <input value={fbTxts[j.username] || ""} onChange={e => setFbTxts(p => ({ ...p, [j.username]: e.target.value }))}
+                    placeholder={`Comentar autoavaliação de ${j.name}…`}
+                    style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                  <button onClick={() => enviarFbAutoav(j)}
+                    style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
+                    Enviar
+                  </button>
+                </div>
+                <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:11, color:"#94a3b8", cursor:"pointer" }}>
+                  <input type="checkbox" checked={!!fbPush[j.username]} onChange={() => setFbPush(p => ({ ...p, [j.username]: !p[j.username] }))}
+                    style={{ accentColor:CYN, width:13, height:13 }} />
+                  🔔 Enviar também como notificação push
+                </label>
               </div>
             )}
           </div>

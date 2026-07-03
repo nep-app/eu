@@ -29,6 +29,8 @@ export default function AdminAgenda({ events = [] }) {
   const [editHora,  setEditHora]  = useState("");
   const [feedbackTxts,  setFeedbackTxts]  = useState({});
   const [feedbackOpen,  setFeedbackOpen]  = useState({});
+  const [feedbackPush,  setFeedbackPush]  = useState({});
+  const [pushEvento,    setPushEvento]    = useState(false);
 
   async function enviarFeedbackEvento(ev) {
     const txt = feedbackTxts[ev.id]?.trim();
@@ -38,10 +40,11 @@ export default function AdminAgenda({ events = [] }) {
     const contexto = ev.title ? ` — sobre: "${ev.title.substring(0, 60)}${ev.title.length > 60 ? "…" : ""}"` : "";
     await addDoc(collection(db, "notifications", userId, "items"), {
       from:"teresa", text:`Teresa reagiu ao teu evento partilhado${contexto}: ${txt}`,
-      date:nowFull(), read:false, ts:Date.now(), tipo:"evento"
+      date:nowFull(), read:false, ts:Date.now(), tipo:"evento", push: !!feedbackPush[ev.id]
     });
     setFeedbackTxts(p => ({ ...p, [ev.id]: "" }));
     setFeedbackOpen(p => ({ ...p, [ev.id]: false }));
+    setFeedbackPush(p => ({ ...p, [ev.id]: false }));
     alert("Feedback enviado! ✓");
   }
 
@@ -78,10 +81,10 @@ export default function AdminAgenda({ events = [] }) {
     const targets = dest === "all" ? ALLOWED_USERNAMES : [dest];
     for (const u of targets) {
       await addDoc(collection(db, "notifications", u, "items"), {
-        from:"teresa", text:notifText, date:nowFull(), read:false, ts:Date.now(), tipo: "proposta"
+        from:"teresa", text:notifText, date:nowFull(), read:false, ts:Date.now(), tipo: "proposta", push: pushEvento
       });
     }
-    setTitulo(""); setHora(""); setShowForm(false);
+    setTitulo(""); setHora(""); setShowForm(false); setPushEvento(false);
     alert(isForcar ? "Evento criado!" : "Proposta de evento enviada!");
   }
 
@@ -160,14 +163,21 @@ export default function AdminAgenda({ events = [] }) {
               }}>✕</button>
             </div>
             {canFeedback && feedbackOpen[ev.id] && (
-              <div style={{ display:"flex", gap:8, marginTop:8 }}>
-                <input value={feedbackTxts[ev.id] || ""} onChange={e => setFeedbackTxts(p => ({ ...p, [ev.id]: e.target.value }))}
-                  placeholder={`Comentar evento de ${jeep?.name || ev.userId}…`}
-                  style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
-                <button onClick={() => enviarFeedbackEvento(ev)}
-                  style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
-                  Enviar
-                </button>
+              <div style={{ marginTop:8 }}>
+                <div style={{ display:"flex", gap:8, marginBottom:6 }}>
+                  <input value={feedbackTxts[ev.id] || ""} onChange={e => setFeedbackTxts(p => ({ ...p, [ev.id]: e.target.value }))}
+                    placeholder={`Comentar evento de ${jeep?.name || ev.userId}…`}
+                    style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                  <button onClick={() => enviarFeedbackEvento(ev)}
+                    style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
+                    Enviar
+                  </button>
+                </div>
+                <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:11, color:"#94a3b8", cursor:"pointer" }}>
+                  <input type="checkbox" checked={!!feedbackPush[ev.id]} onChange={() => setFeedbackPush(p => ({ ...p, [ev.id]: !p[ev.id] }))}
+                    style={{ accentColor:CYN, width:13, height:13 }} />
+                  🔔 Enviar também como notificação push
+                </label>
               </div>
             )}
           </>
@@ -257,6 +267,12 @@ export default function AdminAgenda({ events = [] }) {
                 ))}
               </div>
             </div>
+
+            <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer" }}>
+              <input type="checkbox" checked={pushEvento} onChange={() => setPushEvento(v => !v)}
+                style={{ accentColor:CYN, width:14, height:14 }} />
+              🔔 Enviar também como notificação push
+            </label>
 
             <button onClick={criarEvento} style={{
               background: modo === "forcar" ? GRN : CYN, border:"none", borderRadius:12, padding:"11px",

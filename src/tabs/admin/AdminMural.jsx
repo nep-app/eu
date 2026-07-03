@@ -19,6 +19,7 @@ export default function AdminMural() {
   const [replyTxt, setReplyTxt] = useState("");
   const [whoOpen, setWhoOpen] = useState(null);
   const [notificarForum, setNotificarForum] = useState(true);
+  const [pushForumPost,  setPushForumPost]  = useState(false);
   const [mencaoDropdown, setMencaoDropdown] = useState(false);
   const [mencaoFiltro,   setMencaoFiltro]   = useState("");
   const [mencaoStart,    setMencaoStart]    = useState(0);
@@ -31,6 +32,7 @@ export default function AdminMural() {
   const [rUrl, setRUrl] = useState("");
   const [rDesc, setRDesc] = useState("");
   const [notificarRecurso, setNotificarRecurso] = useState(true);
+  const [pushRecurso,      setPushRecurso]      = useState(false);
   const [enviandoR, setEnviandoR] = useState(false);
   const [editandoR, setEditandoR] = useState(null);
   const [editRDraft, setEditRDraft] = useState({});
@@ -47,12 +49,12 @@ export default function AdminMural() {
     );
   }, []);
 
-  async function notificarTodos(texto, canal = null) {
+  async function notificarTodos(texto, canal = null, push = false) {
     await Promise.all(
       ALLOWED_USERNAMES
         .filter(u => u !== "ricardo")
         .map(u => addDoc(collection(db, "notifications", u, "items"), {
-          from:"teresa", text:texto, date:nowFull(), read:false, ts:Date.now(),
+          from:"teresa", text:texto, date:nowFull(), read:false, ts:Date.now(), push,
           ...(canal ? { canal } : {}),
         }))
     );
@@ -113,7 +115,7 @@ export default function AdminMural() {
         const ch = CHANNELS.find(c => c.id === channel);
         const preview = fPost.trim().substring(0, 80);
         const label = ch?.label || channel;
-        await notificarTodos(`${ch?.icon || "🌐"} Teresa publicou em ${label}: "${preview}${fPost.length > 80 ? "…" : ""}"`, channel);
+        await notificarTodos(`${ch?.icon || "🌐"} Teresa publicou em ${label}: "${preview}${fPost.length > 80 ? "…" : ""}"`, channel, pushForumPost);
       }
       // @menções → ação pendente
       const mencoes = [...fPost.matchAll(/@(\w+)/g)]
@@ -126,10 +128,10 @@ export default function AdminMural() {
           from: "admin",
           text: `🔔 Teresa mencionou-te em ${chInfo?.label || channel}!`,
           date: nowFull(), read: false, ts: Date.now(),
-          mencao: true, postId: docRef.id, canal: channel
+          mencao: true, postId: docRef.id, canal: channel, push: true
         })
       ));
-      setFPost(""); setMediaFile(null); setMencaoDropdown(false);
+      setFPost(""); setMediaFile(null); setMencaoDropdown(false); setPushForumPost(false);
     } catch(e) { alert("Erro: " + e.message); }
     setIsUploading(false);
   }
@@ -204,8 +206,8 @@ export default function AdminMural() {
         url:rUrl.trim(), desc:rDesc.trim(), ts:Date.now(), addedAt:nowFull()
       });
       if (notificarRecurso)
-        await notificarTodos(`📚 Novo recurso disponível: ${rTitulo.trim().substring(0,60)}`);
-      setRTitulo(""); setRUrl(""); setRDesc(""); setRIcone("📄");
+        await notificarTodos(`📚 Novo recurso disponível: ${rTitulo.trim().substring(0,60)}`, null, pushRecurso);
+      setRTitulo(""); setRUrl(""); setRDesc(""); setRIcone("📄"); setPushRecurso(false);
     } catch(e) { alert("Erro: " + e.message); }
     setEnviandoR(false);
   }
@@ -296,12 +298,21 @@ export default function AdminMural() {
                 </div>
               )}
             </div>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+            <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:8 }}>
               <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer" }}>
                 <input type="checkbox" checked={notificarForum} onChange={() => setNotificarForum(v => !v)}
                   style={{ accentColor:CYN, width:14, height:14 }} />
                 Notificar todos os jovens
               </label>
+              {notificarForum && (
+                <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:11, color:"#94a3b8", cursor:"pointer", marginLeft:21 }}>
+                  <input type="checkbox" checked={pushForumPost} onChange={() => setPushForumPost(v => !v)}
+                    style={{ accentColor:CYN, width:13, height:13 }} />
+                  🔔 Enviar também como notificação push
+                </label>
+              )}
+            </div>
+            <div style={{ display:"flex", justifyContent:"flex-end", alignItems:"center", gap:8, flexWrap:"wrap" }}>
               <div style={{ display:"flex", gap:8, alignItems:"center" }}>
                 <input type="file" accept="image/*" onChange={e => { if(e.target.files[0]) setMediaFile(e.target.files[0]); }}
                   style={{ fontSize:11, color:"#94a3b8", maxWidth:140 }}/>
@@ -462,19 +473,26 @@ export default function AdminMural() {
               placeholder="URL (https://... ou ficheiro.html)" style={{ ...INP }} />
             <input value={rDesc} onChange={e => setRDesc(e.target.value)}
               placeholder="Descrição curta (opcional)" style={{ ...INP }} />
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:4 }}>
+            <div style={{ display:"flex", flexDirection:"column", gap:6, marginTop:4, marginBottom:10 }}>
               <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer" }}>
                 <input type="checkbox" checked={notificarRecurso} onChange={() => setNotificarRecurso(v => !v)}
                   style={{ accentColor:CYN, width:14, height:14 }} />
                 Notificar todos os jovens
               </label>
-              <button onClick={adicionarRecurso} disabled={enviandoR} style={{
-                background:`${CYN}20`, border:`1.5px solid ${CYN}40`, color:CYN,
-                borderRadius:12, padding:"9px 20px", fontWeight:900, fontSize:13, cursor:"pointer"
-              }}>
-                {enviandoR ? "A adicionar..." : "Adicionar"}
-              </button>
+              {notificarRecurso && (
+                <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:11, color:"#94a3b8", cursor:"pointer", marginLeft:21 }}>
+                  <input type="checkbox" checked={pushRecurso} onChange={() => setPushRecurso(v => !v)}
+                    style={{ accentColor:CYN, width:13, height:13 }} />
+                  🔔 Enviar também como notificação push
+                </label>
+              )}
             </div>
+            <button onClick={adicionarRecurso} disabled={enviandoR} style={{
+              width:"100%", background:`${CYN}20`, border:`1.5px solid ${CYN}40`, color:CYN,
+              borderRadius:12, padding:"9px 20px", fontWeight:900, fontSize:13, cursor:"pointer"
+            }}>
+              {enviandoR ? "A adicionar..." : "Adicionar"}
+            </button>
           </div>
 
           {/* LISTA DE RECURSOS */}

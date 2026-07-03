@@ -8,6 +8,7 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
   const [userSelecionado, setUserSelecionado] = useState(null);
   const [medalModal, setMedalModal]           = useState(null);
   const [medalMsg,   setMedalMsg]             = useState("");
+  const [medalPush,  setMedalPush]            = useState(true);
   const [piaPrazoExt, setPiaPrazoExt]         = useState("");
 
   function formatarDataHora(ts, dataAntiga) {
@@ -17,7 +18,7 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
   }
 
   // ── ATRIBUIR MEDALHA ──────────────────────────────────────────────────────
-  async function assignMedal(username, mid, msg) {
+  async function assignMedal(username, mid, msg, push = true) {
     const medalDoc  = amMedals[username] || {};
     const weekKey   = getWeekKey();
     const curWeek   = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
@@ -37,7 +38,7 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
     await setDoc(userRef, { history: newHistory, weekXp: (uData.weekXp || 0) + 50 }, { merge: true });
 
     const notifText = `🏅 A Teresa atribuiu-te a medalha ${medal?.icon} ${medal?.label}!${msg ? ` "${msg}"` : ""}`;
-    await addDoc(collection(db, "notifications", username, "items"), { from:"teresa", text:notifText, date:nowFull(), read:false, ts:Date.now() });
+    await addDoc(collection(db, "notifications", username, "items"), { from:"teresa", text:notifText, date:nowFull(), read:false, ts:Date.now(), push });
   }
 
   // ── REMOVER MEDALHA (semana + allTime + histórico + XP) ──────────────────
@@ -171,6 +172,7 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
     const [xpEdit, setXpEdit] = useState(String(uData.weekXp || 0));
     const [feedbackAuto, setFeedbackAuto] = useState("");
     const [feedbackPia, setFeedbackPia]   = useState("");
+    const [feedbackPush, setFeedbackPush] = useState(false);
     const piaPrazo = piaPrazoExt;
     const setPiaPrazo = setPiaPrazoExt;
 
@@ -178,9 +180,9 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
       if (!texto.trim()) return;
       const tipoLabel = { pia:"PIA", auto:"Autoavaliação", roda:"Roda da Vida", geral:"mensagem" }[tipo] || "dossier";
       await addDoc(collection(db, "notifications", username, "items"), {
-        from: "teresa", text: `💬 Teresa (sobre o teu ${tipoLabel}): ${texto.trim()}`, date: nowFull(), read: false, ts: Date.now()
+        from: "teresa", text: `💬 Teresa (sobre o teu ${tipoLabel}): ${texto.trim()}`, date: nowFull(), read: false, ts: Date.now(), push: feedbackPush
       });
-      setTexto("");
+      setTexto(""); setFeedbackPush(false);
       alert("Feedback enviado! ✓");
     }
 
@@ -383,14 +385,21 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
                     );
                   })}
                   {uData.piaSaved && (
-                    <div style={{ display:"flex", gap:8, marginTop:4 }}>
-                      <input value={feedbackPia} onChange={e => setFeedbackPia(e.target.value)}
-                        placeholder="Dar feedback ao PIA…"
-                        style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
-                      <button onClick={() => enviarFeedback("pia", feedbackPia, setFeedbackPia)}
-                        style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
-                        Enviar
-                      </button>
+                    <div style={{ marginTop:4 }}>
+                      <div style={{ display:"flex", gap:8, marginBottom:6 }}>
+                        <input value={feedbackPia} onChange={e => setFeedbackPia(e.target.value)}
+                          placeholder="Dar feedback ao PIA…"
+                          style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                        <button onClick={() => enviarFeedback("pia", feedbackPia, setFeedbackPia)}
+                          style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
+                          Enviar
+                        </button>
+                      </div>
+                      <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:11, color:"#94a3b8", cursor:"pointer" }}>
+                        <input type="checkbox" checked={feedbackPush} onChange={() => setFeedbackPush(v => !v)}
+                          style={{ accentColor:CYN, width:13, height:13 }} />
+                        🔔 Enviar também como notificação push
+                      </label>
                     </div>
                   )}
                 </div>
@@ -733,14 +742,21 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
                   {(uData.autoSaved || Object.keys(uData.dScores||{}).length > 0) && <button onClick={() => resetAutoavaliacao(username)} style={BTN_RESET}>Repor</button>}
                 </div>
                 {uData.autoSaved && (
-                  <div style={{ display:"flex", gap:8 }}>
-                    <input value={feedbackAuto} onChange={e => setFeedbackAuto(e.target.value)}
-                      placeholder="Dar feedback à autoavaliação…"
-                      style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
-                    <button onClick={() => enviarFeedback("auto", feedbackAuto, setFeedbackAuto)}
-                      style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
-                      Enviar
-                    </button>
+                  <div>
+                    <div style={{ display:"flex", gap:8, marginBottom:6 }}>
+                      <input value={feedbackAuto} onChange={e => setFeedbackAuto(e.target.value)}
+                        placeholder="Dar feedback à autoavaliação…"
+                        style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                      <button onClick={() => enviarFeedback("auto", feedbackAuto, setFeedbackAuto)}
+                        style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
+                        Enviar
+                      </button>
+                    </div>
+                    <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:11, color:"#94a3b8", cursor:"pointer" }}>
+                      <input type="checkbox" checked={feedbackPush} onChange={() => setFeedbackPush(v => !v)}
+                        style={{ accentColor:CYN, width:13, height:13 }} />
+                      🔔 Enviar também como notificação push
+                    </label>
                   </div>
                 )}
               </div>
@@ -816,16 +832,21 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
             <div style={{ fontSize:12, color:"#94a3b8", lineHeight:1.65, marginBottom:18, textAlign:"center" }}>{medalModal.medal.desc}</div>
             <div style={{ fontSize:10, color:"#5a7a9a", fontWeight:800, marginBottom:6, textTransform:"uppercase", letterSpacing:0.8 }}>Mensagem opcional para o jovem</div>
             <textarea value={medalMsg} onChange={e => setMedalMsg(e.target.value)}
-              style={{ ...INP, resize:"none", marginBottom:18, fontSize:13 }} rows={3}
+              style={{ ...INP, resize:"none", marginBottom:12, fontSize:13 }} rows={3}
               placeholder="Ex: Foste incrível hoje na sessão! 🌟" />
+            <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom:18 }}>
+              <input type="checkbox" checked={medalPush} onChange={() => setMedalPush(v => !v)}
+                style={{ accentColor:CYN, width:14, height:14 }} />
+              🔔 Enviar também como notificação push
+            </label>
             <div style={{ display:"flex", gap:10 }}>
               <button onClick={() => setMedalModal(null)} style={{
                 flex:1, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)",
                 color:"#94a3b8", borderRadius:12, padding:12, fontWeight:900, fontSize:13, cursor:"pointer",
               }}>Cancelar</button>
               <button onClick={async () => {
-                await assignMedal(medalModal.username, medalModal.medal.id, medalMsg);
-                setMedalModal(null); setMedalMsg("");
+                await assignMedal(medalModal.username, medalModal.medal.id, medalMsg, medalPush);
+                setMedalModal(null); setMedalMsg(""); setMedalPush(true);
               }} style={{
                 flex:2, background:CYN, border:"none", color:"#071529",
                 borderRadius:12, padding:12, fontWeight:900, fontSize:13, cursor:"pointer",
