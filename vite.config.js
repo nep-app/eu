@@ -7,11 +7,14 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       injectRegister: 'auto',
-      workbox: {
-        skipWaiting: true,
-        clientsClaim: true,
+      registerType: 'autoUpdate',
+      injectManifest: {
+        // App shell + assets são poucos; sem limite artificial de tamanho
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
       },
       includeAssets: ['logo.png'],
       manifest: {

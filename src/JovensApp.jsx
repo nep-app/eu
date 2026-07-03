@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { onSnapshot, doc, collection } from "firebase/firestore";
-import { db } from "./firebase.js";
+import { onSnapshot, doc, collection, setDoc } from "firebase/firestore";
+import { db, getMessagingInstance } from "./firebase.js";
 import { BG, CYN, BLUE, PRP, TXT_MUT } from "./theme.jsx";
 import logoImg from "./logo.png";
 
@@ -56,19 +56,42 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
     return () => unsubs.forEach(u => u());
   }, [user]);
 
-  // Limpeza: remove qualquer service worker de push (firebase-messaging-sw.js)
-  // registado por uma versão anterior — estava a entrar em conflito com o
-  // service worker da PWA e a deixar a app com ecrã preto.
+  // Limpeza: remove qualquer service worker de push antigo (firebase-messaging-sw.js)
+  // de uma versão anterior que entrava em conflito com o da PWA.
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
     navigator.serviceWorker.getRegistrations().then(regs => {
       regs.forEach(reg => {
-        if (reg.active?.scriptURL?.includes("firebase-messaging-sw.js")) {
-          reg.unregister();
-        }
+        if (reg.active?.scriptURL?.includes("firebase-messaging-sw.js")) reg.unregister();
       });
     }).catch(() => {});
   }, []);
+
+  // Registo de notificações push — reutiliza o ÚNICO service worker da PWA
+  // (nunca regista um segundo), e falha em silêncio se algo não suportar.
+  useEffect(() => {
+    if (!user) return;
+    const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+    if (!vapidKey || !("serviceWorker" in navigator) || !("Notification" in window)) return;
+
+    async function registarPush() {
+      try {
+        if (Notification.permission !== "granted") {
+          const perm = await Notification.requestPermission();
+          if (perm !== "granted") return;
+        }
+        const swReg = await navigator.serviceWorker.ready;
+        const messaging = await getMessagingInstance();
+        if (!messaging) return;
+        const { getToken } = await import("firebase/messaging");
+        const token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: swReg });
+        if (token) {
+          await setDoc(doc(db, "fcmTokens", user.username), { token, updatedAt: Date.now() }, { merge: true });
+        }
+      } catch { /* push é best-effort — nunca deve rebentar a app */ }
+    }
+    registarPush();
+  }, [user]);
 
   // Tema escuro-violeta para teresa
   useEffect(() => {
