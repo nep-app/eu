@@ -51,7 +51,7 @@ export function buildAutoavEntry(uData) {
   };
 }
 
-export const ALLOWED_USERNAMES = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","marisa","teresa","ricardo"];
+export const ALLOWED_USERNAMES = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","marisa","teresa","ricardo","demo"];
 export const SPECIAL_USERS = ["teresa","ricardo","demo"];
 export const USERS = [
   { username:"nilton",   realName:"Nilton",   color:"#22d3ee" },
