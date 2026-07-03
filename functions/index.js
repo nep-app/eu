@@ -40,6 +40,10 @@ exports.notificarAdmin = onDocumentCreated(
         // mostra nada sozinho — só o nosso service worker (onBackgroundMessage
         // em src/sw.js) mostra a notificação. Evita a duplicação que
         // acontecia quando o browser E o service worker mostravam cada um a sua.
+        // Urgency:high é necessário porque mensagens data-only chegam por
+        // defeito com prioridade normal, o que em Android (Xiaomi em
+        // particular) pode ficar retido indefinidamente com a app em
+        // segundo plano.
         await getMessaging().send({
           token,
           data: {
@@ -48,6 +52,7 @@ exports.notificarAdmin = onDocumentCreated(
             badge: "https://nep-app.github.io/eu/logo.png",
             link: "https://nep-app.github.io/eu/",
           },
+          webpush: { headers: { Urgency: "high" } },
         });
         logger.info("notificarAdmin: push enviado", { username });
       } catch (err) {
@@ -91,6 +96,7 @@ exports.notificarJovem = onDocumentCreated(
           badge: "https://nep-app.github.io/eu/logo.png",
           link: "https://nep-app.github.io/eu/",
         },
+        webpush: { headers: { Urgency: "high" } },
       });
       logger.info("notificarJovem: push enviado", { username });
     } catch (err) {
