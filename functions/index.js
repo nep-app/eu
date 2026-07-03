@@ -1,4 +1,5 @@
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { logger }            = require("firebase-functions");
 const { initializeApp }     = require("firebase-admin/app");
 const { getFirestore }      = require("firebase-admin/firestore");
 const { getMessaging }      = require("firebase-admin/messaging");
@@ -16,6 +17,7 @@ exports.notificarAdmin = onDocumentCreated(
   { document: "adminNotificacoes/{docId}", region: "europe-west1" },
   async (event) => {
     const data = event.data.data();
+    logger.info("notificarAdmin: disparado", { tipo: data?.tipo, jovem: data?.jovem });
     if (!data) return;
 
     const targets = ["teresa", "admin"];
@@ -26,6 +28,7 @@ exports.notificarAdmin = onDocumentCreated(
       .map((doc, i) => ({ token: doc.data()?.token, username: targets[i] }))
       .filter(t => t.token);
 
+    logger.info("notificarAdmin: tokens encontrados", { count: tokens.length, usernames: tokens.map(t => t.username) });
     if (tokens.length === 0) return;
 
     const labeller = NOTIF_LABELS[data.tipo] || ((d) => ({ title: "🔔 JEEP EDUCA+", body: d.texto || "Nova notificação" }));
@@ -41,7 +44,9 @@ exports.notificarAdmin = onDocumentCreated(
             fcmOptions: { link: "https://nep-app.github.io/eu/" },
           },
         });
+        logger.info("notificarAdmin: push enviado", { username });
       } catch (err) {
+        logger.error("notificarAdmin: erro ao enviar push", { username, code: err.code, message: err.message });
         if (err.code === "messaging/registration-token-not-registered") {
           await db.collection("fcmTokens").doc(username).delete();
         }
@@ -60,10 +65,12 @@ exports.notificarJovem = onDocumentCreated(
   async (event) => {
     const data = event.data.data();
     const { username } = event.params;
+    logger.info("notificarJovem: disparado", { username, push: data?.push });
     if (!data || !username || data.push === false) return;
 
     const tokenDoc = await db.collection("fcmTokens").doc(username).get();
     const token = tokenDoc.data()?.token;
+    logger.info("notificarJovem: token encontrado?", { username, hasToken: !!token });
     if (!token) return;
 
     const remetente = ["teresa", "admin"].includes(data.from) ? "Teresa" : "JEEP EDUCA+";
@@ -79,7 +86,9 @@ exports.notificarJovem = onDocumentCreated(
           fcmOptions: { link: "https://nep-app.github.io/eu/" },
         },
       });
+      logger.info("notificarJovem: push enviado", { username });
     } catch (err) {
+      logger.error("notificarJovem: erro ao enviar push", { username, code: err.code, message: err.message });
       if (err.code === "messaging/registration-token-not-registered") {
         await db.collection("fcmTokens").doc(username).delete();
       }
