@@ -50,16 +50,17 @@ exports.notificarAdmin = onDocumentCreated(
   }
 );
 
-// Admin (Teresa) -> jovem: dispara sempre que é escrita uma notificação
-// individual (feedback de PIA/tarefas/agenda, mensagens, recursos novos,
-// menções no fórum, pedidos/lembretes, etc.) — cobre tudo o que já escreve
-// em notifications/{username}/items sem precisar de mexer nesses ficheiros.
+// Admin (Teresa) -> jovem: dispara push por defeito (comportamento atual),
+// exceto quando o documento tem push:false explicitamente — é isso que as
+// checkboxes "enviar também como notificação push" vão controlar, sem
+// arriscar deixar de notificar nada por engano enquanto isso não estiver
+// em todos os ecrãs de admin.
 exports.notificarJovem = onDocumentCreated(
   { document: "notifications/{username}/items/{itemId}", region: "europe-west1" },
   async (event) => {
     const data = event.data.data();
     const { username } = event.params;
-    if (!data || !username) return;
+    if (!data || !username || data.push === false) return;
 
     const tokenDoc = await db.collection("fcmTokens").doc(username).get();
     const token = tokenDoc.data()?.token;
