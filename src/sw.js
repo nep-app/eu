@@ -19,12 +19,15 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// A Cloud Function manda mensagens "data-only" (sem campo "notification")
+// de propósito — se tivesse "notification", o browser mostrava uma
+// notificação sozinho E este código mostrava outra, duplicando o aviso.
 messaging.onBackgroundMessage(payload => {
-  const n = payload.notification || {};
-  self.registration.showNotification(n.title || 'JEEP EDUCA+', {
-    body:  n.body  || '',
-    icon:  '/eu/logo.png',
-    badge: '/eu/logo.png',
+  const d = payload.data || {};
+  self.registration.showNotification(d.title || 'JEEP EDUCA+', {
+    body:  d.body  || '',
+    icon:  d.icon  || '/eu/logo.png',
+    badge: d.badge || '/eu/logo.png',
     tag:   'jeep-push',
     renotify: true,
   });

@@ -36,12 +36,17 @@ exports.notificarAdmin = onDocumentCreated(
 
     await Promise.all(tokens.map(async ({ token, username }) => {
       try {
+        // Mensagem "data-only" (sem campo "notification"): o browser não
+        // mostra nada sozinho — só o nosso service worker (onBackgroundMessage
+        // em src/sw.js) mostra a notificação. Evita a duplicação que
+        // acontecia quando o browser E o service worker mostravam cada um a sua.
         await getMessaging().send({
           token,
-          notification: { title, body },
-          webpush: {
-            notification: { icon: "https://nep-app.github.io/eu/logo.png", badge: "https://nep-app.github.io/eu/logo.png" },
-            fcmOptions: { link: "https://nep-app.github.io/eu/" },
+          data: {
+            title, body,
+            icon: "https://nep-app.github.io/eu/logo.png",
+            badge: "https://nep-app.github.io/eu/logo.png",
+            link: "https://nep-app.github.io/eu/",
           },
         });
         logger.info("notificarAdmin: push enviado", { username });
@@ -77,12 +82,14 @@ exports.notificarJovem = onDocumentCreated(
     const body  = (data.text || "Tens uma nova notificação").substring(0, 120);
 
     try {
+      // Mensagem "data-only" — ver comentário em notificarAdmin acima.
       await getMessaging().send({
         token,
-        notification: { title, body },
-        webpush: {
-          notification: { icon: "https://nep-app.github.io/eu/logo.png", badge: "https://nep-app.github.io/eu/logo.png" },
-          fcmOptions: { link: "https://nep-app.github.io/eu/" },
+        data: {
+          title, body,
+          icon: "https://nep-app.github.io/eu/logo.png",
+          badge: "https://nep-app.github.io/eu/logo.png",
+          link: "https://nep-app.github.io/eu/",
         },
       });
       logger.info("notificarJovem: push enviado", { username });
