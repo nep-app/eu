@@ -21,16 +21,18 @@ export default function AdminPia({ allShared }) {
   const [expanded, setExpanded] = useState({});
   const [fbTxts,   setFbTxts]   = useState({});
   const [fbOpen,   setFbOpen]   = useState({});
+  const [fbPush,   setFbPush]   = useState({});
 
   async function enviarFbPia(j) {
     const txt = fbTxts[j.username]?.trim();
     if (!txt) return;
     await addDoc(collection(db, "notifications", j.username, "items"), {
       from:"teresa", text:`Teresa reagiu ao teu PIA: ${txt}`,
-      date:nowFull(), read:false, ts:Date.now(), tipo:"pia"
+      date:nowFull(), read:false, ts:Date.now(), tipo:"pia", push: !!fbPush[j.username]
     });
     setFbTxts(p => ({ ...p, [j.username]: "" }));
     setFbOpen(p => ({ ...p, [j.username]: false }));
+    setFbPush(p => ({ ...p, [j.username]: false }));
     alert("Feedback enviado! ✓");
   }
 
@@ -121,14 +123,21 @@ export default function AdminPia({ allShared }) {
               </div>
 
               {fbOpen[j.username] && (
-                <div style={{ display:"flex", gap:8, padding:"8px 14px 12px" }}>
-                  <input value={fbTxts[j.username] || ""} onChange={e => setFbTxts(p => ({ ...p, [j.username]: e.target.value }))}
-                    placeholder={`Comentar PIA de ${j.name}…`}
-                    style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
-                  <button onClick={() => enviarFbPia(j)}
-                    style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
-                    Enviar
-                  </button>
+                <div style={{ padding:"8px 14px 12px" }}>
+                  <div style={{ display:"flex", gap:8, marginBottom:8 }}>
+                    <input value={fbTxts[j.username] || ""} onChange={e => setFbTxts(p => ({ ...p, [j.username]: e.target.value }))}
+                      placeholder={`Comentar PIA de ${j.name}…`}
+                      style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                    <button onClick={() => enviarFbPia(j)}
+                      style={{ background:`${CYN}20`, border:`1px solid ${CYN}40`, color:CYN, borderRadius:10, padding:"0 14px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
+                      Enviar
+                    </button>
+                  </div>
+                  <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:11, color:"#94a3b8", cursor:"pointer" }}>
+                    <input type="checkbox" checked={!!fbPush[j.username]} onChange={() => setFbPush(p => ({ ...p, [j.username]: !p[j.username] }))}
+                      style={{ accentColor:CYN, width:13, height:13 }} />
+                    🔔 Enviar também como notificação push
+                  </label>
                 </div>
               )}
               {filledSections.length > 0 && (

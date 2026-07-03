@@ -55,18 +55,17 @@ exports.notificarAdmin = onDocumentCreated(
   }
 );
 
-// Admin (Teresa) -> jovem: dispara push por defeito (comportamento atual),
-// exceto quando o documento tem push:false explicitamente — é isso que as
-// checkboxes "enviar também como notificação push" vão controlar, sem
-// arriscar deixar de notificar nada por engano enquanto isso não estiver
-// em todos os ecrãs de admin.
+// Admin (Teresa) -> jovem: só envia push quando o documento tem push:true
+// explícito — a Teresa escolhe, por cada envio, se quer só a notificação
+// dentro da app (sempre acontece) ou também um push no telemóvel.
+// Menções no fórum continuam automáticas (escrevem push:true na origem).
 exports.notificarJovem = onDocumentCreated(
   { document: "notifications/{username}/items/{itemId}", region: "europe-west1" },
   async (event) => {
     const data = event.data.data();
     const { username } = event.params;
     logger.info("notificarJovem: disparado", { username, push: data?.push });
-    if (!data || !username || data.push === false) return;
+    if (!data || !username || data.push !== true) return;
 
     const tokenDoc = await db.collection("fcmTokens").doc(username).get();
     const token = tokenDoc.data()?.token;

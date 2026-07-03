@@ -31,6 +31,8 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
   const [launchPrazo, setLaunchPrazo] = useState("");
   const [feedbackOpen, setFeedbackOpen] = useState({});
   const [feedbackTexts, setFeedbackTexts] = useState({});
+  const [pushFeedback, setPushFeedback] = useState({});
+  const [pushLaunch, setPushLaunch] = useState(false);
 
   async function launchRequest() {
     let msg = ""; let field = null;
@@ -46,7 +48,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
 
     const targets = launchTarget === "all" ? ALLOWED_USERNAMES : [launchTarget];
     const isReminder = launchType === "lembreteGeral";
-    const notifData = { from:"teresa", text:msg, date:nowFull(), read:false, ts:Date.now(), ...(!isReminder ? { tipo:"proposta" } : {}), ...(launchPrazo ? { prazo:launchPrazo } : {}) };
+    const notifData = { from:"teresa", text:msg, date:nowFull(), read:false, ts:Date.now(), push:pushLaunch, ...(!isReminder ? { tipo:"proposta" } : {}), ...(launchPrazo ? { prazo:launchPrazo } : {}) };
     await Promise.all(targets.map(async u => {
       if (launchType === "auto") {
         const uData = allShared[u] || {};
@@ -65,11 +67,11 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
       }
       await addDoc(collection(db, "notifications", u, "items"), notifData);
     }));
-    setLaunchPrazo("");
+    setLaunchPrazo(""); setPushLaunch(false);
     alert("Pedidos/Lembretes lançados com sucesso!");
   }
 
-  async function sendFeedback(notif, msg) {
+  async function sendFeedback(notif, msg, push = false) {
     if (!msg?.trim() || !ALLOWED_USERNAMES.includes(notif.jovem)) return;
     const tipoMap = {
       PERGUNTA: "resposta à Pergunta da Semana", AUTOAVALIACAO: "Autoavaliação",
@@ -87,10 +89,11 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
     }[notif.tipo];
     const contexto = notif.texto?.trim() ? ` — sobre: "${notif.texto.substring(0, 60)}${notif.texto.length > 60 ? "…" : ""}"` : "";
     const text = `Teresa reagiu ao teu ${tipoLabel}${contexto}: ${msg.trim()}`;
-    await addDoc(collection(db, "notifications", notif.jovem, "items"), { from:"teresa", text, date:nowFull(), read:false, ts:Date.now(), ...(tipoNav ? { tipo: tipoNav } : {}) });
+    await addDoc(collection(db, "notifications", notif.jovem, "items"), { from:"teresa", text, date:nowFull(), read:false, ts:Date.now(), push, ...(tipoNav ? { tipo: tipoNav } : {}) });
     await updateDoc(doc(db, "adminNotificacoes", notif.id), { feedback: msg.trim(), lida: true });
     setFeedbackTexts(p => ({...p, [notif.id]: ""}));
     setFeedbackOpen(p => ({...p, [notif.id]: false}));
+    setPushFeedback(p => ({...p, [notif.id]: false}));
   }
 
   async function iniciarNovaSemana(fromMidnight) {
@@ -253,21 +256,26 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
                   <div style={{ padding:"8px 12px 12px", borderTop:"1px solid rgba(255,255,255,0.07)" }}>
                     <div style={{ display:"flex", gap:6, marginBottom:8 }}>
                       {["👏","🔥","⭐","💪","❤️","🙌","👀"].map(emoji => (
-                        <button key={emoji} onClick={() => sendFeedback(n, emoji)}
+                        <button key={emoji} onClick={() => sendFeedback(n, emoji, pushFeedback[n.id])}
                           style={{ background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, padding:"5px 8px", fontSize:16, cursor:"pointer" }}>
                           {emoji}
                         </button>
                       ))}
                     </div>
-                    <div style={{ display:"flex", gap:6 }}>
+                    <div style={{ display:"flex", gap:6, marginBottom:8 }}>
                       <input value={feedbackTexts[n.id]||""} onChange={e => setFeedbackTexts(p => ({...p, [n.id]: e.target.value}))}
-                        onKeyDown={e => e.key === "Enter" && sendFeedback(n, feedbackTexts[n.id])}
+                        onKeyDown={e => e.key === "Enter" && sendFeedback(n, feedbackTexts[n.id], pushFeedback[n.id])}
                         placeholder="Escreve um feedback..." style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
-                      <button onClick={() => sendFeedback(n, feedbackTexts[n.id])}
+                      <button onClick={() => sendFeedback(n, feedbackTexts[n.id], pushFeedback[n.id])}
                         style={{ background:CYN, color:"#0f172a", border:"none", borderRadius:10, padding:"0 16px", fontWeight:900, fontSize:12, cursor:"pointer" }}>
                         Enviar
                       </button>
                     </div>
+                    <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:11, color:"#94a3b8", cursor:"pointer" }}>
+                      <input type="checkbox" checked={!!pushFeedback[n.id]} onChange={() => setPushFeedback(p => ({...p, [n.id]: !p[n.id]}))}
+                        style={{ accentColor:CYN, width:13, height:13 }} />
+                      🔔 Enviar também como notificação push
+                    </label>
                   </div>
                 )}
               </div>
@@ -305,6 +313,11 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
             style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
           {launchPrazo && <button onClick={() => setLaunchPrazo("")} style={{ background:"none", border:"none", color:"#64748b", cursor:"pointer", fontSize:16 }}>✕</button>}
         </div>
+        <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom:10 }}>
+          <input type="checkbox" checked={pushLaunch} onChange={() => setPushLaunch(v => !v)}
+            style={{ accentColor:CYN, width:14, height:14 }} />
+          🔔 Enviar também como notificação push
+        </label>
         <Btn onClick={launchRequest}>Enviar Pedido / Lembrete 🚀</Btn>
       </div>
 

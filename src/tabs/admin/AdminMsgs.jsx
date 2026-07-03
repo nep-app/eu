@@ -11,6 +11,8 @@ export default function AdminMsgs() {
   const [novaMsgTexto, setNovaMsgTexto] = useState("");
   const [novaMsgDest, setNovaMsgDest] = useState("all");
   const [enviando, setEnviando] = useState(false);
+  const [pushNovaMsg, setPushNovaMsg] = useState(false);
+  const [pushReply, setPushReply] = useState({});
 
   useEffect(() => {
     const unsub = onSnapshot(
@@ -38,10 +40,12 @@ export default function AdminMsgs() {
       const original = msgs.find(m => m.id === msgId)?.text || "";
       const contexto = original ? ` — sobre: "${original.substring(0, 60)}${original.length > 60 ? "…" : ""}"` : "";
       await addDoc(collection(db, "notifications", hiddenUser, "items"), {
-        from:"teresa", text:`A Teresa respondeu à tua mensagem${contexto}: ${replyText}`, date:nowFull(), read:false, ts:Date.now()
+        from:"teresa", text:`A Teresa respondeu à tua mensagem${contexto}: ${replyText}`, date:nowFull(), read:false, ts:Date.now(),
+        push: !!pushReply[msgId]
       });
     }
     setAdminReplyTxt({ ...adminReplyTxt, [msgId]: "" });
+    setPushReply({ ...pushReply, [msgId]: false });
   }
 
   async function enviarNovaMsg() {
@@ -51,10 +55,11 @@ export default function AdminMsgs() {
       const targets = novaMsgDest === "all" ? ALLOWED_USERNAMES : [novaMsgDest];
       for (const u of targets) {
         await addDoc(collection(db, "notifications", u, "items"), {
-          from:"teresa", text: `💬 Teresa: ${novaMsgTexto.trim()}`, date: nowFull(), read: false, ts: Date.now()
+          from:"teresa", text: `💬 Teresa: ${novaMsgTexto.trim()}`, date: nowFull(), read: false, ts: Date.now(),
+          push: pushNovaMsg
         });
       }
-      setNovaMsgTexto("");
+      setNovaMsgTexto(""); setPushNovaMsg(false);
       const nome = novaMsgDest === "all" ? "todos" : JEEP_LIST.find(j => j.username === novaMsgDest)?.name || novaMsgDest;
       alert(`Mensagem enviada a ${nome}! ✓`);
     } catch (e) { alert("Erro: " + e.message); }
@@ -76,6 +81,11 @@ export default function AdminMsgs() {
         <textarea value={novaMsgTexto} onChange={e => setNovaMsgTexto(e.target.value)}
           placeholder="Escreve a mensagem..." rows={3}
           style={{ ...INP, resize:"none", marginBottom:10 }} />
+        <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom:10 }}>
+          <input type="checkbox" checked={pushNovaMsg} onChange={() => setPushNovaMsg(v => !v)}
+            style={{ accentColor:CYN, width:14, height:14 }} />
+          🔔 Enviar também como notificação push
+        </label>
         <button onClick={enviarNovaMsg} disabled={enviando} style={{
           width:"100%", padding:"12px", background:`${CYN}20`, border:`1.5px solid ${CYN}40`,
           color:CYN, borderRadius:12, fontWeight:900, fontSize:13, cursor:"pointer"
@@ -121,11 +131,18 @@ export default function AdminMsgs() {
               <div style={{ fontSize:13 }}>{m.adminReply}</div>
             </div>
           ) : (
-            <div style={{ display:"flex", gap:8 }}>
-              <input value={adminReplyTxt[m.id] || ""} onChange={e => setAdminReplyTxt({...adminReplyTxt, [m.id]: e.target.value})}
-                placeholder="Escreve uma resposta..." style={{ ...INP, flex:1, marginBottom:0, fontSize:12 }} />
+            <div>
+              <div style={{ display:"flex", gap:8, marginBottom:8 }}>
+                <input value={adminReplyTxt[m.id] || ""} onChange={e => setAdminReplyTxt({...adminReplyTxt, [m.id]: e.target.value})}
+                  placeholder="Escreve uma resposta..." style={{ ...INP, flex:1, marginBottom:0, fontSize:12 }} />
+              </div>
+              <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:11, color:"#94a3b8", cursor:"pointer", marginBottom:8 }}>
+                <input type="checkbox" checked={!!pushReply[m.id]} onChange={() => setPushReply({...pushReply, [m.id]: !pushReply[m.id]})}
+                  style={{ accentColor:CYN, width:13, height:13 }} />
+                🔔 Enviar também como notificação push
+              </label>
               <button onClick={() => replyToMsg(m.id, m.hiddenUser)}
-                style={{ background:CYN, color:"#0f172a", border:"none", borderRadius:12, padding:"0 20px", fontWeight:800, cursor:"pointer" }}>
+                style={{ background:CYN, color:"#0f172a", border:"none", borderRadius:12, padding:"10px 20px", fontWeight:800, cursor:"pointer", width:"100%" }}>
                 Enviar
               </button>
             </div>
