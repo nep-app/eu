@@ -49,3 +49,39 @@ exports.notificarAdmin = onDocumentCreated(
     }));
   }
 );
+
+// Admin (Teresa) -> jovem: dispara sempre que é escrita uma notificação
+// individual (feedback de PIA/tarefas/agenda, mensagens, recursos novos,
+// menções no fórum, pedidos/lembretes, etc.) — cobre tudo o que já escreve
+// em notifications/{username}/items sem precisar de mexer nesses ficheiros.
+exports.notificarJovem = onDocumentCreated(
+  { document: "notifications/{username}/items/{itemId}", region: "europe-west1" },
+  async (event) => {
+    const data = event.data.data();
+    const { username } = event.params;
+    if (!data || !username) return;
+
+    const tokenDoc = await db.collection("fcmTokens").doc(username).get();
+    const token = tokenDoc.data()?.token;
+    if (!token) return;
+
+    const remetente = ["teresa", "admin"].includes(data.from) ? "Teresa" : "JEEP EDUCA+";
+    const title = data.mencao ? "🔔 Foste mencionado(a)" : `🔔 ${remetente}`;
+    const body  = (data.text || "Tens uma nova notificação").substring(0, 120);
+
+    try {
+      await getMessaging().send({
+        token,
+        notification: { title, body },
+        webpush: {
+          notification: { icon: "https://nep-app.github.io/eu/logo.png", badge: "https://nep-app.github.io/eu/logo.png" },
+          fcmOptions: { link: "https://nep-app.github.io/eu/" },
+        },
+      });
+    } catch (err) {
+      if (err.code === "messaging/registration-token-not-registered") {
+        await db.collection("fcmTokens").doc(username).delete();
+      }
+    }
+  }
+);
