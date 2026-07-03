@@ -91,6 +91,13 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // Tokens de notificações push (cada utilizador guarda o token do seu
+    // próprio dispositivo; as Cloud Functions usam o Admin SDK e não
+    // passam por estas regras)
+    match /fcmTokens/{username} {
+      allow read, write: if isUser(username) || isAdmin();
+    }
+
     // Polls / Votações (admin cria/apaga, todos votam)
     match /polls/{pollId} {
       allow read: if request.auth != null;
