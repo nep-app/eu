@@ -28,6 +28,27 @@ export async function getMessagingInstance() {
   }
 }
 
+// O Firebase só entrega ao onBackgroundMessage do service worker quando a
+// aba não está em foco — com a app aberta, as mensagens (data-only) chegam
+// aqui em vez disso. Sem isto, um push enviado enquanto a app está aberta
+// desaparece sem mostrar nada.
+let pushForegroundOuvido = false;
+async function escutarPushEmPrimeiroPlano(messaging) {
+  if (pushForegroundOuvido) return;
+  pushForegroundOuvido = true;
+  const { onMessage } = await import("firebase/messaging");
+  onMessage(messaging, payload => {
+    const d = payload.data || {};
+    if (Notification.permission === "granted") {
+      new Notification(d.title || "JEEP EDUCA+", {
+        body: d.body || "",
+        icon: d.icon || "/eu/logo.png",
+        tag: "jeep-push",
+      });
+    }
+  });
+}
+
 // Pede permissão e guarda o token FCM para este username — chamado tanto
 // pelo JovensApp (jovens + conta teresa) como pelo TeresaAdmin (conta admin),
 // que são componentes completamente separados. Devolve { ok, reason } para
@@ -53,6 +74,7 @@ export async function registarPushNotifications(username) {
     const token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: swReg });
     if (!token) return { ok:false, reason:"sem-token" };
     await setDoc(doc(db, "fcmTokens", username), { token, updatedAt: Date.now() }, { merge: true });
+    escutarPushEmPrimeiroPlano(messaging);
     return { ok:true };
   } catch (err) {
     console.error("registarPushNotifications falhou:", err);
