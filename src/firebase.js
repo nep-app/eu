@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, browserLocalPersistence, setPersistence } from 'firebase/auth';
-import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, deleteField } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -49,6 +49,16 @@ async function escutarPushEmPrimeiroPlano(messaging) {
   });
 }
 
+// ID curto e determinístico para um token, usado como chave no mapa de
+// dispositivos. Assim cada aparelho (PC, telemóvel...) guarda o SEU token
+// sem apagar o dos outros — o mesmo utilizador pode receber push em vários
+// sítios ao mesmo tempo.
+function idDispositivo(token) {
+  let h = 0;
+  for (let i = 0; i < token.length; i++) h = (Math.imul(h, 31) + token.charCodeAt(i)) | 0;
+  return "d" + (h >>> 0).toString(36);
+}
+
 // Pede permissão e guarda o token FCM para este username — chamado tanto
 // pelo JovensApp (jovens + conta teresa) como pelo TeresaAdmin (conta admin),
 // que são componentes completamente separados. Devolve { ok, reason } para
@@ -73,7 +83,13 @@ export async function registarPushNotifications(username) {
     const { getToken } = await import("firebase/messaging");
     const token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: swReg });
     if (!token) return { ok:false, reason:"sem-token" };
-    await setDoc(doc(db, "fcmTokens", username), { token, updatedAt: Date.now() }, { merge: true });
+    // Guarda o token dentro de um mapa por dispositivo (merge:true funde as
+    // chaves, por isso ativar num aparelho não apaga o token de outro). O
+    // campo antigo "token" (um só por utilizador) é removido de vez.
+    await setDoc(doc(db, "fcmTokens", username), {
+      tokens: { [idDispositivo(token)]: { token, updatedAt: Date.now() } },
+      token: deleteField(),
+    }, { merge: true });
     escutarPushEmPrimeiroPlano(messaging);
     return { ok:true };
   } catch (err) {

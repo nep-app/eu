@@ -1,7 +1,7 @@
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { logger }            = require("firebase-functions");
 const { initializeApp }     = require("firebase-admin/app");
-const { getFirestore }      = require("firebase-admin/firestore");
+const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const { getMessaging }      = require("firebase-admin/messaging");
 
 initializeApp();
@@ -12,6 +12,44 @@ const NOTIF_LABELS = {
   PIA:       (d) => ({ title: "📋 PIA recebido",                body: `${d.jovem} enviou o Plano Individual de Ação` }),
   AJUDA_PIA: (d) => ({ title: `🆘 ${d.jovem} precisa de ajuda`, body: `"${(d.pergunta||"PIA").substring(0,80)}"` }),
 };
+
+// Reúne todos os tokens de um documento fcmTokens/{username}: o mapa novo
+// "tokens" (um por aparelho) mais o campo antigo "token" (compatibilidade),
+// devolvendo [{ token, tid }] onde tid é a chave no mapa (null se for o
+// legado) para se poder apagar só o token inválido.
+function coletarTokens(docData) {
+  const dd = docData || {};
+  const out = [];
+  if (dd.token) out.push({ token: dd.token, tid: null });
+  if (dd.tokens) {
+    for (const [tid, v] of Object.entries(dd.tokens)) {
+      if (v && v.token) out.push({ token: v.token, tid });
+    }
+  }
+  return out;
+}
+
+// Envia um push data-only para um token. Se o token já não estiver
+// registado, remove-o do sítio certo (mapa ou campo legado).
+async function enviarPush(username, entry, payload) {
+  try {
+    await getMessaging().send({
+      token: entry.token,
+      data: payload,
+      webpush: { headers: { Urgency: "high" } },
+    });
+    logger.info("push enviado", { username });
+    return true;
+  } catch (err) {
+    logger.error("erro ao enviar push", { username, code: err.code, message: err.message });
+    if (err.code === "messaging/registration-token-not-registered") {
+      const ref = db.collection("fcmTokens").doc(username);
+      if (entry.tid) await ref.update({ [`tokens.${entry.tid}`]: FieldValue.delete() }).catch(() => {});
+      else           await ref.update({ token: FieldValue.delete() }).catch(() => {});
+    }
+    return false;
+  }
+}
 
 exports.notificarAdmin = onDocumentCreated(
   { document: "adminNotificacoes/{docId}", region: "europe-west1" },
@@ -24,44 +62,25 @@ exports.notificarAdmin = onDocumentCreated(
     const tokenDocs = await Promise.all(
       targets.map(u => db.collection("fcmTokens").doc(u).get())
     );
-    const tokens = tokenDocs
-      .map((doc, i) => ({ token: doc.data()?.token, username: targets[i] }))
-      .filter(t => t.token);
+    // Cada utilizador pode ter vários aparelhos — junta todos os tokens.
+    const alvos = [];
+    tokenDocs.forEach((docSnap, i) => {
+      coletarTokens(docSnap.data()).forEach(entry => alvos.push({ username: targets[i], entry }));
+    });
 
-    logger.info("notificarAdmin: tokens encontrados", { count: tokens.length, usernames: tokens.map(t => t.username) });
-    if (tokens.length === 0) return;
+    logger.info("notificarAdmin: tokens encontrados", { count: alvos.length });
+    if (alvos.length === 0) return;
 
     const labeller = NOTIF_LABELS[data.tipo] || ((d) => ({ title: "🔔 JEEP EDUCA+", body: d.texto || "Nova notificação" }));
     const { title, body } = labeller(data);
+    const payload = {
+      title, body,
+      icon: "https://nep-app.github.io/eu/logo.png",
+      badge: "https://nep-app.github.io/eu/logo.png",
+      link: "https://nep-app.github.io/eu/",
+    };
 
-    await Promise.all(tokens.map(async ({ token, username }) => {
-      try {
-        // Mensagem "data-only" (sem campo "notification"): o browser não
-        // mostra nada sozinho — só o nosso service worker (onBackgroundMessage
-        // em src/sw.js) mostra a notificação. Evita a duplicação que
-        // acontecia quando o browser E o service worker mostravam cada um a sua.
-        // Urgency:high é necessário porque mensagens data-only chegam por
-        // defeito com prioridade normal, o que em Android (Xiaomi em
-        // particular) pode ficar retido indefinidamente com a app em
-        // segundo plano.
-        await getMessaging().send({
-          token,
-          data: {
-            title, body,
-            icon: "https://nep-app.github.io/eu/logo.png",
-            badge: "https://nep-app.github.io/eu/logo.png",
-            link: "https://nep-app.github.io/eu/",
-          },
-          webpush: { headers: { Urgency: "high" } },
-        });
-        logger.info("notificarAdmin: push enviado", { username });
-      } catch (err) {
-        logger.error("notificarAdmin: erro ao enviar push", { username, code: err.code, message: err.message });
-        if (err.code === "messaging/registration-token-not-registered") {
-          await db.collection("fcmTokens").doc(username).delete();
-        }
-      }
-    }));
+    await Promise.all(alvos.map(a => enviarPush(a.username, a.entry, payload)));
   }
 );
 
@@ -78,32 +97,21 @@ exports.notificarJovem = onDocumentCreated(
     if (!data || !username || data.push !== true) return;
 
     const tokenDoc = await db.collection("fcmTokens").doc(username).get();
-    const token = tokenDoc.data()?.token;
-    logger.info("notificarJovem: token encontrado?", { username, hasToken: !!token });
-    if (!token) return;
+    const alvos = coletarTokens(tokenDoc.data());
+    logger.info("notificarJovem: tokens encontrados", { username, count: alvos.length });
+    if (alvos.length === 0) return;
 
     const remetente = ["teresa", "admin"].includes(data.from) ? "Teresa" : "JEEP EDUCA+";
     const title = data.mencao ? "🔔 Foste mencionado(a)" : `🔔 ${remetente}`;
     const body  = (data.text || "Tens uma nova notificação").substring(0, 120);
+    const payload = {
+      title, body,
+      icon: "https://nep-app.github.io/eu/logo.png",
+      badge: "https://nep-app.github.io/eu/logo.png",
+      link: "https://nep-app.github.io/eu/",
+    };
 
-    try {
-      // Mensagem "data-only" — ver comentário em notificarAdmin acima.
-      await getMessaging().send({
-        token,
-        data: {
-          title, body,
-          icon: "https://nep-app.github.io/eu/logo.png",
-          badge: "https://nep-app.github.io/eu/logo.png",
-          link: "https://nep-app.github.io/eu/",
-        },
-        webpush: { headers: { Urgency: "high" } },
-      });
-      logger.info("notificarJovem: push enviado", { username });
-    } catch (err) {
-      logger.error("notificarJovem: erro ao enviar push", { username, code: err.code, message: err.message });
-      if (err.code === "messaging/registration-token-not-registered") {
-        await db.collection("fcmTokens").doc(username).delete();
-      }
-    }
+    // Envia a todos os aparelhos deste utilizador (um por token).
+    await Promise.all(alvos.map(entry => enviarPush(username, entry, payload)));
   }
 );
