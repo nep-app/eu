@@ -37,15 +37,22 @@ async function escutarPushEmPrimeiroPlano(messaging) {
   if (pushForegroundOuvido) return;
   pushForegroundOuvido = true;
   const { onMessage } = await import("firebase/messaging");
-  onMessage(messaging, payload => {
+  onMessage(messaging, async payload => {
     const d = payload.data || {};
-    if (Notification.permission === "granted") {
-      new Notification(d.title || "JEEP EDUCA+", {
-        body: d.body || "",
-        icon: d.icon || "/eu/logo.png",
-        tag: "jeep-push",
+    if (Notification.permission !== "granted") return;
+    // Mostra a notificação através do service worker — new Notification()
+    // só funciona no desktop; no Android rebenta ("Illegal constructor"),
+    // por isso com a app aberta no telemóvel o aviso nunca aparecia.
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.showNotification(d.title || "JEEP EDUCA+", {
+        body:  d.body  || "",
+        icon:  d.icon  || "/eu/logo.png",
+        badge: d.badge || "/eu/logo.png",
+        tag:   "jeep-push",
+        renotify: true,
       });
-    }
+    } catch {}
   });
 }
 
