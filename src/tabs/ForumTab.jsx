@@ -35,11 +35,21 @@ const isAdmin = (u) => u?.username === "admin";
 function parseTimeStr(t) {
   if (!t) return 0;
   const MTHS_PT = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+  // Formato completo: "09 Jul 2026, 16:44"
   const m = t.match(/^(\d{1,2})\s+(\w+)\s+(\d{4}),\s*(\d{1,2}):(\d{2})/);
-  if (!m) return 0;
-  const mon = MTHS_PT.indexOf(m[2].toLowerCase());
-  if (mon < 0) return 0;
-  return new Date(+m[3], mon, +m[1], +m[4], +m[5]).getTime();
+  if (m) {
+    const mon = MTHS_PT.indexOf(m[2].toLowerCase());
+    if (mon >= 0) return new Date(+m[3], mon, +m[1], +m[4], +m[5]).getTime();
+  }
+  // Formato antigo só com mês e ano: "Jun 2026" (posts sem hora nem ts).
+  // Sem dia, assume o início do mês — chega para os ordenar entre si e
+  // face aos posts mais recentes, em vez de irem todos para o valor 0.
+  const m2 = t.match(/^(\w+)\s+(\d{4})$/);
+  if (m2) {
+    const mon = MTHS_PT.indexOf(m2[1].toLowerCase());
+    if (mon >= 0) return new Date(+m2[2], mon, 1).getTime();
+  }
+  return 0;
 }
 
 export default function ForumTab({ user, data = {}, forumCollection = "forum", initialCanal = null }) {
