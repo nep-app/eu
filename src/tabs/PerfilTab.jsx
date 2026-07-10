@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { doc, setDoc, collection, addDoc, getDocs, deleteDoc, query, where } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage, registarPushNotifications } from "../firebase.js";
@@ -13,6 +13,21 @@ export default function PerfilTab({ user, data, features = {} }) {
   const [subTab, setSubTab] = useState("roda");
   const [expandedDim, setExpandedDim] = useState(null);
   const [ativandoPush, setAtivandoPush] = useState(false);
+  // "on" = ativo neste aparelho | "off" = por ativar | "blocked" = bloqueado
+  // nas definições | "unsupported" = browser/aparelho não suporta
+  const [pushStatus, setPushStatus] = useState("off");
+
+  useEffect(() => {
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+      setPushStatus("unsupported");
+    } else if (Notification.permission === "granted") {
+      setPushStatus("on");
+    } else if (Notification.permission === "denied") {
+      setPushStatus("blocked");
+    } else {
+      setPushStatus("off");
+    }
+  }, []);
 
   const PUSH_ERROS = {
     "sem-vapid-key":           "Configuração em falta — fala com quem geriu a app.",
@@ -28,8 +43,13 @@ export default function PerfilTab({ user, data, features = {} }) {
     setAtivandoPush(true);
     const res = await registarPushNotifications(user.username);
     setAtivandoPush(false);
-    if (res.ok) alert("✓ Notificações push ativadas com sucesso!");
-    else alert("Não foi possível ativar: " + (PUSH_ERROS[res.reason] || res.reason));
+    if (res.ok) {
+      setPushStatus("on");
+      alert("✓ Notificações push ativadas com sucesso!");
+    } else {
+      if (res.reason === "permissao-denied") setPushStatus("blocked");
+      alert("Não foi possível ativar: " + (PUSH_ERROS[res.reason] || res.reason));
+    }
   }
 
   const uData = data.userData || {};
@@ -540,12 +560,38 @@ export default function PerfilTab({ user, data, features = {} }) {
         <>
           <div style={thm.card}>
             <div style={thm.sl}>🔔 Notificações Push</div>
-            <div style={{ fontSize:13, color:thm.muted, lineHeight:1.6, marginBottom:20 }}>
-              Ativa para receberes avisos no telemóvel mesmo com a app fechada (mensagens, feedback da Teresa, etc.). Se já tinhas ativado antes, não faz mal carregar outra vez.
-            </div>
-            <Btn variant="dark" onClick={ativarPush} disabled={ativandoPush}>
-              {ativandoPush ? "A ativar..." : "🔔 ATIVAR NOTIFICAÇÕES PUSH"}
-            </Btn>
+
+            {pushStatus === "on" ? (
+              <>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12,
+                  fontSize:14, fontWeight:800, color:"#4ade80" }}>
+                  <span style={{ fontSize:18 }}>✓</span> Notificações ativas neste aparelho
+                </div>
+                <div style={{ fontSize:12, color:thm.muted, lineHeight:1.6, marginBottom:16 }}>
+                  Recebes avisos aqui mesmo com a app fechada. Se mudaste de telemóvel/browser, carrega em baixo para ativar também nesse aparelho.
+                </div>
+                <Btn variant="dark" onClick={ativarPush} disabled={ativandoPush}>
+                  {ativandoPush ? "A ativar..." : "Reativar neste aparelho"}
+                </Btn>
+              </>
+            ) : pushStatus === "blocked" ? (
+              <div style={{ fontSize:13, color:"#f87171", lineHeight:1.6 }}>
+                🚫 As notificações estão <b>bloqueadas</b> para esta app. Para ativar, vai às definições do browser/telemóvel, permite notificações para este site, e volta aqui.
+              </div>
+            ) : pushStatus === "unsupported" ? (
+              <div style={{ fontSize:13, color:thm.muted, lineHeight:1.6 }}>
+                Este browser/aparelho não suporta notificações push. No iPhone, tens de <b>instalar a app no ecrã principal</b> primeiro (Partilhar → "Adicionar ao ecrã principal") e abri-la por aí.
+              </div>
+            ) : (
+              <>
+                <div style={{ fontSize:13, color:thm.muted, lineHeight:1.6, marginBottom:20 }}>
+                  Ativa para receberes avisos no telemóvel mesmo com a app fechada (mensagens, feedback da Teresa, etc.).
+                </div>
+                <Btn variant="dark" onClick={ativarPush} disabled={ativandoPush}>
+                  {ativandoPush ? "A ativar..." : "🔔 ATIVAR NOTIFICAÇÕES PUSH"}
+                </Btn>
+              </>
+            )}
           </div>
 
           <div style={thm.card}>
