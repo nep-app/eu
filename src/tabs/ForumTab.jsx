@@ -17,6 +17,7 @@ const CHANNEL_COLORS = {
 };
 
 const RECURSOS_FIXOS = [
+  { id:"__arcade", icone:"🎮", titulo:"Arcade EDUCA+", url:"/eu/jogos/arcade-educa.html", desc:"Três jogos para dinamizar sessões: Aproxima ou Afasta, Tabu e Construtor de Projeto. Funciona offline." },
   { id:"__bem-estar", icone:"📱", titulo:"Guia Bem-estar Digital", url:"/eu/bem-estar-digital.html", desc:"Conceitos, hábitos e ferramentas para uma relação saudável com o digital" },
   {
     id:"__fdr",

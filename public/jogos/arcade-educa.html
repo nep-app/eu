@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arcade EDUCA+</title>
+<!-- Sem ligação externa: funciona offline. Ver INTEGRACAO_PWA.md para repor as fontes originais. -->
+<style>
+:root{
+  --ink:#181428;--ink-2:#221d36;--paper:#F7F2E7;--paper-2:#EFE7D6;--chalk:#CFC7DE;
+  --postit:#FFD84D;--afasta:#E2574C;--depende:#B79CE8;--aproxima:#2E9E7B;--marker:#4A6CF0;
+  --line:rgba(247,242,231,.16);--shadow:0 18px 40px rgba(0,0,0,.45);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--ink);color:var(--paper);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(circle at 15% 20%,rgba(74,108,240,.10),transparent 45%),radial-gradient(circle at 85% 75%,rgba(226,87,76,.08),transparent 45%)}
+.wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:32px 20px 90px}
+h1,h2,h3,.display{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:800;line-height:1.03;letter-spacing:-.02em}
+.mono{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace}
+.eyebrow{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--chalk);opacity:.75}
+#home .hero{padding:56px 0 42px;border-bottom:1px dashed var(--line)}
+#home h1{font-size:clamp(46px,9vw,96px)} #home h1 em{font-style:normal;color:var(--postit)}
+#home .lede{max-width:56ch;margin-top:20px;color:var(--chalk);font-size:18px}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:44px}
+.mode{position:relative;text-align:left;cursor:pointer;background:var(--paper);color:var(--ink);border:none;border-radius:2px;padding:26px 24px 22px;box-shadow:var(--shadow);transition:transform .18s,box-shadow .18s;font:inherit}
+.mode:nth-child(1){transform:rotate(-1.1deg)}.mode:nth-child(2){transform:rotate(.7deg)}.mode:nth-child(3){transform:rotate(-.4deg)}
+.mode:hover,.mode:focus-visible{transform:rotate(0) translateY(-6px);box-shadow:0 26px 50px rgba(0,0,0,.55);outline:none}
+.mode:focus-visible{box-shadow:0 0 0 3px var(--postit),var(--shadow)}
+.mode::before{content:'';position:absolute;top:-11px;left:50%;transform:translateX(-50%) rotate(-2deg);width:76px;height:22px;background:rgba(255,216,77,.62);box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.mode .num{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:11px;letter-spacing:.2em;color:#6b6480}
+.mode h3{font-size:27px;margin:10px 0 8px}
+.mode p{font-size:14.5px;color:#4b4560;line-height:1.5}
+.mode .meta{margin-top:16px;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:11px;color:#8b8499;display:block}
+.m1 h3{color:var(--afasta)}.m2 h3{color:var(--marker)}.m3 h3{color:#1f7a5e}
+.screen{display:none}.screen.on{display:block}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-bottom:18px;border-bottom:1px dashed var(--line);margin-bottom:32px;flex-wrap:wrap}
+.topbar h2{font-size:26px}
+.btn{font:inherit;font-weight:600;cursor:pointer;border-radius:2px;padding:12px 20px;border:1px solid var(--line);background:transparent;color:var(--paper);transition:.15s}
+.btn:hover{background:rgba(247,242,231,.09)}
+.btn:focus-visible{outline:2px solid var(--postit);outline-offset:2px}
+.btn-solid{background:var(--paper);color:var(--ink);border-color:var(--paper)}.btn-solid:hover{background:#fff}
+.btn-sm{padding:8px 14px;font-size:13px}
+.btn-yellow{background:var(--postit);color:var(--ink);border-color:var(--postit)}.btn-yellow:hover{background:#ffe071}
+.btn[disabled]{opacity:.32;cursor:not-allowed}
+.center{text-align:center}
+.hint{color:var(--chalk);opacity:.72;font-size:13.5px}
+/* JOGO 1 */
+.progress{height:3px;background:rgba(247,242,231,.1);margin-bottom:26px}
+.progress i{display:block;height:100%;background:var(--postit);transition:width .3s}
+.piles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:34px}
+.pile{border-top:2px solid;padding-top:10px;min-height:70px}
+.pile.pf{border-color:var(--afasta)}.pile.pd{border-color:var(--depende)}.pile.pa{border-color:var(--aproxima)}
+.pile-label{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:800;font-size:15px}
+.pf .pile-label{color:var(--afasta)}.pd .pile-label{color:var(--depende)}.pa .pile-label{color:var(--aproxima)}
+.pile-count{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:11px;color:var(--chalk);opacity:.6}
+.chips{margin-top:9px;display:flex;flex-direction:column;gap:4px}
+.chip{font-size:11px;background:rgba(247,242,231,.06);border:1px solid var(--line);padding:3px 8px;border-radius:2px;color:var(--chalk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:drop .3s ease}
+@keyframes drop{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.card-stage{max-width:520px;margin:0 auto}
+.card{background:var(--paper);color:var(--ink);border-radius:3px;padding:36px 30px;min-height:200px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--shadow);transition:transform .3s cubic-bezier(.3,.9,.3,1),opacity .3s}
+.card.fly-l{transform:translateX(-130%) rotate(-14deg);opacity:0}
+.card.fly-r{transform:translateX(130%) rotate(14deg);opacity:0}
+.card.fly-d{transform:translateY(40px) scale(.92);opacity:0}
+.card .idx{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:11px;letter-spacing:.18em;color:#8b8499}
+.card .txt{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:clamp(21px,3.3vw,30px);line-height:1.2;color:var(--ink);margin:18px 0}
+.swipes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:20px}
+.sw{padding:15px 8px;border-radius:2px;border:2px solid;background:transparent;cursor:pointer;font:inherit;font-weight:700;font-size:14.5px;transition:.15s;line-height:1.25}
+.sw small{display:block;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:9.5px;font-weight:400;opacity:.6;margin-top:3px}
+.sw-l{border-color:var(--afasta);color:var(--afasta)}.sw-l:hover{background:var(--afasta);color:var(--paper)}
+.sw-d{border-color:var(--depende);color:var(--depende)}.sw-d:hover{background:var(--depende);color:var(--ink)}
+.sw-r{border-color:var(--aproxima);color:var(--aproxima)}.sw-r:hover{background:var(--aproxima);color:var(--ink)}
+.reply{margin-top:20px;background:var(--postit);color:var(--ink);padding:24px 24px 20px;border-radius:2px;box-shadow:var(--shadow);animation:drop .25s ease}
+.reply .tag{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;opacity:.6}
+.reply p{margin-top:8px;font-size:17px;font-weight:500;line-height:1.42}
+.reply .next{margin-top:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.reply .next .btn{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.reply .kb{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:10.5px;opacity:.5}
+.reply.dep{background:var(--depende)}
+.guiao{background:var(--paper);color:var(--ink);padding:30px;border-radius:3px;box-shadow:var(--shadow);margin-top:24px}
+.guiao h3{font-size:24px;color:var(--ink)}
+.guiao .sub{color:#6b6480;font-size:14px;margin-top:4px}
+.legenda{margin-top:20px;background:rgba(24,20,40,.05);border-radius:2px;padding:18px 20px}
+.legenda dl{margin-top:12px}
+.legenda dt{margin-top:12px}
+.legenda dt:first-child{margin-top:0}
+.legenda dd{font-size:13.5px;color:#5b5570;line-height:1.5;margin-top:5px}
+.legenda dd em{font-style:italic}
+.legenda dd b{color:#9c3b33}
+.guiao ol{margin:22px 0 0;padding-left:20px}
+.guiao li{margin-bottom:18px;color:#3a3450}
+.guiao li strong{display:block;color:var(--ink);font-weight:600;font-size:17px;margin:2px 0 4px}
+.guiao li em{font-style:normal;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8b8499}
+.tagpill{display:inline-block;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:9.5px;padding:2px 7px;margin:2px 4px 2px 0;vertical-align:middle;color:var(--paper);line-height:1.5}
+.tp-hes{background:var(--afasta)}.tp-dep{background:#6f57a8}.tp-con{background:var(--ink)}
+/* JOGO 2 */
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:26px}
+.team{border:1px solid var(--line);padding:18px;border-radius:2px;transition:.2s}
+.team.active{border-color:var(--postit);background:rgba(255,216,77,.07)}
+.team input{width:100%;background:transparent;border:none;border-bottom:1px dashed var(--line);color:var(--paper);font:inherit;font-weight:600;font-size:17px;padding:2px 0}
+.team input:focus{outline:none;border-bottom-color:var(--postit)}
+.team .score{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:800;font-size:44px;margin-top:6px}
+.team .turn{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--postit);height:14px}
+.timer{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-weight:700;font-size:clamp(52px,11vw,82px);line-height:1;text-align:center}
+.timer.low{color:var(--afasta)}
+.tabu-card{background:var(--paper);color:var(--ink);border-radius:3px;box-shadow:var(--shadow);padding:34px 28px;text-align:center;max-width:460px;margin:26px auto 0}
+.tabu-word{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:800;font-size:clamp(28px,5.4vw,44px);color:var(--ink)}
+.tabu-rule{margin:18px 0 12px;height:1px;background:rgba(24,20,40,.12)}
+.tabu-ban{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--afasta)}
+.tabu-list{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.tabu-list span{font-size:19px;font-weight:600;color:#4b4560;text-decoration:line-through;text-decoration-color:var(--afasta);text-decoration-thickness:2px}
+.tabu-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:460px;margin:20px auto 0}
+.setup-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.pick{border:1px solid var(--line);background:transparent;color:var(--chalk);font:inherit;padding:9px 16px;cursor:pointer;border-radius:2px;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:13px}
+.pick.on{background:var(--postit);color:var(--ink);border-color:var(--postit)}
+.deck-left{text-align:center;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:11.5px;color:var(--chalk);opacity:.7;margin-top:18px}
+/* JOGO 3 */
+.steps{display:flex;gap:4px;margin-bottom:28px}
+.step{flex:1;height:3px;background:rgba(247,242,231,.12)}
+.step.done{background:var(--postit)}.step.now{background:var(--marker)}
+.q{font-size:clamp(26px,4.4vw,38px);margin-bottom:6px}
+.q-sub{color:var(--chalk);opacity:.85;margin-bottom:24px;font-size:15.5px;max-width:64ch}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.opt{position:relative;text-align:left;background:var(--paper);color:var(--ink);border:2px solid var(--paper);border-radius:2px;padding:17px 18px;cursor:pointer;font:inherit;box-shadow:0 8px 20px rgba(0,0,0,.28);transition:.14s}
+.opt:hover{transform:translateY(-3px)}
+.opt.sel{border-color:var(--marker);border-width:3px;background:#fff;transform:translateY(-3px);
+  box-shadow:0 0 0 3px rgba(74,108,240,.35),0 8px 20px rgba(0,0,0,.28);padding:15px 16px}
+.opt.sel::after{content:'✓ ESCOLHIDO';position:absolute;bottom:0;right:0;
+  font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:9.5px;font-weight:700;letter-spacing:.1em;
+  background:var(--marker);color:#fff;padding:3px 8px}
+.opt.limite.sel::after{background:var(--afasta)}
+.opt.limite.sel{border-color:var(--afasta);box-shadow:0 0 0 3px rgba(226,87,76,.35),0 8px 20px rgba(0,0,0,.28)}
+.opt.postit.sel{border-color:var(--ink);box-shadow:0 0 0 3px rgba(24,20,40,.45),0 8px 20px rgba(0,0,0,.28)}
+.opt.postit.sel::after{background:var(--ink);color:var(--postit)}
+.aviso{background:var(--postit);color:var(--ink);padding:18px 20px;border-radius:2px;margin-bottom:22px;font-size:15px;line-height:1.5}
+.aviso b{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:17px;display:block;margin-bottom:4px}
+.opt strong{display:block;font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:700;font-size:18px;margin-bottom:4px;color:var(--ink)}
+.opt span{font-size:13px;color:#5b5570;line-height:1.42;display:block}
+.opt.postit{background:var(--postit);border-color:var(--postit)}
+.opt.postit.sel{border-color:var(--ink)}
+.opt.postit span{color:#6b5810}
+.opt.limite{background:var(--paper-2);border-color:var(--paper-2)}
+.opt.limite.sel{border-color:var(--afasta);background:#fff}
+.opt.limite strong{color:#9c3b33}
+.opt .badge{position:absolute;top:9px;right:9px;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:9px;background:var(--marker);color:#fff;padding:2px 6px}
+.opt .ord{position:absolute;top:9px;right:9px;font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:800;font-size:14px;background:var(--ink);color:var(--postit);width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.opt .fonte{display:block;margin-top:7px;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#8b8499}
+.counter{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:12px;color:var(--chalk);opacity:.75;margin-top:16px}
+.txtin{width:100%;max-width:560px;background:transparent;border:none;border-bottom:2px dashed var(--line);color:var(--paper);font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:26px;padding:6px 0}
+.txtin:focus{outline:none;border-bottom-color:var(--postit)}
+.nav{display:flex;justify-content:space-between;margin-top:32px;gap:12px}
+.energy-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap;gap:16px}
+.energy-left{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:800;font-size:44px;line-height:1}
+.energy-left.zero{color:var(--aproxima)}
+.sliders{display:grid;gap:12px}
+.slider-row{background:rgba(247,242,231,.05);border:1px solid var(--line);padding:14px 16px;border-radius:2px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.slider-row.flag{border-color:var(--afasta)}
+.slider-row b{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:18px;font-weight:700;display:block}
+.slider-row small{color:var(--chalk);opacity:.65;font-size:12.5px;font-family:system-ui,sans-serif;font-weight:400}
+.slider-row .plan{display:block;margin-top:5px;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--postit)}
+.pm-wrap{display:flex;gap:8px;align-items:center}
+.pips{display:flex;gap:4px}
+.pip{width:13px;height:13px;border:1px solid var(--line);border-radius:50%}
+.pip.on{background:var(--postit);border-color:var(--postit)}
+.pmbtn{width:34px;height:34px;border:1px solid var(--line);background:transparent;color:var(--paper);font-size:19px;cursor:pointer;border-radius:2px;line-height:1}
+.pmbtn:hover:not(:disabled){background:rgba(247,242,231,.1)}
+.pmbtn:disabled{opacity:.25;cursor:not-allowed}
+.event{background:var(--paper);color:var(--ink);border-radius:3px;padding:30px;box-shadow:var(--shadow);max-width:680px}
+.event.boss{border-top:6px solid var(--afasta)}
+.event.oport{border-top:6px solid var(--aproxima)}
+.event .kicker{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--afasta)}
+.event.oport .kicker{color:#1f7a5e}
+.event h3{font-size:26px;margin:8px 0 10px;color:var(--ink)}
+.event p{color:#5b5570;font-size:15px}
+.event .choices{margin-top:22px;display:grid;gap:10px}
+.choice{text-align:left;background:transparent;border:1px solid rgba(24,20,40,.18);color:var(--ink);padding:14px 16px;border-radius:2px;cursor:pointer;font:inherit;font-size:15px;font-weight:500;transition:.14s}
+.choice:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.outcome{margin-top:18px;padding:16px;background:rgba(24,20,40,.06);border-left:3px solid var(--marker);font-size:14.5px;color:#3a3450}
+.outcome.bad{border-left-color:var(--afasta)}
+.axes{display:grid;gap:12px;margin:26px 0}
+.axis-row{display:grid;grid-template-columns:160px 1fr 46px;gap:14px;align-items:center}
+.axis-row b{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:16px;font-weight:700}
+.bar{height:14px;background:rgba(247,242,231,.1)}
+.bar i{display:block;height:100%;background:var(--marker);width:0;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.axis-row .v{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:15px;text-align:right}
+.verdict{background:var(--postit);color:var(--ink);padding:24px;border-radius:2px;box-shadow:var(--shadow)}
+.verdict h3{font-size:24px}.verdict p{margin-top:8px;font-size:15.5px;font-weight:500}
+.alerta{margin-top:18px;border:1px solid var(--afasta);border-left-width:4px;padding:16px 18px;border-radius:2px;background:rgba(226,87,76,.08)}
+.alerta .eyebrow{color:var(--afasta);opacity:1}
+.alerta ul{margin:10px 0 0;padding-left:18px;font-size:14.5px;color:var(--chalk)}
+.autoq{border:1px solid var(--line);border-radius:2px;padding:18px 20px;margin-bottom:12px;background:rgba(247,242,231,.04)}
+.autoq-dim{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;display:block}
+.autoq-q{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:700;font-size:19px;margin:8px 0 14px;line-height:1.25}
+.autoq-opts{display:grid;gap:7px}
+.autoq-opt{text-align:left;background:transparent;border:1px solid var(--line);color:var(--chalk);font:inherit;font-size:14.5px;padding:11px 14px;border-radius:2px;cursor:pointer;transition:.13s}
+.autoq-opt:hover{background:rgba(247,242,231,.08);color:var(--paper)}
+.autoq-opt.on{background:var(--paper);color:var(--ink);border-color:var(--paper);font-weight:600}
+.dim-two{display:flex;flex-direction:column;gap:3px;margin-top:5px}
+.dim-two .lane{display:grid;grid-template-columns:52px 1fr 26px;gap:8px;align-items:center}
+.dim-two .lane span{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--chalk);opacity:.6}
+.dim-two .lane b{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:12px;text-align:right;font-weight:400}
+.dim-two .tr{height:8px;background:rgba(247,242,231,.09)}
+.dim-two .tr i{display:block;height:100%;width:0;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.lane.auto .tr i{background:var(--chalk);opacity:.55}
+.gap{margin-top:22px;padding:18px 20px;border-radius:2px;background:rgba(74,108,240,.12);border-left:4px solid var(--marker)}
+.gap b{display:block;font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:18px;margin-bottom:5px}
+.gap p{font-size:14.5px;color:var(--chalk)}
+.perfil{margin-top:24px;border:1px solid var(--line);border-radius:3px;padding:26px;background:rgba(247,242,231,.04)}
+.dims{display:grid;gap:12px;margin-top:22px}
+.dim-row{display:grid;grid-template-columns:34px 1fr 118px;gap:14px;align-items:center}
+.dim-id{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:800;font-size:17px}
+.dim-mid b{display:block;font-size:13.5px;font-weight:500;color:var(--chalk);margin-bottom:5px;line-height:1.3}
+.dim-bar{height:9px;background:rgba(247,242,231,.09)}
+.dim-bar i{display:block;height:100%;width:0;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.dim-val{text-align:right}
+.dim-val b{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:17px;display:block;line-height:1.1}
+.dim-val small{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--chalk);opacity:.65}
+.dim-foot{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px;padding-top:20px;border-top:1px dashed var(--line)}
+.dim-foot p{font-size:14.5px;font-weight:500;margin-top:4px}
+@media (max-width:760px){.dim-row{grid-template-columns:28px 1fr 92px;gap:9px}.dim-foot{grid-template-columns:1fr}}
+.match{display:inline-block;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-weight:700;font-size:12px;
+  letter-spacing:.1em;padding:6px 11px;margin-bottom:11px;border-radius:2px;
+  background:#181428;color:#ffffff}
+.match.m0{background:#EFE7D6;color:#77718a;font-weight:400}
+.match.m1{background:#181428;color:#ffffff}
+.match.m2{background:#181428;color:#ffffff}
+.match.m3{background:#1B6B52;color:#ffffff}
+.resolve{margin-top:10px;padding-top:9px;border-top:1px solid rgba(24,20,40,.14);
+  font-size:12.5px;line-height:1.6;color:#3a3450;font-weight:600}
+.opt.postit .resolve{border-top-color:rgba(24,20,40,.22);color:#4a3d08}
+.regras{background:rgba(24,20,40,.35);border:1px solid var(--line);border-radius:2px;padding:16px 18px;margin:0 0 22px}
+.regras ul{margin:10px 0 0;padding-left:18px}
+.regras li{font-size:14px;color:var(--chalk);margin-bottom:4px}
+.slot.erro{border-style:solid;border-color:var(--afasta);background:rgba(226,87,76,.1)}
+.slot-err{font-size:11.5px;color:var(--afasta);line-height:1.35;margin-top:auto}
+.desbloq{margin-top:22px;border:1px solid var(--line);border-radius:2px;padding:18px 20px;background:rgba(247,242,231,.04)}
+.desbloq ul{list-style:none;margin-top:12px;display:grid;gap:7px}
+.desbloq li{display:grid;grid-template-columns:20px 1fr;gap:8px;font-size:13.5px;color:var(--chalk);opacity:.45}
+.desbloq li.ok{opacity:1}
+.desbloq li b{color:var(--afasta)}
+.desbloq li.ok b{color:var(--aproxima)}
+.desbloq li em{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-style:normal;font-size:11px;color:var(--postit);letter-spacing:.04em}
+.pdv{background:var(--marker);color:#fff;padding:28px;border-radius:3px;margin-top:24px;box-shadow:var(--shadow)}
+.pdv h3{font-size:26px}
+.pdv p{margin-top:8px;font-size:15.5px;color:#dfe6ff;max-width:56ch}
+.comps{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.comp{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;font:inherit;font-size:14px;padding:8px 14px;border-radius:20px;cursor:pointer;transition:.14s}
+.comp:hover{background:rgba(255,255,255,.15)}
+.comp.on{background:#fff;color:var(--marker);border-color:#fff;font-weight:600}
+.pdv input{width:100%;max-width:520px;margin-top:18px;background:transparent;border:none;border-bottom:2px dashed rgba(255,255,255,.4);color:#fff;font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:22px;padding:6px 0}
+.pdv input::placeholder{color:rgba(255,255,255,.5)}
+.pdv input:focus{outline:none;border-bottom-color:#fff}
+.pia-out{background:var(--paper);color:var(--ink);padding:26px;border-radius:3px;margin-top:24px;box-shadow:var(--shadow)}
+.pia-out pre{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:12.5px;line-height:1.75;white-space:pre-wrap;color:#3a3450;max-height:380px;overflow:auto;background:rgba(24,20,40,.04);padding:18px;margin-top:14px}
+.pia-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.pia-actions .btn{border-color:rgba(24,20,40,.2);color:var(--ink)}
+.pia-actions .btn:hover{background:rgba(24,20,40,.08)}
+.pia-actions .btn-solid{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+@media (max-width:760px){
+  .piles{grid-template-columns:1fr;gap:10px}.pile{min-height:0}
+  .swipes{grid-template-columns:1fr;gap:8px}.teams{grid-template-columns:1fr}
+  .axis-row{grid-template-columns:110px 1fr 42px}.tabu-actions{grid-template-columns:1fr}
+  .slider-row{align-items:flex-start}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<section id="home" class="screen on">
+  <div class="hero">
+    <span class="eyebrow">Câmara Municipal de Cascais · DINT/DSQV</span>
+    <h1 style="margin-top:14px">Arcade<br><em>EDUCA+</em></h1>
+    <p class="lede">Três jogos para as sessões de supervisão e para o acompanhamento dos JEEP. Feitos a partir das dinâmicas que já existem — só que agora jogam-se.</p>
+  </div>
+  <div class="modes">
+    <button class="mode m1" onclick="go('g1')">
+      <span class="num">JOGO 01 · GRUPO OU INDIVIDUAL</span><h3>Aproxima ou Afasta?</h3>
+      <p>31 cartas com decisões reais. Três lados: afasta, depende, aproxima. O jogo nunca te diz que acertaste — devolve-te sempre uma pergunta. E nunca defende aquilo que te faz mal.</p>
+      <span class="meta">~20 min · 2ª supervisão</span></button>
+    <button class="mode m2" onclick="go('g2')">
+      <span class="num">JOGO 02 · 2 EQUIPAS</span><h3>Tabu EDUCA</h3>
+      <p>Explica a palavra sem dizer as três proibidas. Vinte conceitos do programa, do Consórcio à Comunicação Não Violenta, contra o cronómetro.</p>
+      <span class="meta">~12 min · dinâmica inicial ou final</span></button>
+    <button class="mode m3" onclick="go('g3')">
+      <span class="num">JOGO 03 · INDIVIDUAL</span><h3>Construtor de Projeto</h3>
+      <p>O PIA jogado em vez de preenchido. Diagnóstico, trunfos, limites, calendário, 14 fichas de energia, 3 acontecimentos à sorte e a Avaliação Final, que ninguém escapa. Sai um PIA com a SWOT completa.</p>
+      <span class="meta">~25 min · JEEP</span></button>
+  </div>
+  <p class="hint center" style="margin-top:44px">Funciona no telemóvel e projetado. Não guarda nada — o que ficar, fica no papel ou na conversa.</p>
+</section>
+
+<!-- JOGO 1 -->
+<section id="g1" class="screen">
+  <div class="topbar"><div><span class="eyebrow">Jogo 01</span><h2>Aproxima ou Afasta?</h2></div>
+  <button class="btn btn-sm" onclick="go('home')">← Menu</button></div>
+  <div id="g1-intro">
+    <p style="max-width:62ch;font-size:17px;color:var(--chalk)">Frases com coisas que se fazem — ou não se fazem — no dia a dia. Para cada uma, decides: <b style="color:var(--afasta)">afasta-me</b> do meu projeto de vida, <b style="color:var(--depende)">depende</b>, ou <b style="color:var(--aproxima)">aproxima-me</b>.</p>
+    <p style="max-width:62ch;margin-top:16px;font-size:17px;color:var(--chalk)">Uma regra: <b style="color:var(--postit)">o jogo responde sempre.</b> Não há pontuação e ninguém te vai dizer que acertaste. Nas cartas mais claras, o jogo aceita a tua resposta e devolve-te uma pergunta sobre ti. Nas cartas que não têm lado, discorda — e é aí que a conversa fica interessante.</p>
+    <p class="hint" style="margin-top:16px;max-width:62ch">No fim sai um guião com as cartas que te fizeram hesitar, as que puseste em "Depende" e aquelas em que foste contra a corrente.</p>
+    <button class="btn btn-yellow" style="margin-top:28px" onclick="g1Start()">Começar</button>
+  </div>
+  <div id="g1-play" style="display:none">
+    <div class="progress"><i id="g1-bar" style="width:0"></i></div>
+    <div class="card-stage">
+      <div class="card" id="g1-card"><span class="idx" id="g1-idx"></span><div class="txt" id="g1-txt"></div></div>
+      <div class="swipes" id="g1-sw">
+        <button class="sw sw-l" onclick="g1Answer('f')">Afasta-me<small>← esq.</small></button>
+        <button class="sw sw-d" onclick="g1Answer('d')">Depende<small>↓ baixo</small></button>
+        <button class="sw sw-r" onclick="g1Answer('a')">Aproxima-me<small>dir. →</small></button>
+      </div>
+      <div id="g1-fb"></div>
+    </div>
+    <div class="piles">
+      <div class="pile pf"><div class="pile-label">Afasta-me</div><div class="pile-count"><span id="g1-cf">0</span></div><div class="chips" id="g1-chf"></div></div>
+      <div class="pile pd"><div class="pile-label">Depende</div><div class="pile-count"><span id="g1-cd">0</span></div><div class="chips" id="g1-chd"></div></div>
+      <div class="pile pa"><div class="pile-label">Aproxima-me</div><div class="pile-count"><span id="g1-ca">0</span></div><div class="chips" id="g1-cha"></div></div>
+    </div>
+  </div>
+  <div id="g1-end" style="display:none"></div>
+</section>
+
+<!-- JOGO 2 -->
+<section id="g2" class="screen">
+  <div class="topbar"><div><span class="eyebrow">Jogo 02</span><h2>Tabu EDUCA</h2></div>
+  <button class="btn btn-sm" onclick="go('home')">← Menu</button></div>
+  <div id="g2-setup">
+    <p style="max-width:62ch;font-size:17px;color:var(--chalk)">Duas equipas. Uma pessoa de cada vez explica a palavra à sua equipa <b>sem dizer nenhuma das três palavras proibidas</b> — nem derivados. Passar não custa nada e a carta volta ao baralho; dizer uma proibida custa um ponto.</p>
+    <div style="margin-top:30px"><span class="eyebrow">Tempo por ronda</span>
+      <div class="setup-row">
+        <button class="pick" onclick="g2SetTime(45,this)">45s</button>
+        <button class="pick on" onclick="g2SetTime(60,this)">60s</button>
+        <button class="pick" onclick="g2SetTime(90,this)">90s</button></div></div>
+    <div class="teams" style="margin-top:30px">
+      <div class="team"><span class="eyebrow">Equipa A</span><input id="g2-n1" value="Equipa A" maxlength="18"></div>
+      <div class="team"><span class="eyebrow">Equipa B</span><input id="g2-n2" value="Equipa B" maxlength="18"></div></div>
+    <button class="btn btn-yellow" style="margin-top:24px" onclick="g2Start()">Começar</button>
+  </div>
+  <div id="g2-play" style="display:none">
+    <div class="teams">
+      <div class="team" id="g2-t0"><div style="font-weight:600;font-size:17px" id="g2-l0"></div><div class="score" id="g2-s0">0</div><div class="turn" id="g2-u0"></div></div>
+      <div class="team" id="g2-t1"><div style="font-weight:600;font-size:17px" id="g2-l1"></div><div class="score" id="g2-s1">0</div><div class="turn" id="g2-u1"></div></div></div>
+    <div id="g2-ready" class="center">
+      <p class="eyebrow">A jogar</p>
+      <p class="display" id="g2-ready-team" style="font-size:34px;margin:10px 0 22px"></p>
+      <p class="hint" style="max-width:44ch;margin:0 auto 24px">Passa o telemóvel a quem vai explicar. Só essa pessoa vê a carta.</p>
+      <button class="btn btn-yellow" onclick="g2Round()">Começar ronda</button></div>
+    <div id="g2-live" style="display:none">
+      <div class="timer" id="g2-timer">60</div>
+      <div class="tabu-card"><div class="tabu-word" id="g2-word"></div><div class="tabu-rule"></div>
+        <div class="tabu-ban">Não podes dizer</div><div class="tabu-list" id="g2-bans"></div></div>
+      <div class="tabu-actions">
+        <button class="btn" style="border-color:var(--afasta);color:var(--afasta)" onclick="g2Score(-1)">Falta −1</button>
+        <button class="btn" onclick="g2Score(0)">Passar</button>
+        <button class="btn btn-yellow" onclick="g2Score(1)">Acertou +1</button></div>
+      <div class="deck-left"><span id="g2-left"></span> cartas por jogar</div></div>
+  </div>
+  <div id="g2-end" style="display:none" class="center"></div>
+</section>
+
+<!-- JOGO 3 -->
+<section id="g3" class="screen">
+  <div class="topbar"><div><span class="eyebrow">Jogo 03</span><h2>Construtor de Projeto</h2></div>
+  <button class="btn btn-sm" onclick="go('home')">← Menu</button></div>
+  <div class="steps" id="g3-steps"></div>
+  <div id="g3-body"></div>
+</section>
+
+</div>
+<script>
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');window.scrollTo(0,0);
+  if(id!=='g2')g2Stop(); if(id==='g3')g3Reset(); if(id==='g1')g1Reset();
+}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ================= JOGO 1 ================= */
+const CARDS=[
+{t:"Estudar para um teste mesmo sem vontade.",k:'a',f:"Alguma coisa te fez responder isto. O que é que estudar sem vontade já te custou?",d:"Depende de quê — do teste, da vontade, ou de para que serve o curso?",a:"Aparecer sem vontade é metade do trabalho feito. Mas não ignores a falta de vontade quando ela for constante: também é informação."},
+{t:"Escolher um curso porque os outros dizem que é bom para mim.",k:'?',f:"Mesmo quando quem diz te conhece melhor do que tu te conheces? Às vezes vemo-nos mal de dentro.",d:"Depende de quem diz. Quem te deu o conselho conhece-te — ou só conhece o mercado?",a:"Então onde acaba o conselho e começa a tua decisão? Quem vai à aula todos os dias és tu."},
+{t:"Gastar 40€ numa noite quando faltam 60€ para a inscrição do curso.",k:'f',f:"Sim. E não é sobre não saíres — é sobre a ordem das coisas. O que é que costuma vir primeiro, para ti?",d:"Depende de quantas vezes por mês — ou de há quanto tempo andas a adiar a inscrição?",a:"Descansar faz falta, a sério. Mas isto é descanso, ou é adiar a inscrição mais uma vez? Responde só para ti."},
+{t:"Pedir ajuda quando não percebo.",k:'a',f:"Alguém já te fez sentir mal por perguntares? Costuma ser daí que vem esta resposta.",d:"Depende de a quem pedes — ou de quantas vezes já pediste a mesma coisa?",a:"É das melhores coisas que podes fazer. Uma pergunta só: tentas primeiro, ou pedes logo?"},
+{t:"Passar o dia nas redes sociais.",k:'f',f:"Sim — o dia inteiro tira o tempo a tudo o resto. Quanto tempo é que gostavas de lá passar, se pudesses escolher?",d:"Depende do que fazes lá, ou de quanto tempo? Só uma das duas perguntas é sobre ti.",a:"Pode dar contactos, aprendizagem ou descanso. Qual dos três é, no teu caso? Ninguém está a ouvir."},
+{t:"Faltar sem avisar.",k:'f',f:"Sim. Avisar é o mínimo e é fácil. Mas já aconteceu — o que é que costuma estar por trás quando não consegues mandar a mensagem?",d:"O motivo da falta pode depender. Mas avisar depende de quê?",a:"Às vezes desaparecer é a única forma que se conhece de dizer que não se aguenta. Se for isso, há maneiras melhores — e há quem esteja lá para as ouvir."},
+{t:"Inscrever-me num curso de que gosto, mesmo sendo difícil.",k:'a',f:"Difícil demais existe mesmo. Como é que distingues \'difícil\' de \'impossível para mim, agora\'?",d:"Depende do quão difícil — ou do que tens de largar para o fazer?",a:"Boa. E se for difícil ao ponto de chumbares, o que é que te ajudaria a aguentar? Vale a pena pensar nisso antes, não depois."},
+{t:"Desistir no primeiro obstáculo.",k:'f',f:"Sim. O primeiro obstáculo aparece sempre — é o único que aparece de certeza. O que é que te costuma fazer parar?",d:"Depende do obstáculo. Diz-me um que te fizesse parar sem culpa nenhuma. Esses existem.",a:"Há um caso em que parar cedo é sensato: quando percebes que estavas no caminho errado. É isso — ou é o costume?"},
+{t:"Ir à procura de formações em vez de esperar que apareçam.",k:'a',f:"É cansaço, ou é não saber onde procurar? Resolvem-se as duas — mas de maneiras diferentes.",d:"Depende de quê? Procurar sem saber o que se quer também é andar às voltas.",a:"Boa. Um cuidado só: inscrever-se é fácil, acabar é que é o trabalho. Quantas é que já começaste?"},
+{t:"Seguir o grupo mesmo sabendo que estão errados.",k:'f',f:"Sim. E é fácil dizer isso sentado aqui — o difícil é na altura, com eles à tua frente. O que é que te ajudaria a aguentar?",d:"Depende do preço de sair do grupo. Qual é o teu preço — e quem paga se ficares?",a:"O grupo dá-te alguma coisa importante, e isso é real. Mas as consequências vêm sozinhas para ti. Compensa?"},
+{t:"Dizer \'não\' a algo que não quero fazer.",k:'?',f:"Dizer sim a tudo deixa-te sem tempo para o que é teu. Também sabes isso.",d:"Depende, sim. Onde é que está a fronteira entre protegeres-te e fechares portas?",a:"E dizer não a tudo o que dá trabalho? Metade do que sabes começou por ser um \'não me apetece\'."},
+{t:"Cumprir prazos.",k:'a',f:"Isso é raro. O que é que te levou a responder assim?",d:"Depende de quê — da qualidade do que entregas, ou de quem definiu o prazo?",a:"Concordo. Uma nuance: entregar a horas uma coisa má não conta. Já te aconteceu?"},
+{t:"Deixar tudo para a última hora.",k:'f',f:"Sim. Às vezes sai bem — o problema é o custo de descobrir as vezes em que sai mal. Isso já te custou o quê?",d:"Depende do trabalho — ou de já teres experimentado o contrário alguma vez?",a:"Há quem funcione com pressão em cima. Mas é mesmo isso, ou é o que se diz para não mudar nada?"},
+{t:"Assumir um erro em vez de culpar outro.",k:'a',f:"Já assumiste um erro e pagaste caro? Acontece — e não invalida o resto.",d:"Depende de quem está a ouvir. Nem todos os sítios são seguros para admitir erros. Este é?",a:"Sim. E o inverso também existe: assumir erros que não são teus para manter a paz. Cuidado com esse."},
+{t:"Faltar a uma entrevista de emprego.",k:'f',f:"Sim. E mesmo quando já percebeste que não queres aquilo, duas linhas a avisar chegam — e mantêm a porta aberta.",d:"O emprego pode depender. Avisar não. O que é que te trava à porta?",a:"Não te vou pedir que defendas isto. Mas responde: o que é que te faria mesmo não aparecer? É aí que está a conversa."},
+{t:"Trocar um jantar com amigos para pagar o que falta da carta.",k:'?',f:"Então a carta espera. Há quanto tempo é que ela já está à espera?",d:"Depende de quantos jantares. Um é disciplina. Todos é isolamento — e o nome muda.",a:"E se trocares todos os jantares durante um ano? Quando tirares a carta, tens a quem contar?"},
+{t:"Resolver um conflito a falar calmamente.",k:'a',f:"Já falaste calmamente e não resultou de todo? Acontece, e é uma informação útil.",d:"Depende do outro. Nem toda a gente quer falar. O que fazes nesse caso?",a:"É o teu trabalho. Uma coisa só: calma não é engolir. Sabes onde está a linha?"},
+{t:"Definir um objetivo para os próximos 5 anos.",k:'?',f:"Cinco anos é muito, sim. Mas nenhum plano é pior do que um plano errado?",d:"Depende de quanto controlo tens sobre os próximos cinco anos. Quanto é que tens, mesmo?",a:"E se o objetivo te prender? Um plano velho a que se obedece é uma prisão com data marcada."},
+{t:"Aceitar um trabalho temporário que não é o que sonho fazer.",k:'?',f:"Paga contas e dá experiência. Recusar por princípio é um luxo. Tens esse luxo?",d:"Depende do prazo. Qual é o teu limite antes de reavaliares — seis meses, dois anos?",a:"E se ficares lá cinco anos? \'Temporário\' é o nome, não é a garantia."},
+{t:"Investir tempo a aprender uma competência nova.",k:'a',f:"Tempo tirado de onde? É a pergunta a sério — e talvez a tua resposta venha daí.",d:"Depende de qual competência — ou de para que serve?",a:"Sim. Só não deixes que aprender coisas novas seja a forma de nunca acabar as antigas."},
+{t:"Desistir de um sonho por medo de falhar.",k:'f',f:"Sim. O medo de falhar é informação, não é uma ordem. Do que é que ele te está a proteger?",d:"Depende do sonho — e de quem o sonhou primeiro. Foste tu, ou foi a tua família?",a:"Há uma coisa parecida que não é medo: perceber que o sonho já não é teu. É isso — ou é medo com outro nome?"},
+{t:"Ficar no mesmo projeto porque é seguro, mesmo com uma oportunidade melhor lá fora.",k:'?',f:"O EDUCA+ existe para te lançar, não para te guardar. Mas a segurança não vale nada?",d:"Depende do que te prende: o projeto, ou o medo do que vem a seguir? Não é a mesma coisa.",a:"Diz o nome do que te prende. Se for a equipa, é uma resposta. Se for o medo, é outra."},
+{t:"Pedir uma oportunidade sem ter a certeza de que a mereço.",k:'?',f:"Quem decide se mereces és tu — ou é quem está do outro lado da mesa?",d:"Depende. Quantas vezes é que já decidiste por eles, e disseste não antes de te perguntarem?",a:"Pedir é quase sempre bom. Só não dispenses a preparação: pedir sem nada preparado também fecha portas."},
+{t:"Deixar de ir às sessões porque arranjei trabalho.",k:'?',f:"Espera. O objetivo deste programa é exatamente esse — que arranjes trabalho.",d:"Depende. O trabalho é o fim ou é um passo? E as sessões dão-te o quê que o trabalho não dá?",a:"Mas avisa. Sair bem é uma coisa; desaparecer é outra — e uma delas fecha a porta de volta."},
+{t:"Contar a quem me acompanha uma coisa de que tenho vergonha.",k:'?',f:"Nem tudo tem de ser dito, é verdade. Mas o que é que te custa a ti guardar isso sozinho?",d:"Depende da confiança. Já a testaste — ou estás a decidir por essa pessoa antes de tentar?",a:"Boa. E podes perguntar o que fica escrito e o que fica só na sala. Tens esse direito."},
+{t:"Fazer horas a mais sem receber, porque estão a contar comigo.",k:'?',f:"Uma vez, no arranque, pode abrir portas. Há diferença entre disponibilidade e hábito.",d:"Depende de quantas vezes. Uma vez é disponibilidade. Sempre é abuso — e o nome muda a meio.",a:"Onde é que isto acaba? Quem nunca diz não passa a ser quem fica sempre. E o teu tempo vale dinheiro."},
+{t:"Recusar um trabalho porque paga pouco.",k:'?',f:"Então aceitas qualquer coisa? O teu tempo vale um número. Sabes qual é?",d:"Depende de quão pouco — e do que ganhas além do dinheiro. Aprendes lá alguma coisa?",a:"E se pagar mal mas for a única porta aberta? Recusar por princípio custa meses parado."},
+{t:"Fazer sozinho para não ter de pedir.",k:'f',f:"Sim. Ainda assim, há coisas que fazes mesmo melhor sozinho. O problema é quando é sempre — e é sempre?",d:"Depende do quê? De quem terias de pedir?",a:"Percebo. Mas faz a conta uma vez: o que é que perdes de cada vez que não pedes?"},
+{t:"Aceitar ser colocado num equipamento longe de casa.",k:'?',f:"É uma hora de transporte por dia, e isso pesa. Mas quantas oportunidades é que já recusaste por causa da distância?",d:"Depende de quão longe, e do que ganhas por ir. O programa avalia isto — chama-lhe Mobilidade.",a:"E se a viagem te consumir a energia toda? Aceitar tudo também é uma forma de não escolher nada."},
+{t:"Faltar a uma supervisão porque não me apetece falar.",k:'f',f:"Sim. E é normal não apetecer — a supervisão existe precisamente para os dias em que não apetece.",d:"Há dias assim, e são legítimos. Mas é o dia, ou é o costume a começar?",a:"Descansar é preciso. Só que a supervisão é o sítio onde se diz que se está cansado. Faltar a esse é ficar sozinho com isso."},
+{t:"Chegar sempre a horas mesmo quando ninguém repara.",k:'a',f:"Explica-me. O que é que a pontualidade já te tirou?",d:"Depende de quem repara? Então a pontualidade é para os outros, e não para ti?",a:"Sim. Só não confundas: estar a horas é a porta de entrada, não é a competência."}
+];
+const LADO={f:'Afasta-me',d:'Depende',a:'Aproxima-me'};
+let g1i=0,g1Deck=[],g1Log=[],g1T0=0,g1Cnt={f:0,d:0,a:0};
+function g1Reset(){
+  g1i=0;g1Log=[];g1Cnt={f:0,d:0,a:0};g1Deck=shuffle([...CARDS]);
+  document.getElementById('g1-intro').style.display='';
+  document.getElementById('g1-play').style.display='none';
+  document.getElementById('g1-end').style.display='none';
+  ['f','d','a'].forEach(k=>{document.getElementById('g1-ch'+k).innerHTML='';document.getElementById('g1-c'+k).textContent='0';});
+  document.getElementById('g1-fb').innerHTML='';
+}
+function g1Start(){document.getElementById('g1-intro').style.display='none';document.getElementById('g1-play').style.display='';g1Render();}
+function g1Render(){
+  const c=g1Deck[g1i];
+  document.getElementById('g1-idx').textContent=`CARTA ${String(g1i+1).padStart(2,'0')} / ${g1Deck.length}`;
+  document.getElementById('g1-txt').textContent=c.t;
+  document.getElementById('g1-bar').style.width=(g1i/g1Deck.length*100)+'%';
+  document.getElementById('g1-fb').innerHTML='';
+  document.getElementById('g1-sw').style.display='';
+  const card=document.getElementById('g1-card');card.classList.remove('fly-l','fly-r','fly-d');
+  g1T0=Date.now();
+}
+function g1Answer(side){
+  if(document.getElementById('g1-sw').style.display==='none')return;
+  const c=g1Deck[g1i],dt=(Date.now()-g1T0)/1000;
+  g1Log.push({c,side,hes:dt>6});
+  const short=c.t.length>34?c.t.slice(0,32)+'…':c.t;
+  g1Cnt[side]++;
+  document.getElementById('g1-ch'+side).insertAdjacentHTML('beforeend',`<div class="chip">${short}</div>`);
+  document.getElementById('g1-c'+side).textContent=g1Cnt[side];
+  document.getElementById('g1-card').classList.add(side==='f'?'fly-l':side==='a'?'fly-r':'fly-d');
+  document.getElementById('g1-sw').style.display='none';
+  const last=g1i>=g1Deck.length-1;
+  document.getElementById('g1-fb').innerHTML=`<div class="reply ${side==='d'?'dep':''}">
+    <span class="tag">Puseste em "${LADO[side]}"</span><p>${c[side]}</p>
+    <div class="next"><span class="kb">espaço ou enter</span>
+    <button class="btn" onclick="g1Adv()">${last?'Ver o guião':'Próxima carta'} →</button></div></div>`;
+}
+function g1Adv(){g1i++;if(g1i>=g1Deck.length)g1End();else g1Render();}
+function g1End(){
+  document.getElementById('g1-play').style.display='none';
+  const end=document.getElementById('g1-end');end.style.display='';
+  const itens=[];
+  g1Log.forEach(l=>{
+    const tags=[];let p=null;
+    if(l.side==='d'){tags.push(['tp-dep','pôs em Depende']);p=l.c.d;}
+    if(l.c.k!=='?'&&l.side!=='d'&&l.side!==l.c.k){tags.push(['tp-con','respondeu ao contrário do que o programa defende']);p=p||l.c[l.side];}
+    if(l.c.k==='?'&&l.side!=='d'){tags.push(['tp-dep','carta sem resposta certa']);p=p||l.c[l.side];}
+    if(l.hes){tags.push(['tp-hes','demorou +6s a decidir']);p=p||l.c[l.side];}
+    if(tags.length)itens.push({t:l.c.t,lado:LADO[l.side],q:p,tags});
+  });
+  try{ if(window.parent!==window) window.parent.postMessage({type:'educa:cartas',afasta:g1Cnt.f,depende:g1Cnt.d,aproxima:g1Cnt.a,guiao:itens},'*'); }catch(e){}
+  end.innerHTML=`<div class="center" style="padding:14px 0 6px">
+    <span class="eyebrow">Fim do baralho</span>
+    <h2 class="display" style="font-size:clamp(28px,5.2vw,46px);margin-top:12px;line-height:1.15">
+      <span style="color:var(--afasta)">${g1Cnt.f} afastam</span> · <span style="color:var(--depende)">${g1Cnt.d} dependem</span> · <span style="color:var(--aproxima)">${g1Cnt.a} aproximam</span></h2>
+    <p class="hint" style="margin:16px auto 0;max-width:54ch">Não há pontuação. O que interessa é o que ficou por decidir.</p></div>
+    <div class="guiao"><h3>Guião de conversa</h3>
+    <p class="sub">${itens.length===0?'Respondeste sem demoras e sempre no sentido esperado, e não puseste nada em Depende. Isso, por si só, é o tema da sessão: ninguém acha tudo óbvio.':`${itens.length} carta${itens.length>1?'s':''} para levar à supervisão. Só entram no guião as cartas que dão conversa — as outras ficam de fora.`}</p>
+    <div class="legenda">
+      <span class="eyebrow" style="color:#8b8499">O que significam as etiquetas</span>
+      <dl>
+        <dt><span class="tagpill tp-dep">pôs em Depende</span></dt>
+        <dd>Não quis escolher um lado. Vale a pena perguntar do que é que depende — a resposta é quase sempre mais interessante do que a carta.</dd>
+        <dt><span class="tagpill tp-dep">carta sem resposta certa</span></dt>
+        <dd>É uma das cartas que o jogo marcou como genuinamente discutível (ex.: <em>deixar de ir às sessões porque arranjei trabalho</em>). Entra no guião mesmo quando a pessoa respondeu com convicção — precisamente porque não há resposta certa.</dd>
+        <dt><span class="tagpill tp-con">respondeu ao contrário do que o programa defende</span></dt>
+        <dd>Ex.: pôs <em>faltar sem avisar</em> em Aproxima-me. Não quer dizer que esteja errada. Quer dizer que há aqui uma razão que ainda não conhecemos — e é isso que se pergunta.</dd>
+        <dt><span class="tagpill tp-hes">demorou +6s a decidir</span></dt>
+        <dd><b>Cuidado com esta.</b> O jogo só sabe que a pessoa levou mais de 6 segundos a carregar no botão. Pode ser hesitação a sério — ou pode ter estado só a ler devagar, ou distraída. Use como pista para uma pergunta, nunca como facto.</dd>
+      </dl>
+    </div>
+    <ol>${itens.map(i=>`<li><em>${i.lado}</em>${i.tags.map(t=>`<span class="tagpill ${t[0]}">${t[1]}</span>`).join('')}<strong>${i.t}</strong>${i.q}</li>`).join('')}</ol></div>
+    <div class="center" style="margin-top:28px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-yellow" onclick="g1Reset();g1Start()">Jogar outra vez</button>
+      <button class="btn" onclick="go('home')">Menu</button></div>`;
+}
+
+/* ================= JOGO 2 ================= */
+const TABU=[
+{w:"Respeito",b:["Respeitar","Educação","Tratar"]},{w:"Empatia",b:["Sentir","Lugar do outro","Compreender"]},
+{w:"Consórcio",b:["Parceria","Entidades","Juntos"]},{w:"Mediador",b:["Mediar","Conflito","Escola"]},
+{w:"Supervisão",b:["Supervisor","Sessão","Acompanhar"]},{w:"Negociação",b:["Negociar","Acordo","Cedência"]},
+{w:"Reforço positivo",b:["Elogio","Parabéns","Recompensa"]},{w:"Partilha",b:["Partilhar","Dividir","Dar"]},
+{w:"Motivação",b:["Vontade","Querer","Energia"]},{w:"Compromisso",b:["Prometer","Cumprir","Responsabilidade"]},
+{w:"Projeto de vida",b:["Futuro","Objetivos","Plano"]},{w:"Educação não formal",b:["Escola","Aprender","Brincar"]},
+{w:"Planeamento",b:["Plano","Organizar","Calendário"]},{w:"Amizade",b:["Amigo","Confiança","Companhia"]},
+{w:"União",b:["Unir","Juntos","Equipa"]},{w:"Espírito de grupo",b:["Grupo","Equipa","Todos"]},
+{w:"Autoconhecimento",b:["Conhecer","Próprio","Saber"]},{w:"Confidencialidade",b:["Segredo","Sigilo","Contar"]},
+{w:"Desenvolvimento pessoal",b:["Crescer","Pessoa","Melhorar"]},{w:"Comunicação não violenta",b:["Comunicar","Violência","Falar"]},
+{w:"Assiduidade",b:["Faltar","Presença","Estar"]},{w:"Assertividade",b:["Dizer","Firmeza","Opinião"]},
+{w:"Resiliência",b:["Aguentar","Cair","Levantar"]},{w:"Autonomia",b:["Sozinho","Depender","Independente"]},
+{w:"Proatividade",b:["Iniciativa","Antes","Esperar"]},{w:"Autocrítica",b:["Erro","Próprio","Julgar"]},
+{w:"Cidadania",b:["Direitos","Cidadão","Votar"]},{w:"Mobilidade",b:["Mover","Transporte","Deslocar"]}];
+let g2Deck=[],g2Cur=null,g2Turn=0,g2Sc=[0,0],g2Names=["Equipa A","Equipa B"],g2Time=60,g2Left=60,g2Int=null;
+function g2SetTime(s,el){g2Time=s;el.parentNode.querySelectorAll('.pick').forEach(p=>p.classList.remove('on'));el.classList.add('on');}
+function g2Start(){
+  g2Names=[document.getElementById('g2-n1').value||"Equipa A",document.getElementById('g2-n2').value||"Equipa B"];
+  g2Deck=shuffle([...TABU]);g2Sc=[0,0];g2Turn=0;
+  document.getElementById('g2-setup').style.display='none';
+  document.getElementById('g2-end').style.display='none';
+  document.getElementById('g2-play').style.display='';
+  document.getElementById('g2-l0').textContent=g2Names[0];
+  document.getElementById('g2-l1').textContent=g2Names[1];
+  g2Ready();
+}
+function g2Board(){
+  document.getElementById('g2-s0').textContent=g2Sc[0];document.getElementById('g2-s1').textContent=g2Sc[1];
+  document.getElementById('g2-t0').classList.toggle('active',g2Turn===0);
+  document.getElementById('g2-t1').classList.toggle('active',g2Turn===1);
+  document.getElementById('g2-u0').textContent=g2Turn===0?'A explicar':'';
+  document.getElementById('g2-u1').textContent=g2Turn===1?'A explicar':'';
+  document.getElementById('g2-left').textContent=g2Deck.length;
+}
+function g2Ready(){document.getElementById('g2-live').style.display='none';document.getElementById('g2-ready').style.display='';document.getElementById('g2-ready-team').textContent=g2Names[g2Turn];g2Board();}
+function g2Round(){
+  document.getElementById('g2-ready').style.display='none';document.getElementById('g2-live').style.display='';
+  g2Left=g2Time;g2Tick();clearInterval(g2Int);
+  g2Int=setInterval(()=>{g2Left--;g2Tick();if(g2Left<=0)g2EndRound();},1000);
+  g2Next();
+}
+function g2Tick(){const t=document.getElementById('g2-timer');t.textContent=Math.max(0,g2Left);t.classList.toggle('low',g2Left<=10);}
+function g2Next(){
+  if(g2Deck.length===0){g2EndGame();return;}
+  g2Cur=g2Deck.pop();
+  document.getElementById('g2-word').textContent=g2Cur.w;
+  document.getElementById('g2-bans').innerHTML=g2Cur.b.map(x=>`<span>${x}</span>`).join('');
+  document.getElementById('g2-left').textContent=g2Deck.length;
+}
+function g2Score(v){
+  g2Sc[g2Turn]+=v;
+  if(v===0&&g2Cur)g2Deck.unshift(g2Cur);
+  g2Cur=null;g2Board();
+  if(g2Deck.length===0){g2Stop();g2EndGame();return;}
+  g2Next();
+}
+function g2EndRound(){
+  clearInterval(g2Int);
+  if(g2Cur){g2Deck.unshift(g2Cur);g2Cur=null;}
+  g2Turn=1-g2Turn;
+  if(g2Deck.length===0){g2EndGame();return;}
+  g2Ready();
+}
+function g2Stop(){clearInterval(g2Int);}
+function g2EndGame(){
+  g2Stop();document.getElementById('g2-play').style.display='none';
+  const e=document.getElementById('g2-end');e.style.display='';
+  const win=g2Sc[0]===g2Sc[1]?null:(g2Sc[0]>g2Sc[1]?0:1);
+  e.innerHTML=`<span class="eyebrow">Baralho esgotado</span>
+    <h2 class="display" style="font-size:clamp(32px,7vw,60px);margin:12px 0 6px">${win===null?'Empate.':g2Names[win]+' ganha.'}</h2>
+    <p class="mono" style="color:var(--chalk);font-size:17px">${g2Names[0]} ${g2Sc[0]} — ${g2Sc[1]} ${g2Names[1]}</p>
+    <div style="margin-top:34px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-yellow" onclick="document.getElementById('g2-end').style.display='none';document.getElementById('g2-setup').style.display='';">Nova partida</button>
+      <button class="btn" onclick="go('home')">Menu</button></div>
+    <p class="hint" style="margin:30px auto 0;max-width:50ch">Fecha a dinâmica com uma pergunta: qual foi a palavra mais difícil de explicar — e porquê?</p>`;
+}
+
+/* ================= JOGO 3 ================= */
+const DIMS={
+ D1:{n:"Comunicação, Assertividade e Relação em Equipa",c:"#E2574C"},
+ D2:{n:"Resiliência, Gestão da Frustração e Adaptação",c:"#F0932B"},
+ D3:{n:"Autonomia, Proatividade e Cumprimento de Tarefas",c:"#FFD84D"},
+ D4:{n:"Autoconhecimento, Autocrítica e Clareza de Objetivos",c:"#B79CE8"},
+ D5:{n:"Competências Digitais e Exercício da Cidadania",c:"#4A6CF0"},
+ D6:{n:"Qualidade da Intervenção e Conhecimentos Profissionais",c:"#2E9E7B"}
+};
+function banda(v){if(v<=2)return"Insuficiente";if(v<=4)return"Abaixo do esperado";if(v<=5)return"Suficiente";if(v<=7)return"Bom";if(v<=9)return"Muito Bom";return"Excelente";}
+
+/* 3 perguntas por dimensão — sorteia-se uma de cada, e as opções são baralhadas */
+const AUTO_POOL={
+ D1:[
+  {q:"Numa reunião de equipa em que discordas de toda a gente…",o:[[3,"Fico calado. Digo lá fora, ou não digo."],[5,"Só digo se me perguntarem diretamente."],[7,"Digo o que penso e tento perceber o lado deles."],[9,"Digo, oiço, e proponho uma solução que sirva aos dois."]]},
+  {q:"Um colega está a fazer uma coisa que te prejudica e não parece dar por isso…",o:[[3,"Não digo nada e vou-me chateando."],[5,"Digo a outra pessoa, na esperança que lhe chegue."],[7,"Falo com ele diretamente, sem drama."],[9,"Falo com ele, digo o que sinto e proponho como fazer diferente."]]},
+  {q:"És novo no espaço e ninguém te apresenta a ninguém…",o:[[3,"Espero que alguém venha ter comigo."],[5,"Cumprimento quem cruzar comigo."],[7,"Apresento-me eu, um a um."],[9,"Apresento-me, pergunto o que fazem, e no fim da semana já sei os nomes todos."]]}
+ ],
+ D2:[
+  {q:"Uma atividade que preparaste durante uma semana corre mal à frente de toda a gente…",o:[[3,"Fico em baixo e evito repetir aquilo."],[5,"Fico chateado, mas no dia seguinte já passou."],[7,"Percebo o que falhou e mudo alguma coisa."],[9,"Uso o que correu mal para melhorar a seguinte — e digo isso ao grupo."]]},
+  {q:"Um miúdo diz-te à frente de todos que és uma seca e que ninguém te liga…",o:[[3,"Perco a cabeça, ou saio da sala."],[5,"Engulo e continuo como se não tivesse ouvido."],[7,"Respondo com calma e sigo com a sessão."],[9,"Respondo com calma, sigo — e depois vou perceber o que estava por trás daquilo."]]},
+  {q:"Mudam-te de espaço, de horário e de grupo, tudo na mesma semana…",o:[[3,"Entro em stress e faço mal as três coisas."],[5,"Custa-me, mas lá me habituo."],[7,"Adapto-me e reorganizo-me sozinho."],[9,"Adapto-me e ainda aproveito para melhorar o que estava mal montado."]]}
+ ],
+ D3:[
+  {q:"Chegas ao espaço e não há nada marcado para fazer…",o:[[3,"Espero que me digam."],[5,"Pergunto o que posso fazer."],[7,"Procuro o que falta e faço."],[9,"Antecipo o que vai ser preciso — já está feito quando me pedem."]]},
+  {q:"Pediram-te uma coisa para sexta e é quinta à noite…",o:[[3,"Vai ficar por fazer. Depois logo se vê."],[5,"Faço à pressa na sexta de manhã."],[7,"Já está feito. Faço as coisas quando as recebo."],[9,"Já está feito, e já avisei que estava feito."]]},
+  {q:"Há uma tarefa que ninguém quer fazer e que é aborrecida…",o:[[3,"Espero que outro a faça."],[5,"Faço se me pedirem."],[7,"Faço, porque alguém tem de fazer."],[9,"Faço, e proponho uma forma de aquilo deixar de ser aborrecido."]]}
+ ],
+ D4:[
+  {q:"Perguntam-te o que queres estar a fazer daqui a dois anos…",o:[[3,"Não faço ideia nenhuma."],[5,"Tenho uma ideia vaga."],[7,"Sei o que quero e sei o que me falta para lá chegar."],[9,"Sei, sei o que me falta, e já dei passos concretos."]]},
+  {q:"Dizem-te que fizeste uma coisa mal…",o:[[3,"Fico logo na defensiva."],[5,"Aceito, mas fico a matutar naquilo dias."],[7,"Oiço, penso, e mudo se fizer sentido."],[9,"Oiço, pergunto exemplos concretos, e volto com uma proposta."]]},
+  {q:"Se tivesses de dizer, agora, qual é o teu maior defeito no trabalho…",o:[[3,"Não sei. Nunca pensei nisso."],[5,"Sei dizer um, mas é daqueles que ficam bem."],[7,"Sei dizer um a sério, e sei quando ele aparece."],[9,"Sei, sei quando aparece, e já estou a trabalhá-lo."]]}
+ ],
+ D5:[
+  {q:"Pedem-te um cartaz, uma folha de presenças em Excel e uma publicação nas redes…",o:[[3,"Peço a alguém que faça por mim."],[5,"Faço com ajuda, devagar."],[7,"Faço tudo sozinho, sem problemas."],[9,"Faço — e ainda melhoro a forma como se estava a fazer."]]},
+  {q:"Um miúdo mostra-te um vídeo dele que está a circular sem ele querer…",o:[[3,"Não sei o que lhe dizer nem o que fazer."],[5,"Digo-lhe para não ligar."],[7,"Ajudo-o a denunciar e a pedir que seja retirado."],[9,"Ajudo, e faço disso uma sessão sobre direito à imagem para o grupo todo."]]},
+  {q:"Alguém do grupo diz uma coisa racista, a brincar…",o:[[3,"Deixo passar. Era a brincar."],[5,"Mando parar e mudo de assunto."],[7,"Paro tudo e digo porque é que aquilo não se diz."],[9,"Paro, explico, e trago o tema outra vez na semana seguinte, preparado."]]}
+ ],
+ D6:[
+  {q:"Dois miúdos começam à porrada à tua frente…",o:[[3,"Chamo um adulto e afasto-me."],[5,"Separo e mando parar."],[7,"Separo, oiço os dois em separado, falo com cada um."],[9,"Separo, medeio, e depois trabalho com o grupo o que esteve por trás."]]},
+  {q:"Tens de dinamizar uma atividade para vinte miúdos e não te disseram nada até à véspera…",o:[[3,"Ponho um filme."],[5,"Faço um jogo qualquer que me lembre."],[7,"Preparo alguma coisa à noite e corre bem."],[9,"Preparo, tenho um plano B, e adapto ao grupo que aparecer."]]},
+  {q:"Um miúdo aparece com um nódoa negra e diz que caiu…",o:[[3,"Acredito e não digo nada."],[5,"Fico com dúvidas mas não sei a quem dizer."],[7,"Comunico ao técnico de referência nesse dia."],[9,"Comunico, registo por escrito, e continuo atento sem o expor."]]}
+ ]
+};
+
+const NEEDS={
+ telemovel:{n:"Não largam o telemóvel",d:"Estão todos no ecrã, lado a lado, sem falar uns com os outros."},
+ consola:{n:"Só querem a consola",d:"A PlayStation está sempre ocupada e o resto do espaço vazio."},
+ regras:{n:"Não cumprem regras nem horários",d:"Entram, saem, não arrumam, não avisam."},
+ fechados:{n:"Não querem experimentar nada novo",d:"Propões uma atividade e a resposta é sempre não."},
+ conflitos:{n:"Conflitos constantes e sem mediação",d:"Discute-se aos gritos e resolve-se à força."},
+ motivacao:{n:"Baixa motivação e participação",d:"Aparecem, mas não entram nas atividades."},
+ diversidade:{n:"Falta de diversidade de atividades",d:"Sempre o mesmo, para todas as idades."},
+ competencias:{n:"Défice de competências pessoais e sociais",d:"Comunicação, gestão emocional, trabalho em equipa."},
+ familias:{n:"Famílias ausentes ou desconfiadas",d:"Deixam os miúdos à porta e não entram."},
+ escolar:{n:"Insucesso e absentismo escolar",d:"Chumbam, faltam, e ninguém fala nisso aqui."},
+ participacao:{n:"Participação desigual",d:"São sempre os mesmos a decidir. As raparigas ficam de fora."},
+ transicao:{n:"Sem ideia do que fazer a seguir",d:"Acabam o 9.º e desaparecem do mapa."},
+ digital:{n:"Carências educativas e digitais",d:"Usam o telemóvel o dia todo e não sabem fazer um CV."},
+ espaco:{n:"Espaço degradado ou mal aproveitado",d:"Há metros quadrados a mais e uso a menos."},
+ comunidade:{n:"Fragilidade na ligação à comunidade",d:"Pouca articulação com parceiros locais."},
+ rh:{n:"Falta de recursos humanos especializados",d:"Não há quem faça o acompanhamento mais fino."}
+};
+const FAIXAS=[
+ {id:'novos',n:"Crianças mais novas",sub:"6 aos 10 anos",d:"Energia a mais, paciência a menos. Querem brincar — e querem-te a ti.",
+  needs:['conflitos','regras','diversidade','familias','competencias','telemovel']},
+ {id:'medios',n:"Pré-adolescentes",sub:"11 aos 15 anos",d:"Já não são crianças e ainda não são jovens. É a idade mais difícil de agarrar.",
+  needs:['telemovel','consola','fechados','escolar','participacao','conflitos']},
+ {id:'jovens',n:"Jovens mais velhos",sub:"16 anos ou mais",d:"Vêm pela wi-fi, ficam pelo sofá, e ninguém lhes pergunta o que vem a seguir.",
+  needs:['consola','transicao','escolar','digital','participacao','fechados']}
+];
+/* Problemas que não são de uma idade — são do sítio. Aparecem sempre. */
+const NEEDS_ESPACO=['espaco','comunidade','rh','motivacao'];
+
+/* 14 trunfos · 14 limites — simétricos de propósito */
+const TRUNFOS=[
+ {id:'percurso',n:"Percurso pessoal",d:"Vieste daqui. Conheces os miúdos e as famílias.",b:{alcance:8,sust:4},dm:['D6','D1']},
+ {id:'academico',n:"Percurso académico",d:"Curso ou formação na área. Sabes preparar uma sessão.",b:{qualidade:10},dm:['D6']},
+ {id:'profissional',n:"Percurso profissional",d:"Já trabalhaste a sério. Sabes o que é um horário, um chefe e um prazo.",b:{sust:7,qualidade:5},dm:['D3','D6']},
+ {id:'cuidar',n:"Já cuidei de alguém",d:"Irmãos, avós, filhos. Sabes estar com quem depende de ti.",b:{qualidade:8,aprend:3},dm:['D2','D6']},
+ {id:'digital',n:"Competências digitais",d:"Cartazes, edição, redes, Excel. Fazes tu, e depressa.",b:{alcance:10},dm:['D5']},
+ {id:'lider',n:"Comunicação e liderança",d:"Pões um grupo a ouvir-te sem levantar a voz.",b:{qualidade:6,alcance:5},dm:['D1']},
+ {id:'escuta',n:"Escuta",d:"As pessoas contam-te coisas. Não sabes bem porquê.",b:{qualidade:9,aprend:3},dm:['D4','D1']},
+ {id:'paciencia',n:"Paciência",d:"Repetes vinte vezes sem levantar a voz.",b:{qualidade:8,aprend:4},dm:['D2']},
+ {id:'desporto',n:"Desporto",d:"Jogas, treinas, organizas. O corpo é o teu material.",b:{alcance:7,aprend:4},dm:['D6','D3']},
+ {id:'arte',n:"Música, dança ou artes",d:"Trazes uma linguagem que a escola não tem.",b:{qualidade:6,aprend:5},dm:['D6']},
+ {id:'gaming',n:"Percebes de jogos e consolas",d:"Falas a língua deles. Vale mais do que parece.",b:{alcance:8,qualidade:3},dm:['D5','D1']},
+ {id:'organizado',n:"Organização",d:"Cumpres prazos e não perdes papéis. É mais raro do que parece.",b:{sust:11},dm:['D3']},
+ {id:'redes',n:"Conheces toda a gente no bairro",d:"Sabes a quem ligar. E atendem.",b:{sust:8,alcance:5},dm:['D1']},
+ {id:'linguas',n:"Línguas",d:"Crioulo, ou outra. Falas com famílias com quem mais ninguém fala.",b:{alcance:6,sust:5},dm:['D1','D5']},
+ {id:'humor',n:"Humor",d:"Desarmas uma sala em dez segundos. Não é pouco.",b:{alcance:5,qualidade:5},dm:['D2','D1']},
+ {id:'cozinha',n:"Cozinha",d:"Ninguém sai de uma cozinha zangado. É uma ferramenta a sério.",b:{alcance:6,qualidade:4},dm:['D6','D1']},
+ {id:'maos',n:"Trabalho manual",d:"Pintas, arranjas, montas. Fazes com o que há.",b:{qualidade:6,sust:5},dm:['D3','D6']}
+];
+const LIMITES=[
+ {id:'timidez',n:"Custa-me falar em público",d:"Falar à frente de adultos gela-me.",b:{alcance:-9},dm:['D1']},
+ {id:'experiencia',n:"Nunca fiz nada assim",d:"É a primeira vez. Não sei sequer o que não sei.",b:{qualidade:-9},dm:['D6']},
+ {id:'autoridade',n:"Não me levam a sério",d:"Sou novo, ou pareço. Ninguém me obedece à primeira.",b:{qualidade:-6,alcance:-4},dm:['D1','D6']},
+ {id:'escrita',n:"Custa-me escrever e relatar",d:"Faço bem, mas não sei contar por escrito o que fiz.",b:{sust:-9},dm:['D5']},
+ {id:'frustracao',n:"Frustro-me depressa",d:"Quando corre mal, apetece-me sair da sala.",b:{aprend:-6,qualidade:-4},dm:['D2']},
+ {id:'calma',n:"Perco a calma",d:"Quando me chateiam a sério, levanto a voz. Já aconteceu.",b:{qualidade:-8,alcance:-3},dm:['D2','D6']},
+ {id:'foco',n:"Deixo coisas a meio",d:"Começo entusiasmado. Depois passa.",b:{sust:-9,qualidade:-3},dm:['D3']},
+ {id:'atraso',n:"Chego atrasado",d:"Nunca é muito. Mas é sempre.",b:{sust:-6,qualidade:-4},dm:['D3']},
+ {id:'pedir',n:"Custa-me pedir ajuda",d:"Prefiro fazer sozinho, mesmo que saia pior.",b:{alcance:-5,sust:-5},dm:['D4','D1']},
+ {id:'dizernao',n:"Não sei dizer que não",d:"Aceito tudo o que me pedem — e depois não chego a lado nenhum.",b:{qualidade:-6,sust:-4},dm:['D1','D4']},
+ {id:'conflito',n:"Fujo do conflito",d:"Quando há chatice, desapareço ou finjo que não vi.",b:{qualidade:-8,aprend:-3},dm:['D6','D2']},
+ {id:'levo',n:"Levo as coisas para casa",d:"Não desligo. Os problemas deles ficam comigo à noite.",b:{aprend:-4,sust:-6},dm:['D2','D4']},
+ {id:'carga',n:"Tenho gente a meu cargo",d:"Irmãos, filhos, um avô. O tempo não é todo meu.",b:{qualidade:-5,sust:-5},dm:['D3']},
+ {id:'transporte',n:"Não tenho transporte",d:"Dependo de horários de autocarro que não controlo.",b:{alcance:-5,sust:-5},dm:['D3']},
+ {id:'improviso',n:"Não sei improvisar",d:"Se o plano falha, fico sem chão. Preciso que corra como pensei.",b:{qualidade:-7,aprend:-3},dm:['D2','D6']},
+ {id:'digitalbaixo',n:"Não me safo com computadores",d:"Excel, cartazes, editar um vídeo. Tudo me custa o dobro.",b:{alcance:-7,sust:-3},dm:['D5']},
+ {id:'critica',n:"Não levo bem a crítica",d:"Fico logo na defensiva, mesmo quando sei que têm razão.",b:{aprend:-7,qualidade:-3},dm:['D4','D2']}
+];
+
+const FONTE={preparacao:'Preparação',materiais:'Materiais',parceiros:'Parceiros',divulgacao:'Divulgação',registo:'Registo'};
+const ENERGIA_DIM={preparacao:'D3',materiais:'D6',parceiros:'D1',divulgacao:'D5',registo:'D5'};
+const ENERGIA_ROWS=[
+ ['preparacao','Preparação','Horas a preparar ANTES: pensar, montar, ensaiar, ler. Não é o tempo de estar lá — esse é dado.'],
+ ['materiais','Materiais','O que se compra, empresta ou improvisa.'],
+ ['parceiros','Parceiros','As relações que constróis com quem te pode safar quando corre mal.'],
+ ['divulgacao','Divulgação','Cartazes, boca a boca, avisar as famílias. Sem isto ninguém sabe que existes.'],
+ ['registo','Registo','Fotos, presenças, números. Aborrecido — e é o que prova que aconteceu.']
+];
+/* O que cada nível de energia te desbloqueia — mostrado ao vivo */
+const DESBLOQUEIA=[
+ {k:'materiais',min:3,t:"Tens reserva: se faltar material a meio, não paras o projeto."},
+ {k:'parceiros',min:3,t:"Podes pedir material emprestado quando faltar."},
+ {k:'parceiros',min:2,t:"Podes pedir reforço de mediadores quando aparecer gente a mais."},
+ {k:'divulgacao',min:3,t:"Se ninguém aparecer à primeira sessão, consegues recuperar."},
+ {k:'registo',min:3,t:"Consegues entregar o relatório com números — e passar o projeto a alguém se saíres."},
+ {k:'registo',min:4,t:"Consegues PROVAR o que fizeste na avaliação final. Ninguém escapa a essa."},
+ {k:'preparacao',min:3,t:"Consegues montar coisas de raiz a meio (apoio ao estudo, CVs) sem improvisar."}
+];
+
+const PROJETOS=[
+ {id:'consolatorneio',n:"Torneio de consola com regras",d:"Usa a PlayStation como isco: inscrições, turnos, regras escritas por eles. Quem não cumpre, não joga.",tags:['consola','regras','participacao','motivacao','conflitos','fechados'],
+  passos:[["Escrever as regras e a escala de turnos com eles",'preparacao'],["Marcar o torneio e abrir inscrições",'preparacao'],["Arranjar comandos, cadeiras e um ecrã decente",'materiais'],["Fazer o cartaz e espalhar a palavra",'divulgacao'],["Pedir um segundo ecrã emprestado",'parceiros'],["Registar quem se inscreveu e quem cumpriu",'registo']]},
+ {id:'semecrans',n:"Uma hora sem ecrãs",d:"Uma hora por semana com os telemóveis numa caixa — e uma alternativa que valha mesmo a pena.",tags:['telemovel','fechados','diversidade','competencias','regras','motivacao'],
+  passos:[["Preparar a alternativa: tem de ser melhor do que o telemóvel",'preparacao'],["Arranjar a caixa, os jogos, o material",'materiais'],["Combinar a regra COM eles, não impor",'preparacao'],["Avisar as famílias do que se vai fazer",'divulgacao'],["Pedir ideias a quem já fez isto noutro sítio",'parceiros'],["Registar o que mudou ao fim de um mês",'registo']]},
+ {id:'criadores',n:"Criadores em vez de consumidores",d:"Já passam o dia no telemóvel. Passam a produzir: vídeos, edição, uma conta do espaço feita por eles.",tags:['telemovel','digital','participacao','transicao','motivacao','fechados'],
+  passos:[["Aprender e ensinar a filmar e editar com o que já têm",'preparacao'],["Decidir com eles o que vai ser publicado",'preparacao'],["Arranjar tripé, luz e um computador",'materiais'],["Lançar a conta e publicar o primeiro vídeo",'divulgacao'],["Trazer alguém que trabalhe nisto a sério",'parceiros'],["Guardar tudo o que produziram — é portefólio",'registo']]},
+ {id:'cinema',n:"Cinema com debate",d:"Sessões seguidas de conversa sobre temas que ninguém aborda.",tags:['competencias','motivacao','participacao','fechados','diversidade','conflitos'],
+  passos:[["Escolher os filmes e preparar as perguntas do debate",'preparacao'],["Pedir projetor e sala emprestados",'parceiros'],["Fazer cartazes e passar a palavra",'divulgacao'],["Comprar pipocas e tratar da sala",'materiais'],["Deixar que sejam eles a escolher o próximo filme",'preparacao'],["Fotografar cada sessão e registar quem veio",'registo']]},
+ {id:'torneio',n:"Torneio desportivo entre polos",d:"Desporto entre equipamentos, com equipas mistas de propósito.",tags:['motivacao','comunidade','conflitos','regras','participacao','fechados'],
+  passos:[["Combinar datas com os outros equipamentos",'parceiros'],["Formar as equipas — misturadas de propósito",'preparacao'],["Arranjar coletes, bolas e um apito",'materiais'],["Fazer o cartaz e as inscrições",'divulgacao'],["Escrever as regras com eles, antes de jogar",'preparacao'],["Registar resultados, fotos e presenças",'registo']]},
+ {id:'radio',n:"Rádio ou podcast do bairro",d:"Os miúdos entrevistam quem cá vive. Um episódio por mês.",tags:['digital','comunidade','participacao','telemovel','familias','competencias'],
+  passos:[["Preparar as perguntas e ensinar a ouvir",'preparacao'],["Arranjar um microfone e um sítio silencioso",'materiais'],["Escolher com eles quem vai ser entrevistado",'preparacao'],["Publicar e divulgar o primeiro episódio",'divulgacao'],["Pedir à junta ou à biblioteca para acolher a gravação",'parceiros'],["Guardar os episódios e contar quem ouviu",'registo']]},
+ {id:'estudo',n:"Apoio ao estudo entre pares",d:"Os mais velhos explicam aos mais novos. Turnos fixos.",tags:['escolar','digital','competencias','rh','motivacao','participacao'],
+  passos:[["Identificar quem precisa e quem pode ajudar",'preparacao'],["Montar a escala de turnos fixos",'preparacao'],["Falar com a escola para saber as dificuldades reais",'parceiros'],["Arranjar mesas, cadernos e um computador",'materiais'],["Avisar as famílias que isto existe",'divulgacao'],["Registar presenças e notas antes e depois",'registo']]},
+ {id:'horta',n:"Horta ou espaço exterior",d:"Recuperar um pedaço de terreno e mantê-lo. Ninguém sai a meio.",tags:['espaco','motivacao','diversidade','regras','comunidade','fechados'],
+  passos:[["Limpar o terreno e ver o que dá para aproveitar",'preparacao'],["Arranjar terra, sementes e ferramentas",'materiais'],["Pedir apoio a uma associação ou à junta",'parceiros'],["Definir quem rega em que dia — por escrito",'preparacao'],["Convidar as famílias para o primeiro dia",'divulgacao'],["Fotografar de mês a mês, para se ver a diferença",'registo']]},
+ {id:'mural',n:"Mural ou jornal de parede",d:"O espaço passa a ter voz — e a voz é deles.",tags:['espaco','diversidade','participacao','competencias','motivacao','comunidade'],
+  passos:[["Decidir com eles o que vai lá estar",'preparacao'],["Arranjar tintas, papel e pincéis",'materiais'],["Pedir autorização a quem é dono da parede",'parceiros'],["Fazer a inauguração e chamar gente",'divulgacao'],["Definir quem atualiza e com que frequência",'preparacao'],["Fotografar cada versão do mural",'registo']]},
+ {id:'cozinha',n:"Oficina de cozinha do mundo",d:"Cada família traz um prato e uma história. Come-se e fala-se.",tags:['familias','comunidade','diversidade','participacao','fechados','competencias'],
+  passos:[["Convidar as famílias, uma a uma, cara a cara",'preparacao'],["Arranjar cozinha, tachos e ingredientes",'materiais'],["Combinar com uma instituição que tenha cozinha",'parceiros'],["Fazer o convite e afixá-lo à entrada",'divulgacao'],["Recolher as receitas e as histórias por escrito",'preparacao'],["Fotografar os pratos e contar quem veio",'registo']]},
+ {id:'forum',n:"Teatro-fórum sobre conflitos",d:"Encena-se o problema e o público entra em cena para o mudar.",tags:['conflitos','competencias','participacao','regras','diversidade','motivacao'],
+  passos:[["Recolher com eles conflitos reais do espaço",'preparacao'],["Ensaiar as cenas — sem final decidido",'preparacao'],["Arranjar um sítio com público e cadeiras",'parceiros'],["Improvisar cenário e adereços",'materiais'],["Convidar outras turmas ou outros polos",'divulgacao'],["Registar o que o público propôs mudar",'registo']]},
+ {id:'danca',n:"Grupo de dança ou música",d:"Ensaios fixos e uma apresentação com data marcada.",tags:['motivacao','diversidade','participacao','fechados','regras','competencias'],
+  passos:[["Marcar os ensaios e preparar a coreografia",'preparacao'],["Arranjar som, espelho e um espaço livre",'materiais'],["Marcar a apresentação com uma data a sério",'preparacao'],["Fazer o cartaz e encher a sala",'divulgacao'],["Pedir palco a uma escola ou junta",'parceiros'],["Filmar os ensaios e a apresentação",'registo']]},
+ {id:'mostra',n:"Mostra de bairro",d:"Um dia em que o espaço abre à rua e mostra o que faz.",tags:['comunidade','familias','espaco','participacao','diversidade','motivacao'],
+  passos:[["Decidir o que vai ser mostrado, e por quem",'preparacao'],["Convidar parceiros, escolas e associações",'parceiros'],["Arranjar mesas, cadeiras e som",'materiais'],["Fazer cartazes e passar de porta em porta",'divulgacao'],["Ensaiar o dia todo, hora a hora",'preparacao'],["Contar quantos vieram e fotografar tudo",'registo']]},
+ {id:'tabuleiro',n:"Clube de jogos de tabuleiro",d:"Regras, turnos, perder com elegância. Duas tardes por semana.",tags:['conflitos','competencias','motivacao','regras','fechados','telemovel'],
+  passos:[["Aprender os jogos antes de os ensinar",'preparacao'],["Arranjar jogos — pedidos, doados ou feitos",'materiais'],["Escrever com eles as regras do clube",'preparacao'],["Pôr um aviso à entrada e convidar os do costume",'divulgacao'],["Pedir jogos emprestados à biblioteca",'parceiros'],["Registar quem vem e o que mudou nos conflitos",'registo']]},
+ {id:'reparar',n:"Oficina de reparação",d:"Bicicletas, móveis, o que estiver partido. Repara-se em vez de deitar fora.",tags:['espaco','diversidade','transicao','fechados','competencias','comunidade'],
+  passos:[["Aprender a reparar antes de abrir a oficina",'preparacao'],["Juntar ferramentas e um sítio com bancada",'materiais'],["Encontrar quem saiba e queira ensinar",'parceiros'],["Divulgar: «traz o que está partido»",'divulgacao'],["Fazer uma lista do que já foi reparado",'registo'],["Ensinar um deles a orientar a oficina sozinho",'preparacao']]},
+ {id:'foto',n:"Roteiro fotográfico do bairro",d:"Fotografam o que ninguém vê e expõe-se na entrada.",tags:['digital','comunidade','participacao','telemovel','espaco','diversidade'],
+  passos:[["Preparar o tema e ensinar a fotografar com o telemóvel",'preparacao'],["Escolher com eles o que vale a pena fotografar",'preparacao'],["Imprimir as fotos e montar a exposição",'materiais'],["Pedir uma parede a alguém do bairro",'parceiros'],["Fazer a inauguração e convidar os retratados",'divulgacao'],["Guardar o arquivo e as legendas escritas por eles",'registo']]},
+ {id:'carreira',n:"Sessões de emprego e direitos",d:"CV, entrevistas, contratos, o que é um recibo. Coisas que ninguém ensina.",tags:['transicao','digital','competencias','escolar','rh','motivacao'],
+  passos:[["Preparar as sessões: CV, entrevista, contrato",'preparacao'],["Trazer alguém do IEFP ou de uma empresa",'parceiros'],["Arranjar computadores para fazerem o CV ali",'materiais'],["Divulgar entre os que estão parados",'divulgacao'],["Simular entrevistas a sério, com feedback",'preparacao'],["Registar quantos ficaram com CV feito",'registo']]},
+ {id:'tutoria',n:"Tutoria individual",d:"Um jovem, uma hora por semana, sempre a mesma. Continuidade a sério.",tags:['escolar','transicao','rh','motivacao','competencias','familias'],
+  passos:[["Escolher o jovem e preparar as sessões",'preparacao'],["Falar com a escola e com a família",'parceiros'],["Definir com ele o que quer alcançar",'preparacao'],["Arranjar um sítio calmo para as sessões",'materiais'],["Explicar ao espaço que aquela hora é intocável",'divulgacao'],["Escrever uma nota curta depois de cada sessão",'registo']]}
+];
+const PASSOS_CUSTOM=[
+ ["Preparar as sessões antes de as dar",'preparacao'],
+ ["Decidir com eles como se faz",'preparacao'],
+ ["Falar com quem me pode dar espaço ou apoio",'parceiros'],
+ ["Arranjar o material necessário",'materiais'],
+ ["Divulgar e chamar as pessoas",'divulgacao'],
+ ["Registar presenças, fotos e resultados",'registo']
+];
+
+/* ===== ACONTECIMENTO PRÓPRIO DE CADA PROJETO ===== */
+const EV_PROJ={
+ consolatorneio:{k:"Final do torneio",h:"O campeão fez batota",dim:"D6",p:"Ganhou a final e toda a gente viu que fez batota. Ele nega. A sala está à espera do que vais fazer.",swot:"Quebra de regras por quem devia dar o exemplo, à frente do grupo.",c:[
+  {t:"Anular a vitória e dar o prémio ao segundo.",e:{qualidade:6,alcance:-9},o:"Fez-se justiça. Ele não voltou — e era um dos que mais precisavam de lá estar."},
+  {t:"Repetir a final, à frente de todos, com um árbitro escolhido por eles.",e:{qualidade:11,alcance:8,aprend:9},o:"Perdeu a repetição. Mas ficou, e as regras passaram a valer alguma coisa porque foram aplicadas em direto."},
+  {t:"Deixar andar. Não vale a pena estragar a festa.",e:{qualidade:-12,sust:-6},o:"Estragou-se na mesma. Na semana seguinte fizeram todos batota."}]},
+ semecrans:{k:"Segunda sessão",h:"Um recusou pôr o telemóvel na caixa",dim:"D1",p:"Cruzou os braços e disse que não. Os outros já tinham posto e estão a olhar para ti.",swot:"Regra do projeto testada em público por um participante.",c:[
+  {t:"Pô-lo fora da sessão.",e:{qualidade:4,alcance:-11},o:"A regra manteve-se. Ele não voltou, e mais dois saíram com ele."},
+  {t:"Perguntar-lhe à frente do grupo porque não quer — e cumprir o que o grupo decidir.",badL:'autoridade',e:{qualidade:10,alcance:8,aprend:9},fail:{qualidade:-7,alcance:-4},
+   o:"Disse que estava à espera de uma chamada da mãe. O grupo abriu uma exceção — e a regra ficou mais forte, não mais fraca.",of:"Puseste a decisão no grupo e o grupo virou-se contra ti. Ninguém te levou a sério e a caixa ficou vazia."},
+  {t:"Deixá-lo ficar com o telemóvel.",e:{qualidade:-11,sust:-7},o:"Na semana seguinte havia quatro telemóveis fora da caixa. A regra durou uma sessão."}]},
+ criadores:{k:"Semana 5",h:"Publicaram o que não deviam",dim:"D5",p:"Foi publicado um vídeo com a cara de um miúdo cuja mãe nunca autorizou nada. Já tem 300 visualizações.",swot:"Publicação de imagem de menor sem consentimento.",c:[
+  {t:"Apagar depressa e não dizer nada a ninguém.",e:{qualidade:-9,sust:-11},o:"A mãe soube na mesma, por outra pessoa. Agora, além do vídeo, há o facto de teres escondido."},
+  {t:"Apagar, ligar à mãe nesse dia, e fazer disto a sessão sobre direito à imagem.",e:{qualidade:12,sust:10,aprend:10},o:"A mãe agradeceu a chamada. E o grupo passou a pedir autorização sem ninguém mandar."},
+  {t:"Deixar. Já está online, tirar agora só chama mais atenção.",e:{qualidade:-14,sust:-14},o:"Chegou à coordenação. E a partir daí deixou de ser um problema teu — passou a ser um problema sobre ti."}]},
+ cinema:{k:"Terceira sessão",h:"O filme abriu uma ferida",dim:"D6",p:"A meio do debate, uma miúda contou, à frente de todos, uma coisa que se passa em casa dela. Fez-se silêncio.",swot:"Revelação de situação familiar sensível em contexto de grupo.",c:[
+  {t:"Mudar de assunto depressa para não a expor mais.",e:{qualidade:-4,aprend:3},o:"Protegeste-a do grupo. E ela percebeu que o assunto era para calar."},
+  {t:"Agradecer-lhe, fechar a sessão, e falar com ela e com o técnico de referência hoje.",e:{qualidade:12,sust:9},o:"Fizeste o correto, pela ordem correta. Ficou registado e ela foi acompanhada."},
+  {t:"Continuar o debate como se fosse mais um contributo.",e:{qualidade:-11,sust:-8},o:"Ela não voltou. E tu ficaste a saber uma coisa que não fizeste nada com."}]},
+ torneio:{k:"Véspera do torneio",h:"Uma equipa recusa jogar com a outra",dim:"D1",p:"Os do bairro de cima não jogam com os do bairro de baixo. Ponto final, dizem eles.",swot:"Divisão territorial entre participantes a comprometer a atividade.",c:[
+  {t:"Fazer o torneio só com quem quer jogar.",e:{alcance:-11,qualidade:3},o:"Jogou-se. E a divisão que existia à entrada continuou a existir à saída."},
+  {t:"Misturar as equipas à força e obrigar.",e:{alcance:-6,qualidade:-5},o:"Jogaram. Sem se passarem a bola uns aos outros nem uma vez."},
+  {t:"Deixá-los escolher capitães e fazer o sorteio das equipas à frente de todos.",e:{alcance:10,qualidade:9,aprend:8},o:"Saíram equipas mistas por sorteio, à vista de todos. Ninguém pôde reclamar — e no fim trocaram números de telemóvel."}]},
+ radio:{k:"Dia da gravação",h:"O convidado não apareceu",dim:"D2",p:"Estava tudo montado. Eles prepararam perguntas a semana toda. O entrevistado não veio nem atende.",swot:"Dependência de convidados externos sem plano B.",c:[
+  {t:"Cancelar e remarcar.",e:{alcance:-8,qualidade:2},o:"Remarcaste. Metade não voltou a preparar perguntas — o entusiasmo não se remarca."},
+  {t:"Entrevistar quem estiver ali: o porteiro, a senhora da limpeza, o vizinho do lado.",e:{alcance:11,qualidade:10,aprend:10},o:"Foi o melhor episódio do ano. E perceberam que a história do bairro está em quem lá está todos os dias."},
+  {t:"Gravar na mesma, só eles a falar.",e:{qualidade:-4,alcance:3},o:"Saiu confuso. Mas saiu — e isso já é mais do que nada."}]},
+ estudo:{k:"Semana 6",h:"Os tutores desistiram",dim:"D1",p:"Os mais velhos que davam apoio aos mais novos deixaram de vir. Sem aviso.",swot:"Voluntariado juvenil sem contrapartida nem reconhecimento.",c:[
+  {t:"Fazer tu o apoio ao estudo todo.",e:{qualidade:5,alcance:-9,sust:-8},o:"Aguentaste. Voltou a ser um adulto a ensinar miúdos — que era exatamente o que querias evitar."},
+  {t:"Perceber porque saíram e dar-lhes alguma coisa em troca: certificado, horas, um papel a sério.",e:{sust:12,alcance:8,qualidade:6},o:"Queriam que aquilo contasse para alguma coisa. Contou. Voltaram todos, e trouxeram mais um."},
+  {t:"Acabar com o apoio ao estudo.",e:{alcance:-13,aprend:-6},o:"Acabou. E os mais novos ficaram sem a única ajuda que tinham."}]},
+ horta:{k:"Semana 8",h:"Arrancaram tudo de noite",dim:"D2",p:"Chegaste de manhã e estava tudo destruído. Não foi a chuva.",swot:"Vandalismo sobre o resultado do trabalho dos participantes.",c:[
+  {t:"Desistir. Não vale a pena replantar para isto acontecer outra vez.",e:{alcance:-13,aprend:-8},o:"Aprenderam que quando se destrói o que eles fazem, o adulto desiste. É uma lição — a errada."},
+  {t:"Replantar com eles e levar o assunto a uma assembleia do espaço.",e:{qualidade:10,alcance:9,sust:8,aprend:9},o:"Replantaram. E foram eles a montar turnos de vigilância — nunca mais foi tocado."},
+  {t:"Pôr uma câmara e apresentar queixa.",e:{sust:4,alcance:-6},o:"Nunca se soube quem foi. E o espaço passou a ter uma câmara a olhar para as pessoas."}]},
+ mural:{k:"Semana 7",h:"Pintaram um insulto por cima",dim:"D6",p:"Alguém escreveu um insulto a tinta por cima do mural. É contra um dos miúdos, e ele já viu.",swot:"Agressão simbólica sobre o trabalho e sobre um participante.",c:[
+  {t:"Apagar de noite, sozinho, antes que mais alguém veja.",e:{qualidade:3,aprend:-5},o:"Ficou limpo. E o miúdo continuou a saber que alguém, ali, escreveu aquilo sobre ele."},
+  {t:"Não apagar já. Parar tudo, falar sobre aquilo com o grupo, e repintar com eles.",badL:'conflito',e:{qualidade:12,alcance:8,aprend:10},fail:{qualidade:-8,alcance:-5},
+   o:"Foi a conversa mais difícil e mais útil do projeto. Repintaram todos, incluindo quem escreveu.",of:"Fugir do conflito é o teu limite. Adiaste a conversa três vezes e no fim apagaste sozinho."},
+  {t:"Chamar a polícia.",e:{qualidade:-8,alcance:-10},o:"Ninguém foi identificado. E o espaço passou a ser um sítio onde se chama a polícia."}]},
+ cozinha:{k:"Primeiro jantar",h:"Só apareceu uma família",dim:"D2",p:"Convidaste doze. Veio uma — a mãe e dois filhos — e trouxe comida para todos.",swot:"Baixa adesão inicial das famílias.",c:[
+  {t:"Cancelar. Não faz sentido com uma família só.",e:{alcance:-12,sust:-9},o:"A mãe que veio, com a comida na mão, foi a única pessoa que confiou em ti. E foi mandada para casa."},
+  {t:"Fazer o jantar com essa família e pedir-lhe que traga outra da próxima.",e:{alcance:11,sust:10,qualidade:8},o:"Da segunda vez vieram quatro famílias. Da terceira, nove. Foi ela a convidar — e a ela, acreditam."},
+  {t:"Cozinhar tu para todos e insistir no convite.",e:{qualidade:-4,alcance:2},o:"Vieram comer. Não vieram cozinhar — e o projeto era sobre cozinharem eles."}]},
+ forum:{k:"Dia da apresentação",h:"A cena é sobre um técnico do espaço",dim:"D1",p:"A cena que prepararam retrata, sem margem para dúvidas, um técnico que está na plateia.",swot:"Conflito interno exposto publicamente pelos participantes.",c:[
+  {t:"Cortar a cena antes de começar.",e:{qualidade:-6,alcance:-9,aprend:-4},o:"Perceberam. O teatro-fórum servia para falar de tudo — menos do que interessava."},
+  {t:"Avisar o técnico antes e convidá-lo a entrar em cena como público.",badL:'timidez',e:{qualidade:13,sust:9,aprend:10},fail:{qualidade:-5,sust:-6},
+   o:"Ele entrou em cena. Mudou o final. Foi a coisa mais corajosa que aconteceu naquele espaço em anos.",of:"Não conseguiste ter essa conversa com ele. A cena aconteceu à mesma, e ele soube ali, à frente de todos."},
+  {t:"Deixar correr sem avisar ninguém.",e:{alcance:6,sust:-12},o:"Foi forte. E foi a última vez que aquele técnico te deixou usar a sala."}]},
+ danca:{k:"Uma semana antes",h:"Metade não sabe a coreografia",dim:"D2",p:"A apresentação é daqui a sete dias. Metade do grupo não decorou nada e já se nota quem é.",swot:"Preparação desigual perante um compromisso com data marcada.",c:[
+  {t:"Cortar quem não sabe. É a apresentação deles, não um ensaio.",e:{qualidade:7,alcance:-13},o:"Correu bem no palco. E metade do grupo ficou na plateia a ver os outros — nunca mais voltou."},
+  {t:"Simplificar a coreografia para que todos consigam entrar.",e:{qualidade:-3,alcance:12,aprend:8},o:"Ficou mais simples e entraram todos. Ninguém na plateia notou a diferença. Eles notaram."},
+  {t:"Adiar a apresentação.",e:{sust:-9,alcance:-5},o:"Adiaste. E adiaste outra vez. Nunca aconteceu."}]},
+ mostra:{k:"Dia da mostra",h:"Está a chover",dim:"D2",p:"Chove desde as sete da manhã. Estava tudo montado na rua. Vêm pessoas daqui a duas horas.",swot:"Dependência de condições exteriores sem plano alternativo.",c:[
+  {t:"Cancelar e remarcar.",e:{alcance:-12,sust:-6},o:"Remarcaste. Vieram menos de metade — a segunda vez nunca tem a energia da primeira."},
+  {t:"Passar tudo para dentro, a apertar, e fazer na mesma.",e:{alcance:9,qualidade:-4,aprend:9},o:"Ficou apertado, barulhento e caótico. E foi a melhor coisa que o espaço fez naquele ano."},
+  {t:"Fazer à chuva.",e:{alcance:-6,qualidade:-8},o:"Vieram quatro pessoas. Molharam-se. Molhaste-te."}]},
+ tabuleiro:{k:"Semana 4",h:"Ninguém aguenta perder",dim:"D6",p:"Todos os jogos acabam da mesma maneira: alguém perde, o tabuleiro vai ao chão, e acabou a tarde.",swot:"Incapacidade de gerir a frustração da derrota em contexto de grupo.",c:[
+  {t:"Tirar os jogos competitivos e pôr só jogos cooperativos.",e:{qualidade:5,aprend:-4},o:"Deixou de haver tabuleiros no chão. E deixou de haver a única oportunidade que tinham de aprender a perder."},
+  {t:"Ensinar a perder: um ritual fixo no fim de cada jogo — aperto de mão e uma coisa boa dita ao adversário.",e:{qualidade:12,aprend:11,alcance:6},o:"Foi ridículo nas primeiras três semanas. À quarta, faziam-no sozinhos. E começou a acontecer fora do clube."},
+  {t:"Continuar e ir apanhando as peças do chão.",e:{qualidade:-9,aprend:-3},o:"Continuaste a apanhar peças até ao fim do ano."}]},
+ reparar:{k:"Semana 9",h:"Trouxeram uma bicicleta roubada",dim:"D6",p:"Chegou uma bicicleta para reparar. Toda a gente no bairro sabe de quem ela é — e não é de quem a trouxe.",swot:"Envolvimento do projeto em situação ilícita.",c:[
+  {t:"Reparar e não perguntar de onde veio.",e:{qualidade:-13,sust:-11},o:"O dono passou à porta e viu a bicicleta dele lá dentro. A oficina passou a ser o sítio onde se arranjam bicicletas roubadas."},
+  {t:"Ir com o miúdo devolver a bicicleta ao dono — e fazer disso a conversa.",badL:'conflito',e:{qualidade:13,sust:10,aprend:11},fail:{qualidade:-6,sust:-5},
+   o:"Foi o pior quarto de hora da vida dele. E foi a única coisa que fizeste naquele ano que ele nunca vai esquecer.",of:"Fugir do conflito é o teu limite. Disseste que ias, adiaste, e no fim deixaste a bicicleta a um canto até desaparecer."},
+  {t:"Expulsar o miúdo da oficina.",e:{qualidade:2,alcance:-12},o:"Saiu. Com a bicicleta. E a oficina ficou limpa de consciência e vazia de propósito."}]},
+ foto:{k:"Dia da exposição",h:"Fotografaram pessoas sem pedir",dim:"D5",p:"A exposição está montada. Há duas pessoas do bairro a reclamar que a cara delas está ali sem terem autorizado.",swot:"Exposição de imagem de terceiros sem consentimento.",c:[
+  {t:"Tirar a exposição toda.",e:{alcance:-11,aprend:4},o:"Acabou. E eles nunca perceberam onde estava a linha — só que ela existia e que a passaram."},
+  {t:"Tirar as fotos em causa, ir com eles pedir autorização uma a uma, e voltar a expor.",e:{qualidade:12,sust:9,aprend:11},o:"Demorou duas semanas. Voltaram com mais fotos do que tinham — porque as pessoas, depois de lhes perguntarem, quiseram aparecer."},
+  {t:"Manter. É espaço público, é legal.",e:{qualidade:-9,sust:-10},o:"É legal. E o bairro passou a olhar de lado para o espaço — que é uma coisa que não se resolve com a lei."}]},
+ carreira:{k:"Semana 10",h:"Arranjaram trabalho — e é ilegal",dim:"D5",p:"Dois deles começaram a trabalhar. Sem contrato, sem descontos, doze horas por dia, pagos à semana em dinheiro.",swot:"Inserção laboral em condições ilegais.",c:[
+  {t:"Não te meteres. Estão a trabalhar, é o que interessa.",e:{qualidade:-11,aprend:-7},o:"Um deles magoou-se ao terceiro mês. Não tinha seguro, não tinha nada, e não tinha a quem se queixar."},
+  {t:"Sentar-te com eles, explicar os direitos que têm, e ajudá-los a decidir o que fazer.",e:{qualidade:13,aprend:11,sust:6},o:"Um saiu. O outro ficou, mas exigiu contrato — e conseguiu. Era exatamente para isto que as sessões existiam."},
+  {t:"Denunciar a empresa.",e:{qualidade:4,alcance:-9},o:"Ficaram sem trabalho e furiosos contigo. Tinhas razão, e não serviu de nada — porque decidiste por eles."}]},
+ tutoria:{k:"Semana 8",h:"Contou-te uma coisa grave",dim:"D6",p:"Na sessão de hoje contou-te uma coisa que se passa em casa. E pediu-te, a chorar, que não contes a ninguém.",swot:"Revelação de situação de risco com pedido de confidencialidade.",c:[
+  {t:"Prometer segredo. Foi o que ele te pediu.",e:{qualidade:-15,sust:-13},o:"Não podias prometer isso, e sabias. Há coisas que têm de ser comunicadas — e agora, quando for descoberto, ele vai saber que tu sabias."},
+  {t:"Explicar-lhe que há coisas que tens obrigação de comunicar — e comunicar com ele ao teu lado.",e:{qualidade:14,sust:12,aprend:10},o:"Foi duríssimo. Mas ele viu-te fazer a chamada, ouviu o que disseste, e percebeu que não estavas a trair — estavas a proteger."},
+  {t:"Comunicar sem lhe dizer nada.",e:{qualidade:6,alcance:-9},o:"Fizeste o correto e perdeste-o. Ele nunca mais te contou nada — e a tutoria era exatamente isso."}]},
+ custom:{k:"Semana 6",h:"A tua ideia não está a pegar",dim:"D2",p:"Passaram seis semanas. O «{P}» não está a resultar como imaginaste, e já se nota.",swot:"Projeto próprio sem tração ao fim de seis semanas.",c:[
+  {t:"Insistir. Ainda é cedo.",e:{qualidade:-5,aprend:3},o:"Às vezes é mesmo cedo. E às vezes insistir é só não querer olhar para o que está à frente."},
+  {t:"Perguntar-lhes o que é que está a falhar — e mudar o que eles disserem.",e:{qualidade:10,alcance:9,aprend:11},o:"Disseram-te. Era uma coisa simples e óbvia que tu não tinhas visto porque estavas de dentro."},
+  {t:"Trocar de projeto.",e:{sust:-9,aprend:5},o:"Começaste outra coisa. Aprendeste a desistir depressa — que é uma competência com dois gumes."}]}
+};
+
+const EV_DIAG={
+ consola:{k:"Semana 4",h:"A consola contra o teu projeto",dim:"D6",p:"O «{P}» começa às 17h. Às 17h05 há quatro deles ainda agarrados à consola, e não se mexem.",swot:"Concorrência direta da consola com a atividade proposta.",c:[
+  {t:"Desligar a consola.",e:{qualidade:4,alcance:-12,aprend:-3},o:"Vieram. Zangados, de braços cruzados, a estragar o ambiente. Ganhaste a batalha e perdeste-os."},
+  {t:"Integrar a consola: que ela seja o prémio no fim, ou a ferramenta do meio.",e:{alcance:12,qualidade:7,aprend:9},o:"Passou a haver uma razão para desligar — a consola voltava no fim, e agora era deles ganhá-la."},
+  {t:"Deixá-los e começar sem eles.",e:{alcance:-8,qualidade:3},o:"Os que vieram tiveram uma boa sessão. Os outros ficaram onde estavam — e eram esses que precisavam."}]},
+ telemovel:{k:"Semana 4",h:"Filmaram uma discussão",dim:"D5",p:"Dois miúdos discutiram. Um terceiro filmou e já está online. Toda a gente viu.",swot:"Uso do telemóvel para expor e amplificar conflitos.",c:[
+  {t:"Proibir telemóveis no espaço.",e:{qualidade:5,alcance:-11},o:"Deixaram de filmar. E deixaram de vir alguns — a proibição foi mais rápida do que a conversa."},
+  {t:"Fazer disso o tema: o que se publica, o que fica para sempre, o que é um direito.",e:{qualidade:11,aprend:10,alcance:4},o:"O vídeo foi apagado por quem o publicou. Não porque mandaste — porque percebeu."},
+  {t:"Falar só com os três envolvidos.",e:{qualidade:6,alcance:-2},o:"Resolveste o caso. Não resolveste o hábito — e o hábito volta na semana seguinte."}]},
+ regras:{k:"Semana 5",h:"Partiram uma coisa e ninguém assume",dim:"D6",p:"Alguém partiu material do «{P}». Ninguém sabe de nada, e estavam lá dez.",swot:"Ausência de regras assumidas e de responsabilização pelo espaço.",c:[
+  {t:"Castigar o grupo todo até alguém confessar.",e:{qualidade:-8,alcance:-9},o:"Ninguém confessou. Aprenderam que o justo e o injusto vêm da mesma pessoa: tu."},
+  {t:"Construir com eles as regras e as consequências — agora, e por escrito.",e:{qualidade:10,sust:9,aprend:8},o:"Levou duas sessões e valeu cada minuto. As regras passaram a ser deles."},
+  {t:"Substituir o material e não dizer nada.",e:{sust:-9,qualidade:-4},o:"Partiu-se outra coisa três semanas depois."}]},
+ fechados:{k:"Semana 2",h:"Disseram que não a tudo",dim:"D2",p:"Apresentaste o «{P}». A resposta foi um coro de «não me apetece» — sem sequer te ouvirem até ao fim.",swot:"Resistência inicial a qualquer proposta nova.",c:[
+  {t:"Fazer na mesma, sozinho, à frente deles.",e:{alcance:7,qualidade:4,aprend:8},o:"Ao terceiro dia havia dois a espreitar. Ao quinto eram quatro. Não convenceste — mostraste."},
+  {t:"Perguntar-lhes o que é que eles queriam fazer.",e:{alcance:10,qualidade:5,sust:5},o:"Deram uma ideia. Era pior do que a tua — e resultou melhor, porque era deles."},
+  {t:"Insistir e explicar melhor porque é bom para eles.",e:{alcance:-9,aprend:-4},o:"Quanto mais explicaste, menos ouviram. Ninguém entra numa coisa por argumento."}]},
+ conflitos:{k:"Semana 5",h:"A discussão passou a agressão",dim:"D6",p:"Uma discussão do costume passou a empurrões. Um deles ficou com o lábio a sangrar.",swot:"Escalada de conflito com agressão física.",c:[
+  {t:"Separar, tratar do ferimento, falar com cada um em separado, e registar.",badL:'conflito',e:{qualidade:11,sust:6},fail:{qualidade:-9},
+   o:"Fizeste o que era preciso, pela ordem certa.",of:"Fugir do conflito é o teu limite. Chamaste um adulto e saíste da sala — e eles perceberam."},
+  {t:"Expulsar os dois durante uma semana.",e:{qualidade:3,alcance:-11},o:"Voltaram piores, e agora com uma razão para te odiarem."},
+  {t:"Fingir que não foi nada para não fazer disto um caso.",e:{qualidade:-14,sust:-8},o:"Foi um caso. Só que agora és tu quem sabia e não fez nada."}]},
+ escolar:{k:"Semana 9",h:"Um deles chumbou",dim:"D4",p:"Chumbou. Veio na mesma, sentou-se ao fundo, e não disse nada a ninguém.",swot:"Insucesso escolar de participantes, sem articulação com a escola.",c:[
+  {t:"Falar com ele em privado, sem falar de notas.",e:{qualidade:10,aprend:7},o:"Não falou do chumbo. Falou de tudo o resto — que era, afinal, a causa."},
+  {t:"Montar apoio ao estudo e arrastá-lo para lá.",reqE:{k:'preparacao',min:3},e:{qualidade:8,alcance:7,sust:5},fail:{qualidade:-6},
+   o:"Passou a haver apoio ao estudo. Foi o primeiro a inscrever-se.",of:"Não tinhas preparação nenhuma para montar aquilo. Ficou em promessa."},
+  {t:"Não mexer. Não é da tua conta.",e:{qualidade:-8,aprend:-6},o:"Deixou de vir um mês depois. E ninguém foi atrás."}]},
+ transicao:{k:"Semana 11",h:"Fez 18 anos",dim:"D4",p:"Um dos mais velhos fez 18. Já não pode estar no espaço. Não estuda, não trabalha, e vai simplesmente deixar de aparecer.",swot:"Saída sem encaminhamento de participantes que atingem o limite de idade.",c:[
+  {t:"Sentar-se com ele e mapear opções concretas antes de sair.",e:{qualidade:12,sust:8,aprend:9},o:"Saiu com três contactos e uma candidatura entregue. É exatamente isto que o programa é."},
+  {t:"Deixá-lo continuar a vir na mesma, informalmente.",e:{alcance:4,sust:-9},o:"Ficou. Um ano depois estava na mesma cadeira, com 19 anos, e agora era tarde."},
+  {t:"Despedir-se e desejar boa sorte.",e:{sust:-6,aprend:-5},o:"Nunca mais se soube dele. E o programa existe precisamente para que isso não aconteça."}]},
+ participacao:{k:"Semana 7",h:"As raparigas deixaram de aparecer",dim:"D1",p:"O «{P}» encheu. Só que olhaste à volta e são só rapazes. Elas vieram duas vezes e desistiram.",swot:"Participação desigual por género, com abandono silencioso.",c:[
+  {t:"Perguntar-lhes diretamente porque deixaram de vir.",e:{qualidade:10,alcance:8,aprend:8},o:"Disseram-te. A razão era óbvia e ninguém tinha perguntado — foi isso que te ficou."},
+  {t:"Criar uma sessão só para elas.",e:{alcance:8,qualidade:4,sust:-3},o:"Voltaram. Mas o espaço continuou dividido — o problema mudou de sítio em vez de se resolver."},
+  {t:"Assumir que não estão interessadas.",e:{alcance:-12,qualidade:-6},o:"É a explicação mais confortável. É quase sempre a errada."}]},
+ familias:{k:"Semana 8",h:"Uma mãe veio queixar-se",dim:"D1",p:"Veio à porta, alto e bom som, dizer que o «{P}» é uma perda de tempo e que o filho devia era estar a estudar.",swot:"Desconfiança das famílias quanto ao valor da intervenção.",c:[
+  {t:"Convidá-la a entrar e a ver.",badL:'timidez',e:{qualidade:9,sust:11,alcance:6},fail:{sust:-4,aprend:6},
+   o:"Ficou. Voltou na semana seguinte, e trouxe outra mãe.",of:"Convidaste, mas não conseguiste explicar-lhe nada. Ficou cinco minutos e foi-se embora."},
+  {t:"Explicar-lhe à porta e pedir desculpa.",e:{sust:-3,qualidade:-2},o:"Acalmou. Não mudou de ideias — e vai voltar a queixar-se."},
+  {t:"Remeter para a coordenação.",e:{sust:4,alcance:-5},o:"Foi resolvido acima de ti. E acima de ti é onde ficaste."}]},
+ motivacao:{k:"Semana 6",h:"Ficaram três",dim:"D2",p:"Começaram doze no «{P}». Esta semana apareceram três — e olham para ti à espera de que desistas.",swot:"Quebra de participação a meio do ciclo.",c:[
+  {t:"Fazer a sessão com os três, tão bem como faria com doze.",e:{qualidade:11,aprend:9,alcance:-4},o:"Os três contaram aos outros. Na semana seguinte eram sete, e vinham por vontade própria."},
+  {t:"Cancelar e repensar tudo.",e:{qualidade:3,alcance:-10},o:"Repensaste. E os três que apareceram aprenderam que também tu desistes."},
+  {t:"Perguntar aos que faltaram o que se passou.",e:{alcance:9,qualidade:5,aprend:6},o:"Metade tinha um motivo prático que se resolvia numa mensagem. Ninguém tinha perguntado."}]},
+ competencias:{k:"Semana 7",h:"Ninguém se ouve",dim:"D6",p:"Tentaste pô-los a decidir uma coisa em conjunto. Foi só gritos. Ninguém espera pela vez.",swot:"Défice de competências de comunicação e escuta no grupo.",c:[
+  {t:"Impor a tua decisão para acabar com aquilo.",e:{qualidade:-7,alcance:-4},o:"Acabou. E aprenderam que decidir em grupo não resulta — o contrário do que precisavas."},
+  {t:"Parar tudo e ensinar como se decide: regras de palavra, tempo, votação.",e:{qualidade:12,aprend:10},o:"Demorou uma sessão inteira. Foi a sessão mais útil do ano."},
+  {t:"Deixá-los resolver sozinhos.",e:{qualidade:-5,aprend:4},o:"Ganharam os mais altos. Como sempre."}]},
+ diversidade:{k:"Semana 6",h:"«Isto é sempre igual»",dim:"D2",p:"Ouviste um deles dizer, alto: «isto é sempre a mesma coisa». E tinha razão.",swot:"Repetição da oferta e desgaste do interesse.",c:[
+  {t:"Pedir-lhes que proponham a próxima atividade.",e:{alcance:10,qualidade:5,sust:6},o:"Propuseram. Tiveste de dizer que não a duas — mas a terceira era boa, e foi feita por eles."},
+  {t:"Mudar tudo e trazer uma coisa nova de fora.",e:{alcance:7,qualidade:-4,sust:-4},o:"Encheu na primeira semana. Na terceira estava outra vez vazio."},
+  {t:"Explicar que a repetição faz parte.",e:{alcance:-8,qualidade:-3},o:"Tinhas razão em teoria. Na prática, foram-se embora."}]},
+ espaco:{k:"Semana 5",h:"Tiraram-te a sala",dim:"D3",p:"A sala onde fazias o «{P}» foi dada a outra coisa. Ficaste sem sítio a meio do projeto.",swot:"Instabilidade no acesso ao espaço físico.",c:[
+  {t:"Reclamar formalmente, por escrito.",badL:'escrita',e:{sust:9,qualidade:3},fail:{sust:-5,aprend:6},
+   o:"Devolveram a sala, e ficou escrito que era tua às terças.",of:"Ficaste furioso e não escreveste nada. A sala continuou de outros."},
+  {t:"Fazer na rua.",e:{alcance:9,qualidade:-6,aprend:7},o:"Correu. Apanharam chuva duas vezes, e passou a haver mais gente a ver do que a fazer."},
+  {t:"Suspender até haver sala.",e:{alcance:-13,sust:-5},o:"Nunca mais houve sala. Havia sempre uma coisa mais urgente."}]},
+ digital:{k:"Semana 8",h:"Não sabem fazer um CV",dim:"D5",p:"Pediste-lhes que escrevessem o que sabem fazer. Ficou tudo em branco. Não é falta de vontade — não sabem.",swot:"Défice de literacia digital e administrativa básica.",c:[
+  {t:"Fazer o CV com cada um, um a um.",reqE:{k:'preparacao',min:3},e:{qualidade:11,sust:6},fail:{qualidade:-4,aprend:6},
+   o:"Saíram todos com um CV. Três candidataram-se a alguma coisa nessa semana.",of:"Sem preparação, fizeste dois e cansaste-te. Os outros ficaram à espera."},
+  {t:"Trazer alguém de fora para dar uma sessão.",e:{alcance:6,sust:8,qualidade:5},o:"Veio, foi boa, foi única. Ninguém ficou a saber fazer sozinho."},
+  {t:"Dar-lhes um modelo e deixá-los copiar.",e:{qualidade:-5,aprend:2},o:"Ficaram todos com o mesmo CV. Literalmente o mesmo."}]},
+ comunidade:{k:"Semana 9",h:"Ninguém do bairro sabe que existes",dim:"D5",p:"Falaste com o comerciante da esquina. Não fazia ideia do que é o espaço nem do que lá se faz.",swot:"Invisibilidade do equipamento junto da comunidade envolvente.",c:[
+  {t:"Bater às portas, uma a uma, e apresentar-te.",badL:'timidez',e:{sust:12,alcance:9},fail:{sust:2,aprend:7},
+   o:"Ao fim de duas semanas tinhas três apoios e uma parede para expor.",of:"Bater a portas de desconhecidos é o que mais te custa. Foste a duas e desististe."},
+  {t:"Fazer um dia aberto e convidar o bairro.",e:{alcance:11,sust:6,qualidade:-3},o:"Vieram muitos. E ficaram a saber — mas só quem já passava à porta."},
+  {t:"Não é a tua função.",e:{sust:-9},o:"Não é, de facto. Mas era a tua oportunidade."}]},
+ rh:{k:"Semana 10",h:"És o único",dim:"D3",p:"A técnica do espaço entrou de baixa. Ficaste sozinho com o grupo todo e com o «{P}» a meio.",swot:"Fragilidade da equipa técnica, sem substituição prevista.",c:[
+  {t:"Assumir tudo e aguentar.",e:{qualidade:-9,sust:-6,aprend:8},o:"Aguentaste seis semanas. Chegaste ao fim exausto, e ninguém percebeu que estiveste sozinho."},
+  {t:"Avisar por escrito a coordenação de que não tens condições.",badL:'escrita',e:{sust:12,qualidade:5},fail:{sust:-6,aprend:6},
+   o:"Mandaram reforço em dez dias. Ficou registado que foste tu a levantar o problema.",of:"Disseste de passagem, num corredor. Ninguém registou nada e nada mudou."},
+  {t:"Reduzir o projeto ao que uma pessoa consegue.",e:{qualidade:7,alcance:-9},o:"Sensato. Ninguém te agradeceu, e também ninguém se magoou."}]}
+};
+const EV_OPORT=[
+{k:"Semana 10",h:"Convidam-te a apresentar",dim:"D1",p:"A CMC quer o «{P}» num encontro com outras entidades. Dez minutos, sala cheia.",swot:"Visibilidade institucional junto de decisores e de outras entidades do concelho.",c:[
+ {t:"Aceitar e apresentar.",badL:'timidez',e:{sust:14,alcance:9},fail:{sust:4,aprend:8},
+  o:"Correu bem. Apareceram dois parceiros novos e um convite.",of:"Foste, gaguejaste, encurtaste para três minutos. Ninguém te ligou depois — mas foste."},
+ {t:"Aceitar e levar um dos miúdos a apresentar contigo.",e:{sust:11,alcance:11,aprend:10},o:"Foi ele que falou. Foi a melhor coisa que aconteceu ao projeto e à tua avaliação."},
+ {t:"Declinar.",e:{sust:-10,aprend:-5},o:"O projeto ficou invisível para quem decide se ele continua."}]},
+{k:"Semana 12",h:"Sai um trabalho a sério",dim:"D4",p:"Chamam-te para um contrato a tempo inteiro, noutra área. Começa já.",swot:"Oportunidade de transição para emprego — o objetivo declarado do programa.",c:[
+ {t:"Aceitar e sair.",e:{sust:-8,aprend:10},o:"É esse o objetivo do programa — e tu cumpriste-o. Mas o projeto ficou sem dono."},
+ {t:"Aceitar e deixar o projeto entregue a alguém.",reqE:{k:'registo',min:3},e:{sust:16,aprend:12},fail:{sust:-6,aprend:6},
+  o:"Tinhas tudo registado. Passaste a pasta e o projeto continuou sem ti. Isso chama-se sustentabilidade.",of:"Ninguém percebia como aquilo funcionava sem ti. Morreu em três semanas."},
+ {t:"Recusar e ficar.",e:{qualidade:6,sust:4,aprend:-8},o:"O projeto agradece. E tu? Fica a pergunta — e é a mesma do jogo das cartas."}]},
+{k:"Semana 5",h:"Oferecem-te material",dim:"D1",p:"Uma associação soube do «{P}» e oferece material que sobrou de outro programa.",swot:"Rede local disposta a ceder recursos sem custo.",c:[
+ {t:"Aceitar tudo e arrumar num canto.",e:{qualidade:4,sust:-3},o:"Ficaste com material a mais e um canto a menos. Metade nunca vai ser usada."},
+ {t:"Aceitar só o que serve e explicar porquê.",e:{qualidade:11,sust:9},o:"Foi a primeira vez que alguém lhes recusou metade. Ficaram a respeitar-te — e a lembrar-se de ti."},
+ {t:"Recusar. Não queres dever favores.",e:{qualidade:-6,sust:-8},o:"A oferta foi para outro sítio. E o favor que não quiseste dever era, afinal, uma parceria."}]},
+{k:"Semana 7",h:"Um miúdo quer ajudar-te",dim:"D1",p:"Um dos mais velhos pede para te ajudar a organizar o «{P}». Não é preciso. Mas ele quer.",swot:"Emergência de liderança entre os participantes, com potencial de continuidade.",c:[
+ {t:"Dizer que sim e dar-lhe uma tarefa a sério.",e:{alcance:9,sust:10,aprend:8},o:"Passou a haver duas pessoas a segurar o projeto. E uma delas fica cá quando tu saíres."},
+ {t:"Dizer que sim, mas mantê-lo a fazer recados.",e:{alcance:3,aprend:-4},o:"Percebeu. Desistiu ao fim de três semanas — e não voltou a oferecer-se para nada."},
+ {t:"Dizer que não. É o teu projeto.",e:{sust:-9,aprend:-6},o:"É teu, sim. E vai acabar contigo."}]},
+{k:"Semana 11",h:"Outro espaço quer copiar-te",dim:"D5",p:"Uma ludoteca vizinha ouviu falar do «{P}» e quer fazer igual. Pedem-te para explicares como se faz.",swot:"Interesse de outros equipamentos em replicar o modelo.",c:[
+ {t:"Explicar e partilhar tudo o que tens escrito.",reqE:{k:'registo',min:3},e:{sust:15,aprend:8},fail:{sust:2,aprend:6},
+  o:"Deste-lhes o manual. O projeto passou a existir em dois sítios — e isso conta na avaliação.",of:"Explicaste de cabeça, mas não tinhas nada escrito para dar. Ficou pela boa vontade."},
+ {t:"Ir lá montar com eles.",e:{alcance:10,sust:8,qualidade:-5},o:"Cresceu. O teu tempo é que encolheu."},
+ {t:"Guardar para ti.",e:{sust:-8,aprend:-6},o:"O projeto ficou único. E sozinho."}]}
+];
+const EV_BOSS={k:"Fim do ciclo · avaliação final",h:"A Avaliação",dim:"D4",boss:true,
+ p:"Chegou o Tfinal. Vais ser avaliado nas seis dimensões e pedem-te evidências do «{P}». Ninguém escapa a este.",
+ swot:"Avaliação final com exigência de evidências documentais.",c:[
+ {t:"Apresentar registos, fotos e números.",reqE:{k:'registo',min:4},e:{sust:14,qualidade:8,aprend:6},fail:{sust:-8,aprend:8},
+  o:"Tinhas tudo. A avaliação deixou de ser uma opinião sobre ti e passou a ser um retrato do que fizeste.",of:"Fizeste imenso e não conseguiste provar quase nada. É a parte mais injusta — e a mais evitável. Bastavam quatro fichas em Registo."},
+ {t:"Contar de cabeça.",e:{qualidade:-6,aprend:4},o:"Foi honesto. Mas quem avalia não estava lá, e quem não estava só vê o que está escrito."},
+ {t:"Pedir aos miúdos que digam o que mudou para eles.",e:{qualidade:10,alcance:6,sust:4},o:"Foi a evidência mais forte que podias ter. E a única que ninguém pode contestar."}]};
+
+const COMPETENCIAS=["Falar em público","Organizar e planear","Trabalhar em equipa","Mediar conflitos","Escrever e relatar","Dinamizar grupos","Liderar um grupo","Cumprir prazos","Ferramentas digitais","Lidar com a frustração","Pedir ajuda a tempo","Avaliar o meu trabalho"];
+
+let G3={},G3_STEPS=11;
+const SLOTS=['Início','Meio','Fim'];
+
+function g3Reset(){
+  const auto=Object.keys(DIMS).map(k=>{
+    const q=AUTO_POOL[k][Math.floor(Math.random()*AUTO_POOL[k].length)];
+    return {k,q:q.q,o:shuffle([...q.o])};
+  });
+  G3={step:0,nome:'',autoQ:auto,auto:{},
+      faixas:[],needs:[],trunfos:[],limites:[],projeto:null,custom:'',customTags:[],
+      passos:[],energia:{preparacao:0,materiais:0,parceiros:0,divulgacao:0,registo:0},
+      eventos:[],evIdx:0,evLog:[],sc:{alcance:0,qualidade:0,sust:0,aprend:0},
+      dim:{},dimLog:{},planoFalhas:[],comps:[],compOutra:''};
+  g3Draw();
+}
+function g3Bar(){document.getElementById('g3-steps').innerHTML=Array.from({length:G3_STEPS},(_,i)=>`<div class="step ${i<G3.step?'done':i===G3.step?'now':''}"></div>`).join('');}
+function g3Next(){G3.step++;g3Draw();window.scrollTo(0,0);}
+function g3Back(){if(G3.step>0){G3.step--;g3Draw();window.scrollTo(0,0);}}
+function g3Pick(f,v,max){const a=G3[f],i=a.indexOf(v);if(i>=0)a.splice(i,1);else if(a.length<max)a.push(v);g3Draw();}
+function g3PoolIdade(){const out=[];G3.faixas.forEach(f=>FAIXAS.find(x=>x.id===f).needs.forEach(n=>{if(!out.includes(n))out.push(n);}));return out;}
+function g3PoolNeeds(){return g3PoolIdade().concat(NEEDS_ESPACO.filter(n=>!g3PoolIdade().includes(n)));}
+function g3Energy(k,d){
+  const E=G3.energia,used=Object.values(E).reduce((x,y)=>x+y,0);
+  if(d>0&&(used>=14||E[k]>=6))return; if(d<0&&E[k]<=0)return;
+  E[k]+=d;g3Draw();
+}
+function g3ProjSel(){return G3.projeto==='custom'?{id:'custom',n:G3.custom||'Projeto próprio',d:'Ideia do próprio jovem.',tags:G3.customTags,passos:PASSOS_CUSTOM}:PROJETOS.find(p=>p.id===G3.projeto);}
+function g3Txt(t){return t.replace(/\{P\}/g,g3ProjSel().n);}
+function g3Passo(i){const a=G3.passos,k=a.indexOf(i);if(k>=0)a.splice(k,1);else if(a.length<3)a.push(i);g3Draw();}
+function g3SlotClear(n){G3.passos.splice(n,1);g3Draw();}
+/* Regras de ordem: há ordens que não funcionam, e o jogo diz quais */
+function g3Ordem(){
+  const p=g3ProjSel(), erros=[];
+  G3.passos.forEach((idx,n)=>{
+    const e=p.passos[idx][1];
+    if(e==='divulgacao'&&n===2) erros.push({n,m:"Divulgar no FIM: ninguém soube do projeto antes de ele acabar."});
+    if(e==='registo'&&n===0) erros.push({n,m:"Registar no INÍCIO: ainda não há nada para registar."});
+    if(n===0&&(e==='divulgacao'||e==='registo')) erros.push({n,m:"O primeiro passo tem de ser preparar, arranjar material ou falar com parceiros. Não se começa por aqui."});
+  });
+  return erros;
+}
+
+function g3Draw(){
+  g3Bar();
+  const b=document.getElementById('g3-body');
+  switch(G3.step){
+
+  case 0:
+    b.innerHTML=`<h3 class="q">Como te chamas?</h3><p class="q-sub">Vai no cabeçalho do PIA que sai no fim.</p>
+      <input class="txtin" id="g3-nome" value="${G3.nome}" placeholder="O teu nome" maxlength="40">
+      <div class="nav"><span></span><button class="btn btn-yellow" onclick="G3.nome=document.getElementById('g3-nome').value.trim()||'Jovem JEEP';g3Next()">Continuar</button></div>`;
+    setTimeout(()=>{const e=document.getElementById('g3-nome');if(e)e.focus();},40);break;
+
+  case 1:{
+    const feito=Object.keys(G3.auto).length;
+    b.innerHTML=`<h3 class="q">Antes de começar: como te vês?</h3>
+      <div class="aviso"><b>Aqui não há resposta certa.</b> Nenhuma destas opções é "a boa" — são só quatro maneiras diferentes de estar, e todas existem. Escolhe a que <em>descreve</em> o que costumas fazer, não a que gostavas que fosse verdade. As perguntas mudam de cada vez que jogas e as opções nunca estão pela mesma ordem, precisamente para não haver truque.</div>
+      <p class="q-sub">Seis situações, uma por cada dimensão de avaliação do EDUCA+. No fim, o jogo compara o que disseste com o que as tuas escolhas mostrarem.</p>
+      ${G3.autoQ.map((A,ai)=>`
+        <div class="autoq">
+          <span class="autoq-dim" style="color:${DIMS[A.k].c}">${A.k} · ${DIMS[A.k].n}</span>
+          <p class="autoq-q">${A.q}</p>
+          <div class="autoq-opts">${A.o.map(([v,t])=>`
+            <button class="autoq-opt ${G3.auto[A.k]===v?'on':''}" onclick="G3.auto['${A.k}']=${v};g3Draw()">${t}</button>`).join('')}</div>
+        </div>`).join('')}
+      <p class="counter">${feito}/6 respondidas</p>
+      <div class="nav"><button class="btn" onclick="g3Back()">← Voltar</button>
+      <button class="btn btn-yellow" ${feito===6?'':'disabled'} onclick="${feito===6?'g3Next()':''}">Continuar</button></div>`;
+    break;}
+
+  case 2:
+    b.innerHTML=`<h3 class="q">Com quem vais estar?</h3>
+      <p class="q-sub">Estás numa ludoteca ou num polo comunitário — o que muda é a idade de quem lá está. <b>Escolhe tudo o que se aplicar</b>: raramente é só um grupo. Os problemas do <em>sítio</em> (espaço degradado, falta de técnicos, bairro desligado) aparecem no diagnóstico de qualquer maneira.</p>
+      <div class="opts">${FAIXAS.map(l=>`
+        <button class="opt ${G3.faixas.includes(l.id)?'sel':''}" onclick="g3Pick('faixas','${l.id}',4);G3.needs=[];g3Draw()">
+          <strong>${l.n}</strong><span class="fonte" style="margin-bottom:6px">${l.sub}</span><span>${l.d}</span></button>`).join('')}</div>
+      <p class="counter">${G3.faixas.length} selecionado${G3.faixas.length===1?'':'s'} · ${g3PoolNeeds().length} problemas possíveis no diagnóstico</p>
+      <div class="nav"><button class="btn" onclick="g3Back()">← Voltar</button>
+      <button class="btn btn-yellow" ${G3.faixas.length?'':'disabled'} onclick="${G3.faixas.length?'g3Next()':''}">Continuar</button></div>`;break;
+
+  case 3:{
+    const idade=g3PoolIdade(), espaco=NEEDS_ESPACO.filter(n=>!idade.includes(n));
+    const card=k=>`<button class="opt postit ${G3.needs.includes(k)?'sel':''}" onclick="g3Pick('needs','${k}',3)"><strong>${NEEDS[k].n}</strong><span>${NEEDS[k].d}</span></button>`;
+    b.innerHTML=`<h3 class="q">Diagnóstico</h3>
+      <p class="q-sub">Escolhe <b>três problemas</b> — os que fazem falta, não os que sabes resolver. <b>Um deles vai voltar a aparecer</b> a meio do projeto, quando menos jeito der.</p>
+      <p class="eyebrow" style="margin-bottom:10px">Problemas de quem lá está</p>
+      <div class="opts">${idade.map(card).join('')}</div>
+      <p class="eyebrow" style="margin:26px 0 10px">Problemas do sítio — não são de uma idade nenhuma</p>
+      <div class="opts">${espaco.map(card).join('')}</div>
+      <p class="counter">${G3.needs.length}/3 escolhidos${G3.needs.length?': '+G3.needs.map(k=>NEEDS[k].n).join(' · '):''}</p>
+      <div class="nav"><button class="btn" onclick="g3Back()">← Voltar</button>
+      <button class="btn btn-yellow" ${G3.needs.length===3?'':'disabled'} onclick="${G3.needs.length===3?'g3Next()':''}">Continuar</button></div>`;break;}
+
+  case 4:
+    b.innerHTML=`<h3 class="q">Os teus trunfos</h3>
+      <p class="q-sub">Dezassete trunfos, dezassete limites — de propósito, o mesmo número. Escolhe <b>quatro</b> trunfos, os verdadeiros. Cada um dá bónus e liga-se a uma das seis dimensões.</p>
+      <div class="opts">${TRUNFOS.map(t=>`<button class="opt ${G3.trunfos.includes(t.id)?'sel':''}" onclick="g3Pick('trunfos','${t.id}',4)"><strong>${t.n}</strong><span>${t.d}</span><span class="fonte">sobe ${t.dm.join(' e ')}</span></button>`).join('')}</div>
+      <p class="counter">${G3.trunfos.length}/4 escolhidos</p>
+      <div class="nav"><button class="btn" onclick="g3Back()">← Voltar</button>
+      <button class="btn btn-yellow" ${G3.trunfos.length===4?'':'disabled'} onclick="${G3.trunfos.length===4?'g3Next()':''}">Continuar</button></div>`;break;
+
+  case 5:
+    b.innerHTML=`<h3 class="q">Os teus limites</h3>
+      <p class="q-sub">A parte que ninguém escreve no PIA. Escolhe <b>dois</b>. Custam pontos e <b>vão fazer falhar opções lá à frente</b> — como na vida. Escolher os falsos só te engana a ti.</p>
+      <div class="opts">${LIMITES.map(t=>`<button class="opt limite ${G3.limites.includes(t.id)?'sel':''}" onclick="g3Pick('limites','${t.id}',2)"><strong>${t.n}</strong><span>${t.d}</span><span class="fonte">desce ${t.dm.join(' e ')}</span></button>`).join('')}</div>
+      <p class="counter">${G3.limites.length}/2 escolhidos</p>
+      <div class="nav"><button class="btn" onclick="g3Back()">← Voltar</button>
+      <button class="btn btn-yellow" ${G3.limites.length===2?'':'disabled'} onclick="${G3.limites.length===2?'g3Next()':''}">Continuar</button></div>`;break;
+
+  case 6:{
+    const custom=G3.projeto==='custom';
+    const ord=[...PROJETOS].map(p=>({p,m:p.tags.filter(t=>G3.needs.includes(t)).length})).sort((a,b)=>b.m-a.m);
+    const top=ord[0].m;
+    b.innerHTML=`<h3 class="q">O projeto</h3>
+      <p class="q-sub">Estão ordenados por quantos dos <b>teus três problemas</b> resolvem — o número está escrito em cada um. ${top===3?'Há projetos que respondem aos três.':top===0?'<b style="color:var(--afasta)">Nenhum projeto responde aos três problemas que escolheste.</b> Isso já é informação: escolheste problemas que nenhuma atividade sozinha resolve.':`O melhor que existe responde a ${top} dos três.`} Podes escolher qualquer um — só tens de saber o que estás a escolher.</p>
+      <div class="opts">
+        ${ord.map(({p,m})=>`<button class="opt ${m>0?'postit':''} ${G3.projeto===p.id?'sel':''}" onclick="G3.projeto='${p.id}';G3.passos=[];g3Draw()">
+          <span class="match m${m}">${m===0?'RESPONDE A 0 DE 3':`RESPONDE A ${m} DE 3`}</span>
+          <strong>${p.n}</strong><span>${p.d}</span>
+          ${m>0?`<span class="resolve">${p.tags.filter(t=>G3.needs.includes(t)).map(t=>'✓ '+NEEDS[t].n).join('<br>')}</span>`:''}</button>`).join('')}
+        <button class="opt ${custom?'sel':''}" style="background:var(--marker);border-color:var(--marker)" onclick="G3.projeto='custom';G3.passos=[];g3Draw()"><strong style="color:#fff">Escrever o meu</strong><span style="color:#dfe6ff">Nenhuma destas é a tua ideia? Escreve-a.</span></button>
+      </div>
+      ${custom?`<div style="margin-top:24px;border-top:1px dashed var(--line);padding-top:24px">
+        <span class="eyebrow">A tua ideia</span>
+        <input class="txtin" id="g3-cn" value="${G3.custom}" placeholder="Ex.: Clube de reparação de bicicletas" maxlength="60" style="margin-top:8px;font-size:22px">
+        <p class="q-sub" style="margin:22px 0 12px">A que problemas do teu diagnóstico é que ela responde?</p>
+        <div class="opts">${G3.needs.map(k=>`<button class="opt postit ${G3.customTags.includes(k)?'sel':''}" onclick="G3.custom=document.getElementById('g3-cn').value;g3Pick('customTags','${k}',3)"><strong>${NEEDS[k].n}</strong></button>`).join('')}</div></div>`:''}
+      <div class="nav"><button class="btn" onclick="g3Back()">← Voltar</button>
+      <button class="btn btn-yellow" ${G3.projeto&&(!custom||G3.customTags.length>0)?'':'disabled'} onclick="if(document.getElementById('g3-cn'))G3.custom=document.getElementById('g3-cn').value.trim();g3Next()">Continuar</button></div>`;break;}
+
+  case 7:{
+    const p=g3ProjSel(), erros=g3Ordem();
+    b.innerHTML=`<h3 class="q">Como e quando</h3>
+      <p class="q-sub">Uma ideia não é um projeto até estar partida em passos <b>por ordem</b>. Clica em três passos: o primeiro vai para o <b>Início</b>, o segundo para o <b>Meio</b>, o terceiro para o <b>Fim</b>. Clica num cartão preenchido para o esvaziar.</p>
+      <div class="regras">
+        <span class="eyebrow" style="color:#8b8499">Não há uma resposta certa única. Mas há ordens que não funcionam:</span>
+        <ul><li>Divulgar no <b>Fim</b> — as pessoas ficam a saber depois de acabar.</li>
+        <li>Registar no <b>Início</b> — ainda não há nada para registar.</li>
+        <li>Começar por divulgar ou registar — o primeiro passo é preparar, arranjar material ou falar com quem te vai ajudar.</li></ul>
+      </div>
+      <div class="slots">${SLOTS.map((s,n)=>{
+        const i=G3.passos[n], err=erros.find(e=>e.n===n);
+        return `<div class="slot ${i!==undefined?(err?'erro':'full'):''}" ${i!==undefined?`onclick="g3SlotClear(${n})"`:''}>
+          <span class="slot-n">${n+1}. ${s}</span>
+          ${i!==undefined?`<b>${p.passos[i][0]}</b><span class="slot-e">exige ${FONTE[p.passos[i][1]]}</span>${err?`<span class="slot-err">${err.m}</span>`:'<span class="slot-x">clica para tirar</span>'}`:`<b class="vazio">— por preencher —</b>`}
+        </div>`;}).join('')}</div>
+      ${erros.length?`<p class="counter" style="color:var(--afasta)">Podes continuar assim — mas vai custar-te pontos, e o PIA vai levar o alerta escrito.</p>`:''}
+      <p class="eyebrow" style="margin-top:26px">Passos possíveis para «${p.n}»</p>
+      <div class="opts" style="margin-top:12px">${p.passos.map(([t,e],i)=>{
+        const pos=G3.passos.indexOf(i);
+        return `<button class="opt ${pos>=0?'sel':''}" ${pos>=0?'disabled style="opacity:.4;cursor:default"':''} onclick="g3Passo(${i})">${pos>=0?`<span class="ord">${pos+1}</span>`:''}<strong style="font-size:16px;padding-right:28px">${t}</strong><span class="fonte">exige ${FONTE[e]}</span></button>`;}).join('')}</div>
+      <div class="nav"><button class="btn" onclick="g3Back()">← Voltar</button>
+      <button class="btn btn-yellow" ${G3.passos.length===3?'':'disabled'} onclick="${G3.passos.length===3?'g3Next()':''}">Continuar</button></div>`;break;}
+
+  case 8:{
+    const E=G3.energia,used=Object.values(E).reduce((x,y)=>x+y,0),left=14-used;
+    const p=g3ProjSel(), pedidas=G3.passos.map(i=>p.passos[i][1]);
+    b.innerHTML=`<h3 class="q">14 fichas de esforço</h3>
+      <p class="q-sub">Isto <b>não é o tempo que passas no espaço</b> — esse é dado, e é igual para toda a gente. É onde decides pôr o esforço <em>à volta</em> da atividade. Catorze fichas, máximo seis em cada frente. As frentes a amarelo são as que os passos que escolheste exigem.</p>
+      <div class="energy-top"><div><span class="eyebrow">Por gastar</span><div class="energy-left ${left===0?'zero':''}">${left}</div></div></div>
+      <div class="sliders">${ENERGIA_ROWS.map(([k,n,d])=>{
+        const need=pedidas.includes(k), falha=need&&E[k]===0;
+        return `<div class="slider-row ${falha?'flag':''}">
+          <div style="flex:1;min-width:220px"><b>${n}</b><small>${d}</small>${need?`<span class="plan">os teus passos precisam disto</span>`:''}</div>
+          <div class="pm-wrap">
+            <button class="pmbtn" ${E[k]===0?'disabled':''} onclick="g3Energy('${k}',-1)">−</button>
+            <div class="pips">${Array.from({length:6},(_,i)=>`<div class="pip ${i<E[k]?'on':''}"></div>`).join('')}</div>
+            <button class="pmbtn" ${left===0||E[k]>=6?'disabled':''} onclick="g3Energy('${k}',1)">+</button>
+          </div></div>`;}).join('')}</div>
+      <div class="desbloq">
+        <span class="eyebrow">O que isto te desbloqueia lá à frente</span>
+        <ul>${DESBLOQUEIA.map(x=>{
+          const ok=E[x.k]>=x.min;
+          return `<li class="${ok?'ok':''}"><b>${ok?'✓':'✗'}</b><span><em>${FONTE[x.k]} ≥ ${x.min}</em> — ${x.t}</span></li>`;}).join('')}</ul>
+      </div>
+      <div class="nav"><button class="btn" onclick="g3Back()">← Voltar</button>
+      <button class="btn btn-yellow" ${left===0?'':'disabled'} onclick="${left===0?'g3Arranca()':''}">Arrancar com o projeto</button></div>`;break;}
+
+  case 9: g3Event(); break;
+  case 10: g3Result(); break;
+  }
+}
+
+function addDim(d,v,label){G3.dim[d]=(G3.dim[d]||0)+v;(G3.dimLog[d]=G3.dimLog[d]||[]).push({t:label,v:Math.round(v*10)/10});}
+function g3Arranca(){
+  const E=G3.energia,s=G3.sc;
+  s.alcance   = 10 + E.divulgacao*8 + E.parceiros*4;
+  s.qualidade = 10 + E.preparacao*7 + E.materiais*6;
+  s.sust      =  8 + E.parceiros*7 + E.registo*6 + E.preparacao*2;
+  const v=Object.values(E),spread=v.filter(x=>x>0).length;
+  s.aprend    = 14 + spread*8 + E.registo*3 + (Math.max(...v)>=6?-6:4);
+  G3.trunfos.forEach(id=>{const t=TRUNFOS.find(x=>x.id===id);for(const k in t.b)s[k]+=t.b[k];});
+  G3.limites.forEach(id=>{const t=LIMITES.find(x=>x.id===id);for(const k in t.b)s[k]+=t.b[k];});
+  const p=g3ProjSel(),match=p.tags.filter(t=>G3.needs.includes(t)).length;
+  s.qualidade+=match*9; s.alcance+=match*6; s.sust+=match*3;
+  G3.planoFalhas=[];
+  G3.passos.forEach(i=>{const [t,e]=p.passos[i];
+    if(G3.energia[e]===0){G3.planoFalhas.push(`Planeaste «${t}» e não puseste uma única ficha em ${FONTE[e]}.`);s.qualidade-=6;s.alcance-=4;}});
+  g3Ordem().forEach(er=>{G3.planoFalhas.push(er.m);s.alcance-=7;s.qualidade-=3;});
+  G3.dim={};G3.dimLog={};
+  Object.keys(DIMS).forEach(k=>addDim(k,5,'Ponto de partida (Suficiente)'));
+  G3.trunfos.forEach(id=>{const t=TRUNFOS.find(x=>x.id===id);t.dm.forEach(d=>addDim(d,1.6,'Trunfo: '+t.n));});
+  G3.limites.forEach(id=>{const t=LIMITES.find(x=>x.id===id);t.dm.forEach(d=>addDim(d,-2.1,'Limite: '+t.n));});
+  for(const k in E){ if(E[k]) addDim(ENERGIA_DIM[k], E[k]*0.32, `${FONTE[k]}: ${E[k]} ficha${E[k]===1?'':'s'}`); }
+  /* 4 acontecimentos: 1 DO TEU PROJETO + 1 do teu diagnóstico + 1 oportunidade + o Boss */
+  const evProj = EV_PROJ[p.id] || EV_PROJ.custom;
+  const comDiag=G3.needs.filter(n=>EV_DIAG[n]);
+  const evDiag = comDiag.length ? EV_DIAG[shuffle([...comDiag])[0]] : null;
+  const evOport = shuffle([...EV_OPORT])[0];
+  G3.eventos=shuffle([evProj,evDiag,evOport].filter(Boolean));
+  G3.eventos.push(EV_BOSS);
+  G3.evIdx=0;G3.evLog=[];
+  g3Next();
+}
+function g3EvTipo(ev){
+  if(ev.boss)return{c:'boss',t:'ACONTECIMENTO FINAL · NINGUÉM ESCAPA'};
+  if(Object.values(EV_PROJ).includes(ev))return{c:'',t:'ISTO ACONTECE PORQUE ESCOLHESTE ESTE PROJETO'};
+  if(Object.values(EV_DIAG).includes(ev))return{c:'',t:'ISTO ACONTECE PORQUE O DIAGNOSTICASTE'};
+  return{c:'oport',t:'UMA OPORTUNIDADE'};
+}
+function g3Event(){
+  if(G3.evIdx>=G3.eventos.length){G3.step=10;g3Draw();return;}
+  const ev=G3.eventos[G3.evIdx], tp=g3EvTipo(ev);
+  document.getElementById('g3-body').innerHTML=`
+    <p class="eyebrow">${G3.evIdx+1} de ${G3.eventos.length} · ${tp.t}</p>
+    <div class="event ${tp.c}" style="margin-top:14px">
+      <span class="kicker">${ev.k}</span><h3>${ev.h}</h3><p>${g3Txt(ev.p)}</p>
+      <div class="choices">${ev.c.map((c,i)=>`<button class="choice" onclick="g3Choose(${i})">${c.t}</button>`).join('')}</div>
+    </div>`;
+}
+function g3Choose(i){
+  const ev=G3.eventos[G3.evIdx],c=ev.c[i];
+  let ok=true, motivo='';
+  if(c.reqE && G3.energia[c.reqE.k] < c.reqE.min){ok=false;motivo=`Precisavas de ${c.reqE.min} fichas em ${FONTE[c.reqE.k]} e puseste ${G3.energia[c.reqE.k]}.`;}
+  if(c.badL && G3.limites.includes(c.badL)){ok=false;motivo=`O limite que assumiste — «${LIMITES.find(x=>x.id===c.badL).n}» — apanhou-te aqui.`;}
+  const eff=ok?c.e:(c.fail||c.e), txt=ok?c.o:(c.of||c.o);
+  for(const k in eff)G3.sc[k]+=eff[k];
+  const soma=Object.values(eff).reduce((a,b)=>a+b,0), d=ev.dim||'D2';
+  if(soma>=12) addDim(d,1.5,`${ev.h}: escolheste bem`);
+  else if(soma>=0) addDim(d,0.6,`${ev.h}: safaste-te`);
+  else addDim(d,-1.1,`${ev.h}: correu mal`);
+  if(!ok){addDim('D4',0.7,`${ev.h}: falhaste e viste porquê`);
+    if(c.badL){const L=LIMITES.find(x=>x.id===c.badL);L.dm.forEach(x=>addDim(x,-0.6,`${ev.h}: o limite pesou`));}}
+  if(ok && c.reqE) addDim(ENERGIA_DIM[c.reqE.k],0.5,`${ev.h}: tinhas ${FONTE[c.reqE.k]} suficiente`);
+  G3.evLog.push({h:ev.h,escolha:c.t,res:txt,ok,swot:ev.swot,tipo:g3EvTipo(ev).c==='oport'?'oport':'ameaca'});
+  const b=document.getElementById('g3-body');
+  b.querySelector('.choices').innerHTML=`<div class="outcome ${ok?'':'bad'}">${ok?'':`<b>Não resultou. ${motivo}</b><br>`}${txt}</div>`;
+  const last=G3.evIdx>=G3.eventos.length-1;
+  b.insertAdjacentHTML('beforeend',`<div class="nav"><span></span><button class="btn btn-yellow" onclick="G3.evIdx++;g3Event()">${last?'Ver resultado':'Continuar'} →</button></div>`);
+}
+function g3Comp(c){
+  const i=G3.comps.indexOf(c);
+  if(i>=0)G3.comps.splice(i,1); else if(G3.comps.length<2)G3.comps.push(c);
+  const o=document.getElementById('g3-outra'); if(o)G3.compOutra=o.value;
+  g3Result(true);
+}
+function g3Toggle(k){const e=document.getElementById('det-'+k);if(e)e.classList.toggle('open');}
+
+function g3Result(keepScroll){
+  const clamp=v=>Math.max(0,Math.min(100,Math.round(v)));
+  const A={alcance:clamp(G3.sc.alcance),qualidade:clamp(G3.sc.qualidade),sust:clamp(G3.sc.sust),aprend:clamp(G3.sc.aprend)};
+  const media=Math.round((A.alcance+A.qualidade+A.sust+A.aprend)/4);
+  const proj=g3ProjSel();
+  const grupos=G3.faixas.map(f=>FAIXAS.find(x=>x.id===f).n).join(' + ');
+  const trunfos=G3.trunfos.map(id=>TRUNFOS.find(t=>t.id===id));
+  const limites=G3.limites.map(id=>LIMITES.find(t=>t.id===id));
+  const nomes={alcance:'Alcance',qualidade:'Qualidade',sust:'Sustentabilidade',aprend:'Aprendizagem'};
+  const baixo=Object.entries(A).sort((a,b)=>a[1]-b[1])[0][0];
+  const match=proj.tags.filter(t=>G3.needs.includes(t)).length;
+  const passos=G3.passos.map(i=>proj.passos[i]);
+  const oportunidades=G3.evLog.filter(e=>e.tipo==='oport');
+  const ameacas=G3.evLog.filter(e=>e.tipo!=='oport');
+  const D={},AU=G3.auto;
+  Object.keys(DIMS).forEach(k=>{D[k]=Math.max(1,Math.min(10,Math.round(G3.dim[k])));});
+  const dOrd=Object.entries(D).sort((a,b)=>b[1]-a[1]);
+  const dBaixa=dOrd[dOrd.length-1];
+  const mAuto=Object.values(AU).reduce((a,b)=>a+b,0)/6, mJogo=Object.values(D).reduce((a,b)=>a+b,0)/6;
+  const delta=mAuto-mJogo;
+  const maiorGap=Object.keys(DIMS).map(k=>[k,AU[k]-D[k]]).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]))[0];
+  let gapT,gapP;
+  if(delta>1.5){gapT="Vês-te acima do que as tuas escolhas mostraram.";gapP="Não é mentira nem vaidade. A maior distância está em "+maiorGap[0]+", "+DIMS[maiorGap[0]].n+". Clica na dimensão para veres a conta.";}
+  else if(delta<-1.5){gapT="Vês-te abaixo do que as tuas escolhas mostraram.";gapP="Fazes mais do que reconheces a ti próprio. A maior distância está em "+maiorGap[0]+", "+DIMS[maiorGap[0]].n+".";}
+  else{gapT="O que dizes de ti e o que fazes andam próximos.";gapP="É mais raro do que parece. A maior diferença que resta está em "+maiorGap[0]+", "+DIMS[maiorGap[0]].n+".";}
+  let vt,vp;
+  if(media>=78){vt="O projeto pegou.";vp="Chegou a gente, foi bem feito, ficou registado e alguém quer que continue. A prova é que sobreviveria sem ti.";}
+  else if(media>=60){vt="Correu.";vp="Não foi desastre nem foi memorável. Olha para a barra mais curta: é aí que começa a segunda versão.";}
+  else if(media>=40){vt="Sobreviveu.";vp="Aguentou-se, mas custou. Ou puseste esforço a mais num sítio só, ou os limites apanharam-te em cheio.";}
+  else {vt="Não chegou lá.";vp="Ou o projeto não respondia ao que era preciso, ou não sobrou esforço para nada quando correu mal. Vale mais descobrir aqui do que lá.";}
+
+  const compsTxt=[...G3.comps,...(G3.compOutra?[G3.compOutra]:[])];
+  const linhaPdv = compsTxt.length ? `Quero levar deste projeto, para o meu percurso: ${compsTxt.join('; ')}.` : '________________________________________________';
+
+  const pia=`PLANO INDIVIDUAL DE AÇÃO (PIA) — RASCUNHO
+Programa EDUCA+ · Câmara Municipal de Cascais · DINT/DSQV
+
+1. IDENTIFICAÇÃO
+Nome: ${G3.nome}
+Público com quem trabalho: ${grupos}
+Data de início: ____ / ____ / ________
+
+2. DIAGNÓSTICO
+${G3.needs.map((k,i)=>`  ${i+1}. ${NEEDS[k].n} — ${NEEDS[k].d}`).join('\n')}
+
+3. ATRIBUTOS
+${trunfos.map(t=>`  · ${t.n} — ${t.d}`).join('\n')}
+
+4. CONCEÇÃO E PLANIFICAÇÃO
+O QUÊ ...... ${proj.n}
+             ${proj.d}
+PORQUÊ ..... Identifiquei: ${G3.needs.map(k=>NEEDS[k].n.toLowerCase()).join('; ')}.
+             Este projeto responde a ${match} de 3.
+PARA QUÊ ... LIGAÇÃO AO MEU PROJETO DE VIDA:
+             ${linhaPdv}
+COMO E QUANDO (por ordem)
+             1. INÍCIO ... ${passos[0][0]}   [exige: ${FONTE[passos[0][1]]}]
+             2. MEIO ..... ${passos[1][0]}   [exige: ${FONTE[passos[1][1]]}]
+             3. FIM ...... ${passos[2][0]}   [exige: ${FONTE[passos[2][1]]}]
+ESFORÇO AFETADO (14 fichas, à volta da atividade)
+             Preparação .... ${G3.energia.preparacao}
+             Materiais ..... ${G3.energia.materiais}
+             Parceiros ..... ${G3.energia.parceiros}
+             Divulgação .... ${G3.energia.divulgacao}
+             Registo ....... ${G3.energia.registo}
+${G3.planoFalhas.length?`ALERTAS DE COERÊNCIA
+${G3.planoFalhas.map(f=>`             ! ${f}`).join('\n')}`:''}
+
+5. ANÁLISE SWOT
+FORÇAS
+${trunfos.map(t=>`  · ${t.n}`).join('\n')}
+FRAQUEZAS
+${limites.map(t=>`  · ${t.n} — ${t.d}`).join('\n')}
+OPORTUNIDADES
+${oportunidades.length?oportunidades.map(e=>`  · ${e.swot}
+     Como reagi: ${e.escolha}
+     Resultado: ${e.res}`).join('\n'):'  ______________________________________________'}
+AMEAÇAS
+${ameacas.map(e=>`  · ${e.swot}
+     Como reagi: ${e.escolha}
+     Resultado: ${e.res}`).join('\n')}
+
+6. O PROJETO (0-100)
+  Alcance ${A.alcance} · Qualidade ${A.qualidade} · Sustentabilidade ${A.sust} · Aprendizagem ${A.aprend}
+  MÉDIA ${media}. Eixo mais frágil: ${nomes[baixo]}
+
+7. AUTO-AVALIAÇÃO T0 — 6 DIMENSÕES EDUCA+ (1-10)
+   AUTO = resposta do próprio às 6 situações. INDIC. = indicação gerada pelas escolhas
+   na simulação. NÃO é uma nota e não substitui avaliação de terceiros.
+
+   DIM  AUTO  INDIC.  DIF   BANDA (auto)
+${Object.keys(DIMS).map(k=>`   ${k}    ${String(AU[k]).padStart(2,' ')}    ${String(D[k]).padStart(2,' ')}   ${((AU[k]-D[k])>0?'+':'')+(AU[k]-D[k])}     ${banda(AU[k])}`).join('\n')}
+
+   Média auto ${mAuto.toFixed(1)} | indicada ${mJogo.toFixed(1)} | desvio ${(delta>0?'+':'')+delta.toFixed(1)}
+   ${gapT}
+   A trabalhar no primeiro mês: ${dBaixa[0]} — ${DIMS[dBaixa[0]].n}
+
+   COMO FOI CALCULADA A COLUNA INDIC.
+${Object.keys(DIMS).map(k=>`   ${k} = ${D[k]}
+${(G3.dimLog[k]||[]).map(x=>`        ${x.v>0?'+':''}${x.v}  ${x.t}`).join('\n')}`).join('\n')}
+
+Assinatura do jovem: __________________________
+Assinatura do técnico de referência: __________________________`;
+  window.__pia=pia;
+  try{ if(window.parent!==window) window.parent.postMessage({type:'educa:pia',jogo:'construtor',nome:G3.nome,media,dimensoes:D,auto:AU,pia},'*'); }catch(e){}
+
+  document.getElementById('g3-body').innerHTML=`
+    <span class="eyebrow">Fim de percurso · ${proj.n} · ${grupos}</span>
+    <h2 class="display" style="font-size:clamp(34px,6.5vw,58px);margin:12px 0 4px">${media}<span style="color:var(--chalk);font-size:.4em">/100</span></h2>
+    <p class="hint" style="margin-bottom:18px">Isto avalia <b>o projeto</b>: se chegou a gente, se foi bem feito, se sobrevive sem ti, se aprendeste.</p>
+    <div class="axes">${Object.entries(A).map(([k,v])=>`<div class="axis-row"><b>${nomes[k]}</b><div class="bar"><i data-w="${v}"></i></div><span class="v">${v}</span></div>`).join('')}</div>
+    <div class="verdict"><h3>${vt}</h3><p>${vp}</p></div>
+    ${G3.planoFalhas.length?`<div class="alerta"><span class="eyebrow">O que ficou incoerente no plano</span><ul>${G3.planoFalhas.map(f=>`<li>${f}</li>`).join('')}</ul></div>`:''}
+    <div class="perfil">
+      <span class="eyebrow">Agora tu, não o projeto</span>
+      <h3 style="font-size:26px;margin:8px 0 6px">O que disseste · o que mostraste</h3>
+      <p class="hint" style="max-width:66ch">A barra clara é a tua auto-avaliação. A barra a cor é o que as escolhas indicaram. <b>Clica numa dimensão para veres a conta toda</b> — nada aqui é magia.</p>
+      <div class="dims">
+        ${Object.keys(DIMS).map(k=>`
+          <div class="dim-block">
+            <div class="dim-row" style="grid-template-columns:34px 1fr 96px;cursor:pointer" onclick="g3Toggle('${k}')">
+              <span class="dim-id" style="color:${DIMS[k].c}">${k}</span>
+              <div class="dim-mid"><b>${DIMS[k].n} <span style="opacity:.5">▾</span></b>
+                <div class="dim-two">
+                  <div class="lane auto"><span>disseste</span><div class="tr"><i data-w="${AU[k]*10}"></i></div><b>${AU[k]}</b></div>
+                  <div class="lane"><span>mostraste</span><div class="tr"><i data-w="${D[k]*10}" style="background:${DIMS[k].c}"></i></div><b>${D[k]}</b></div>
+                </div></div>
+              <div class="dim-val"><b>${AU[k]-D[k]>0?'+':''}${AU[k]-D[k]}</b><small>diferença</small></div>
+            </div>
+            <div class="det" id="det-${k}">
+              <span class="eyebrow" style="color:#8b8499">A conta de «mostraste», linha a linha</span>
+              <table>${(G3.dimLog[k]||[]).map(x=>`<tr><td class="${x.v>0?'pos':x.v<0?'neg':''}">${x.v>0?'+':''}${x.v}</td><td>${x.t}</td></tr>`).join('')}
+              <tr class="tot"><td>${D[k]}</td><td>total, arredondado e limitado a 1–10 · ${banda(D[k])}</td></tr></table>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="gap"><b>${gapT}</b><p>${gapP}</p></div>
+    </div>
+    <div class="pdv">
+      <span class="eyebrow" style="color:#dfe6ff;opacity:.85">Isto preenche uma linha do teu PIA</span>
+      <h3 style="margin-top:8px">No meio disto tudo, e tu?</h3>
+      <p>O projeto era para eles. O PIA tem um campo — <b>PARA QUÊ → ligação ao meu projeto de vida</b> — que é sobre ti, e é o único que ninguém pode escrever por ti.</p>
+      <div class="comps">${COMPETENCIAS.map(c=>`<button class="comp ${G3.comps.includes(c)?'on':''}" onclick="g3Comp('${c}')">${c}</button>`).join('')}</div>
+      <input id="g3-outra" value="${G3.compOutra}" placeholder="Ou escreve outra…" maxlength="60" oninput="G3.compOutra=this.value" onchange="g3Result(true)">
+      <div class="pdv-prev"><span>Vai sair assim, no PIA:</span><p>${linhaPdv}</p></div>
+    </div>
+    <div class="pia-out">
+      <span class="eyebrow" style="color:#8b8499">Sai daqui um documento</span>
+      <h3 style="color:var(--ink);font-size:23px;margin-top:6px">Rascunho do teu PIA</h3>
+      <pre>${pia.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</pre>
+      <div class="pia-actions">
+        <button class="btn btn-solid" onclick="g3Copy(this)">Copiar</button>
+        <button class="btn" onclick="g3Download()">Descarregar .txt</button>
+      </div>
+    </div>
+    <div style="margin-top:28px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-yellow" onclick="g3Reset()">Jogar outra vez</button>
+      <button class="btn" onclick="go('home')">Menu</button>
+    </div>`;
+  requestAnimationFrame(()=>document.querySelectorAll('.bar i, .dim-two .tr i').forEach(i=>i.style.width=i.dataset.w+'%'));
+  if(!keepScroll)window.scrollTo(0,0);
+}
+function g3Copy(btn){navigator.clipboard.writeText(window.__pia).then(()=>{const o=btn.textContent;btn.textContent='Copiado';setTimeout(()=>btn.textContent=o,1600);});}
+function g3Download(){
+  const blob=new Blob([window.__pia],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`PIA_rascunho_${(G3.nome||'JEEP').replace(/\s+/g,'_')}.txt`;a.click();URL.revokeObjectURL(a.href);
+}
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('g1').classList.contains('on'))return;
+  if(document.getElementById('g1-play').style.display==='none')return;
+  const aberto=document.getElementById('g1-sw').style.display!=='none';
+  if(aberto){
+    if(e.key==='ArrowLeft'){e.preventDefault();g1Answer('f');}
+    if(e.key==='ArrowDown'){e.preventDefault();g1Answer('d');}
+    if(e.key==='ArrowRight'){e.preventDefault();g1Answer('a');}
+  }else if(e.key===' '||e.key==='Enter'){e.preventDefault();g1Adv();}
+});
+</script>
+</body>
+</html>
