@@ -1,5 +1,5 @@
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
-const functionsV1          = require("firebase-functions/v1");
+const { onSchedule }        = require("firebase-functions/v2/scheduler");
 const { logger }            = require("firebase-functions");
 const { initializeApp }     = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
@@ -279,14 +279,12 @@ async function publicarMissao(payload) {
   });
 }
 
-// Função agendada de 1ª geração (Pub/Sub): corre de 30 em 30 min. Usada em
-// vez de onSchedule (2ª geração) porque esta não exige a permissão de
-// "invoker" no Cloud Run que estava a falhar no deploy.
-exports.processarAgendados = functionsV1
-  .region("europe-west1")
-  .pubsub.schedule("every 30 minutes")
-  .timeZone("Europe/Lisbon")
-  .onRun(async () => {
+// Função agendada (2ª geração): corre de 30 em 30 min e publica o que
+// estiver na hora. Nota: precisa que a conta de deploy tenha o papel
+// "Cloud Functions Admin" para conseguir configurar o invoker do Scheduler.
+exports.processarAgendados = onSchedule(
+  { schedule: "*/30 * * * *", timeZone: "Europe/Lisbon", region: "europe-west1" },
+  async () => {
     const agora = Date.now();
     // Só os pendentes (done==false); filtra a hora em código para não
     // precisar de índice composto no Firestore.
@@ -312,5 +310,5 @@ exports.processarAgendados = functionsV1
         await docSnap.ref.update({ erro: err.message, tentadoEm: agora });
       }
     }
-    return null;
-  });
+  }
+);
