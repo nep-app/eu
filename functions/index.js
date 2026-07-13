@@ -252,6 +252,33 @@ async function publicarDilema(payload) {
   });
 }
 
+// tipo "votacao" — cria uma votação/poll (como AdminVotacoes.criarVotacao)
+async function publicarVotacao(payload) {
+  const { title, type = "opcao", options = [], targetUsers = [] } = payload || {};
+  if (!title || options.length < 2) return;
+  const votes = {};
+  options.forEach(op => { votes[op] = []; });
+  await db.collection("polls").add({
+    title, type, options, votes, active: true, ts: Date.now(), demo: false, targetUsers,
+  });
+}
+
+// Semana ISO simplificada (igual a getWeekKey no cliente).
+function getWeekKey(d) {
+  const jan1 = new Date(d.getFullYear(), 0, 1);
+  const wk = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  return d.getFullYear() + "-W" + wk;
+}
+
+// tipo "missao" — cria uma missão semanal (como AdminMissoes.addAdminMission)
+async function publicarMissao(payload) {
+  const { text, xp = 10, prazo = null } = payload || {};
+  if (!text) return;
+  await db.collection("missions").add({
+    text, xp, week: getWeekKey(new Date()), prazo,
+  });
+}
+
 exports.processarAgendados = onSchedule(
   { schedule: "*/30 * * * *", timeZone: "Europe/Lisbon", region: "europe-west1" },
   async () => {
@@ -270,6 +297,8 @@ exports.processarAgendados = onSchedule(
         else if (a.tipo === "mensagem") await enviarMensagem(a.payload);
         else if (a.tipo === "forum")    await publicarForum(a.payload);
         else if (a.tipo === "dilema")   await publicarDilema(a.payload);
+        else if (a.tipo === "votacao")  await publicarVotacao(a.payload);
+        else if (a.tipo === "missao")   await publicarMissao(a.payload);
         else { logger.warn("agendado com tipo desconhecido", { id: docSnap.id, tipo: a.tipo }); }
         await docSnap.ref.update({ done: true, doneAt: agora });
         logger.info("agendado publicado", { id: docSnap.id, tipo: a.tipo });

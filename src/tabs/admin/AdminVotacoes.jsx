@@ -3,6 +3,7 @@ import { collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot } from "fireb
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, GRN, INP, Btn } from "../../theme.jsx";
 import { JEEP_LIST } from "../../data.js";
+import Agendador from "./Agendador.jsx";
 
 const JEEP_8 = JEEP_LIST.filter(j => !["ricardo","demo"].includes(j.username));
 
@@ -284,13 +285,28 @@ export default function AdminVotacoes() {
           )}
         </div>
 
-        <button onClick={criarVotacao} disabled={saving} style={{
-          width:"100%", padding:"13px", background: saving ? "rgba(50,199,255,0.3)" : CYN,
-          border:"none", borderRadius:12, fontWeight:900, fontSize:13,
-          cursor: saving ? "wait" : "pointer", color:"#071529",
-        }}>
-          {saving ? "A criar..." : "LANÇAR VOTAÇÃO 🗳️"}
-        </button>
+        <Agendador
+          tipo="votacao"
+          rotuloJa={saving ? "A criar..." : "LANÇAR VOTAÇÃO 🗳️"}
+          publicarJa={criarVotacao}
+          construirPayload={() => {
+            if (!titulo.trim()) { alert("Dá um título à votação!"); return null; }
+            const opcoesFinais = tipo === "data"
+              ? opcoesDatas.filter(o => o.date.trim()).map(o => fmtOpcaoData(o.date, o.time))
+              : opcoes.filter(o => o.trim() !== "");
+            if (opcoesFinais.length < 2) { alert("Precisas de pelo menos 2 opções!"); return null; }
+            return {
+              title: titulo, type: tipo, options: opcoesFinais,
+              targetUsers: targetUsers.length === JEEP_8.length ? [] : targetUsers,
+            };
+          }}
+          rotuloItem={p => `🗳️ ${p.title}`}
+          onAgendado={() => {
+            setTitulo(""); setOpcoes(["", ""]);
+            setOpcoesDatas([{date:"",time:""},{date:"",time:""}]);
+            setTargetUsers(JEEP_8.map(j => j.username));
+          }}
+        />
       </div>
 
       {/* LISTA DE VOTAÇÕES */}

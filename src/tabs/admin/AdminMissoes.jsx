@@ -3,6 +3,7 @@ import { collection, addDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, INP, Btn } from "../../theme.jsx";
 import { getWeekKey, fmtDate } from "../../data.js";
+import Agendador from "./Agendador.jsx";
 
 export default function AdminMissoes({ missions }) {
   const [adminMissionTxt, setAdminMissionTxt] = useState("");
@@ -43,7 +44,17 @@ export default function AdminMissoes({ missions }) {
               style={{ ...INP, marginBottom:0 }} />
           </div>
         </div>
-        <Btn onClick={addAdminMission}>Lançar Missão 🎯</Btn>
+        <Agendador
+          tipo="missao"
+          rotuloJa="Lançar Missão 🎯"
+          publicarJa={addAdminMission}
+          construirPayload={() => {
+            if (!adminMissionTxt.trim()) { alert("Escreve a descrição da missão."); return null; }
+            return { text: adminMissionTxt.trim(), xp: adminMissionXp, prazo: adminMissionPrazo || null };
+          }}
+          rotuloItem={p => `🎯 ${p.text} (${p.xp} XP)`}
+          onAgendado={() => { setAdminMissionTxt(""); setAdminMissionPrazo(""); }}
+        />
       </div>
 
       {missions.filter(m => m.week === getWeekKey()).map(m => (
