@@ -91,6 +91,12 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // Agendados (publicações agendadas) — só o admin cria/lê/apaga.
+    // A Cloud Function processarAgendados usa o Admin SDK (não passa aqui).
+    match /agendados/{docId} {
+      allow read, write: if isAdmin();
+    }
+
     // Tokens de notificações push (cada utilizador guarda o token do seu
     // próprio dispositivo; as Cloud Functions usam o Admin SDK e não
     // passam por estas regras)

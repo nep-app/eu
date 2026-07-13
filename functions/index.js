@@ -1,4 +1,5 @@
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { onSchedule }        = require("firebase-functions/v2/scheduler");
 const { logger }            = require("firebase-functions");
 const { initializeApp }     = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
@@ -6,6 +7,22 @@ const { getMessaging }      = require("firebase-admin/messaging");
 
 initializeApp();
 const db = getFirestore();
+
+// Lista de utilizadores que recebem publicações (mesma de ALLOWED_USERNAMES
+// no cliente). JOVENS = só os 8 participantes.
+const JOVENS  = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","marisa"];
+const ALLOWED = [...JOVENS, "teresa", "ricardo", "demo"];
+const MTHS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+function fmtLabel(d) { return MTHS[d.getMonth()] + " " + d.getFullYear(); }
+function fmtFull(d) {
+  const p = n => (n < 10 ? "0" : "") + n;
+  return `${p(d.getDate())} ${MTHS[d.getMonth()]} ${d.getFullYear()}, ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function fmtPrazo(s) {
+  if (!s) return "";
+  const [y, m, dd] = s.split("-");
+  return `${+dd} ${MTHS[+m - 1]} ${y}`;
+}
 
 const NOTIF_LABELS = {
   MENSAGEM:  (d) => ({ title: "💬 Nova mensagem",              body: `${d.jovem}: ${(d.texto||"").substring(0,80)}` }),
@@ -113,5 +130,142 @@ exports.notificarJovem = onDocumentCreated(
 
     // Envia a todos os aparelhos deste utilizador (um por token).
     await Promise.all(alvos.map(entry => enviarPush(username, entry, payload)));
+  }
+);
+
+// ─── PUBLICAÇÃO AGENDADA ──────────────────────────────────────────────
+// Cada documento em `agendados` tem { tipo, payload, publishAt (ms), done }.
+// A função corre de 30 em 30 min e publica o que já estiver na hora,
+// replicando a lógica do painel admin — mas do lado do servidor, para
+// sair sozinho mesmo que ninguém tenha a app aberta.
+
+// tipo "pergunta" — nova Pergunta da Semana (como AdminPrograma.publicar)
+async function publicarPergunta(payload) {
+  const { text, options = [], modes = [], push = false } = payload || {};
+  if (!text) return;
+  const agora = new Date();
+  // Arquiva a pergunta anterior + respostas (como faz o painel).
+  const prev = (await db.collection("config").doc("activeQuestion").get()).data();
+  if (prev && prev.text) {
+    const respostas = {};
+    await Promise.all(JOVENS.map(async u => {
+      const ud = (await db.collection("userData").doc(u).get()).data() || {};
+      respostas[u] = {
+        answered: !!ud.answered, answerText: ud.answerText || null,
+        answerType: ud.answerType || null, answerDate: ud.answerDate || null,
+      };
+    }));
+    await db.collection("perguntasArquivo").add({
+      text: prev.text, archivedAt: Date.now(), date: fmtLabel(agora), respostas,
+    });
+  }
+  await db.collection("config").doc("activeQuestion").set({
+    text, options, modes, date: Date.now(),
+  });
+  await Promise.all(ALLOWED.map(async u => {
+    await db.collection("userData").doc(u).set({ answered: false }, { merge: true });
+    await db.collection("notifications").doc(u).collection("items").add({
+      from: "teresa", text: "💬 Nova pergunta da semana!", date: fmtLabel(agora),
+      read: false, tipo: "proposta", push: !!push,
+    });
+  }));
+}
+
+// tipo "pedido" — pedidos/lembretes (como AdminGeral.launchRequest)
+async function lancarPedido(payload) {
+  const { launchType, launchTarget = "all", prazo = null, push = false } = payload || {};
+  const MSGS = {
+    auto:          "📊 Nova Autoavaliação pedida!",
+    satisf:        "😊 Nova Avaliação de Satisfação pedida!",
+    pia:           "📋 Atualização do PIA pedida!",
+    roda:          "🌸 Nova Roda da Vida pedida!",
+    swot:          "🔍 Raio-X do Projeto pedido!",
+    pergunta:      "💬 Lembrete: Responde à Pergunta da Semana!",
+    lembreteQuiz:  "🧠 Lembrete: Tens um novo Dilema (Quiz) à tua espera nos Desafios!",
+    lembreteGeral: "📢 A Teresa tem um aviso para ti. Vai ver as novidades!",
+  };
+  const FIELD = { satisf: "sSaved", pia: "piaSaved", roda: "rodaSaved", swot: "swotSaved", pergunta: "answered" };
+  let msg = MSGS[launchType] || "📢 A Teresa tem um aviso para ti.";
+  if (prazo) msg += ` ⏰ Prazo: ${fmtPrazo(prazo)}`;
+  const targets = launchTarget === "all" ? ALLOWED : [launchTarget];
+  const isReminder = launchType === "lembreteGeral";
+  const agora = new Date();
+  await Promise.all(targets.map(async u => {
+    if (launchType === "auto") {
+      await db.collection("userData").doc(u).set({
+        autoSaved: false, autoNewRound: false, dScores: {}, dNotas: {},
+        ...(prazo ? { autoNewRoundPrazo: prazo } : {}),
+      }, { merge: true });
+    } else if (FIELD[launchType]) {
+      await db.collection("userData").doc(u).set({
+        [FIELD[launchType]]: false, ...(prazo ? { [FIELD[launchType] + "Prazo"]: prazo } : {}),
+      }, { merge: true });
+    }
+    await db.collection("notifications").doc(u).collection("items").add({
+      from: "teresa", text: msg, date: fmtFull(agora), read: false, ts: Date.now(), push: !!push,
+      ...(isReminder ? {} : { tipo: "proposta" }),
+      ...(prazo ? { prazo } : {}),
+    });
+  }));
+}
+
+// tipo "mensagem" — mensagem aos jovens (como AdminMsgs.enviarNovaMsg)
+async function enviarMensagem(payload) {
+  const { dest = "all", texto, push = false } = payload || {};
+  if (!texto) return;
+  const targets = dest === "all" ? ALLOWED : [dest];
+  const agora = new Date();
+  await Promise.all(targets.map(u =>
+    db.collection("notifications").doc(u).collection("items").add({
+      from: "teresa", text: `💬 Teresa: ${texto}`, date: fmtFull(agora),
+      read: false, ts: Date.now(), push: !!push,
+    })
+  ));
+}
+
+// tipo "forum" — post no fórum + notificação (como AdminMural)
+async function publicarForum(payload) {
+  const { canal = "anuncios", texto, push = false } = payload || {};
+  if (!texto) return;
+  const agora = new Date();
+  await db.collection("forum").doc(canal).collection("posts").add({
+    user: "Teresa (GO)", username: "admin", color: "#22d3ee",
+    text: texto, media: null, time: fmtFull(agora), ts: Date.now(),
+    reactions: {}, reactedBy: {}, replies: [],
+  });
+  const preview = texto.substring(0, 80) + (texto.length > 80 ? "…" : "");
+  await Promise.all(ALLOWED.filter(u => u !== "ricardo").map(u =>
+    db.collection("notifications").doc(u).collection("items").add({
+      from: "teresa", text: `🌐 Teresa publicou em ${canal}: "${preview}"`,
+      date: fmtFull(agora), read: false, ts: Date.now(), canal, push: !!push,
+    })
+  ));
+}
+
+exports.processarAgendados = onSchedule(
+  { schedule: "*/30 * * * *", timeZone: "Europe/Lisbon", region: "europe-west1" },
+  async () => {
+    const agora = Date.now();
+    // Só os pendentes (done==false); filtra a hora em código para não
+    // precisar de índice composto no Firestore.
+    const snap = await db.collection("agendados").where("done", "==", false).get();
+    const devidos = snap.docs.filter(d => (d.data().publishAt || 0) <= agora);
+    logger.info("processarAgendados", { pendentes: snap.size, aPublicar: devidos.length });
+
+    for (const docSnap of devidos) {
+      const a = docSnap.data();
+      try {
+        if      (a.tipo === "pergunta") await publicarPergunta(a.payload);
+        else if (a.tipo === "pedido")   await lancarPedido(a.payload);
+        else if (a.tipo === "mensagem") await enviarMensagem(a.payload);
+        else if (a.tipo === "forum")    await publicarForum(a.payload);
+        else { logger.warn("agendado com tipo desconhecido", { id: docSnap.id, tipo: a.tipo }); }
+        await docSnap.ref.update({ done: true, doneAt: agora });
+        logger.info("agendado publicado", { id: docSnap.id, tipo: a.tipo });
+      } catch (err) {
+        logger.error("erro ao publicar agendado", { id: docSnap.id, tipo: a.tipo, message: err.message });
+        await docSnap.ref.update({ erro: err.message, tentadoEm: agora });
+      }
+    }
   }
 );
