@@ -3,6 +3,7 @@ import { doc, setDoc, addDoc, collection, updateDoc, onSnapshot, arrayUnion } fr
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, Btn, INP, PNK } from "../../theme.jsx";
 import { nowLabel, nowFull, fmtDate, getWeekKey, buildAutoavEntry, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
+import Agendador from "./Agendador.jsx";
 
 export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
   const [features, setFeatures] = useState({});
@@ -318,7 +319,20 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
             style={{ accentColor:CYN, width:14, height:14 }} />
           🔔 Enviar também como notificação push
         </label>
-        <Btn onClick={launchRequest}>Enviar Pedido / Lembrete 🚀</Btn>
+        <Agendador
+          tipo="pedido"
+          rotuloJa="Enviar Pedido / Lembrete 🚀"
+          publicarJa={launchRequest}
+          construirPayload={() => ({
+            launchType, launchTarget, prazo: launchPrazo || null, push: pushLaunch,
+          })}
+          rotuloItem={p => {
+            const LBL = { auto:"📊 Autoavaliação", satisf:"😊 Satisfação", pia:"📋 Atualizar PIA", roda:"🌸 Roda da Vida", swot:"🔍 Raio-X (SWOT)", pergunta:"💬 Lembrete Pergunta", lembreteQuiz:"🧠 Lembrete Quiz", lembreteGeral:"📢 Aviso Geral" };
+            const alvo = p.launchTarget === "all" ? "todos" : (JEEP_LIST.find(j => j.username === p.launchTarget)?.name || p.launchTarget);
+            return `${LBL[p.launchType] || p.launchType} → ${alvo}`;
+          }}
+          onAgendado={() => { setLaunchPrazo(""); setPushLaunch(false); }}
+        />
       </div>
 
       {/* 3. RANKING */}

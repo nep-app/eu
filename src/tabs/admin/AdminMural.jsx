@@ -4,6 +4,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
 import { nowLabel, nowFull, CHANNELS, JEEP_LIST, FORUM_REACTIONS, ALLOWED_USERNAMES } from "../../data.js";
+import Agendador from "./Agendador.jsx";
 
 export default function AdminMural() {
   const [subtab, setSubtab] = useState("forum");
@@ -321,18 +322,22 @@ export default function AdminMural() {
                 </label>
               )}
             </div>
-            <div style={{ display:"flex", justifyContent:"flex-end", alignItems:"center", gap:8, flexWrap:"wrap" }}>
-              <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-                <input type="file" accept="image/*" onChange={e => { if(e.target.files[0]) setMediaFile(e.target.files[0]); }}
-                  style={{ fontSize:11, color:"#94a3b8", maxWidth:140 }}/>
-                <button onClick={postForum} disabled={isUploading} style={{
-                  background:CYN, color:"#0f172a", border:"none", borderRadius:12,
-                  padding:"8px 18px", fontWeight:800, cursor:"pointer", fontSize:13
-                }}>
-                  {isUploading ? "A carregar..." : "Publicar"}
-                </button>
-              </div>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+              <input type="file" accept="image/*" onChange={e => { if(e.target.files[0]) setMediaFile(e.target.files[0]); }}
+                style={{ fontSize:11, color:"#94a3b8" }}/>
             </div>
+            <Agendador
+              tipo="forum"
+              rotuloJa={isUploading ? "A carregar..." : "Publicar"}
+              publicarJa={postForum}
+              construirPayload={() => {
+                if (!fPost.trim()) { alert("Escreve algo para publicar."); return null; }
+                if (mediaFile) { alert("Agendar posts com foto ainda não é suportado. Publica já, ou agenda sem foto."); return null; }
+                return { canal: channel, texto: fPost.trim(), push: pushForumPost };
+              }}
+              rotuloItem={p => `#${p.canal}: ${p.texto}`}
+              onAgendado={() => { setFPost(""); setMediaFile(null); setPushForumPost(false); }}
+            />
           </div>
 
           {/* POSTS */}

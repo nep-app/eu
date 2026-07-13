@@ -3,6 +3,7 @@ import { doc, updateDoc, deleteDoc, deleteField, collection, addDoc, onSnapshot,
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
 import { nowFull, JEEP_LIST, ALLOWED_USERNAMES } from "../../data.js";
+import Agendador from "./Agendador.jsx";
 
 export default function AdminMsgs() {
   const [msgs, setMsgs] = useState([]);
@@ -86,12 +87,17 @@ export default function AdminMsgs() {
             style={{ accentColor:CYN, width:14, height:14 }} />
           🔔 Enviar também como notificação push
         </label>
-        <button onClick={enviarNovaMsg} disabled={enviando} style={{
-          width:"100%", padding:"12px", background:`${CYN}20`, border:`1.5px solid ${CYN}40`,
-          color:CYN, borderRadius:12, fontWeight:900, fontSize:13, cursor:"pointer"
-        }}>
-          {enviando ? "A enviar..." : `Enviar${novaMsgDest === "all" ? " a todos" : ""}`}
-        </button>
+        <Agendador
+          tipo="mensagem"
+          rotuloJa={enviando ? "A enviar..." : `Enviar${novaMsgDest === "all" ? " a todos" : ""}`}
+          publicarJa={enviarNovaMsg}
+          construirPayload={() => {
+            if (!novaMsgTexto.trim()) { alert("Escreve uma mensagem."); return null; }
+            return { dest: novaMsgDest, texto: novaMsgTexto.trim(), push: pushNovaMsg };
+          }}
+          rotuloItem={p => `${p.dest === "all" ? "Todos" : (JEEP_LIST.find(j => j.username === p.dest)?.name || p.dest)}: ${p.texto}`}
+          onAgendado={() => { setNovaMsgTexto(""); setPushNovaMsg(false); }}
+        />
       </div>
 
       {/* MENSAGENS RECEBIDAS */}
