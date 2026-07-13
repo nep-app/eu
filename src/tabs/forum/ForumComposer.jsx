@@ -118,7 +118,7 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
             from: user.username,
             text: `🔔 ${user.realName} mencionou-te em ${infoCanal?.label || canalAtivo}!`,
             date: nowFull(), read: false, ts: Date.now(),
-            mencao: true, postId: docRef.id, canal: canalAtivo
+            mencao: true, postId: docRef.id, canal: canalAtivo, push: true
           })
         ),
         ...destinatariosTodos.map(u =>
@@ -126,7 +126,7 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
             from: user.username,
             text: `🔔 ${user.realName} mencionou a equipa toda em ${infoCanal?.label || canalAtivo}!`,
             date: nowFull(), read: false, ts: Date.now(),
-            mencao: true, postId: docRef.id, canal: canalAtivo
+            mencao: true, postId: docRef.id, canal: canalAtivo, push: true
           })
         ),
       ]);

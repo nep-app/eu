@@ -164,6 +164,15 @@ export default function AdminMural() {
     await updateDoc(doc(db, "forum", channel, "posts", pid), {
       replies:[...cur.replies, { id:"R_"+Date.now(), user:"Teresa (GO)", username:"admin", color:"#22d3ee", text:replyTxt, time:nowFull() }]
     });
+    // Avisar o autor (se for jovem) que a Teresa respondeu — com push.
+    if (cur.username && cur.username !== "admin" && cur.username !== "demo" && ALLOWED_USERNAMES.includes(cur.username)) {
+      const ch = CHANNELS.find(c => c.id === channel);
+      await addDoc(collection(db, "notifications", cur.username, "items"), {
+        from: "admin",
+        text: `🔔 Teresa respondeu à tua partilha em ${ch?.label || channel}`,
+        date: nowFull(), read: false, ts: Date.now(), canal: channel, push: true,
+      });
+    }
     setReplyTxt(""); setReplyTo(null);
   }
 
@@ -401,8 +410,8 @@ export default function AdminMural() {
                       const label = ch?.label || channel;
                       const preview = (p.text||"").trim().substring(0, 80);
                       const nome = p.username === "admin" ? "Teresa (GO)" : (p.user || p.username);
-                      await notificarTodos(`${ch?.icon || "🌐"} ${nome} publicou em ${label}${preview ? `: "${preview}${p.text.length > 80 ? "…" : ""}"` : ""}`, channel);
-                      alert("Notificação enviada a todos! ✅");
+                      await notificarTodos(`${ch?.icon || "🌐"} ${nome} publicou em ${label}${preview ? `: "${preview}${p.text.length > 80 ? "…" : ""}"` : ""}`, channel, true);
+                      alert("Notificação enviada a todos (com push)! ✅");
                     }} style={{ fontSize:12, color:CYN, cursor:"pointer", fontWeight:700 }}>🔔 Notificar</span>
                     <span onClick={() => deleteForumPost(p.id)}
                       style={{ fontSize:12, color:PNK, cursor:"pointer", marginLeft:"auto" }}>🗑️ Apagar</span>

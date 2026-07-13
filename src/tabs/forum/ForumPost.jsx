@@ -39,6 +39,9 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
       await addDoc(collection(db, "notifications", post.username, "items"), {
         from: user.username, text: msg, date: nowFull(), read: false,
         canal: canalAtivo, ts: Date.now(),
+        // Comentário → push; reação (like) fica só na app para não encher
+        // o telemóvel de avisos a cada emoji.
+        push: tipo === "reply",
         ...(sobrePreview ? { sobre: sobrePreview } : {})
       });
     }
