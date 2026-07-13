@@ -4,6 +4,7 @@ import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP, PRP } from "../../theme.jsx";
 import { ALLOWED_USERNAMES, JEEP_LIST, DIMS, nowLabel, nowFull, getWeekKey, buildAutoavEntry } from "../../data.js";
 import AdminQuizzes from './AdminQuizzes.jsx';
+import Agendador from './Agendador.jsx';
 import AdminVotacoes from './AdminVotacoes.jsx';
 import AdminMissoes from './AdminMissoes.jsx';
 import AdminAgenda from './AdminAgenda.jsx';
@@ -42,50 +43,6 @@ function PerguntaManager({ allShared, activeQ }) {
   const [fbOpen, setFbOpen] = useState({});
   const [fbPush, setFbPush] = useState({});
   const [pushNovaPergunta, setPushNovaPergunta] = useState(false);
-  const [agendar, setAgendar] = useState(false);
-  const [agData, setAgData]   = useState("");
-  const [agSlot, setAgSlot]   = useState("09:00");
-  const [agsPend, setAgsPend] = useState([]);
-
-  // Perguntas agendadas ainda por publicar (para mostrar/cancelar).
-  useEffect(() => {
-    return onSnapshot(collection(db, "agendados"), snap => {
-      const lista = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-        .filter(a => a.tipo === "pergunta" && !a.done)
-        .sort((a, b) => (a.publishAt || 0) - (b.publishAt || 0));
-      setAgsPend(lista);
-    });
-  }, []);
-
-  async function cancelarAgendado(id) {
-    if (!window.confirm("Cancelar esta pergunta agendada?")) return;
-    await deleteDoc(doc(db, "agendados", id));
-  }
-
-  // Cria o timestamp a partir da data + hora escolhida (hora local).
-  function publishAtDe(dataStr, slot) {
-    const [y, m, d]  = dataStr.split("-").map(Number);
-    const [hh, mm]   = slot.split(":").map(Number);
-    return new Date(y, m - 1, d, hh, mm, 0, 0).getTime();
-  }
-
-  async function agendarPergunta() {
-    if (!activeQEdit.trim()) return alert("Escreve a pergunta!");
-    if (selectedModes.length === 0 && !opt1.trim()) return alert("Seleciona pelo menos um modo de resposta!");
-    if (!agData) return alert("Escolhe a data para agendar!");
-    const publishAt = publishAtDe(agData, agSlot);
-    if (publishAt <= Date.now()) return alert("Essa data/hora já passou. Escolhe uma altura no futuro.");
-    const opcoes = [opt1, opt2, opt3].filter(o => o.trim());
-    await addDoc(collection(db, "agendados"), {
-      tipo: "pergunta",
-      payload: { text: activeQEdit.trim(), options: opcoes, modes: selectedModes, push: pushNovaPergunta },
-      publishAt, slot: agSlot, dataLabel: agData,
-      done: false, criadoEm: Date.now(), criadoPor: "admin",
-    });
-    alert(`Pergunta agendada para ${agData} às ${agSlot}! ⏰`);
-    setActiveQEdit(""); setOpt1(""); setOpt2(""); setOpt3("");
-    setPushNovaPergunta(false); setAgendar(false); setAgData("");
-  }
 
   async function enviarFbPergunta(j, resposta) {
     const txt = fbTxts[j.username]?.trim();
@@ -234,48 +191,19 @@ function PerguntaManager({ allShared, activeQ }) {
           🔔 Enviar também como notificação push
         </label>
 
-        {/* Agendar para depois */}
-        <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom: agendar ? 10 : 12 }}>
-          <input type="checkbox" checked={agendar} onChange={() => setAgendar(v => !v)}
-            style={{ accentColor:CYN, width:14, height:14 }} />
-          ⏰ Agendar para depois (em vez de publicar já)
-        </label>
-        {agendar && (
-          <div style={{ display:"flex", gap:8, marginBottom:12 }}>
-            <input type="date" value={agData} onChange={e => setAgData(e.target.value)}
-              style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
-            <select value={agSlot} onChange={e => setAgSlot(e.target.value)}
-              style={{ padding:"8px 12px", borderRadius:12, background:"rgba(0,0,0,0.3)", color:"white", border:"1px solid rgba(255,255,255,0.1)", fontSize:12 }}>
-              <option value="09:00">09:00</option>
-              <option value="13:00">13:00</option>
-              <option value="18:00">18:00</option>
-              <option value="20:00">20:00</option>
-            </select>
-          </div>
-        )}
-
-        <button onClick={agendar ? agendarPergunta : publicar} style={{
-          width:"100%", padding:"14px 20px", fontSize:13, fontWeight:800, letterSpacing:1.2,
-          textTransform:"uppercase", background: agendar ? PRP : CYN, color: agendar ? "#fff" : "#0f172a", border:"none", borderRadius:14, cursor:"pointer"
-        }}>{agendar ? "⏰ Agendar Pergunta" : "Publicar Desafio Semanal 💬"}</button>
-
-        {agsPend.length > 0 && (
-          <div style={{ marginTop:16, borderTop:"1px solid rgba(255,255,255,0.1)", paddingTop:14 }}>
-            <div style={{ fontSize:11, color:PRP, fontWeight:800, marginBottom:8 }}>⏰ PERGUNTAS AGENDADAS</div>
-            {agsPend.map(a => (
-              <div key={a.id} style={{ display:"flex", alignItems:"center", gap:8, background:"rgba(123,92,255,0.08)", border:"1px solid rgba(123,92,255,0.2)", borderRadius:10, padding:"8px 12px", marginBottom:6 }}>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:12, color:"#e2e8f0", fontWeight:700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{a.payload?.text}</div>
-                  <div style={{ fontSize:11, color:PRP, fontWeight:800 }}>{a.dataLabel} às {a.slot}{a.payload?.push ? " · 🔔 push" : ""}</div>
-                </div>
-                <button onClick={() => cancelarAgendado(a.id)}
-                  style={{ background:"none", border:"1px solid #f43f5e", color:"#f43f5e", borderRadius:8, padding:"4px 10px", fontSize:11, fontWeight:800, cursor:"pointer", flexShrink:0 }}>
-                  Cancelar
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+        <Agendador
+          tipo="pergunta"
+          rotuloJa="Publicar Desafio Semanal 💬"
+          publicarJa={publicar}
+          construirPayload={() => {
+            if (!activeQEdit.trim()) { alert("Escreve a pergunta!"); return null; }
+            if (selectedModes.length === 0 && !opt1.trim()) { alert("Seleciona pelo menos um modo de resposta!"); return null; }
+            const opcoes = [opt1, opt2, opt3].filter(o => o.trim());
+            return { text: activeQEdit.trim(), options: opcoes, modes: selectedModes, push: pushNovaPergunta };
+          }}
+          rotuloItem={p => `💬 ${p.text}`}
+          onAgendado={() => { setActiveQEdit(""); setOpt1(""); setOpt2(""); setOpt3(""); setPushNovaPergunta(false); }}
+        />
       </div>
 
       {/* Respostas anteriores já guardadas por user (perguntasHistorico) */}

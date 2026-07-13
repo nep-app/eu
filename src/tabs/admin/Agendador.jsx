@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, deleteDoc, doc, onSnapshot } from "firebase/firestore";
+import { collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CYN, PRP, INP } from "../../theme.jsx";
 
@@ -26,6 +26,9 @@ export default function Agendador({ tipo, construirPayload, publicarJa, rotuloJa
   const [agData, setAgData]   = useState("");
   const [agSlot, setAgSlot]   = useState("09:00");
   const [pend, setPend]       = useState([]);
+  const [editId, setEditId]     = useState(null);   // id do agendamento a reagendar
+  const [editData, setEditData] = useState("");
+  const [editSlot, setEditSlot] = useState("09:00");
 
   useEffect(() => {
     return onSnapshot(collection(db, "agendados"), snap => {
@@ -53,6 +56,22 @@ export default function Agendador({ tipo, construirPayload, publicarJa, rotuloJa
   async function cancelar(id) {
     if (!window.confirm("Cancelar este agendamento?")) return;
     await deleteDoc(doc(db, "agendados", id));
+  }
+
+  function abrirEdicao(a) {
+    setEditId(a.id);
+    setEditData(a.dataLabel || "");
+    setEditSlot(a.slot || "09:00");
+  }
+
+  async function guardarReagendamento(id) {
+    if (!editData) return alert("Escolhe a nova data!");
+    const publishAt = publishAtDe(editData, editSlot);
+    if (publishAt <= Date.now()) return alert("Essa data/hora já passou. Escolhe uma altura no futuro.");
+    await updateDoc(doc(db, "agendados", id), {
+      publishAt, slot: editSlot, dataLabel: editData,
+    });
+    setEditId(null);
   }
 
   return (
@@ -85,15 +104,38 @@ export default function Agendador({ tipo, construirPayload, publicarJa, rotuloJa
         <div style={{ marginTop:14, borderTop:"1px solid rgba(255,255,255,0.1)", paddingTop:12 }}>
           <div style={{ fontSize:11, color:PRP, fontWeight:800, marginBottom:8 }}>⏰ AGENDADOS</div>
           {pend.map(a => (
-            <div key={a.id} style={{ display:"flex", alignItems:"center", gap:8, background:"rgba(123,92,255,0.08)", border:"1px solid rgba(123,92,255,0.2)", borderRadius:10, padding:"8px 12px", marginBottom:6 }}>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:12, color:"#e2e8f0", fontWeight:700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{rotuloItem ? rotuloItem(a.payload) : ""}</div>
-                <div style={{ fontSize:11, color:PRP, fontWeight:800 }}>{a.dataLabel} às {a.slot}{a.payload?.push ? " · 🔔 push" : ""}</div>
+            <div key={a.id} style={{ background:"rgba(123,92,255,0.08)", border:"1px solid rgba(123,92,255,0.2)", borderRadius:10, padding:"8px 12px", marginBottom:6 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:12, color:"#e2e8f0", fontWeight:700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{rotuloItem ? rotuloItem(a.payload) : ""}</div>
+                  <div style={{ fontSize:11, color:PRP, fontWeight:800 }}>{a.dataLabel} às {a.slot}{a.payload?.push ? " · 🔔 push" : ""}</div>
+                </div>
+                <button onClick={() => editId === a.id ? setEditId(null) : abrirEdicao(a)}
+                  style={{ background:"none", border:`1px solid ${CYN}`, color:CYN, borderRadius:8, padding:"4px 10px", fontSize:11, fontWeight:800, cursor:"pointer", flexShrink:0 }}>
+                  {editId === a.id ? "Fechar" : "Reagendar"}
+                </button>
+                <button onClick={() => cancelar(a.id)}
+                  style={{ background:"none", border:"1px solid #f43f5e", color:"#f43f5e", borderRadius:8, padding:"4px 10px", fontSize:11, fontWeight:800, cursor:"pointer", flexShrink:0 }}>
+                  Cancelar
+                </button>
               </div>
-              <button onClick={() => cancelar(a.id)}
-                style={{ background:"none", border:"1px solid #f43f5e", color:"#f43f5e", borderRadius:8, padding:"4px 10px", fontSize:11, fontWeight:800, cursor:"pointer", flexShrink:0 }}>
-                Cancelar
-              </button>
+              {editId === a.id && (
+                <div style={{ display:"flex", gap:8, marginTop:8 }}>
+                  <input type="date" value={editData} onChange={e => setEditData(e.target.value)}
+                    style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                  <select value={editSlot} onChange={e => setEditSlot(e.target.value)}
+                    style={{ padding:"8px 12px", borderRadius:12, background:"rgba(0,0,0,0.3)", color:"white", border:"1px solid rgba(255,255,255,0.1)", fontSize:12 }}>
+                    <option value="09:00">09:00</option>
+                    <option value="13:00">13:00</option>
+                    <option value="18:00">18:00</option>
+                    <option value="20:00">20:00</option>
+                  </select>
+                  <button onClick={() => guardarReagendamento(a.id)}
+                    style={{ background:PRP, color:"#fff", border:"none", borderRadius:10, padding:"0 14px", fontSize:12, fontWeight:800, cursor:"pointer" }}>
+                    Guardar
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
