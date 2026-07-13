@@ -3,6 +3,7 @@ import { collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, arrayRemove,
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, Btn, INP } from "../../theme.jsx";
 import { JEEP_LIST } from "../../data.js";
+import Agendador from "./Agendador.jsx";
 
 const JEEP_8 = JEEP_LIST.filter(j => !["teresa","ricardo","demo"].includes(j.username));
 
@@ -143,7 +144,24 @@ export default function AdminQuizzes({ allShared = {} }) {
         <input type="date" style={{ ...INP, marginTop: 6 }}
           value={novo.prazo} onChange={e => setNovo({...novo, prazo: e.target.value})} />
 
-        <Btn onClick={salvarQuiz}>Publicar Dilema 🚩</Btn>
+        <Agendador
+          tipo="dilema"
+          rotuloJa="Publicar Dilema 🚩"
+          publicarJa={salvarQuiz}
+          construirPayload={() => {
+            if (!novo.title || !novo.scenario || !novo.optA) { alert("Preenche os campos básicos!"); return null; }
+            return {
+              title: novo.title, badge: novo.badge, scenario: novo.scenario, prazo: novo.prazo || null,
+              opts: [
+                { id: "A", text: novo.optA, reveal: novo.revA },
+                { id: "B", text: novo.optB, reveal: novo.revB },
+                { id: "C", text: novo.optC, reveal: novo.revC },
+              ],
+            };
+          }}
+          rotuloItem={p => `🧠 ${p.title}`}
+          onAgendado={() => setNovo({ title: "", badge: "D1 — Comunicação", scenario: "", prazo: "", optA: "", revA: "", optB: "", revB: "", optC: "", revC: "" })}
+        />
       </div>
 
       {/* LISTA */}

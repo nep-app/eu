@@ -242,6 +242,16 @@ async function publicarForum(payload) {
   ));
 }
 
+// tipo "dilema" — cria um Dilema/Quiz (como AdminQuizzes.salvarQuiz)
+async function publicarDilema(payload) {
+  const { title, badge = "", scenario, opts = [], prazo = null } = payload || {};
+  if (!title || !scenario) return;
+  await db.collection("quizzes").add({
+    title, badge, scenario, prazo, active: true, ts: Date.now(),
+    opts, mock: { A: 0, B: 0, C: 0 }, responses: {},
+  });
+}
+
 exports.processarAgendados = onSchedule(
   { schedule: "*/30 * * * *", timeZone: "Europe/Lisbon", region: "europe-west1" },
   async () => {
@@ -259,6 +269,7 @@ exports.processarAgendados = onSchedule(
         else if (a.tipo === "pedido")   await lancarPedido(a.payload);
         else if (a.tipo === "mensagem") await enviarMensagem(a.payload);
         else if (a.tipo === "forum")    await publicarForum(a.payload);
+        else if (a.tipo === "dilema")   await publicarDilema(a.payload);
         else { logger.warn("agendado com tipo desconhecido", { id: docSnap.id, tipo: a.tipo }); }
         await docSnap.ref.update({ done: true, doneAt: agora });
         logger.info("agendado publicado", { id: docSnap.id, tipo: a.tipo });
