@@ -30,6 +30,8 @@ export default function TeresaAdmin({ user, onLogout }) {
   const [adminNotifs, setAdminNotifs] = useState([]);
   const [activeQ, setActiveQ] = useState("");
   const [weekStartTs, setWeekStartTs] = useState(0);
+  const [ativandoPush, setAtivandoPush] = useState(false);
+  const [pushStatus, setPushStatus] = useState("off"); // on | off | blocked | unsupported
 
   // Registo de notificações push para a conta admin — este ecrã é um
   // componente totalmente separado do JovensApp, por isso precisa do seu
@@ -37,6 +39,28 @@ export default function TeresaAdmin({ user, onLogout }) {
   useEffect(() => {
     if (user) registarPushNotifications(user.username);
   }, [user]);
+
+  useEffect(() => {
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) setPushStatus("unsupported");
+    else if (Notification.permission === "granted") setPushStatus("on");
+    else if (Notification.permission === "denied") setPushStatus("blocked");
+    else setPushStatus("off");
+  }, []);
+
+  async function ativarPushAdmin() {
+    setAtivandoPush(true);
+    const res = await registarPushNotifications(user.username);
+    setAtivandoPush(false);
+    if (res.ok) { setPushStatus("on"); alert("✓ Notificações push do admin ativadas neste aparelho!"); }
+    else {
+      if (res.reason === "permissao-denied") setPushStatus("blocked");
+      const msgs = {
+        "permissao-denied": "Bloqueaste as notificações. Vai às definições do browser/telemóvel e permite para este site.",
+        "permissao-default": "Não confirmaste a permissão. Tenta outra vez.",
+      };
+      alert("Não foi possível ativar: " + (msgs[res.reason] || res.reason));
+    }
+  }
 
   // ── LIGAÇÃO CENTRAL AO FIREBASE ──
   useEffect(() => {
@@ -163,6 +187,17 @@ const ADMIN_TABS = [
           </div>
         </div>
         <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+          {pushStatus !== "unsupported" && (
+            <button onClick={ativarPushAdmin} disabled={ativandoPush || pushStatus === "blocked"} title="Notificações push do admin"
+              style={{
+                background: pushStatus === "on" ? "rgba(74,222,128,0.15)" : pushStatus === "blocked" ? "rgba(244,63,94,0.15)" : "rgba(34,211,238,0.15)",
+                border: `1px solid ${pushStatus === "on" ? "rgba(74,222,128,0.5)" : pushStatus === "blocked" ? "rgba(244,63,94,0.5)" : "rgba(34,211,238,0.5)"}`,
+                color: pushStatus === "on" ? "#4ade80" : pushStatus === "blocked" ? "#f43f5e" : CYN,
+                padding: "7px 12px", borderRadius: 20, fontSize: 11, cursor: "pointer", fontWeight: 700, whiteSpace: "nowrap",
+              }}>
+              {ativandoPush ? "A ativar..." : pushStatus === "on" ? "🔔 Push ativo" : pushStatus === "blocked" ? "🔔 Bloqueado" : "🔔 Ativar push"}
+            </button>
+          )}
           <button onClick={onLogout} style={{
             background: "rgba(255,255,255,0.1)",
             border: "1px solid rgba(255,255,255,0.2)",
