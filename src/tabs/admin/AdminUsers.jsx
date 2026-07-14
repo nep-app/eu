@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
-import { doc, setDoc, getDoc, addDoc, collection, updateDoc, deleteField, arrayUnion } from "firebase/firestore";
+import React, { useState, useEffect } from 'react';
+import { doc, setDoc, getDoc, addDoc, collection, onSnapshot, updateDoc, deleteField, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PRP, GRN, RadarChart, INP } from "../../theme.jsx";
-import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, nowFull, PIA_FIELDS, PIA_SECTIONS, getWeekKey } from "../../data.js";
+import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, nowFull, PIA_FIELDS, PIA_SECTIONS, getWeekKey, fmtDate } from "../../data.js";
 
 export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStartTs = 0 }) {
+  // Todas as missões (por id) para poder mostrar o texto/prazo das que cada jovem cumpriu.
+  const [missoesPorId, setMissoesPorId] = useState({});
+  useEffect(() => {
+    return onSnapshot(collection(db, "missions"), snap => {
+      const map = {};
+      snap.docs.forEach(d => { map[d.id] = { id: d.id, ...d.data() }; });
+      setMissoesPorId(map);
+    });
+  }, []);
   const [userSelecionado, setUserSelecionado] = useState(null);
   const [medalModal, setMedalModal]           = useState(null);
   const [medalMsg,   setMedalMsg]             = useState("");
@@ -726,12 +735,28 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
                   }} style={{ ...BTN_RESET, padding:"6px 10px", fontSize:10 }}>+5 XP 🗳️</button>
                 </div>
               </div>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
-                <div>
-                  <div style={{ fontSize:12, fontWeight:800 }}>Missões Concluídas</div>
-                  <div style={{ fontSize:10, color:"#64748b" }}>{(uData.completedMissions||[]).length} missão(ões) concluída(s)</div>
+              <div style={{ padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:(uData.completedMissions||[]).length ? 8 : 0 }}>
+                  <div>
+                    <div style={{ fontSize:12, fontWeight:800 }}>Missões Concluídas</div>
+                    <div style={{ fontSize:10, color:"#64748b" }}>{(uData.completedMissions||[]).length} missão(ões) concluída(s)</div>
+                  </div>
+                  <button onClick={() => resetMissoes(username)} style={BTN_RESET}>Limpar</button>
                 </div>
-                <button onClick={() => resetMissoes(username)} style={BTN_RESET}>Limpar</button>
+                {(uData.completedMissions || []).map(mid => {
+                  const m = missoesPorId[mid];
+                  const nota = (uData.missionNotes || {})[mid];
+                  return (
+                    <div key={mid} style={{ borderTop:"1px solid rgba(255,255,255,0.06)", paddingTop:7, marginTop:7 }}>
+                      <div style={{ fontSize:12, color:"#e2e8f0", fontWeight:700 }}>
+                        ✅ {m ? m.text : "Missão (removida)"}
+                        {m && <span style={{ color:GRN, fontWeight:800 }}> · +{m.xp} XP</span>}
+                      </div>
+                      {m?.prazo && <div style={{ fontSize:10, color:"#fbbf24", fontWeight:700, marginTop:1 }}>⏰ Prazo era {fmtDate(m.prazo)}</div>}
+                      {nota && <div style={{ fontSize:11, color:"#94a3b8", fontStyle:"italic", marginTop:2 }}>"{nota}"</div>}
+                    </div>
+                  );
+                })}
               </div>
               <div style={{ padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: uData.autoSaved ? 10 : 0 }}>

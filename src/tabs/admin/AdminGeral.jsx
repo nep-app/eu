@@ -217,6 +217,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
               if (n.tipo === "MENSAGEM")        return `💬 ${n.anon ? "Mensagem anónima" : nome + " enviou uma mensagem"}: "${n.texto}${n.texto?.length>=60?"…":""}"`;
               if (n.tipo === "PERGUNTA")        return `💬 ${nome} respondeu à pergunta semanal${n.texto ? `: "${n.texto}${n.texto.length>=60?"…":""}"` : "."}`;
               if (n.tipo === "QUIZ")            return `🧠 ${nome} respondeu ao dilema "${n.quizTitle||""}".`;
+              if (n.tipo === "MISSAO")          return `🎯 ${nome} cumpriu a missão "${n.texto||""}"${n.nota ? ` — "${n.nota}"` : "."}`;
               if (n.tipo === "RODA")            return `🌸 ${nome} partilhou a Roda da Vida.`;
               if (n.tipo === "FORUM_POST")      return `🌐 ${nome} publicou no fórum (${n.canal})${n.texto ? `: "${n.texto}${n.texto.length>=60?"…":""}"` : "."}`;
               if (n.tipo === "TAREFA_PARTILHADA") return `📋 ${nome} partilhou uma tarefa: "${n.texto}${(n.texto||"").length>=60?"…":""}"`;

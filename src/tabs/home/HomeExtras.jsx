@@ -10,6 +10,8 @@ export default function HomeExtras({ user, data, setTab }) {
   const [mensagemTexto, setMensagemTexto]           = useState("");
   const [mensagemAnonima, setMensagemAnonima]       = useState(false);
   const [mensagemEnviadaSucesso, setMensagemEnviadaSucesso] = useState(false);
+  const [missaoAberta, setMissaoAberta] = useState(null);  // missão a marcar
+  const [notaMissao, setNotaMissao]     = useState("");
   const destinatarios = ["admin"];
 
   const uData              = data.userData || {};
@@ -37,16 +39,25 @@ export default function HomeExtras({ user, data, setTab }) {
     return { dayStreak: newStreak, lastActiveDay: today };
   }
 
-  async function concluirMissaoSemanal(missao) {
+  async function concluirMissaoSemanal(missao, nota = "") {
     if (missoesConcluidas.includes(missao.id)) return;
     const ts = nowFull();
     const newHistory = [...(data.history || []), { date: ts, action: `Cumpriu a missão: ${missao.text}`, ts: Date.now(), xp: missao.xp || 10 }];
     await setDoc(doc(db, "userData", user.username), {
       completedMissions: [...missoesConcluidas, missao.id],
+      missionNotes: { ...(uData.missionNotes || {}), [missao.id]: nota || "" },
       history: newHistory,
       weekXp: (uData.weekXp || 0) + (missao.xp || 10),
       ...getDayStreakUpdate()
     }, { merge: true });
+    // Avisar a Teresa de que a missão foi cumprida (com nota, se houver).
+    await addDoc(collection(db, "adminNotificacoes"), {
+      tipo: "MISSAO", jovem: user.username,
+      texto: (missao.text || "").substring(0, 80),
+      nota: nota ? nota.substring(0, 200) : null,
+      ts: Date.now(), lida: false,
+    });
+    setMissaoAberta(null); setNotaMissao("");
     alert(`+${missao.xp || 10} XP ✨`);
   }
 
@@ -94,33 +105,67 @@ export default function HomeExtras({ user, data, setTab }) {
           </div>
           {missoesSemana.map(missao => {
             const concluida = missoesConcluidas.includes(missao.id);
+            const aberta = missaoAberta === missao.id;
             return (
-              <div key={missao.id} onClick={() => !concluida && concluirMissaoSemanal(missao)} style={{
-                display:"flex", alignItems:"center", gap:14, padding:"14px 16px", borderRadius:16,
+              <div key={missao.id} style={{
+                padding:"14px 16px", borderRadius:16,
                 background: concluida ? (light ? "rgba(74,222,128,0.10)" : "rgba(74,222,128,0.06)") : (light ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.03)"),
                 marginBottom:8, border: concluida ? "1px solid rgba(74,222,128,0.25)" : (light ? "1px solid rgba(0,0,0,0.06)" : "1px solid rgba(255,255,255,0.05)"),
-                cursor: concluida ? "default" : "pointer", transition:"all 0.2s",
+                transition:"all 0.2s",
               }}>
-                <div style={{ width:24, height:24, borderRadius:8, flexShrink:0,
-                  background: concluida ? GRN : (light ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.06)"),
-                  border: concluida ? "none" : (light ? "1.5px solid rgba(0,0,0,0.18)" : "1.5px solid rgba(255,255,255,0.1)"),
-                  display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  {concluida && <span style={{ color:"#070b14", fontWeight:900, fontSize:13 }}>✓</span>}
-                </div>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:13, fontWeight:600,
-                    color: concluida ? "#64748b" : (light ? "#0f172a" : "#f1f5f9"),
-                    textDecoration: concluida ? "line-through" : "none" }}>
-                    <Linkify>{missao.text}</Linkify>
+                <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+                  <div style={{ width:24, height:24, borderRadius:8, flexShrink:0,
+                    background: concluida ? GRN : (light ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.06)"),
+                    border: concluida ? "none" : (light ? "1.5px solid rgba(0,0,0,0.18)" : "1.5px solid rgba(255,255,255,0.1)"),
+                    display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    {concluida && <span style={{ color:"#070b14", fontWeight:900, fontSize:13 }}>✓</span>}
                   </div>
-                  {missao.prazo && !concluida && (
-                    <div style={{ fontSize:10, fontWeight:800, marginTop:2,
-                      color: isOverdue(missao.prazo) ? "#f43f5e" : "#fbbf24" }}>
-                      ⏰ {isOverdue(missao.prazo) ? "Prazo expirado" : `Até ${fmtDate(missao.prazo)}`}
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, fontWeight:600,
+                      color: concluida ? "#64748b" : (light ? "#0f172a" : "#f1f5f9"),
+                      textDecoration: concluida ? "line-through" : "none" }}>
+                      <Linkify>{missao.text}</Linkify>
                     </div>
-                  )}
+                    {missao.prazo && !concluida && (
+                      <div style={{ fontSize:10, fontWeight:800, marginTop:2,
+                        color: isOverdue(missao.prazo) ? "#f43f5e" : "#fbbf24" }}>
+                        ⏰ {isOverdue(missao.prazo) ? "Prazo expirado" : `Até ${fmtDate(missao.prazo)}`}
+                      </div>
+                    )}
+                    {concluida && (uData.missionNotes || {})[missao.id] && (
+                      <div style={{ fontSize:11, color:"#94a3b8", fontStyle:"italic", marginTop:3 }}>"{(uData.missionNotes || {})[missao.id]}"</div>
+                    )}
+                  </div>
+                  <div style={{ fontSize:11, fontWeight:800, color: concluida ? "#64748b" : CYN }}>+{missao.xp} XP</div>
                 </div>
-                <div style={{ fontSize:11, fontWeight:800, color: concluida ? "#64748b" : CYN }}>+{missao.xp} XP</div>
+
+                {!concluida && !aberta && (
+                  <button onClick={() => { setMissaoAberta(missao.id); setNotaMissao(""); }} style={{
+                    width:"100%", marginTop:10, padding:"9px", borderRadius:10, border:`1px solid ${GRN}55`,
+                    background:"rgba(74,222,128,0.08)", color:GRN, fontWeight:800, fontSize:12, cursor:"pointer" }}>
+                    ✓ Marcar como feita
+                  </button>
+                )}
+
+                {!concluida && aberta && (
+                  <div style={{ marginTop:10 }}>
+                    <textarea value={notaMissao} onChange={e => setNotaMissao(e.target.value)}
+                      placeholder="Queres dizer como correu? (opcional)" rows={2}
+                      style={{ ...INP, resize:"none", marginBottom:8, fontSize:13 }} />
+                    <div style={{ display:"flex", gap:8 }}>
+                      <button onClick={() => { setMissaoAberta(null); setNotaMissao(""); }} style={{
+                        flex:1, padding:"9px", borderRadius:10, border:"1px solid rgba(255,255,255,0.15)",
+                        background:"transparent", color:"#94a3b8", fontWeight:800, fontSize:12, cursor:"pointer" }}>
+                        Cancelar
+                      </button>
+                      <button onClick={() => concluirMissaoSemanal(missao, notaMissao.trim())} style={{
+                        flex:2, padding:"9px", borderRadius:10, border:"none",
+                        background:GRN, color:"#070b14", fontWeight:900, fontSize:12, cursor:"pointer" }}>
+                        Confirmar missão feita
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}

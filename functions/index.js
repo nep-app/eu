@@ -28,6 +28,7 @@ const NOTIF_LABELS = {
   MENSAGEM:  (d) => ({ title: "💬 Nova mensagem",              body: `${d.jovem}: ${(d.texto||"").substring(0,80)}` }),
   PIA:       (d) => ({ title: "📋 PIA recebido",                body: `${d.jovem} enviou o Plano Individual de Ação` }),
   AJUDA_PIA: (d) => ({ title: `🆘 ${d.jovem} precisa de ajuda`, body: `"${(d.pergunta||"PIA").substring(0,80)}"` }),
+  MISSAO:    (d) => ({ title: "🎯 Missão cumprida",             body: `${d.jovem}: ${(d.texto||"").substring(0,60)}${d.nota ? ` — "${(d.nota||"").substring(0,60)}"` : ""}` }),
 };
 
 // Reúne todos os tokens de um documento fcmTokens/{username}: o mapa novo
