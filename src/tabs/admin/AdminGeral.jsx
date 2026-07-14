@@ -58,13 +58,13 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
           writes.push(updateDoc(doc(db, "userData", u), { autoAvaliacaoHistorico: arrayUnion(buildAutoavEntry(uData)) }));
         }
         writes.push(setDoc(doc(db, "userData", u), {
-          autoSaved: false, autoNewRound: false, dScores: {}, dNotas: {},
+          autoSaved: false, autoNewRound: false, dScores: {}, dNotas: {}, autoAskedAt: Date.now(),
           ...(launchPrazo ? { autoNewRoundPrazo: launchPrazo } : {})
         }, { merge: true }));
         await Promise.all(writes);
       } else if (field) {
         const prazoData = launchPrazo ? { [field + "Prazo"]: launchPrazo } : {};
-        await setDoc(doc(db, "userData", u), { [field]: false, ...prazoData }, { merge: true });
+        await setDoc(doc(db, "userData", u), { [field]: false, [field + "AskedAt"]: Date.now(), ...prazoData }, { merge: true });
       }
       await addDoc(collection(db, "notifications", u, "items"), notifData);
     }));

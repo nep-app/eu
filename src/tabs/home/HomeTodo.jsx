@@ -20,6 +20,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
   const [novaTarefaData, setNovaTarefaData]         = useState("");
   const [partilharTarefaCheck, setPartilharTarefaCheck] = useState(false);
   const [temQuizPendente, setTemQuizPendente]       = useState(false);
+  const [quizPendenteTs,  setQuizPendenteTs]        = useState(0);
   const [editTarefaId,    setEditTarefaId]    = useState(null);
   const [editTarefaTexto, setEditTarefaTexto] = useState("");
   const [editTarefaData,  setEditTarefaData]  = useState("");
@@ -33,7 +34,9 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
       const snap = await getDocs(collection(db, "quizzes"));
       const ativos = snap.docs.map(d => ({id:d.id,...d.data()})).filter(q => q.active !== false);
       const feitos = uData.completedQuizzes || [];
-      setTemQuizPendente(ativos.some(q => !feitos.includes(q.id)));
+      const pendentes = ativos.filter(q => !feitos.includes(q.id));
+      setTemQuizPendente(pendentes.length > 0);
+      setQuizPendenteTs(pendentes.reduce((mx, q) => Math.max(mx, q.ts || 0), 0));
     }
     checkQuizzes();
   }, [uData.completedQuizzes]);
@@ -48,27 +51,30 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
   );
 
   let acoesPendentes = [];
-  if (features.perguntaSemanal && !uData.answered)  acoesPendentes.push({ status:"urgent",  icon:"💬", title:"Pergunta da semana",    sub:"A Teresa aguarda a tua reflexão", prazo:uData.answeredPrazo,  go:() => { setDesafiosSubTab("pergunta"); setTab("desafios"); } });
-  if (features.autoAvaliacao   && !uData.autoSaved) acoesPendentes.push({ status:"pending", icon:"📊", title:"Autoavaliação mensal",  sub:"Avalia as tuas competências",     prazo:uData.autoSavedPrazo, go:() => { setDesafiosSubTab("auto");     setTab("desafios"); } });
-  if (features.satisfacao      && !uData.sSaved)    acoesPendentes.push({ status:"new",     icon:"😊", title:"Satisfação",            sub:"Diz-nos como corre o programa",   prazo:uData.sSavedPrazo,    go:() => { setDesafiosSubTab("satisf");   setTab("desafios"); } });
+  if (features.perguntaSemanal && !uData.answered)  acoesPendentes.push({ status:"urgent",  icon:"💬", title:"Pergunta da semana",    sub:"A Teresa aguarda a tua reflexão", prazo:uData.answeredPrazo,  ts:uData.answeredAskedAt||0, go:() => { setDesafiosSubTab("pergunta"); setTab("desafios"); } });
+  if (features.autoAvaliacao   && !uData.autoSaved) acoesPendentes.push({ status:"pending", icon:"📊", title:"Autoavaliação mensal",  sub:"Avalia as tuas competências",     prazo:uData.autoSavedPrazo, ts:uData.autoAskedAt||0, go:() => { setDesafiosSubTab("auto");     setTab("desafios"); } });
+  if (features.satisfacao      && !uData.sSaved)    acoesPendentes.push({ status:"new",     icon:"😊", title:"Satisfação",            sub:"Diz-nos como corre o programa",   prazo:uData.sSavedPrazo,    ts:uData.sSavedAskedAt||0, go:() => { setDesafiosSubTab("satisf");   setTab("desafios"); } });
   const piaUnlocked = uData.piaUnlocked || {};
   const temPiaAberto = Object.values(piaUnlocked).some(v => v === true);
-  if (temPiaAberto && !uData.piaSaved) acoesPendentes.push({ status:"pending", icon:"🚀", title:"Plano Individual (PIA)", sub:"Desenha o teu projeto", prazo:uData.piaSavedPrazo, go:() => setTab("pia") });
-  if (temQuizPendente) acoesPendentes.push({ status:"pending", icon:"🧠", title:"Dilema Pendente", sub:"Tens um novo quiz para resolver", go:() => { setDesafiosSubTab("quiz"); setTab("desafios"); } });
+  if (temPiaAberto && !uData.piaSaved) acoesPendentes.push({ status:"pending", icon:"🚀", title:"Plano Individual (PIA)", sub:"Desenha o teu projeto", prazo:uData.piaSavedPrazo, ts:uData.piaSavedAskedAt||0, go:() => setTab("pia") });
+  if (temQuizPendente) acoesPendentes.push({ status:"pending", icon:"🧠", title:"Dilema Pendente", sub:"Tens um novo quiz para resolver", ts:quizPendenteTs, go:() => { setDesafiosSubTab("quiz"); setTab("desafios"); } });
   const cap  = uData.cap  || {};
   const cap2 = uData.cap2 || {};
-  if (cap.unlocked  && !cap.locked)  acoesPendentes.push({ status:"new", icon:"🔒", title:"Cápsula de Dezembro",  sub:"Escreve a tua mensagem para o futuro", go:() => setTab("perfil") });
-  if (cap2.unlocked && !cap2.locked) acoesPendentes.push({ status:"new", icon:"🔐", title:"Cápsula Final",         sub:"A Teresa desbloqueou a tua cápsula final", go:() => setTab("perfil") });
+  if (cap.unlocked  && !cap.locked)  acoesPendentes.push({ status:"new", icon:"🔒", title:"Cápsula de Dezembro",  sub:"Escreve a tua mensagem para o futuro", ts:0, go:() => setTab("perfil") });
+  if (cap2.unlocked && !cap2.locked) acoesPendentes.push({ status:"new", icon:"🔐", title:"Cápsula Final",         sub:"A Teresa desbloqueou a tua cápsula final", ts:0, go:() => setTab("perfil") });
   mencaoNotifs.forEach(n => acoesPendentes.push({
     status:"new", icon:"🔔",
     title:"Foste mencionado no fórum",
     sub: n.text?.replace("🔔 ", "") || "Clica para ver",
+    ts: n.ts || 0,
     go: () => {
       if (n.canal && setForumCanal) setForumCanal(n.canal);
       setTab("forum");
       onDeleteNotif && onDeleteNotif(n.id);
     }
   }));
+  // Cenas do programa mais recentes primeiro (as que não têm carimbo ficam no fim).
+  acoesPendentes.sort((a, b) => (b.ts || 0) - (a.ts || 0));
 
   async function criarNovaTarefa() {
     if (!novaTarefaTexto.trim()) return;

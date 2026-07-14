@@ -97,7 +97,7 @@ function PerguntaManager({ allShared, activeQ }) {
       text: activeQEdit.trim(), options: opcoes, modes: selectedModes, date: Date.now()
     });
     for (const u of ALLOWED_USERNAMES) {
-      await setDoc(doc(db, "userData", u), { answered: false }, { merge: true });
+      await setDoc(doc(db, "userData", u), { answered: false, answeredAskedAt: Date.now() }, { merge: true });
       await addDoc(collection(db, "notifications", u, "items"), {
         from:"teresa", text:"💬 Nova pergunta da semana!", date:nowLabel(), read:false, tipo:"proposta", push: pushNovaPergunta
       });

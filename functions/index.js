@@ -164,7 +164,7 @@ async function publicarPergunta(payload) {
     text, options, modes, date: Date.now(),
   });
   await Promise.all(ALLOWED.map(async u => {
-    await db.collection("userData").doc(u).set({ answered: false }, { merge: true });
+    await db.collection("userData").doc(u).set({ answered: false, answeredAskedAt: Date.now() }, { merge: true });
     await db.collection("notifications").doc(u).collection("items").add({
       from: "teresa", text: "💬 Nova pergunta da semana!", date: fmtLabel(agora),
       read: false, tipo: "proposta", push: !!push,
@@ -194,12 +194,13 @@ async function lancarPedido(payload) {
   await Promise.all(targets.map(async u => {
     if (launchType === "auto") {
       await db.collection("userData").doc(u).set({
-        autoSaved: false, autoNewRound: false, dScores: {}, dNotas: {},
+        autoSaved: false, autoNewRound: false, dScores: {}, dNotas: {}, autoAskedAt: Date.now(),
         ...(prazo ? { autoNewRoundPrazo: prazo } : {}),
       }, { merge: true });
     } else if (FIELD[launchType]) {
       await db.collection("userData").doc(u).set({
-        [FIELD[launchType]]: false, ...(prazo ? { [FIELD[launchType] + "Prazo"]: prazo } : {}),
+        [FIELD[launchType]]: false, [FIELD[launchType] + "AskedAt"]: Date.now(),
+        ...(prazo ? { [FIELD[launchType] + "Prazo"]: prazo } : {}),
       }, { merge: true });
     }
     await db.collection("notifications").doc(u).collection("items").add({
