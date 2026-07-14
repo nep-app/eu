@@ -5,6 +5,7 @@ import { MTHS } from "../data.js";
 import HomeTodo from './home/HomeTodo.jsx';
 import HomeAgenda from './home/HomeAgenda.jsx';
 import HomeExtras from './home/HomeExtras.jsx';
+import HomeMissoes from './home/HomeMissoes.jsx';
 
 // Textos que correspondem a ações que já aparecem em Ações Pendentes
 const ACAO_PENDENTE_TEXTS = [
@@ -51,6 +52,9 @@ export default function HomeTab({ user, data, setTab, setDesafiosSubTab, setForu
 
   return (
     <div style={{ padding: "18px 16px", paddingBottom: "100px" }}>
+
+      {/* 0. MISSÃO ESPECIAL — sempre no topo */}
+      <HomeMissoes user={user} data={data} />
 
       {/* 1. VOTAÇÕES + AÇÕES PENDENTES + NOTIFICAÇÕES + A MINHA LISTA */}
       <HomeTodo

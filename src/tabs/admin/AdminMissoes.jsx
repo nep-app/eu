@@ -37,7 +37,7 @@ export default function AdminMissoes({ missions }) {
   return (
     <div>
       <div style={CARD}>
-        <div style={SL}>Lançar Missão Semanal</div>
+        <div style={SL}>Lançar Missão Especial</div>
         <input value={adminMissionTxt} onChange={e => setAdminMissionTxt(e.target.value)}
           placeholder="Descrição da missão..." style={INP} />
         <div style={{ display:"flex", gap:8, marginBottom:12 }}>
@@ -59,7 +59,7 @@ export default function AdminMissoes({ missions }) {
         </label>
         <Agendador
           tipo="missao"
-          rotuloJa="Lançar Missão 🎯"
+          rotuloJa="Lançar Missão Especial 🎯"
           publicarJa={addAdminMission}
           construirPayload={() => {
             if (!adminMissionTxt.trim()) { alert("Escreve a descrição da missão."); return null; }
