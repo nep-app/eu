@@ -32,6 +32,8 @@ export default function AdminMural() {
   const [rIcone, setRIcone] = useState("📄");
   const [rUrl, setRUrl] = useState("");
   const [rDesc, setRDesc] = useState("");
+  const [rFile, setRFile] = useState(null);      // ficheiro a carregar (PDF, etc.)
+  const [rTarget, setRTarget] = useState("all"); // "all" ou username de um jovem
   const [notificarRecurso, setNotificarRecurso] = useState(true);
   const [pushRecurso,      setPushRecurso]      = useState(false);
   const [enviandoR, setEnviandoR] = useState(false);
@@ -208,16 +210,31 @@ export default function AdminMural() {
 
   // ── ADICIONAR RECURSO ──
   async function adicionarRecurso() {
-    if (!rTitulo.trim() || !rUrl.trim()) return alert("Título e URL são obrigatórios.");
+    if (!rTitulo.trim()) return alert("O título é obrigatório.");
+    if (!rUrl.trim() && !rFile) return alert("Indica um URL ou escolhe um ficheiro para carregar.");
     setEnviandoR(true);
     try {
+      let url = rUrl.trim();
+      if (rFile) {
+        const fileRef = ref(storage, `recursos/${Date.now()}_${rFile.name}`);
+        await uploadBytes(fileRef, rFile);
+        url = await getDownloadURL(fileRef);
+      }
       await addDoc(collection(db, "recursos"), {
         titulo:rTitulo.trim(), icone:rIcone.trim()||"📄",
-        url:rUrl.trim(), desc:rDesc.trim(), ts:Date.now(), addedAt:nowFull()
+        url, desc:rDesc.trim(), target:rTarget, ts:Date.now(), addedAt:nowFull()
       });
-      if (notificarRecurso)
-        await notificarTodos(`📚 Novo recurso disponível: ${rTitulo.trim().substring(0,60)}`, null, pushRecurso);
-      setRTitulo(""); setRUrl(""); setRDesc(""); setRIcone("📄"); setPushRecurso(false);
+      if (notificarRecurso) {
+        const texto = `📚 Novo recurso disponível: ${rTitulo.trim().substring(0,60)}`;
+        if (rTarget === "all") {
+          await notificarTodos(texto, null, pushRecurso);
+        } else {
+          await addDoc(collection(db, "notifications", rTarget, "items"), {
+            from:"teresa", text:texto, date:nowFull(), read:false, ts:Date.now(), push:pushRecurso, tipo:"recurso",
+          });
+        }
+      }
+      setRTitulo(""); setRUrl(""); setRDesc(""); setRIcone("📄"); setPushRecurso(false); setRFile(null); setRTarget("all");
     } catch(e) { alert("Erro: " + e.message); }
     setEnviandoR(false);
   }
@@ -484,14 +501,30 @@ export default function AdminMural() {
                 placeholder="Título" style={{ ...INP, flex:1 }} />
             </div>
             <input value={rUrl} onChange={e => setRUrl(e.target.value)}
-              placeholder="URL (https://... ou ficheiro.html)" style={{ ...INP }} />
+              placeholder="URL (https://...) — ou carrega um ficheiro em baixo" style={{ ...INP }} />
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10, flexWrap:"wrap" }}>
+              <span style={{ fontSize:11, color:"#94a3b8", fontWeight:700 }}>📎 Ficheiro (PDF, imagem):</span>
+              <input type="file" accept="application/pdf,image/*"
+                onChange={e => setRFile(e.target.files?.[0] || null)}
+                style={{ fontSize:11, color:"#94a3b8", flex:1, minWidth:140 }} />
+            </div>
             <input value={rDesc} onChange={e => setRDesc(e.target.value)}
               placeholder="Descrição curta (opcional)" style={{ ...INP }} />
+            <div style={{ marginBottom:10 }}>
+              <div style={{ fontSize:11, color:CYN, fontWeight:800, marginBottom:5 }}>PARA QUEM:</div>
+              <select value={rTarget} onChange={e => setRTarget(e.target.value)}
+                style={{ width:"100%", padding:12, borderRadius:12, background:"rgba(0,0,0,0.3)", color:"white", border:"1px solid rgba(255,255,255,0.1)", fontSize:13 }}>
+                <option value="all">👥 Todos os jovens</option>
+                {JEEP_LIST.filter(j => ALLOWED_USERNAMES.includes(j.username) && j.username !== "demo").map(j =>
+                  <option key={j.username} value={j.username}>Só {j.name}</option>
+                )}
+              </select>
+            </div>
             <div style={{ display:"flex", flexDirection:"column", gap:6, marginTop:4, marginBottom:10 }}>
               <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer" }}>
                 <input type="checkbox" checked={notificarRecurso} onChange={() => setNotificarRecurso(v => !v)}
                   style={{ accentColor:CYN, width:14, height:14 }} />
-                Notificar todos os jovens
+                {rTarget === "all" ? "Notificar todos os jovens" : "Notificar o destinatário"}
               </label>
               {notificarRecurso && (
                 <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:11, color:"#94a3b8", cursor:"pointer", marginLeft:21 }}>
@@ -544,6 +577,11 @@ export default function AdminMural() {
                   <span style={{ fontSize:22, flexShrink:0 }}>{r.icone||"📄"}</span>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontSize:14, fontWeight:800, color:"#f1f5f9", marginBottom:2 }}>{r.titulo}</div>
+                    {r.target && r.target !== "all" && (
+                      <div style={{ display:"inline-block", fontSize:10, fontWeight:800, color:PNK, background:"rgba(236,72,153,0.12)", border:"1px solid rgba(236,72,153,0.3)", borderRadius:8, padding:"2px 7px", marginBottom:4 }}>
+                        🔒 Só para {JEEP_LIST.find(j => j.username === r.target)?.name || r.target}
+                      </div>
+                    )}
                     {r.desc && <div style={{ fontSize:12, color:"#94a3b8", marginBottom:4 }}>{r.desc}</div>}
                     <div style={{ fontSize:11, color:`${CYN}90`, wordBreak:"break-all" }}>{r.url}</div>
                   </div>

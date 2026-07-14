@@ -90,10 +90,13 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
 
   useEffect(() => {
     return onSnapshot(collection(db, "recursos"), snap => {
-      const fromDb = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+      const fromDb = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        // Recursos com destinatário específico só aparecem a esse jovem (e ao admin).
+        .filter(r => !r.target || r.target === "all" || r.target === user.username || isAdmin(user))
+        .sort((a, b) => (a.ts || 0) - (b.ts || 0));
       setRecursos([...RECURSOS_FIXOS, ...fromDb]);
     });
-  }, []);
+  }, [user.username]);
 
   const canalInfo = CHANNELS.find(c => c.id === canalAtivo);
   const adminOnlyLocked = canalInfo?.adminOnly && !isAdmin(user);
