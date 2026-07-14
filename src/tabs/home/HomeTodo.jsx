@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { doc, setDoc, addDoc, collection, deleteDoc, updateDoc, getDocs } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, SL, CYN, PNK, INP, PS, TXT_MUT } from "../../theme.jsx";
+import { CARD, SL, CYN, PNK, INP, PS, TXT_MUT, Linkify } from "../../theme.jsx";
 import { nowLabel, fmtDate, isOverdue, TASK_TYPES, CHANNELS } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
 import HomeVotacoes from "./HomeVotacoes.jsx";
@@ -279,7 +279,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                     // n.sobre field (forum reactions/comments)
                     if (n.sobre) return (
                       <>
-                        <div style={{ fontSize:13, color:"#f1f5f9", lineHeight:1.5 }}>{n.text}</div>
+                        <div style={{ fontSize:13, color:"#f1f5f9", lineHeight:1.5 }}><Linkify>{n.text}</Linkify></div>
                         <div style={{ fontSize:11, color:"#94a3b8", fontStyle:"italic", paddingLeft:8, borderLeft:"2px solid rgba(255,255,255,0.1)", marginTop:5, lineHeight:1.4 }}>"{n.sobre}"</div>
                       </>
                     );
@@ -289,11 +289,11 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                       if (ci < 90) return (
                         <>
                           <div style={{ fontSize:11, color:"#94a3b8", marginBottom:4 }}>{n.text.substring(0, ci)}</div>
-                          <div style={{ fontSize:13, color:"#f1f5f9", fontWeight:600, lineHeight:1.5 }}>{n.text.substring(ci + 2)}</div>
+                          <div style={{ fontSize:13, color:"#f1f5f9", fontWeight:600, lineHeight:1.5 }}><Linkify>{n.text.substring(ci + 2)}</Linkify></div>
                         </>
                       );
                     }
-                    return <div style={{ fontSize:13, lineHeight:1.5, color:"#f1f5f9" }}>{n.text}</div>;
+                    return <div style={{ fontSize:13, lineHeight:1.5, color:"#f1f5f9" }}><Linkify>{n.text}</Linkify></div>;
                   })()}
                   <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:3 }}>
                     {(n.date || n.ts) && (

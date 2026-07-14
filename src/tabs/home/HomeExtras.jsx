@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { doc, setDoc, addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, SL, CYN, BLUE, PNK, YLW, INP, Btn, TXT_MUT, GRN } from "../../theme.jsx";
+import { CARD, SL, CYN, BLUE, PNK, YLW, INP, Btn, TXT_MUT, GRN, Linkify } from "../../theme.jsx";
 import { nowFull, getWeekKey, fmtDate, isOverdue, SPECIAL_USERS } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
 
@@ -111,7 +111,7 @@ export default function HomeExtras({ user, data, setTab }) {
                   <div style={{ fontSize:13, fontWeight:600,
                     color: concluida ? "#64748b" : (light ? "#0f172a" : "#f1f5f9"),
                     textDecoration: concluida ? "line-through" : "none" }}>
-                    {missao.text}
+                    <Linkify>{missao.text}</Linkify>
                   </div>
                   {missao.prazo && !concluida && (
                     <div style={{ fontSize:10, fontWeight:800, marginTop:2,

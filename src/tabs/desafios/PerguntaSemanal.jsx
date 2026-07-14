@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { doc, setDoc, getDoc, updateDoc, increment, arrayUnion, addDoc, collection } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
-import { CARD, SL, CYN, INP, Btn, PNK } from "../../theme.jsx";
+import { CARD, SL, CYN, INP, Btn, PNK, Linkify } from "../../theme.jsx";
 import { nowFull, fmtDate, isOverdue } from "../../data.js";
 
 export default function PerguntaSemanal({ user, data }) {
@@ -131,7 +131,7 @@ export default function PerguntaSemanal({ user, data }) {
         {perguntaDB.prazo && <div style={{ fontSize:10, fontWeight:800, color: isOverdue(perguntaDB.prazo) ? "#f43f5e" : "#fbbf24" }}>⏰ Até {fmtDate(perguntaDB.prazo)}</div>}
       </div>
       <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 20, padding: "15px", background: "rgba(0,0,0,0.3)", borderRadius: 16, borderLeft: `4px solid ${CYN}` }}>
-        {perguntaDB.text}
+        <Linkify>{perguntaDB.text}</Linkify>
       </div>
 
       {opcoesBotao.length === 0 && modosAtivos.length > 1 && (

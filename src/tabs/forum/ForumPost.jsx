@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { doc, updateDoc, deleteDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
-import { CARD, CYN, INP, TXT_MUT, PRP } from "../../theme.jsx";
+import { CARD, CYN, INP, TXT_MUT, PRP, Linkify } from "../../theme.jsx";
 import { nowFull, FORUM_REACTIONS, ALL_MEDALS, JEEP_LIST } from "../../data.js";
 
 export default function ForumPost({ post, user, canalAtivo, forumCollection = "forum", authorMedals = [], mencaoNotif = null }) {
@@ -190,7 +190,7 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
             </div>
           ) : (
             <div style={{ fontSize:14, color:"#e2e8f0", lineHeight:1.6, whiteSpace:"pre-wrap", marginBottom:post.media ? 10 : 0 }}>
-              {post.text}
+              <Linkify>{post.text}</Linkify>
             </div>
           )}
 
@@ -288,7 +288,7 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
                 </div>
               ) : (
                 <>
-                  <div style={{ fontSize:13, color:"#cbd5e1", lineHeight:1.5 }}>{reply.text}</div>
+                  <div style={{ fontSize:13, color:"#cbd5e1", lineHeight:1.5 }}><Linkify>{reply.text}</Linkify></div>
                   <div style={{ display:"flex", alignItems:"center", gap:10, marginTop:6 }}>
                     <button onClick={() => handleReagirReply(reply.id)} style={{
                       background:"none", border:"none", cursor:"pointer", padding:0,

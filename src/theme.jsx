@@ -150,6 +150,28 @@ export const INP = {
   display: "block",
 };
 
+// ── LINKS CLICÁVEIS ────────────────────────────────────────────────────────────
+// Recebe texto e devolve o mesmo texto mas com os links (http/https/www)
+// transformados em <a> clicáveis, que abrem numa nova aba.
+export function Linkify({ children, color = CYN }) {
+  const texto = typeof children === "string" ? children : "";
+  if (!texto) return children || null;
+  const partes = texto.split(/(https?:\/\/[^\s]+|www\.[^\s]+)/gi);
+  return partes.map((p, i) => {
+    if (/^(https?:\/\/|www\.)/i.test(p)) {
+      const href = /^https?:\/\//i.test(p) ? p : "https://" + p;
+      return (
+        <a key={i} href={href} target="_blank" rel="noopener noreferrer"
+          onClick={e => e.stopPropagation()}
+          style={{ color, textDecoration: "underline", wordBreak: "break-word" }}>
+          {p}
+        </a>
+      );
+    }
+    return p;
+  });
+}
+
 // ── STATUS CONFIGS ─────────────────────────────────────────────────────────────
 export const PS = {
   urgent:  { dot:"#f43f5e", bg:"rgba(244,63,94,0.10)",  badge:"URGENTE",  bc:"#f43f5e", bl:"rgba(244,63,94,0.30)" },
