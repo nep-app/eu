@@ -244,6 +244,22 @@ export default function AdminMural() {
       await deleteDoc(doc(db, "recursos", id));
   }
 
+  // Reordenar recursos: troca o 'ts' com o recurso vizinho (a lista ordena
+  // por ts decrescente, por isso trocar o ts troca as posições).
+  async function moverRecurso(r, dir) {
+    const i = recursos.findIndex(x => x.id === r.id);
+    const j = dir === "up" ? i - 1 : i + 1;
+    if (i < 0 || j < 0 || j >= recursos.length) return;
+    const outro = recursos[j];
+    const tsA = r.ts || 0, tsB = outro.ts || 0;
+    // Se tiverem o mesmo ts, dá um pequeno desvio para garantir a troca.
+    const novoA = tsB === tsA ? tsA + (dir === "up" ? 1 : -1) : tsB;
+    await Promise.all([
+      updateDoc(doc(db, "recursos", r.id), { ts: novoA }),
+      updateDoc(doc(db, "recursos", outro.id), { ts: tsA }),
+    ]);
+  }
+
   async function guardarEdicaoRecurso(id) {
     if (!editRDraft.titulo?.trim() || !editRDraft.url?.trim()) return alert("Título e URL são obrigatórios.");
     try {
@@ -585,15 +601,27 @@ export default function AdminMural() {
                     {r.desc && <div style={{ fontSize:12, color:"#94a3b8", marginBottom:4 }}>{r.desc}</div>}
                     <div style={{ fontSize:11, color:`${CYN}90`, wordBreak:"break-all" }}>{r.url}</div>
                   </div>
-                  <div style={{ display:"flex", gap:6, flexShrink:0 }}>
-                    <button onClick={() => { setEditRDraft({ titulo:r.titulo, icone:r.icone||"📄", url:r.url, desc:r.desc||"" }); setEditandoR(r.id); }} style={{
-                      background:"rgba(255,255,255,0.06)", border:"none", color:"#94a3b8",
-                      borderRadius:10, padding:"6px 10px", cursor:"pointer", fontSize:12
-                    }}>✏️</button>
-                    <button onClick={() => eliminarRecurso(r.id)} style={{
-                      background:"rgba(244,63,94,0.10)", border:"none", color:PNK,
-                      borderRadius:10, padding:"6px 10px", cursor:"pointer", fontSize:12
-                    }}>🗑️</button>
+                  <div style={{ display:"flex", flexDirection:"column", gap:4, flexShrink:0 }}>
+                    <div style={{ display:"flex", gap:4 }}>
+                      <button onClick={() => moverRecurso(r, "up")} title="Subir" style={{
+                        background:"rgba(255,255,255,0.06)", border:"none", color:"#94a3b8",
+                        borderRadius:8, padding:"4px 9px", cursor:"pointer", fontSize:12
+                      }}>▲</button>
+                      <button onClick={() => moverRecurso(r, "down")} title="Descer" style={{
+                        background:"rgba(255,255,255,0.06)", border:"none", color:"#94a3b8",
+                        borderRadius:8, padding:"4px 9px", cursor:"pointer", fontSize:12
+                      }}>▼</button>
+                    </div>
+                    <div style={{ display:"flex", gap:4 }}>
+                      <button onClick={() => { setEditRDraft({ titulo:r.titulo, icone:r.icone||"📄", url:r.url, desc:r.desc||"" }); setEditandoR(r.id); }} style={{
+                        background:"rgba(255,255,255,0.06)", border:"none", color:"#94a3b8",
+                        borderRadius:8, padding:"4px 9px", cursor:"pointer", fontSize:12
+                      }}>✏️</button>
+                      <button onClick={() => eliminarRecurso(r.id)} style={{
+                        background:"rgba(244,63,94,0.10)", border:"none", color:PNK,
+                        borderRadius:8, padding:"4px 9px", cursor:"pointer", fontSize:12
+                      }}>🗑️</button>
+                    </div>
                   </div>
                 </div>
               )}
