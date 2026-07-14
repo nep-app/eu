@@ -290,7 +290,7 @@ exports.processarAgendados = onSchedule(
     // precisar de índice composto no Firestore.
     const snap = await db.collection("agendados").where("done", "==", false).get();
     const devidos = snap.docs.filter(d => (d.data().publishAt || 0) <= agora);
-    logger.info("processarAgendados", { pendentes: snap.size, aPublicar: devidos.length });
+    logger.info("processarAgendados a correr", { pendentes: snap.size, aPublicar: devidos.length, agora });
 
     for (const docSnap of devidos) {
       const a = docSnap.data();
