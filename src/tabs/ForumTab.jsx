@@ -17,7 +17,8 @@ const CHANNEL_COLORS = {
 };
 
 const RECURSOS_FIXOS = [
-  { id:"__arcade", icone:"🎮", titulo:"Arcade EDUCA+", url:"/eu/jogos/arcade-educa.html", desc:"Três jogos para dinamizar sessões: Aproxima ou Afasta, Tabu e Construtor de Projeto. Funciona offline." },
+  // Arcade EDUCA+ escondido por agora (o ficheiro continua em public/jogos/).
+  // { id:"__arcade", icone:"🎮", titulo:"Arcade EDUCA+", url:"/eu/jogos/arcade-educa.html", desc:"Três jogos para dinamizar sessões: Aproxima ou Afasta, Tabu e Construtor de Projeto. Funciona offline." },
   { id:"__bem-estar", icone:"📱", titulo:"Guia Bem-estar Digital", url:"/eu/bem-estar-digital.html", desc:"Conceitos, hábitos e ferramentas para uma relação saudável com o digital" },
   {
     id:"__fdr",
@@ -93,8 +94,9 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
       const fromDb = snap.docs.map(d => ({ id: d.id, ...d.data() }))
         // Recursos com destinatário específico só aparecem a esse jovem (e ao admin).
         .filter(r => !r.target || r.target === "all" || r.target === user.username || isAdmin(user))
-        .sort((a, b) => (a.ts || 0) - (b.ts || 0));
-      setRecursos([...RECURSOS_FIXOS, ...fromDb]);
+        .sort((a, b) => (b.ts || 0) - (a.ts || 0)); // mais recente primeiro
+      // Os recursos adicionados (mais recentes no topo) antes dos guias fixos.
+      setRecursos([...fromDb, ...RECURSOS_FIXOS]);
     });
   }, [user.username]);
 

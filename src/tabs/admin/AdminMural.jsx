@@ -48,7 +48,7 @@ export default function AdminMural() {
 
   useEffect(() => {
     return onSnapshot(collection(db, "recursos"), snap =>
-      setRecursos(snap.docs.map(d => ({ id:d.id, ...d.data() })).sort((a,b) => (a.ts||0)-(b.ts||0)))
+      setRecursos(snap.docs.map(d => ({ id:d.id, ...d.data() })).sort((a,b) => (b.ts||0)-(a.ts||0)))
     );
   }, []);
 
