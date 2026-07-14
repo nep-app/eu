@@ -272,11 +272,18 @@ function getWeekKey(d) {
 
 // tipo "missao" — cria uma missão semanal (como AdminMissoes.addAdminMission)
 async function publicarMissao(payload) {
-  const { text, xp = 10, prazo = null } = payload || {};
+  const { text, xp = 10, prazo = null, push = false } = payload || {};
   if (!text) return;
   await db.collection("missions").add({
     text, xp, week: getWeekKey(new Date()), prazo,
   });
+  const agora = new Date();
+  await Promise.all(ALLOWED.map(u =>
+    db.collection("notifications").doc(u).collection("items").add({
+      from: "teresa", text: `🎯 Nova missão: ${text} (+${xp} XP)`,
+      date: fmtFull(agora), read: false, ts: Date.now(), push: !!push,
+    })
+  ));
 }
 
 // Função agendada (2ª geração): corre de 30 em 30 min e publica o que

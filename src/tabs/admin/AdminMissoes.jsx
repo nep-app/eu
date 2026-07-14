@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { collection, addDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, INP, Btn } from "../../theme.jsx";
-import { getWeekKey, fmtDate } from "../../data.js";
+import { getWeekKey, fmtDate, nowFull, ALLOWED_USERNAMES } from "../../data.js";
 import Agendador from "./Agendador.jsx";
 
 export default function AdminMissoes({ missions }) {
   const [adminMissionTxt, setAdminMissionTxt] = useState("");
   const [adminMissionXp,  setAdminMissionXp]  = useState(10);
   const [adminMissionPrazo, setAdminMissionPrazo] = useState("");
+  const [pushMissao, setPushMissao] = useState(false);
 
   async function addAdminMission() {
     if (!adminMissionTxt.trim()) return;
@@ -18,7 +19,14 @@ export default function AdminMissoes({ missions }) {
       week: getWeekKey(),
       prazo: adminMissionPrazo || null,
     });
-    setAdminMissionTxt(""); setAdminMissionPrazo("");
+    // Avisar os jovens (com push opcional).
+    await Promise.all(ALLOWED_USERNAMES.map(u =>
+      addDoc(collection(db, "notifications", u, "items"), {
+        from: "teresa", text: `🎯 Nova missão: ${adminMissionTxt.trim()} (+${adminMissionXp} XP)`,
+        date: nowFull(), read: false, ts: Date.now(), push: pushMissao,
+      })
+    ));
+    setAdminMissionTxt(""); setAdminMissionPrazo(""); setPushMissao(false);
     alert("Missão lançada!");
   }
 
@@ -44,16 +52,21 @@ export default function AdminMissoes({ missions }) {
               style={{ ...INP, marginBottom:0 }} />
           </div>
         </div>
+        <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom:12 }}>
+          <input type="checkbox" checked={pushMissao} onChange={() => setPushMissao(v => !v)}
+            style={{ accentColor:CYN, width:14, height:14 }} />
+          🔔 Enviar também como notificação push
+        </label>
         <Agendador
           tipo="missao"
           rotuloJa="Lançar Missão 🎯"
           publicarJa={addAdminMission}
           construirPayload={() => {
             if (!adminMissionTxt.trim()) { alert("Escreve a descrição da missão."); return null; }
-            return { text: adminMissionTxt.trim(), xp: adminMissionXp, prazo: adminMissionPrazo || null };
+            return { text: adminMissionTxt.trim(), xp: adminMissionXp, prazo: adminMissionPrazo || null, push: pushMissao };
           }}
           rotuloItem={p => `🎯 ${p.text} (${p.xp} XP)`}
-          onAgendado={() => { setAdminMissionTxt(""); setAdminMissionPrazo(""); }}
+          onAgendado={() => { setAdminMissionTxt(""); setAdminMissionPrazo(""); setPushMissao(false); }}
         />
       </div>
 
