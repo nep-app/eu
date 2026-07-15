@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot } from "firebase/firestore";
+import { collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot, getDocs } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, GRN, INP, Btn } from "../../theme.jsx";
 import { JEEP_LIST } from "../../data.js";
@@ -118,6 +118,24 @@ export default function AdminVotacoes() {
       await deleteDoc(doc(db, "polls", id));
   }
 
+  // Apaga as notificações do resultado desta votação que já foram para os
+  // jovens (por pollId ou, para as antigas sem pollId, pelo título).
+  async function apagarNotificacoesResultado(poll) {
+    if (!window.confirm(`Apagar as notificações do resultado de "${poll.title}" da app de todos os jovens?`)) return;
+    const targets = poll.targetUsers?.length > 0 ? poll.targetUsers : JEEP_8.map(j => j.username);
+    let apagadas = 0;
+    await Promise.all(targets.map(async u => {
+      const snap = await getDocs(collection(db, "notifications", u, "items"));
+      await Promise.all(snap.docs.map(async d => {
+        const n = d.data();
+        const match = n.from === "sistema" &&
+          (n.pollId === poll.id || (n.text && poll.title && n.text.includes(poll.title)));
+        if (match) { await deleteDoc(doc(db, "notifications", u, "items", d.id)); apagadas++; }
+      }));
+    }));
+    alert(`${apagadas} notificação(ões) do resultado apagada(s).`);
+  }
+
   async function fecharVotacao(id, estadoAtual) {
     await updateDoc(doc(db, "polls", id), { active: !estadoAtual });
 
@@ -149,15 +167,22 @@ export default function AdminVotacoes() {
         ? poll.targetUsers
         : JEEP_8.map(j => j.username);
 
-      // Notificação para todos os destinatários
+      // Escolher se os jovens recebem a notificação do resultado.
+      const notificar = window.confirm(
+        `Votação "${poll.title}" fechada.\n\nEnviar a notificação do resultado aos jovens?\n\nOK = enviar   ·   Cancelar = NÃO enviar`
+      );
+
+      // Notificação para todos os destinatários (só se escolheste enviar).
       const isDoodleResult = poll.type === "data" && !empate && totalVotos > 0;
-      await Promise.all(targets.map(u =>
-        addDoc(collection(db, "notifications", u, "items"), {
-          from: "sistema", text: texto, read: false, ts: Date.now(),
-          date: new Date().toLocaleString("pt-PT", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }),
-          ...(isDoodleResult ? { tipo: "doodle_resultado" } : {})
-        })
-      ));
+      if (notificar) {
+        await Promise.all(targets.map(u =>
+          addDoc(collection(db, "notifications", u, "items"), {
+            from: "sistema", text: texto, read: false, ts: Date.now(), pollId: poll.id,
+            date: new Date().toLocaleString("pt-PT", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }),
+            ...(isDoodleResult ? { tipo: "doodle_resultado" } : {})
+          })
+        ));
+      }
 
       // Para Doodle com vencedor claro, criar UM único evento de grupo
       if (poll.type === "data" && !empate && totalVotos > 0) {
@@ -338,6 +363,10 @@ export default function AdminVotacoes() {
                     background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)",
                     color:"#fff", borderRadius:8, padding:"4px 10px", fontSize:11, cursor:"pointer", fontWeight:700,
                   }}>{poll.active ? "Fechar" : "Reabrir"}</button>
+                  <button onClick={() => apagarNotificacoesResultado(poll)} title="Apagar as notificações do resultado da app dos jovens" style={{
+                    background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.3)",
+                    color:"#fbbf24", borderRadius:8, padding:"4px 10px", fontSize:11, cursor:"pointer", fontWeight:700,
+                  }}>🔕 Limpar notif.</button>
                   <button onClick={() => apagarVotacao(poll.id)} style={{
                     background:"rgba(244,63,94,0.1)", border:"none", color:"#f43f5e",
                     borderRadius:8, padding:"4px 8px", fontSize:14, cursor:"pointer",
