@@ -14,7 +14,7 @@ export default function HomeMissoes({ user, data }) {
   const uData             = data.userData || {};
   const listaMissoes      = data.missions || [];
   const missoesConcluidas = data.completedMissions || [];
-  const missoesSemana     = listaMissoes.filter(m => m.week === getWeekKey());
+  const missoesSemana     = listaMissoes.filter(m => m.week === getWeekKey() && !m.encerrada);
   const missoesDone       = missoesSemana.filter(m => missoesConcluidas.includes(m.id)).length;
 
   function getDayStreakUpdate() {

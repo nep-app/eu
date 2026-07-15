@@ -454,7 +454,7 @@ export default function AdminPrograma({ allShared, events, missions, activeQ }) 
       {sub === "autoav"   && <AutoavAdmin allShared={allShared} />}
       {sub === "dilemas"  && <AdminQuizzes allShared={allShared} />}
       {sub === "votacoes" && <AdminVotacoes />}
-      {sub === "missoes"  && <AdminMissoes missions={missions} />}
+      {sub === "missoes"  && <AdminMissoes missions={missions} allShared={allShared} />}
       {sub === "agenda"   && <AdminAgenda events={events} />}
       {sub === "tarefas"  && <AdminTarefas />}
     </div>
