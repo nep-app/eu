@@ -44,10 +44,11 @@ export function getWeekKey() {
   return d.getFullYear()+"-W"+wk;
 }
 
-export function buildAutoavEntry(uData) {
+export function buildAutoavEntry(uData, ciclo) {
   return {
     week: getWeekKey(), date: nowLabel(), ts: Date.now(),
     scores: uData.dScores || {}, notas: uData.dNotas || {},
+    ...(ciclo && ciclo.id != null ? { ciclo: ciclo.id, cicloLabel: ciclo.label } : {}),
   };
 }
 

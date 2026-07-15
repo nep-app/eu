@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { doc, setDoc, addDoc, collection, updateDoc, onSnapshot, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, setDoc, addDoc, collection, updateDoc, onSnapshot, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, Btn, INP, PNK } from "../../theme.jsx";
 import { nowLabel, nowFull, fmtDate, getWeekKey, buildAutoavEntry, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
@@ -50,12 +50,22 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
     const targets = launchTarget === "all" ? ALLOWED_USERNAMES : [launchTarget];
     const isReminder = launchType === "lembreteGeral";
     const notifData = { from:"teresa", text:msg, date:nowFull(), read:false, ts:Date.now(), push:pushLaunch, ...(!isReminder ? { tipo:"proposta" } : {}), ...(launchPrazo ? { prazo:launchPrazo } : {}) };
+
+    // Autoavaliação: abre um NOVO ciclo (do lançamento ao próximo fecho).
+    // O que ficar por arquivar do ciclo anterior é guardado com o ciclo antigo.
+    let cicloAntigo = null;
+    if (launchType === "auto") {
+      const snap = await getDoc(doc(db, "config", "autoCiclo"));
+      cicloAntigo = snap.exists() ? snap.data() : null;
+      await setDoc(doc(db, "config", "autoCiclo"), { id: Date.now(), label: nowLabel() });
+    }
+
     await Promise.all(targets.map(async u => {
       if (launchType === "auto") {
         const uData = allShared[u] || {};
         const writes = [];
         if (uData.autoSaved || Object.keys(uData.dScores || {}).length > 0) {
-          writes.push(updateDoc(doc(db, "userData", u), { autoAvaliacaoHistorico: arrayUnion(buildAutoavEntry(uData)) }));
+          writes.push(updateDoc(doc(db, "userData", u), { autoAvaliacaoHistorico: arrayUnion(buildAutoavEntry(uData, cicloAntigo)) }));
         }
         writes.push(setDoc(doc(db, "userData", u), {
           autoSaved: false, autoNewRound: false, dScores: {}, dNotas: {}, autoAskedAt: Date.now(),

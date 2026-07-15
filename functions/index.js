@@ -191,6 +191,10 @@ async function lancarPedido(payload) {
   const targets = launchTarget === "all" ? ALLOWED : [launchTarget];
   const isReminder = launchType === "lembreteGeral";
   const agora = new Date();
+  // Autoavaliação agendada: abre um novo ciclo (para agrupar por ronda).
+  if (launchType === "auto") {
+    await db.collection("config").doc("autoCiclo").set({ id: Date.now(), label: fmtLabel(agora) });
+  }
   await Promise.all(targets.map(async u => {
     if (launchType === "auto") {
       await db.collection("userData").doc(u).set({

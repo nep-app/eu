@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { doc, setDoc, updateDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, CYN, INP, Btn } from "../../theme.jsx";
 import { scoreLabel, getDimDesc, DIMS, nowLabel, getWeekKey } from "../../data.js";
@@ -29,10 +29,13 @@ export default function AutoAvaliacao({ user, data }) {
       await setDoc(doc(db, "userData", user.username), {
         autoSaved: true, autoDate: date, autoNewRound: false, history: newHistory, weekXp: increment(30)
       }, { merge: true });
+      const cicloSnap = await getDoc(doc(db, "config", "autoCiclo"));
+      const ciclo = cicloSnap.exists() ? cicloSnap.data() : null;
       await updateDoc(doc(db, "userData", user.username), {
         autoAvaliacaoHistorico: arrayUnion({
           week: getWeekKey(), scores: uData.dScores || {},
-          notas: uData.dNotas || {}, date, ts: Date.now()
+          notas: uData.dNotas || {}, date, ts: Date.now(),
+          ...(ciclo && ciclo.id != null ? { ciclo: ciclo.id, cicloLabel: ciclo.label } : {}),
         })
       });
 

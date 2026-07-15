@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { doc, setDoc, addDoc, collection, onSnapshot, query, orderBy, updateDoc, arrayUnion, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, addDoc, collection, onSnapshot, query, orderBy, updateDoc, arrayUnion, deleteDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP, PRP } from "../../theme.jsx";
 import { ALLOWED_USERNAMES, JEEP_LIST, DIMS, nowLabel, nowFull, getWeekKey, buildAutoavEntry } from "../../data.js";
@@ -313,10 +313,13 @@ function AutoavAdmin({ allShared }) {
     const map = {};
     JEEP_8.forEach(j => {
       (allShared[j.username]?.autoAvaliacaoHistorico || []).forEach(entry => {
-        if (!map[entry.week]) map[entry.week] = { week: entry.week, users: {}, maxTs: 0 };
-        map[entry.week].users[j.username] = entry;
+        // Agrupar por ciclo (do lançamento ao fecho). Entradas antigas sem
+        // ciclo caem no agrupamento por semana, como dantes.
+        const chave = entry.ciclo != null ? "c" + entry.ciclo : "w:" + entry.week;
+        if (!map[chave]) map[chave] = { chave, label: entry.cicloLabel || entry.date || entry.week, users: {}, maxTs: 0 };
+        map[chave].users[j.username] = entry;
         const ts = entry.ts || 0;
-        if (ts > map[entry.week].maxTs) { map[entry.week].maxTs = ts; map[entry.week].date = entry.date; }
+        if (ts > map[chave].maxTs) { map[chave].maxTs = ts; map[chave].date = entry.date; }
       });
     });
     return Object.values(map).sort((a, b) => b.maxTs - a.maxTs);
@@ -325,11 +328,13 @@ function AutoavAdmin({ allShared }) {
   async function arquivarRondaAtual() {
     if (!window.confirm("Arquivar o estado atual de todas as autoavaliações? Útil para guardar a ronda atual antes de lançares uma nova.")) return;
     setGuardando(true);
+    const snap = await getDoc(doc(db, "config", "autoCiclo"));
+    const ciclo = snap.exists() ? snap.data() : null;
     await Promise.all(JEEP_8.map(j => {
       const uData = allShared[j.username] || {};
       const { dScores = {} } = uData;
       if (Object.keys(dScores).length === 0) return Promise.resolve();
-      return updateDoc(doc(db, "userData", j.username), { autoAvaliacaoHistorico: arrayUnion(buildAutoavEntry(uData)) });
+      return updateDoc(doc(db, "userData", j.username), { autoAvaliacaoHistorico: arrayUnion(buildAutoavEntry(uData, ciclo)) });
     }));
     setGuardando(false);
     alert("Ronda arquivada!");
@@ -397,16 +402,16 @@ function AutoavAdmin({ allShared }) {
           {rondasAntigas.map(ronda => {
             const entregaram = Object.keys(ronda.users).length;
             return (
-              <div key={ronda.week} style={{ marginBottom:8, borderRadius:12, overflow:"hidden", border:"1px solid rgba(255,255,255,0.07)" }}>
-                <button onClick={() => setHistOpen(histOpen === ronda.week ? null : ronda.week)} style={{
+              <div key={ronda.chave} style={{ marginBottom:8, borderRadius:12, overflow:"hidden", border:"1px solid rgba(255,255,255,0.07)" }}>
+                <button onClick={() => setHistOpen(histOpen === ronda.chave ? null : ronda.chave)} style={{
                   width:"100%", textAlign:"left", background:"rgba(0,0,0,0.25)", border:"none",
                   color:"#e2e8f0", padding:"12px 14px", cursor:"pointer",
                   display:"flex", justifyContent:"space-between", alignItems:"center",
                 }}>
-                  <span style={{ fontSize:13, fontWeight:700 }}>Semana {ronda.week}</span>
-                  <span style={{ fontSize:10, color:"#475569" }}>{ronda.date} · {entregaram}/{JEEP_8.length} entregaram {histOpen === ronda.week ? "▲" : "▼"}</span>
+                  <span style={{ fontSize:13, fontWeight:700 }}>Ronda · {ronda.label}</span>
+                  <span style={{ fontSize:10, color:"#475569" }}>{ronda.date} · {entregaram}/{JEEP_8.length} entregaram {histOpen === ronda.chave ? "▲" : "▼"}</span>
                 </button>
-                {histOpen === ronda.week && (
+                {histOpen === ronda.chave && (
                   <div style={{ background:"rgba(0,0,0,0.15)", padding:"10px 14px" }}>
                     {JEEP_8.map(j => {
                       const entry = ronda.users[j.username];
