@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot, getDocs } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, GRN, INP, Btn } from "../../theme.jsx";
-import { JEEP_LIST } from "../../data.js";
+import { JEEP_LIST, nowFull } from "../../data.js";
 import Agendador from "./Agendador.jsx";
 
 const JEEP_8 = JEEP_LIST.filter(j => !["ricardo","demo"].includes(j.username));
@@ -44,6 +44,7 @@ export default function AdminVotacoes() {
   const [opcoesDatas, setOpcoesDatas] = useState([{date:"",time:""},{date:"",time:""}]);
   const [targetUsers, setTargetUsers] = useState(JEEP_8.map(j => j.username));
   const [saving, setSaving] = useState(false);
+  const [pushVotacao, setPushVotacao] = useState(false);
   const [editId, setEditId] = useState(null);
   const [editTitulo, setEditTitulo] = useState("");
   const [editOpcoes, setEditOpcoes] = useState([]);
@@ -81,10 +82,18 @@ export default function AdminVotacoes() {
         demo: false,
         targetUsers: targetUsers.length === JEEP_8.length ? [] : targetUsers,
       });
+      // Avisar os jovens da nova votação (com push opcional).
+      const notifTargets = targetUsers.length ? targetUsers : JEEP_8.map(j => j.username);
+      await Promise.all(notifTargets.map(u =>
+        addDoc(collection(db, "notifications", u, "items"), {
+          from:"teresa", text:`🗳️ Nova votação: ${titulo.trim()}`, date:nowFull(), read:false, ts:Date.now(), push:pushVotacao,
+        })
+      ));
       setTitulo("");
       setOpcoes(["", ""]);
       setOpcoesDatas([{date:"",time:""},{date:"",time:""}]);
       setTargetUsers(JEEP_8.map(j => j.username));
+      setPushVotacao(false);
     } catch(e) {
       alert("Erro ao criar votação: " + e.message);
     } finally {
@@ -310,6 +319,12 @@ export default function AdminVotacoes() {
           )}
         </div>
 
+        <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom:12 }}>
+          <input type="checkbox" checked={pushVotacao} onChange={() => setPushVotacao(v => !v)}
+            style={{ accentColor:CYN, width:14, height:14 }} />
+          🔔 Enviar também como notificação push
+        </label>
+
         <Agendador
           tipo="votacao"
           rotuloJa={saving ? "A criar..." : "LANÇAR VOTAÇÃO 🗳️"}
@@ -323,13 +338,14 @@ export default function AdminVotacoes() {
             return {
               title: titulo, type: tipo, options: opcoesFinais,
               targetUsers: targetUsers.length === JEEP_8.length ? [] : targetUsers,
+              push: pushVotacao,
             };
           }}
           rotuloItem={p => `🗳️ ${p.title}`}
           onAgendado={() => {
             setTitulo(""); setOpcoes(["", ""]);
             setOpcoesDatas([{date:"",time:""},{date:"",time:""}]);
-            setTargetUsers(JEEP_8.map(j => j.username));
+            setTargetUsers(JEEP_8.map(j => j.username)); setPushVotacao(false);
           }}
         />
       </div>

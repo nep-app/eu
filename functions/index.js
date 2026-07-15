@@ -260,13 +260,22 @@ async function publicarDilema(payload) {
 
 // tipo "votacao" — cria uma votação/poll (como AdminVotacoes.criarVotacao)
 async function publicarVotacao(payload) {
-  const { title, type = "opcao", options = [], targetUsers = [] } = payload || {};
+  const { title, type = "opcao", options = [], targetUsers = [], push = false } = payload || {};
   if (!title || options.length < 2) return;
   const votes = {};
   options.forEach(op => { votes[op] = []; });
   await db.collection("polls").add({
     title, type, options, votes, active: true, ts: Date.now(), demo: false, targetUsers,
   });
+  // Avisar os jovens (com push opcional).
+  const alvos = targetUsers.length ? targetUsers : JOVENS;
+  const agora = new Date();
+  await Promise.all(alvos.map(u =>
+    db.collection("notifications").doc(u).collection("items").add({
+      from: "teresa", text: `🗳️ Nova votação: ${title}`,
+      date: fmtFull(agora), read: false, ts: Date.now(), push: !!push,
+    })
+  ));
 }
 
 // Semana ISO simplificada (igual a getWeekKey no cliente).
