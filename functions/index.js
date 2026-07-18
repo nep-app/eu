@@ -290,7 +290,7 @@ async function publicarMissao(payload) {
   const { text, xp = 10, prazo = null, push = false } = payload || {};
   if (!text) return;
   await db.collection("missions").add({
-    text, xp, week: getWeekKey(new Date()), prazo,
+    text, xp, week: getWeekKey(new Date()), prazo, ts: Date.now(),
   });
   const agora = new Date();
   await Promise.all(ALLOWED.map(u =>

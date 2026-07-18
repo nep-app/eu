@@ -24,6 +24,7 @@ export default function AdminMissoes({ missions, allShared = {} }) {
       xp: adminMissionXp,
       week: getWeekKey(),
       prazo: adminMissionPrazo || null,
+      ts: Date.now(),
     });
     // Avisar os jovens (com push opcional).
     await Promise.all(ALLOWED_USERNAMES.map(u =>
@@ -76,7 +77,7 @@ export default function AdminMissoes({ missions, allShared = {} }) {
         />
       </div>
 
-      {missions.filter(m => m.week === getWeekKey()).map(m => {
+      {[...missions].sort((a, b) => (b.ts || 0) - (a.ts || 0)).map(m => {
         const feitas = JOVENS_MISSAO.filter(j => (allShared[j.username]?.completedMissions || []).includes(m.id));
         return (
           <div key={m.id} style={CARD}>

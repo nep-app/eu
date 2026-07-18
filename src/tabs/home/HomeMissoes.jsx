@@ -14,7 +14,9 @@ export default function HomeMissoes({ user, data }) {
   const uData             = data.userData || {};
   const listaMissoes      = data.missions || [];
   const missoesConcluidas = data.completedMissions || [];
-  const missoesSemana     = listaMissoes.filter(m => m.week === getWeekKey() && !m.encerrada);
+  // Missões ativas: ficam visíveis até a Teresa as encerrar (já não dependem
+  // da semana do calendário).
+  const missoesSemana     = listaMissoes.filter(m => !m.encerrada);
   const missoesDone       = missoesSemana.filter(m => missoesConcluidas.includes(m.id)).length;
 
   function getDayStreakUpdate() {
