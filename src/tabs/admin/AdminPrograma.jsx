@@ -21,6 +21,8 @@ const SUBTABS = [
 ];
 
 const JEEP_8 = JEEP_LIST.filter(j => !["teresa","ricardo","demo"].includes(j.username));
+// Lista para as RESPOSTAS (inclui a teresa, que também responde como teste).
+const JEEP_RESP = JEEP_LIST.filter(j => !["ricardo","demo"].includes(j.username));
 
 const MODOS = [
   { id:"texto",     label:"Texto",       icon:"📝" },
@@ -125,7 +127,7 @@ function PerguntaManager({ allShared, activeQ }) {
 
       <div style={CARD}>
         <div style={SL}>Respostas Recebidas</div>
-        {JEEP_8.map(j => {
+        {JEEP_RESP.map(j => {
           const d = allShared[j.username] || {};
           return (
             <div key={j.username} style={{ padding:"10px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
