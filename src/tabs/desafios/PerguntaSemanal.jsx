@@ -68,8 +68,12 @@ export default function PerguntaSemanal({ user, data }) {
       }
 
       let respostaFinal = valorBotao || aTxt;
-      if (activeTab === "3palavras") respostaFinal = palavras.join(", ");
-      if (activeTab === "semana" || activeTab === "rating") respostaFinal = `${ratingSemana} ⭐`;
+      // Só aplica o formato do modo quando NÃO foi clicada uma opção pré-feita
+      // (senão o valor do botão era sobreposto por um modo vazio).
+      if (!valorBotao) {
+        if (activeTab === "3palavras") respostaFinal = palavras.join(", ");
+        if (activeTab === "semana" || activeTab === "rating") respostaFinal = `${ratingSemana} ⭐`;
+      }
 
       const ts = nowFull();
       const today = new Date().toDateString();
