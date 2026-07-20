@@ -17,6 +17,7 @@ export default function PerguntaSemanal({ user, data }) {
   const [audioURL, setAudioURL] = useState(null);
   const [palavras, setPalavras] = useState(["", "", ""]);
   const [ratingSemana, setRatingSemana] = useState(0);
+  const [opcaoSel, setOpcaoSel] = useState(null);   // opção pré-feita selecionada (ainda não enviada)
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -162,7 +163,10 @@ export default function PerguntaSemanal({ user, data }) {
       {opcoesBotao.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: modosAtivos.length > 0 ? 14 : 25 }}>
           {opcoesBotao.map((opt, i) => (
-            <button key={i} onClick={() => { if (!isUploading && window.confirm(`Confirmas a resposta:\n\n"${opt}"\n\nNão vais poder alterar depois.`)) submitAnswer(opt); }} style={{ padding: 15, borderRadius: 12, background: "rgba(255,255,255,0.05)", border: `1px solid ${CYN}40`, color: "#fff", fontWeight: 700, cursor: "pointer", textAlign: "left", lineHeight: 1.4 }}>{opt}</button>
+            <button key={i} onClick={() => setOpcaoSel(opcaoSel === opt ? null : opt)} style={{ padding: 15, borderRadius: 12, background: opcaoSel === opt ? CYN : "rgba(255,255,255,0.05)", border: `1px solid ${opcaoSel === opt ? CYN : CYN + "40"}`, color: opcaoSel === opt ? "#0f172a" : "#fff", fontWeight: 700, cursor: "pointer", textAlign: "left", lineHeight: 1.4, display:"flex", alignItems:"center", gap:10 }}>
+              <span style={{ flexShrink:0, width:18, height:18, borderRadius:"50%", border:`2px solid ${opcaoSel === opt ? "#0f172a" : "rgba(255,255,255,0.3)"}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11 }}>{opcaoSel === opt ? "✓" : ""}</span>
+              {opt}
+            </button>
           ))}
         </div>
       )}
@@ -237,8 +241,10 @@ export default function PerguntaSemanal({ user, data }) {
         </div>
       )}
 
-      {modosAtivos.length > 0 && (
-        <Btn onClick={() => { if (window.confirm("Confirmas a tua resposta?\n\nNão vais poder alterar depois.")) submitAnswer(); }} disabled={isUploading}>{isUploading ? "A ENVIAR..." : "SUBMETER RESPOSTA"}</Btn>
+      {(opcoesBotao.length > 0 || modosAtivos.length > 0) && (
+        <Btn onClick={() => submitAnswer(opcaoSel)} disabled={isUploading || (opcoesBotao.length > 0 && modosAtivos.length === 0 && !opcaoSel)}>
+          {isUploading ? "A ENVIAR..." : "SUBMETER RESPOSTA"}
+        </Btn>
       )}
     </div>
   );
