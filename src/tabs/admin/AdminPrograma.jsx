@@ -44,6 +44,14 @@ function PerguntaManager({ allShared, activeQ }) {
   const [fbPush, setFbPush] = useState({});
   const [pushNovaPergunta, setPushNovaPergunta] = useState(false);
 
+  async function reporResposta(j) {
+    if (!window.confirm(`Repor a resposta de ${j.name} à pergunta da semana?\n\nA resposta atual é apagada e ${j.name} pode responder de novo.`)) return;
+    await setDoc(doc(db, "userData", j.username), {
+      answered: false, answerText: null, answerType: null, answerMedia: null, answerDate: null,
+    }, { merge: true });
+    alert(`Resposta de ${j.name} reposta. ✓`);
+  }
+
   async function enviarFbPergunta(j, resposta) {
     const txt = fbTxts[j.username]?.trim();
     if (!txt) return;
@@ -129,6 +137,10 @@ function PerguntaManager({ allShared, activeQ }) {
                 {d.answered && (
                   <button onClick={() => setFbOpen(p => ({ ...p, [j.username]: !p[j.username] }))}
                     style={{ background:"none", border:"none", color: fbOpen[j.username] ? CYN : "#64748b", fontSize:13, cursor:"pointer", padding:"0 4px", flexShrink:0 }}>💬</button>
+                )}
+                {d.answered && (
+                  <button onClick={() => reporResposta(j)} title="Repor resposta (o jovem pode responder de novo)"
+                    style={{ background:"none", border:"1px solid rgba(244,63,94,0.4)", color:"#f43f5e", fontSize:11, fontWeight:800, cursor:"pointer", padding:"2px 8px", borderRadius:8, flexShrink:0 }}>↺ Repor</button>
                 )}
               </div>
               {d.answered && fbOpen[j.username] && (
