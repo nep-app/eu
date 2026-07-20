@@ -119,7 +119,28 @@ export default function PerguntaSemanal({ user, data }) {
 
   if (uData.answered) return (
     <div style={CARD}>
-      <div style={SL}>✅ Reflexão Entregue!</div>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+        <div style={{ fontSize:10, fontWeight:800, letterSpacing:2, textTransform:"uppercase", color: isTeresa ? "#c4b8f3" : "#5a7a9a" }}>Pergunta da Semana</div>
+        <div style={{ fontSize:10, fontWeight:800, color:"#4ade80" }}>✅ Respondida</div>
+      </div>
+      {perguntaDB?.text && (
+        <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 18, padding: "15px", background: "rgba(0,0,0,0.3)", borderRadius: 16, borderLeft: `4px solid ${CYN}` }}>
+          <Linkify>{perguntaDB.text}</Linkify>
+        </div>
+      )}
+      <div style={{ fontSize:10, fontWeight:800, letterSpacing:2, textTransform:"uppercase", color:"#5a7a9a", marginBottom:8 }}>A tua resposta</div>
+      {uData.answerText && (
+        <div style={{ fontSize:14, color:"#e2e8f0", lineHeight:1.6, padding:"14px", background:"rgba(74,222,128,0.06)", border:"1px solid rgba(74,222,128,0.2)", borderRadius:14, whiteSpace:"pre-wrap" }}>
+          <Linkify>{uData.answerText}</Linkify>
+        </div>
+      )}
+      {uData.answerMedia && uData.answerType === "audio" && (
+        <audio src={uData.answerMedia} controls style={{ width:"100%", marginTop:10 }} />
+      )}
+      {uData.answerMedia && uData.answerType !== "audio" && (
+        <img src={uData.answerMedia} alt="A tua resposta" style={{ width:"100%", borderRadius:14, marginTop:10 }} />
+      )}
+      <div style={{ fontSize:11, color:"#64748b", marginTop:14, fontStyle:"italic" }}>Já respondeste — não podes alterar. Obrigada! ✨</div>
     </div>
   );
 
