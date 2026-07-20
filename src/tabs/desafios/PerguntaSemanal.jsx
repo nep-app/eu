@@ -138,20 +138,6 @@ export default function PerguntaSemanal({ user, data }) {
         <Linkify>{perguntaDB.text}</Linkify>
       </div>
 
-      {modosAtivos.length > 1 && (
-        <div style={{ display: "flex", gap: 5, marginBottom: 16, overflowX: "auto", paddingBottom: 5 }}>
-          {modosAtivos.map(m => (
-            <button key={m} onClick={() => setActiveTab(m)} style={{ 
-              padding: "6px 12px", borderRadius: 10, border: "none", fontSize: 11, fontWeight: 800, whiteSpace: "nowrap", cursor: "pointer",
-              background: activeTab === m ? CYN : "rgba(255,255,255,0.05)",
-              color: activeTab === m ? "#000" : "#94a3b8"
-            }}>
-              {getTabLabel(m)}
-            </button>
-          ))}
-        </div>
-      )}
-
       {opcoesBotao.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: modosAtivos.length > 0 ? 14 : 25 }}>
           {opcoesBotao.map((opt, i) => (
@@ -166,6 +152,19 @@ export default function PerguntaSemanal({ user, data }) {
 
       {modosAtivos.length > 0 && (
         <div style={{ marginBottom: 25 }}>
+          {modosAtivos.length > 1 && (
+            <div style={{ display: "flex", gap: 5, marginBottom: 14, overflowX: "auto", paddingBottom: 5 }}>
+              {modosAtivos.map(m => (
+                <button key={m} onClick={() => setActiveTab(m)} style={{
+                  padding: "6px 12px", borderRadius: 10, border: "none", fontSize: 11, fontWeight: 800, whiteSpace: "nowrap", cursor: "pointer",
+                  background: activeTab === m ? CYN : "rgba(255,255,255,0.05)",
+                  color: activeTab === m ? "#000" : "#94a3b8"
+                }}>
+                  {getTabLabel(m)}
+                </button>
+              ))}
+            </div>
+          )}
           <>
             {activeTab === "texto" && <textarea value={aTxt} onChange={e=>setATxt(e.target.value)} style={INP} rows={4} placeholder="Escreve aqui..." />}
             
