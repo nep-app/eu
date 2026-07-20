@@ -162,7 +162,7 @@ export default function PerguntaSemanal({ user, data }) {
       {opcoesBotao.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: modosAtivos.length > 0 ? 14 : 25 }}>
           {opcoesBotao.map((opt, i) => (
-            <button key={i} onClick={() => submitAnswer(opt)} style={{ padding: 15, borderRadius: 12, background: "rgba(255,255,255,0.05)", border: `1px solid ${CYN}40`, color: "#fff", fontWeight: 700, cursor: "pointer", textAlign: "left", lineHeight: 1.4 }}>{opt}</button>
+            <button key={i} onClick={() => { if (!isUploading && window.confirm(`Confirmas a resposta:\n\n"${opt}"\n\nNão vais poder alterar depois.`)) submitAnswer(opt); }} style={{ padding: 15, borderRadius: 12, background: "rgba(255,255,255,0.05)", border: `1px solid ${CYN}40`, color: "#fff", fontWeight: 700, cursor: "pointer", textAlign: "left", lineHeight: 1.4 }}>{opt}</button>
           ))}
         </div>
       )}
@@ -238,7 +238,7 @@ export default function PerguntaSemanal({ user, data }) {
       )}
 
       {modosAtivos.length > 0 && (
-        <Btn onClick={() => submitAnswer()} disabled={isUploading}>{isUploading ? "A ENVIAR..." : "SUBMETER RESPOSTA"}</Btn>
+        <Btn onClick={() => { if (window.confirm("Confirmas a tua resposta?\n\nNão vais poder alterar depois.")) submitAnswer(); }} disabled={isUploading}>{isUploading ? "A ENVIAR..." : "SUBMETER RESPOSTA"}</Btn>
       )}
     </div>
   );
