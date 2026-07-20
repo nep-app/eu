@@ -134,8 +134,8 @@ export default function PerguntaSemanal({ user, data }) {
         <Linkify>{perguntaDB.text}</Linkify>
       </div>
 
-      {opcoesBotao.length === 0 && modosAtivos.length > 1 && (
-        <div style={{ display: "flex", gap: 5, marginBottom: 20, overflowX: "auto", paddingBottom: 5 }}>
+      {modosAtivos.length > 1 && (
+        <div style={{ display: "flex", gap: 5, marginBottom: 16, overflowX: "auto", paddingBottom: 5 }}>
           {modosAtivos.map(m => (
             <button key={m} onClick={() => setActiveTab(m)} style={{ 
               padding: "6px 12px", borderRadius: 10, border: "none", fontSize: 11, fontWeight: 800, whiteSpace: "nowrap", cursor: "pointer",
@@ -148,14 +148,20 @@ export default function PerguntaSemanal({ user, data }) {
         </div>
       )}
 
-      <div style={{ marginBottom: 25 }}>
-        {opcoesBotao.length > 0 ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {opcoesBotao.map((opt, i) => (
-              <button key={i} onClick={() => submitAnswer(opt)} style={{ padding: 15, borderRadius: 12, background: "rgba(255,255,255,0.05)", border: `1px solid ${CYN}40`, color: "#fff", fontWeight: 700, cursor: "pointer" }}>{opt}</button>
-            ))}
-          </div>
-        ) : (
+      {opcoesBotao.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: modosAtivos.length > 0 ? 14 : 25 }}>
+          {opcoesBotao.map((opt, i) => (
+            <button key={i} onClick={() => submitAnswer(opt)} style={{ padding: 15, borderRadius: 12, background: "rgba(255,255,255,0.05)", border: `1px solid ${CYN}40`, color: "#fff", fontWeight: 700, cursor: "pointer" }}>{opt}</button>
+          ))}
+        </div>
+      )}
+
+      {opcoesBotao.length > 0 && modosAtivos.length > 0 && (
+        <div style={{ textAlign: "center", fontSize: 11, color: "#64748b", fontWeight: 800, margin: "0 0 14px" }}>— ou responde à tua maneira —</div>
+      )}
+
+      {modosAtivos.length > 0 && (
+        <div style={{ marginBottom: 25 }}>
           <>
             {activeTab === "texto" && <textarea value={aTxt} onChange={e=>setATxt(e.target.value)} style={INP} rows={4} placeholder="Escreve aqui..." />}
             
@@ -204,10 +210,10 @@ export default function PerguntaSemanal({ user, data }) {
               </div>
             )}
           </>
-        )}
-      </div>
+        </div>
+      )}
 
-      {opcoesBotao.length === 0 && (
+      {modosAtivos.length > 0 && (
         <Btn onClick={() => submitAnswer()} disabled={isUploading}>{isUploading ? "A ENVIAR..." : "SUBMETER RESPOSTA"}</Btn>
       )}
     </div>

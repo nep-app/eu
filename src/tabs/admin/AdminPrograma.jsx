@@ -177,7 +177,7 @@ function PerguntaManager({ allShared, activeQ }) {
         </div>
 
         <div style={{ borderTop:"1px solid rgba(255,255,255,0.1)", paddingTop:15, marginBottom:15 }}>
-          <div style={{ fontSize:11, color:PNK, fontWeight:800, marginBottom:8 }}>OU CRIAR BOTÕES DE OPÇÃO:</div>
+          <div style={{ fontSize:11, color:PNK, fontWeight:800, marginBottom:8 }}>BOTÕES DE OPÇÃO (podes combinar com os modos acima):</div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
             <input value={opt1} onChange={e => setOpt1(e.target.value)} placeholder="Opção 1" style={{ ...INP, marginBottom:0, fontSize:11 }} />
             <input value={opt2} onChange={e => setOpt2(e.target.value)} placeholder="Opção 2" style={{ ...INP, marginBottom:0, fontSize:11 }} />
