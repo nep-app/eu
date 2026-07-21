@@ -10,7 +10,7 @@ const db = getFirestore();
 
 // Lista de utilizadores que recebem publicações (mesma de ALLOWED_USERNAMES
 // no cliente). JOVENS = só os 8 participantes.
-const JOVENS  = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","marisa"];
+const JOVENS  = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","marisa","tamara"];
 const ALLOWED = [...JOVENS, "teresa", "ricardo", "demo"];
 const MTHS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 function fmtLabel(d) { return MTHS[d.getMonth()] + " " + d.getFullYear(); }

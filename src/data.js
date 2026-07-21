@@ -52,7 +52,7 @@ export function buildAutoavEntry(uData, ciclo) {
   };
 }
 
-export const ALLOWED_USERNAMES = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","marisa","teresa","ricardo","demo"];
+export const ALLOWED_USERNAMES = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","marisa","tamara","teresa","ricardo","demo"];
 export const SPECIAL_USERS = ["teresa","ricardo","demo"];
 export const USERS = [
   { username:"nilton",   realName:"Nilton",   color:"#22d3ee" },
@@ -63,6 +63,7 @@ export const USERS = [
   { username:"bruno",    realName:"Bruno",    color:"#60a5fa" },
   { username:"salimo",   realName:"Salimo",   color:"#f87171" },
   { username:"marisa",   realName:"Marisa",   color:"#fb923c" },
+  { username:"tamara",   realName:"Tamara",   color:"#e879f9" },
   { username:"teresa",   realName:"Teresa",   color:"#e2e8f0" },
   { username:"ricardo",  realName:"Ricardo",  color:"#2dd4bf" },
   { username:"demo",     realName:"Demo JEEP",color:"#a3e635", isDemo:true },
@@ -77,6 +78,7 @@ export const JEEP_LIST = [
   { name:"Bruno",    username:"bruno",    color:"#60a5fa", entidade:"", estado:"verde" },
   { name:"Salimo",   username:"salimo",   color:"#f87171", entidade:"", estado:"verde" },
   { name:"Marisa",   username:"marisa",   color:"#fb923c", entidade:"", estado:"verde" },
+  { name:"Tamara",   username:"tamara",   color:"#e879f9", entidade:"", estado:"verde" },
   { name:"Teresa",   username:"teresa",   color:"#e2e8f0", entidade:"(teste)", estado:"verde" },
   { name:"Ricardo",  username:"ricardo",  color:"#2dd4bf", entidade:"(teste)", estado:"verde" },
 ];
