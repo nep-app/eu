@@ -14,11 +14,30 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
       setMissoesPorId(map);
     });
   }, []);
+  // Última entrada de cada jovem (guardada em users/{username}.lastLogin).
+  const [usersMeta, setUsersMeta] = useState({});
+  useEffect(() => {
+    return onSnapshot(collection(db, "users"), snap => {
+      const map = {};
+      snap.docs.forEach(d => { map[d.id] = d.data(); });
+      setUsersMeta(map);
+    });
+  }, []);
   const [userSelecionado, setUserSelecionado] = useState(null);
   const [medalModal, setMedalModal]           = useState(null);
   const [medalMsg,   setMedalMsg]             = useState("");
   const [medalPush,  setMedalPush]            = useState(true);
   const [piaPrazoExt, setPiaPrazoExt]         = useState("");
+
+  function ultimaEntrada(iso) {
+    if (!iso) return "nunca entrou";
+    const d = new Date(iso);
+    const dias = Math.floor((Date.now() - d.getTime()) / 86400000);
+    if (dias <= 0) return "hoje";
+    if (dias === 1) return "ontem";
+    if (dias < 7) return `há ${dias} dias`;
+    return d.toLocaleDateString("pt-PT", { day:"2-digit", month:"2-digit", year:"2-digit" });
+  }
 
   function formatarDataHora(ts, dataAntiga) {
     if (!ts) return dataAntiga;
@@ -826,7 +845,10 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
             <div style={{ width:12, height:12, borderRadius:"50%", background:j.color, margin:"0 auto 8px" }} />
             <div style={{ fontWeight:800, fontSize:15, marginBottom:2 }}>{j.name}</div>
             <div style={{ fontSize:10, color:CYN, fontWeight:900 }}>{semanaXpCard} XP semana</div>
-            <div style={{ fontSize:9, color:"#5a7a9a", fontWeight:700, marginBottom:10 }}>{totalXpCard} XP total</div>
+            <div style={{ fontSize:9, color:"#5a7a9a", fontWeight:700 }}>{totalXpCard} XP total</div>
+            <div style={{ fontSize:9, color: usersMeta[j.username]?.lastLogin ? "#94a3b8" : "#64748b", fontWeight:700, marginBottom:10 }}>
+              🕐 {ultimaEntrada(usersMeta[j.username]?.lastLogin)}
+            </div>
             {wMedals.length > 0 && (
               <div style={{ display:"flex", gap:3, justifyContent:"center", marginBottom:6, flexWrap:"wrap" }}>
                 {wMedals.map(mid => { const m = ALL_MEDALS.find(x=>x.id===mid); return m ? <span key={mid} style={{fontSize:16}}>{m.icon}</span> : null; })}
