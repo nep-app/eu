@@ -222,6 +222,26 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
         </div>
       )}
 
+      {/* ── PRÉ-VISUALIZAR STREAK (só teresa vê — não grava nada) ───────── */}
+      {isTeresa && (
+        <div style={{ padding:"10px 16px", display:"flex", alignItems:"center", gap:8, flexWrap:"wrap",
+          background:"rgba(139,92,246,0.06)", borderBottom:"1px solid rgba(139,92,246,0.14)" }}>
+          <span style={{ fontSize:10, fontWeight:800, color:"#8b7fb8", letterSpacing:0.5 }}>
+            👁️ PRÉ-VER (só tu vês)
+          </span>
+          <button onClick={() => setStreakPopup({ streak:2, xp:10, medal:null })} style={{
+            fontSize:11, fontWeight:800, cursor:"pointer", borderRadius:20, padding:"5px 12px",
+            background:"rgba(251,146,60,0.14)", border:"1px solid rgba(251,146,60,0.32)", color:"#fb923c" }}>
+            🔥 Streak (2 dias)
+          </button>
+          <button onClick={() => setStreakPopup({ streak:5, xp:20, medal:{ icon:"🔥", label:"5 Dias Seguidos" } })} style={{
+            fontSize:11, fontWeight:800, cursor:"pointer", borderRadius:20, padding:"5px 12px",
+            background:"rgba(251,191,36,0.14)", border:"1px solid rgba(251,191,36,0.32)", color:"#fbbf24" }}>
+            🏅 Medalha (5 dias)
+          </button>
+        </div>
+      )}
+
       {/* ── BANNER PREVIEW ─────────────────────────────────────────────── */}
       {previewMode && (
         <div style={{ background:"rgba(7,21,41,0.97)", borderBottom:`2px solid ${CYN}`,
