@@ -308,6 +308,10 @@ exports.processarAgendados = onSchedule(
   { schedule: "*/30 * * * *", timeZone: "Europe/Lisbon", region: "europe-west1" },
   async () => {
     const agora = Date.now();
+    // Salvaguarda: não publicar agendamentos com data já MUITO passada
+    // (ex.: o agendador esteve em baixo e um agendamento antigo ficou preso).
+    // Evita disparos "zombie" que republicavam a pergunta e apagavam respostas.
+    const MAX_ATRASO_MS = 6 * 60 * 60 * 1000; // 6 horas
     // Só os pendentes (done==false); filtra a hora em código para não
     // precisar de índice composto no Firestore.
     const snap = await db.collection("agendados").where("done", "==", false).get();
@@ -316,6 +320,18 @@ exports.processarAgendados = onSchedule(
 
     for (const docSnap of devidos) {
       const a = docSnap.data();
+      // Demasiado atrasado → não publica, marca como saltado e avisa a admin.
+      if (agora - (a.publishAt || 0) > MAX_ATRASO_MS) {
+        logger.warn("agendado saltado (demasiado atrasado)", { id: docSnap.id, tipo: a.tipo, publishAt: a.publishAt });
+        await docSnap.ref.update({ done: true, saltadoPorAtraso: true, doneAt: agora });
+        try {
+          await db.collection("adminNotificacoes").add({
+            tipo: "MENSAGEM", jovem: "sistema", anon: false, lida: false, ts: agora,
+            texto: `Agendamento (${a.tipo}) não publicado: estava demasiado atrasado. Republica à mão se precisares.`,
+          });
+        } catch (e) { /* não crítico */ }
+        continue;
+      }
       try {
         if      (a.tipo === "pergunta") await publicarPergunta(a.payload);
         else if (a.tipo === "pedido")   await lancarPedido(a.payload);

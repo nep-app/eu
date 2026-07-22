@@ -45,6 +45,12 @@ function PerguntaManager({ allShared, activeQ }) {
   const [fbOpen, setFbOpen] = useState({});
   const [fbPush, setFbPush] = useState({});
   const [pushNovaPergunta, setPushNovaPergunta] = useState(false);
+  const [agendados, setAgendados] = useState([]); // TODOS os agendamentos pendentes (qualquer tipo)
+
+  async function cancelarAgendado(id) {
+    if (!window.confirm("Cancelar este agendamento? Não será publicado.")) return;
+    await deleteDoc(doc(db, "agendados", id));
+  }
 
   async function reporResposta(j) {
     if (!window.confirm(`Repor a resposta de ${j.name} à pergunta da semana?\n\nA resposta atual é apagada e ${j.name} pode responder de novo.`)) return;
@@ -75,6 +81,19 @@ function PerguntaManager({ allShared, activeQ }) {
     );
     return unsub;
   }, []);
+
+  useEffect(() => {
+    return onSnapshot(collection(db, "agendados"), snap => {
+      setAgendados(snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .filter(a => !a.done)
+        .sort((a, b) => (a.publishAt || 0) - (b.publishAt || 0)));
+    });
+  }, []);
+
+  const TIPO_LABEL = {
+    pergunta:"💬 Pergunta", pedido:"📋 Pedido", mensagem:"✉️ Mensagem",
+    forum:"🌐 Fórum", dilema:"🧠 Dilema", votacao:"🗳️ Votação", missao:"🎯 Missão",
+  };
 
   const toggleMode = (id) => setSelectedModes(prev =>
     prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
@@ -116,8 +135,65 @@ function PerguntaManager({ allShared, activeQ }) {
     setActiveQEdit(""); setOpt1(""); setOpt2(""); setOpt3(""); setPushNovaPergunta(false);
   }
 
+  // Repõe uma pergunta arquivada (texto + respostas de todos) como a ATUAL.
+  // Útil se um agendamento republicou sem querer e apagou as respostas atuais.
+  async function reporArquivo(a) {
+    const ok = window.confirm(
+      "Repor esta pergunta e as respostas de todos como ATUAIS?\n\n" +
+      "• A pergunta atual passa a ser esta.\n" +
+      "• As respostas guardadas voltam a aparecer em 'Respostas Recebidas'.\n" +
+      "• Os modos/opções originais podem não ser recuperados (fica texto livre).\n\n" +
+      "Não é enviada nenhuma notificação aos jovens."
+    );
+    if (!ok) return;
+    await setDoc(doc(db, "config", "activeQuestion"), {
+      text: a.text, options: a.options || [], modes: a.modes || [], date: Date.now()
+    }, { merge: true });
+    const respostas = a.respostas || {};
+    for (const [u, r] of Object.entries(respostas)) {
+      await setDoc(doc(db, "userData", u), {
+        answered: !!r.answered,
+        answerText: r.answerText ?? null,
+        answerType: r.answerType ?? null,
+        answerDate: r.answerDate ?? null,
+      }, { merge: true });
+    }
+    alert("Reposto! As respostas voltaram a aparecer.");
+  }
+
   return (
     <div>
+      {/* Painel de auditoria: TODOS os agendamentos que ainda vão disparar */}
+      <div style={{ ...CARD, border: agendados.length ? "1px solid rgba(123,92,255,0.35)" : CARD.border }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: agendados.length ? 12 : 0 }}>
+          <div style={SL}>⏰ Agendamentos por Disparar</div>
+          <div style={{ fontSize:10, color: agendados.length ? PRP : "#475569", fontWeight:800 }}>
+            {agendados.length} pendente{agendados.length !== 1 ? "s" : ""}
+          </div>
+        </div>
+        {agendados.length === 0 ? (
+          <div style={{ fontSize:12, color:"#475569" }}>Nada agendado. Tudo o que aparece na app foi publicado à mão.</div>
+        ) : (
+          agendados.map(a => {
+            const d = new Date(a.publishAt || 0);
+            const quando = d.toLocaleDateString("pt-PT", { day:"2-digit", month:"2-digit", year:"2-digit" }) + " às " + (a.slot || d.toLocaleTimeString("pt-PT", { hour:"2-digit", minute:"2-digit" }));
+            return (
+              <div key={a.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 12px", marginBottom:6,
+                background:"rgba(123,92,255,0.08)", border:"1px solid rgba(123,92,255,0.2)", borderRadius:10 }}>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:12, color:"#e2e8f0", fontWeight:800 }}>{TIPO_LABEL[a.tipo] || a.tipo}</div>
+                  <div style={{ fontSize:11, color:PRP, fontWeight:700 }}>{quando}{a.payload?.push ? " · 🔔 push" : ""}</div>
+                </div>
+                <button onClick={() => cancelarAgendado(a.id)}
+                  style={{ background:"none", border:"1px solid #f43f5e", color:"#f43f5e", borderRadius:8, padding:"4px 10px", fontSize:11, fontWeight:800, cursor:"pointer", flexShrink:0 }}>
+                  Cancelar
+                </button>
+              </div>
+            );
+          })
+        )}
+      </div>
+
       <div style={CARD}>
         <div style={SL}>Pergunta Atual</div>
         <div style={{ fontSize:14, color:"#e2e8f0", padding:"12px", background:"rgba(0,0,0,0.2)", borderRadius:12, borderLeft:`4px solid ${CYN}` }}>
@@ -261,6 +337,11 @@ function PerguntaManager({ allShared, activeQ }) {
               </button>
               {arquivoOpen === a.id && (
                 <div style={{ background:"rgba(0,0,0,0.15)", padding:"10px 14px" }}>
+                  <button onClick={() => reporArquivo(a)} style={{
+                    width:"100%", marginBottom:10, padding:"9px",
+                    background:"rgba(74,222,128,0.12)", border:"1px solid rgba(74,222,128,0.4)",
+                    color:"#4ade80", borderRadius:10, fontWeight:900, fontSize:12, cursor:"pointer",
+                  }}>↩️ Repor esta pergunta e respostas como atuais</button>
                   {JEEP_8.map(j => {
                     const r = (a.respostas || {})[j.username] || {};
                     return (
