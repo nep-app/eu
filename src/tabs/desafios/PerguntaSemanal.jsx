@@ -59,6 +59,19 @@ export default function PerguntaSemanal({ user, data }) {
   }
 
   async function submitAnswer(valorBotao = null) {
+    // Calcula já a resposta para validar ANTES de gravar seja o que for.
+    let respostaFinal = valorBotao || aTxt;
+    if (!valorBotao) {
+      if (activeTab === "3palavras") respostaFinal = palavras.filter(p => p.trim()).join(", ");
+      if (activeTab === "semana" || activeTab === "rating") respostaFinal = ratingSemana ? `${ratingSemana} ⭐` : "";
+    }
+    // Salvaguarda: não gravar uma resposta vazia (senão fica "respondido"
+    // sem conteúdo e a resposta real perde-se). Exige opção, texto OU media.
+    if (!valorBotao && !mediaFile && !(respostaFinal && respostaFinal.trim())) {
+      alert("Escolhe uma opção, escreve algo ou grava/anexa antes de submeter. 🙂");
+      return;
+    }
+
     setIsUploading(true);
     try {
       let downloadURL = null;
@@ -66,14 +79,6 @@ export default function PerguntaSemanal({ user, data }) {
         const fileRef = ref(storage, `respostas/${user.username}/${Date.now()}_${mediaFile.name}`);
         await uploadBytes(fileRef, mediaFile);
         downloadURL = await getDownloadURL(fileRef);
-      }
-
-      let respostaFinal = valorBotao || aTxt;
-      // Só aplica o formato do modo quando NÃO foi clicada uma opção pré-feita
-      // (senão o valor do botão era sobreposto por um modo vazio).
-      if (!valorBotao) {
-        if (activeTab === "3palavras") respostaFinal = palavras.join(", ");
-        if (activeTab === "semana" || activeTab === "rating") respostaFinal = `${ratingSemana} ⭐`;
       }
 
       const ts = nowFull();
