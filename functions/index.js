@@ -185,7 +185,9 @@ async function lancarPedido(payload) {
     lembreteQuiz:  "🧠 Lembrete: Tens um novo Dilema (Quiz) à tua espera nos Desafios!",
     lembreteGeral: "📢 A Teresa tem um aviso para ti. Vai ver as novidades!",
   };
-  const FIELD = { satisf: "sSaved", pia: "piaSaved", roda: "rodaSaved", swot: "swotSaved", pergunta: "answered" };
+  // NOTA: "pergunta" NÃO está aqui de propósito — o lembrete da pergunta é só
+  // uma notificação; repor answered:false apagava respostas já dadas (bug).
+  const FIELD = { satisf: "sSaved", pia: "piaSaved", roda: "rodaSaved", swot: "swotSaved" };
   let msg = MSGS[launchType] || "📢 A Teresa tem um aviso para ti.";
   if (prazo) msg += ` ⏰ Prazo: ${fmtPrazo(prazo)}`;
   const targets = launchTarget === "all" ? ALLOWED : [launchTarget];

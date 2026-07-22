@@ -42,7 +42,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
     if (launchType === "pia")          { msg = "📋 Atualização do PIA pedida!"; field = "piaSaved"; }
     if (launchType === "roda")         { msg = "🌸 Nova Roda da Vida pedida!"; field = "rodaSaved"; }
     if (launchType === "swot")         { msg = "🔍 Raio-X do Projeto pedido!"; field = "swotSaved"; }
-    if (launchType === "pergunta")     { msg = "💬 Lembrete: Responde à Pergunta da Semana!"; field = "answered"; }
+    if (launchType === "pergunta")     { msg = "💬 Lembrete: Responde à Pergunta da Semana!"; /* NÃO repõe answered — é só um lembrete, não uma nova pergunta */ }
     if (launchType === "lembreteQuiz") { msg = "🧠 Lembrete: Tens um novo Dilema (Quiz) à tua espera nos Desafios!"; }
     if (launchType === "lembreteGeral"){ msg = "📢 A Teresa tem um aviso para ti. Vai ver as novidades!"; }
     if (launchPrazo) msg += ` ⏰ Prazo: ${fmtDate(launchPrazo)}`;

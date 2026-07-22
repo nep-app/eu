@@ -60,6 +60,13 @@ function PerguntaManager({ allShared, activeQ }) {
     alert(`Resposta de ${j.name} reposta. ✓`);
   }
 
+  // Restaura uma resposta "órfã": existe answerText mas answered ficou a false
+  // (ex.: um lembrete antigo repôs o estado). Volta a marcar como respondida.
+  async function restaurarResposta(j) {
+    await setDoc(doc(db, "userData", j.username), { answered: true }, { merge: true });
+    alert(`Resposta de ${j.name} recuperada! ✓`);
+  }
+
   async function enviarFbPergunta(j, resposta) {
     const txt = fbTxts[j.username]?.trim();
     if (!txt) return;
@@ -211,7 +218,16 @@ function PerguntaManager({ allShared, activeQ }) {
                 <span style={{ fontSize:13, fontWeight:800, color:j.color, flexShrink:0, minWidth:72 }}>{j.name}:</span>
                 {d.answered
                   ? <span style={{ fontSize:13, color:"#e2e8f0", lineHeight:1.5, flex:1 }}>{d.answerText}</span>
-                  : <span style={{ fontSize:13, color:"#475569", flex:1 }}>Pendente</span>}
+                  : d.answerText
+                    ? <span style={{ flex:1 }}>
+                        <span style={{ fontSize:13, color:"#e2e8f0", lineHeight:1.5, display:"block" }}>{d.answerText}</span>
+                        <span style={{ fontSize:10, color:"#fbbf24", fontWeight:700 }}>⚠️ resposta guardada mas marcada como pendente</span>
+                      </span>
+                    : <span style={{ fontSize:13, color:"#475569", flex:1 }}>Pendente</span>}
+                {!d.answered && d.answerText && (
+                  <button onClick={() => restaurarResposta(j)} title="Recuperar esta resposta (voltar a marcar como respondida)"
+                    style={{ background:"rgba(74,222,128,0.12)", border:"1px solid rgba(74,222,128,0.5)", color:"#4ade80", fontSize:11, fontWeight:800, cursor:"pointer", padding:"2px 8px", borderRadius:8, flexShrink:0 }}>↩️ Recuperar</button>
+                )}
                 {d.answered && (
                   <button onClick={() => setFbOpen(p => ({ ...p, [j.username]: !p[j.username] }))}
                     style={{ background:"none", border:"none", color: fbOpen[j.username] ? CYN : "#64748b", fontSize:13, cursor:"pointer", padding:"0 4px", flexShrink:0 }}>💬</button>
