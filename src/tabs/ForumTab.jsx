@@ -129,11 +129,19 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
         <button onClick={async () => {
           setCanalAtivo("__recursos");
           const uData = data.userData || {};
+          const semana = getWeekKey();
+          const ts = Date.now();
+          const hist = (data.history) || [];
           if (!uData.recursosVisitados) {
-            const ts = Date.now();
-            const newHistory = [...((data.history) || []), { date:nowLabel(), action:"Visitou os recursos", ts, xp:20 }];
-            await setDoc(doc(db, "userData", user.username), { recursosVisitados:true, history:newHistory, weekXp:(uData.weekXp||0)+20 }, { merge:true });
+            // Primeira vez de sempre → 20 XP.
+            const newHistory = [...hist, { date:nowLabel(), action:"Visitou os recursos", ts, xp:20 }];
+            await setDoc(doc(db, "userData", user.username), { recursosVisitados:true, recursosXpWeek:semana, history:newHistory, weekXp:(uData.weekXp||0)+20 }, { merge:true });
+          } else if (uData.recursosXpWeek !== semana) {
+            // Já visitou antes, mas ainda não ganhou XP esta semana → 10 XP (1x/semana).
+            const newHistory = [...hist, { date:nowLabel(), action:"Voltou a visitar os recursos", ts, xp:10 }];
+            await setDoc(doc(db, "userData", user.username), { recursosXpWeek:semana, history:newHistory, weekXp:(uData.weekXp||0)+10 }, { merge:true });
           }
+          // Se já ganhou XP esta semana, visitar de novo não dá mais nada.
         }} style={{
           display:"flex", flexDirection:"column", alignItems:"center", gap:4,
           padding:"12px 8px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
