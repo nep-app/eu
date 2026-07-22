@@ -325,15 +325,25 @@ function PerguntaManager({ allShared, activeQ }) {
       {arquivo.length > 0 && (
         <div style={CARD}>
           <div style={SL}>📚 Arquivo de Perguntas Anteriores</div>
-          {arquivo.map(a => (
+          {arquivo.map(a => {
+            const nResp = Object.values(a.respostas || {}).filter(r => r.answered && r.answerText).length;
+            const quandoArq = a.archivedAt
+              ? new Date(a.archivedAt).toLocaleString("pt-PT", { day:"2-digit", month:"2-digit", year:"2-digit", hour:"2-digit", minute:"2-digit" })
+              : (a.date || "—");
+            return (
             <div key={a.id} style={{ marginBottom:10, borderRadius:12, overflow:"hidden", border:"1px solid rgba(255,255,255,0.07)" }}>
               <button onClick={() => setArquivoOpen(arquivoOpen === a.id ? null : a.id)} style={{
                 width:"100%", textAlign:"left", background:"rgba(0,0,0,0.25)", border:"none",
                 color:"#e2e8f0", padding:"12px 14px", cursor:"pointer",
                 display:"flex", justifyContent:"space-between", alignItems:"center",
               }}>
-                <span style={{ fontSize:13, fontWeight:700, flex:1, marginRight:10 }}>{a.text}</span>
-                <span style={{ fontSize:10, color:"#475569", flexShrink:0 }}>{a.date} {arquivoOpen === a.id ? "▲" : "▼"}</span>
+                <span style={{ fontSize:13, fontWeight:700, flex:1, marginRight:10 }}>
+                  {a.text}
+                  <span style={{ display:"block", fontSize:10, fontWeight:700, color: nResp > 0 ? "#4ade80" : "#f43f5e", marginTop:2 }}>
+                    {nResp} resposta{nResp !== 1 ? "s" : ""} guardada{nResp !== 1 ? "s" : ""}
+                  </span>
+                </span>
+                <span style={{ fontSize:10, color:"#475569", flexShrink:0, textAlign:"right" }}>{quandoArq} {arquivoOpen === a.id ? "▲" : "▼"}</span>
               </button>
               {arquivoOpen === a.id && (
                 <div style={{ background:"rgba(0,0,0,0.15)", padding:"10px 14px" }}>
@@ -356,7 +366,8 @@ function PerguntaManager({ allShared, activeQ }) {
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
