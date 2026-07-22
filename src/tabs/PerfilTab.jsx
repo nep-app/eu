@@ -61,7 +61,7 @@ export default function PerfilTab({ user, data, features = {} }) {
   const medalDoc    = data.medals || {};
   const weekKey     = getWeekKey();
   const weekMedals  = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
-  const userMedals  = medalDoc.allTime || [];
+  const userMedals  = [...new Set([...(medalDoc.allTime || []), ...(uData.streakMedals || [])])];
 
   // ── LIGHT THEME (só para teresa) ──
   const light = user.username === "teresa";

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
-import { doc, setDoc, onSnapshot } from "firebase/firestore";
+import { doc, setDoc, onSnapshot, arrayUnion } from "firebase/firestore";
 import { auth, db } from "./firebase.js";
 import { AppIcon, BG, CYN } from "./theme.jsx";
 import { ALLOWED_USERNAMES, USERS, nowLabel, GDPR_TEXT } from "./data.js";
@@ -40,7 +40,16 @@ export default function App() {
         const f = USERS.find(u => u.username === uname);
         if (f) {
           setUser(f); setScreen("app");
-          setDoc(doc(db, "users", uname), { lastLogin: new Date().toISOString() }, { merge:true });
+          const nowIso = new Date().toISOString();
+          // Regista a última entrada e ACRESCENTA ao histórico de entradas
+          // (uma por sessão do navegador) para a Teresa ver tudo no admin.
+          // Não dá XP — é só registo. Escreve no próprio doc users (permitido).
+          const registarEntrada = !sessionStorage.getItem("jeep_entrada_registada");
+          if (registarEntrada) sessionStorage.setItem("jeep_entrada_registada", "1");
+          setDoc(doc(db, "users", uname), {
+            lastLogin: nowIso,
+            ...(registarEntrada ? { logins: arrayUnion({ ts: Date.now(), iso: nowIso }) } : {}),
+          }, { merge:true }).catch(() => {});
         } else {
           signOut(auth);
         }

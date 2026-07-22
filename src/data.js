@@ -233,7 +233,17 @@ export const ALL_MEDALS = [
   { id:"arrumado",      icon:"🧹", label:"Arrumadinho/a",           desc:"Deixa sempre os espaços melhor do que os encontrou — respeito pelo comum." },
   { id:"aviso",         icon:"🚨", label:"Aviso Prévio",            desc:"Avisou atempadamente de um imprevisto em vez de simplesmente não aparecer — responsabilidade e respeito pelos outros." },
   { id:"cumpridor",     icon:"✅", label:"Cumpridor/a",             desc:"Cumpre os compromissos que assume, no prazo e com qualidade — a palavra tem peso." },
+  // Medalhas automáticas de streak de entradas (login) — atribuídas pela app, 1ª vez em cada patamar.
+  { id:"streak5",   icon:"🔥", label:"5 Dias Seguidos",  desc:"Entrou na app 5 dias seguidos. Consistência é tudo!" },
+  { id:"streak10",  icon:"🔥", label:"10 Dias Seguidos", desc:"Entrou na app 10 dias seguidos. Que ritmo!" },
+  { id:"streak20",  icon:"⚡", label:"20 Dias Seguidos", desc:"Entrou na app 20 dias seguidos. Imparável!" },
+  { id:"streak30",  icon:"🌟", label:"30 Dias Seguidos", desc:"Entrou na app 30 dias seguidos. Um mês inteiro!" },
+  { id:"streak40",  icon:"💎", label:"40 Dias Seguidos", desc:"Entrou na app 40 dias seguidos. Dedicação de diamante!" },
+  { id:"streak50",  icon:"👑", label:"50 Dias Seguidos", desc:"Entrou na app 50 dias seguidos. Lenda viva!" },
 ];
+
+// Patamares de medalha do streak de entradas (ver src/streak.js).
+export const STREAK_MEDALHAS = { 5:"streak5", 10:"streak10", 20:"streak20", 30:"streak30", 40:"streak40", 50:"streak50" };
 
 // s1 removido (identificação do jovem não necessária)
 // sub: "diag" = Diagnóstico, "atrib" = Atributos & Raio-X, "proj" = Projeto, "mon" = Monitorização

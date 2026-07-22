@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { onSnapshot, doc, collection } from "firebase/firestore";
 import { db, registarPushNotifications } from "./firebase.js";
 import { BG, CYN, BLUE, PRP, TXT_MUT } from "./theme.jsx";
+import { SPECIAL_USERS } from "./data.js";
+import { processarLoginStreak } from "./streak.js";
 import logoImg from "./logo.png";
 
 export const ThemeCtx = React.createContext(false);
@@ -29,6 +31,8 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
   const [tab, setTab] = useState("home");
   const [desafiosSubTab, setDesafiosSubTab] = useState("pergunta");
   const [forumCanal, setForumCanal] = useState(null);
+  const [streakPopup, setStreakPopup] = useState(null); // { streak, xp, medal }
+  const streakFeitoRef = useRef(null);
   const [allData, setAllData] = useState({
     todos: [], events: [], myNotifs: [], leaderboard: {},
     missions: [], completedMissions: [], history: [],
@@ -73,6 +77,19 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
     if (user) registarPushNotifications(user.username);
   }, [user]);
 
+  // Streak de ENTRADAS — corre uma vez por abertura da app. Só jovens reais
+  // (não teresa/ricardo/demo, não preview, não demo). Dá XP + medalhas e
+  // mostra pop-up nos dias premiados (2 dias, e a cada +5).
+  useEffect(() => {
+    if (!user || previewMode || user.isDemo) return;
+    if (SPECIAL_USERS.includes(user.username)) return;
+    if (streakFeitoRef.current === user.username) return; // já corrido nesta sessão
+    streakFeitoRef.current = user.username;
+    processarLoginStreak(user.username)
+      .then(res => { if (res) setStreakPopup(res); })
+      .catch(() => {});
+  }, [user, previewMode]);
+
   // Tema escuro-violeta para teresa
   useEffect(() => {
     if (!isTeresa) return;
@@ -92,7 +109,7 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
   }, [isTeresa]);
 
   const ud = allData.userData;
-  const dayStreak = ud.dayStreak || 0;
+  const dayStreak = ud.loginStreak || 0; // contador no topo = streak de entradas
   const weekStartTs = allData.weekStartTs || 0;
   const weekXp = weekStartTs > 0
     ? (allData.history || []).filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
@@ -278,6 +295,52 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
           );
         })}
       </div>
+
+      {/* ── POP-UP DE STREAK DE ENTRADAS ───────────────────────────────── */}
+      {streakPopup && (
+        <div onClick={() => setStreakPopup(null)} style={{
+          position:"fixed", inset:0, background:"rgba(4,10,22,0.92)", zIndex:2000,
+          display:"flex", alignItems:"center", justifyContent:"center", padding:28,
+          animation:"fadeUp 0.25s ease" }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            maxWidth:340, width:"100%", textAlign:"center", padding:"32px 26px",
+            borderRadius:24, background:"linear-gradient(160deg, rgba(24,62,112,0.96), rgba(16,30,58,0.98))",
+            border:"1px solid rgba(251,146,60,0.35)",
+            boxShadow:"0 12px 48px rgba(0,0,0,0.5), 0 0 40px rgba(251,146,60,0.12)" }}>
+            <div style={{ fontSize:64, marginBottom:6 }}>
+              {streakPopup.medal ? streakPopup.medal.icon : "🔥"}
+            </div>
+            <div style={{ fontSize:30, fontWeight:900, color:"#fb923c", lineHeight:1 }}>
+              {streakPopup.streak} dias seguidos!
+            </div>
+            {streakPopup.medal ? (
+              <div style={{ marginTop:14 }}>
+                <div style={{ fontSize:13, color:"#e2e8f0", fontWeight:700 }}>
+                  Ganhaste uma medalha nova:
+                </div>
+                <div style={{ fontSize:16, fontWeight:900, color:"#fbbf24", marginTop:4 }}>
+                  {streakPopup.medal.label}
+                </div>
+              </div>
+            ) : (
+              <div style={{ fontSize:14, color:"#cbd5e1", marginTop:12, lineHeight:1.5 }}>
+                Continua a entrar todos os dias para não perderes o streak!
+              </div>
+            )}
+            <div style={{ display:"inline-block", marginTop:16, fontSize:15, fontWeight:900,
+              color:CYN, background:"rgba(50,199,255,0.12)", border:"1px solid rgba(50,199,255,0.30)",
+              borderRadius:20, padding:"6px 18px" }}>
+              +{streakPopup.xp} XP ⚡
+            </div>
+            <button onClick={() => setStreakPopup(null)} style={{
+              display:"block", width:"100%", marginTop:22, padding:"12px",
+              background:CYN, border:"none", color:"#071529", borderRadius:14,
+              fontWeight:900, fontSize:14, cursor:"pointer" }}>
+              Boa! 🎉
+            </button>
+          </div>
+        </div>
+      )}
     </div>
     </ThemeCtx.Provider>
   );

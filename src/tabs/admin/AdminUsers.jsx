@@ -72,19 +72,23 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
   // ── REMOVER MEDALHA (semana + allTime + histórico + XP) ──────────────────
   async function removeMedal(username, mid) {
     if (!window.confirm("Remover esta medalha completamente?\n(semana + histórico + XP devolvido)")) return;
+    const isStreak  = mid.startsWith("streak");
     const medalDoc  = amMedals[username] || {};
     const weekKey   = getWeekKey();
     const curWeek   = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
-    const newMedalDoc = {
-      ...medalDoc,
-      week:    curWeek.filter(m => m !== mid),
-      allTime: (medalDoc.allTime || []).filter(m => m !== mid),
-      weekKey,
-    };
-    setAmMedals(p => upd(p, username, newMedalDoc));
-    await setDoc(doc(db, "medals", username), newMedalDoc);
+    // Medalhas de streak vivem em userData.streakMedals; as restantes em medals/{username}.
+    if (!isStreak) {
+      const newMedalDoc = {
+        ...medalDoc,
+        week:    curWeek.filter(m => m !== mid),
+        allTime: (medalDoc.allTime || []).filter(m => m !== mid),
+        weekKey,
+      };
+      setAmMedals(p => upd(p, username, newMedalDoc));
+      await setDoc(doc(db, "medals", username), newMedalDoc);
+    }
 
-    // Remove história + devolve XP
+    // Remove história + devolve XP (usa o XP real da entrada)
     const medal   = ALL_MEDALS.find(m => m.id === mid);
     const userRef = doc(db, "userData", username);
     const snap    = await getDoc(userRef);
@@ -92,13 +96,17 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
       const uData   = snap.data();
       const history = uData.history || [];
       // Remove a entrada mais recente que mencione esta medalha
-      let found = false;
+      let removedXp = null;
       const newHistory = [...history].reverse().filter(h => {
-        if (!found && h.action?.includes(medal?.label)) { found = true; return false; }
+        if (removedXp === null && h.action?.includes(medal?.label)) { removedXp = h.xp || 0; return false; }
         return true;
       }).reverse();
-      const xpRemoved = found ? 50 : 0;
-      await setDoc(userRef, { history: newHistory, weekXp: Math.max(0, (uData.weekXp || 0) - xpRemoved) }, { merge: true });
+      const xpRemoved = removedXp === null ? (isStreak ? 0 : 50) : removedXp;
+      await setDoc(userRef, {
+        history: newHistory,
+        weekXp: Math.max(0, (uData.weekXp || 0) - xpRemoved),
+        ...(isStreak ? { streakMedals: (uData.streakMedals || []).filter(m => m !== mid) } : {}),
+      }, { merge: true });
     }
   }
 
@@ -190,7 +198,7 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
     const medalDoc      = amMedals[username] || {};
     const weekKey       = getWeekKey();
     const weekMedals    = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
-    const allTimeMedals = medalDoc.allTime || [];
+    const allTimeMedals = [...new Set([...(medalDoc.allTime || []), ...(uData.streakMedals || [])])];
     const publicHistory = (uData.history || []).filter(h => !h.private);
     const totalXp       = publicHistory.reduce((s, h) => s + (h.xp || 0), 0);
     const semanaXp      = weekStartTs > 0
@@ -198,6 +206,8 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
       : (uData.weekXp || 0);
     const jeep          = JEEP_LIST.find(j => j.username === username);
     const [xpEdit, setXpEdit] = useState(String(uData.weekXp || 0));
+    // Histórico de todas as entradas na app (guardado em users/{username}.logins).
+    const entradas = [...((usersMeta[username] || {}).logins || [])].sort((a, b) => (b.ts || 0) - (a.ts || 0));
     const [feedbackAuto, setFeedbackAuto] = useState("");
     const [feedbackPia, setFeedbackPia]   = useState("");
     const [feedbackPush, setFeedbackPush] = useState(false);
@@ -567,6 +577,36 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
             })()}
           </div>
 
+          {/* ENTRADAS NA APP — todas as vezes que abriu */}
+          <div style={CARD}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+              <div style={SL}>🚪 Entradas na App</div>
+              <div style={{ fontSize:10, color:CYN, fontWeight:800 }}>
+                {entradas.length} entrada{entradas.length !== 1 ? "s" : ""}
+              </div>
+            </div>
+            {entradas.length === 0 ? (
+              <div style={{ textAlign:"center", color:"#475569", padding:16, fontSize:12 }}>
+                Ainda sem entradas registadas (só ficam registadas a partir de agora).
+              </div>
+            ) : (
+              <div style={{ maxHeight:260, overflowY:"auto", paddingRight:4, display:"flex", flexDirection:"column", gap:5 }}>
+                {entradas.map((e, i) => {
+                  const d = new Date(e.ts || e.iso);
+                  const label = d.toLocaleDateString("pt-PT", { weekday:"short", day:"2-digit", month:"2-digit", year:"2-digit" });
+                  const hora  = d.toLocaleTimeString("pt-PT", { hour:"2-digit", minute:"2-digit" });
+                  return (
+                    <div key={e.ts ?? i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
+                      padding:"7px 10px", borderRadius:8, background:"rgba(0,0,0,0.2)", fontSize:12 }}>
+                      <span style={{ color:"#e2e8f0", fontWeight:600, textTransform:"capitalize" }}>{label}</span>
+                      <span style={{ color:"#5a7a9a", fontWeight:700 }}>{hora}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* HISTÓRICO — com botão de apagar por entrada */}
           <div style={CARD}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
@@ -832,8 +872,8 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
         const medalDoc    = amMedals[j.username] || {};
         const weekKey     = getWeekKey();
         const wMedals     = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
-        const atMedals    = medalDoc.allTime || [];
         const uData       = allShared[j.username] || {};
+        const atMedals    = [...new Set([...(medalDoc.allTime || []), ...(uData.streakMedals || [])])];
         const pubHistory   = (uData.history || []).filter(h => !h.private);
         const totalXpCard  = pubHistory.reduce((s, h) => s + (h.xp || 0), 0);
         const semanaXpCard = weekStartTs > 0
