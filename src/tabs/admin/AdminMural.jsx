@@ -21,6 +21,7 @@ export default function AdminMural() {
   const [whoOpen, setWhoOpen] = useState(null);
   const [notificarForum, setNotificarForum] = useState(true);
   const [pushForumPost,  setPushForumPost]  = useState(false);
+  const [fTarget, setFTarget] = useState("all"); // "all" ou "teresa" (post de teste)
   const [mencaoDropdown, setMencaoDropdown] = useState(false);
   const [mencaoFiltro,   setMencaoFiltro]   = useState("");
   const [mencaoStart,    setMencaoStart]    = useState(0);
@@ -112,9 +113,11 @@ export default function AdminMural() {
       const docRef = await addDoc(collection(db, "forum", channel, "posts"), {
         user:"Teresa (GO)", username:"admin", color:"#22d3ee",
         text:fPost, media:mediaUrl, time:nowFull(), ts:Date.now(),
+        ...(fTarget !== "all" ? { target: fTarget } : {}),
         reactions:{ heart:0, fire:0, clap:0, think:0 }, reactedBy:{}, replies:[]
       });
-      if (notificarForum && fPost.trim()) {
+      // Post de teste (só para a Teresa) não notifica ninguém.
+      if (notificarForum && fPost.trim() && fTarget === "all") {
         const ch = CHANNELS.find(c => c.id === channel);
         const preview = fPost.trim().substring(0, 80);
         const label = ch?.label || channel;
@@ -134,7 +137,7 @@ export default function AdminMural() {
           mencao: true, postId: docRef.id, canal: channel, push: true
         })
       ));
-      setFPost(""); setMediaFile(null); setMencaoDropdown(false); setPushForumPost(false);
+      setFPost(""); setMediaFile(null); setMencaoDropdown(false); setPushForumPost(false); setFTarget("all");
     } catch(e) { alert("Erro: " + e.message); }
     setIsUploading(false);
   }
@@ -341,11 +344,24 @@ export default function AdminMural() {
                 </div>
               )}
             </div>
-            <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:8 }}>
-              <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer" }}>
-                <input type="checkbox" checked={notificarForum} onChange={() => setNotificarForum(v => !v)}
+            {channel === "anuncios" && (
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8, padding:"8px 10px", background:"rgba(255,196,61,0.06)", border:"1px solid rgba(255,196,61,0.2)", borderRadius:10 }}>
+                <span style={{ fontSize:11, fontWeight:800, color:"#94a3b8", flexShrink:0 }}>Quem vê:</span>
+                {[["all","👥 Todos"],["teresa","🧪 Só teste (Teresa)"]].map(([val,lbl]) => (
+                  <button key={val} onClick={() => setFTarget(val)} style={{
+                    fontSize:11, fontWeight:800, cursor:"pointer", borderRadius:8, padding:"4px 10px",
+                    border: fTarget === val ? "1.5px solid #fbbf24" : "1px solid rgba(255,255,255,0.1)",
+                    background: fTarget === val ? "rgba(251,191,36,0.16)" : "rgba(255,255,255,0.03)",
+                    color: fTarget === val ? "#fbbf24" : "#94a3b8",
+                  }}>{lbl}</button>
+                ))}
+              </div>
+            )}
+            <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:8, opacity: fTarget === "all" ? 1 : 0.4 }}>
+              <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor: fTarget === "all" ? "pointer" : "not-allowed" }}>
+                <input type="checkbox" checked={notificarForum && fTarget === "all"} disabled={fTarget !== "all"} onChange={() => setNotificarForum(v => !v)}
                   style={{ accentColor:CYN, width:14, height:14 }} />
-                Notificar todos os jovens
+                Notificar todos os jovens {fTarget !== "all" && "(desligado no modo teste)"}
               </label>
               {notificarForum && (
                 <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:11, color:"#94a3b8", cursor:"pointer", marginLeft:21 }}>

@@ -79,7 +79,9 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
   useEffect(() => {
     const q = query(collection(db, forumCollection, canalAtivo, "posts"));
     return onSnapshot(q, snap => {
-      const posts = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+      const posts = snap.docs.map(d => ({ id:d.id, ...d.data() }))
+        // Posts de teste (com target) só aparecem ao próprio destinatário.
+        .filter(p => !p.target || p.target === "all" || p.target === user.username);
       posts.sort((a, b) => {
         const ta = a.ts || parseTimeStr(a.time);
         const tb = b.ts || parseTimeStr(b.time);

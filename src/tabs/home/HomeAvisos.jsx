@@ -31,8 +31,13 @@ export default function HomeAvisos({ user, setTab, setForumCanal, previewMode })
     setTab && setTab("forum");
   }
 
-  // Mostra até 3 avisos recentes ainda não dispensados.
-  const visiveis = avisos.filter(a => !dispensados.includes(a.id)).slice(0, 3);
+  // Mostra até 3 avisos recentes ainda não dispensados, respeitando o destino
+  // (posts de teste com target aparecem só ao próprio; sem target = todos).
+  const meu = user?.username;
+  const visiveis = avisos
+    .filter(a => !a.target || a.target === "all" || a.target === meu)
+    .filter(a => !dispensados.includes(a.id))
+    .slice(0, 3);
   if (visiveis.length === 0) return null;
 
   return (

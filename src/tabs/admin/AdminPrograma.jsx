@@ -67,6 +67,33 @@ function PerguntaManager({ allShared, activeQ }) {
     alert(`Resposta de ${j.name} recuperada! ✓`);
   }
 
+  // Arquiva uma resposta antiga (de uma pergunta anterior que ficou "presa"):
+  // guarda-a no histórico do jovem e limpa, para deixar de aparecer como atual.
+  async function arquivarRespostaAntiga(j, silencioso = false) {
+    const d = allShared[j.username] || {};
+    if (!d.answerText) return;
+    if (!silencioso && !window.confirm(`Arquivar a resposta antiga de ${j.name}?\n\n"${d.answerText.substring(0,80)}${d.answerText.length>80?"…":""}"\n\nVai para o histórico do jovem e deixa de aparecer aqui.`)) return;
+    await updateDoc(doc(db, "userData", j.username), {
+      perguntasHistorico: arrayUnion({
+        week: d.answerDate ? d.answerDate.split(" ")[0] : "anterior",
+        answer: d.answerText, type: d.answerType || "texto", ts: Date.now()
+      })
+    });
+    await setDoc(doc(db, "userData", j.username), {
+      answered: false, answerText: null, answerType: null, answerMedia: null, answerDate: null,
+    }, { merge: true });
+    if (!silencioso) alert(`Resposta antiga de ${j.name} arquivada. ✓`);
+  }
+
+  // Arquiva de uma vez TODAS as respostas órfãs (pendentes com texto antigo).
+  async function arquivarTodasAntigas() {
+    const orfaos = JEEP_RESP.filter(j => { const d = allShared[j.username] || {}; return !d.answered && d.answerText; });
+    if (orfaos.length === 0) return;
+    if (!window.confirm(`Arquivar ${orfaos.length} resposta(s) antiga(s) de uma vez?\n\nVão todas para o histórico dos respetivos jovens e deixam de aparecer aqui. (Não mexe em quem respondeu esta semana.)`)) return;
+    for (const j of orfaos) await arquivarRespostaAntiga(j, true);
+    alert(`${orfaos.length} resposta(s) antiga(s) arquivada(s). ✓`);
+  }
+
   async function enviarFbPergunta(j, resposta) {
     const txt = fbTxts[j.username]?.trim();
     if (!txt) return;
@@ -209,7 +236,15 @@ function PerguntaManager({ allShared, activeQ }) {
       </div>
 
       <div style={CARD}>
-        <div style={SL}>Respostas Recebidas</div>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
+          <div style={SL}>Respostas Recebidas</div>
+          {JEEP_RESP.some(j => { const d = allShared[j.username] || {}; return !d.answered && d.answerText; }) && (
+            <button onClick={arquivarTodasAntigas} title="Arquivar todas as respostas antigas que ficaram marcadas como pendentes"
+              style={{ background:"rgba(251,191,36,0.12)", border:"1px solid rgba(251,191,36,0.4)", color:"#fbbf24", fontSize:10, fontWeight:800, cursor:"pointer", padding:"4px 10px", borderRadius:8 }}>
+              🗄️ Arquivar antigas
+            </button>
+          )}
+        </div>
         {JEEP_RESP.map(j => {
           const d = allShared[j.username] || {};
           return (
@@ -225,8 +260,12 @@ function PerguntaManager({ allShared, activeQ }) {
                       </span>
                     : <span style={{ fontSize:13, color:"#475569", flex:1 }}>Pendente</span>}
                 {!d.answered && d.answerText && (
-                  <button onClick={() => restaurarResposta(j)} title="Recuperar esta resposta (voltar a marcar como respondida)"
+                  <button onClick={() => restaurarResposta(j)} title="Esta resposta É desta semana — voltar a marcar como respondida"
                     style={{ background:"rgba(74,222,128,0.12)", border:"1px solid rgba(74,222,128,0.5)", color:"#4ade80", fontSize:11, fontWeight:800, cursor:"pointer", padding:"2px 8px", borderRadius:8, flexShrink:0 }}>↩️ Recuperar</button>
+                )}
+                {!d.answered && d.answerText && (
+                  <button onClick={() => arquivarRespostaAntiga(j)} title="Esta resposta é de uma pergunta ANTERIOR — arquivar no histórico e limpar"
+                    style={{ background:"rgba(251,191,36,0.12)", border:"1px solid rgba(251,191,36,0.45)", color:"#fbbf24", fontSize:11, fontWeight:800, cursor:"pointer", padding:"2px 8px", borderRadius:8, flexShrink:0 }}>🗄️ Arquivar</button>
                 )}
                 {d.answered && (
                   <button onClick={() => setFbOpen(p => ({ ...p, [j.username]: !p[j.username] }))}
