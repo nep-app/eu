@@ -22,6 +22,7 @@ export default function AdminMural() {
   const [notificarForum, setNotificarForum] = useState(true);
   const [pushForumPost,  setPushForumPost]  = useState(false);
   const [fTarget, setFTarget] = useState("all"); // "all" ou "teresa" (post de teste)
+  const [fDestaque, setFDestaque] = useState(false); // aparecer em destaque no Início
   const [mencaoDropdown, setMencaoDropdown] = useState(false);
   const [mencaoFiltro,   setMencaoFiltro]   = useState("");
   const [mencaoStart,    setMencaoStart]    = useState(0);
@@ -114,6 +115,7 @@ export default function AdminMural() {
         user:"Teresa (GO)", username:"admin", color:"#22d3ee",
         text:fPost, media:mediaUrl, time:nowFull(), ts:Date.now(),
         ...(fTarget !== "all" ? { target: fTarget } : {}),
+        ...(fDestaque ? { destaque: true } : {}),
         reactions:{ heart:0, fire:0, clap:0, think:0 }, reactedBy:{}, replies:[]
       });
       // Post de teste (só para a Teresa) não notifica ninguém.
@@ -137,7 +139,7 @@ export default function AdminMural() {
           mencao: true, postId: docRef.id, canal: channel, push: true
         })
       ));
-      setFPost(""); setMediaFile(null); setMencaoDropdown(false); setPushForumPost(false); setFTarget("all");
+      setFPost(""); setMediaFile(null); setMencaoDropdown(false); setPushForumPost(false); setFTarget("all"); setFDestaque(false);
     } catch(e) { alert("Erro: " + e.message); }
     setIsUploading(false);
   }
@@ -357,6 +359,15 @@ export default function AdminMural() {
                 ))}
               </div>
             )}
+            {channel === "anuncios" && (
+              <label style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8, padding:"8px 10px", background: fDestaque ? "rgba(255,196,61,0.10)" : "rgba(255,255,255,0.03)", border: fDestaque ? "1px solid rgba(255,196,61,0.4)" : "1px solid rgba(255,255,255,0.08)", borderRadius:10, cursor:"pointer" }}>
+                <input type="checkbox" checked={fDestaque} onChange={() => setFDestaque(v => !v)}
+                  style={{ accentColor:"#fbbf24", width:15, height:15 }} />
+                <span style={{ fontSize:12, fontWeight:800, color: fDestaque ? "#fbbf24" : "#94a3b8" }}>
+                  📌 Destacar no Início <span style={{ fontWeight:600, color:"#64748b" }}>(aparece em grande na página inicial)</span>
+                </span>
+              </label>
+            )}
             <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:8, opacity: fTarget === "all" ? 1 : 0.4 }}>
               <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor: fTarget === "all" ? "pointer" : "not-allowed" }}>
                 <input type="checkbox" checked={notificarForum && fTarget === "all"} disabled={fTarget !== "all"} onChange={() => setNotificarForum(v => !v)}
@@ -404,7 +415,19 @@ export default function AdminMural() {
                       {(p.user==="Teresa (GO)"||p.username==="admin") &&
                         <span style={{ fontSize:9, background:CYN, color:"#0f172a", padding:"2px 6px", borderRadius:6, marginLeft:6 }}>ADMIN</span>}
                     </span>
-                    <span style={{ fontSize:11, color:"#94a3b8" }}>{p.time}</span>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
+                      {channel === "anuncios" && (
+                        <button onClick={() => updateDoc(doc(db, "forum", "anuncios", "posts", p.id), { destaque: !p.destaque })}
+                          title={p.destaque ? "Está em destaque no Início — clica para tirar" : "Destacar no Início"}
+                          style={{ fontSize:10, fontWeight:800, cursor:"pointer", borderRadius:8, padding:"3px 8px",
+                            border: p.destaque ? "1px solid #fbbf24" : "1px solid rgba(255,255,255,0.15)",
+                            background: p.destaque ? "rgba(251,191,36,0.16)" : "rgba(255,255,255,0.04)",
+                            color: p.destaque ? "#fbbf24" : "#94a3b8" }}>
+                          {p.destaque ? "📌 No Início" : "📌 Destacar"}
+                        </button>
+                      )}
+                      <span style={{ fontSize:11, color:"#94a3b8" }}>{p.time}</span>
+                    </div>
                   </div>
                   {p.text && <div style={{ fontSize:13, color:"#cbd5e1", marginTop:4, lineHeight:1.55 }}>{p.text}</div>}
                   {p.media && <img src={p.media} alt="" style={{ maxWidth:"100%", borderRadius:12, marginTop:8, border:"1px solid rgba(255,255,255,0.1)" }}/>}
