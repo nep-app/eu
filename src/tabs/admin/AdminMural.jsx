@@ -116,6 +116,23 @@ export default function AdminMural() {
     if (novo) await limparOutrosDestaques(p.id);
   }
 
+  // Limpa da lista de notificações de todos os jovens as entradas de ANÚNCIOS
+  // ("Teresa publicou em Anúncios…"). Não mexe nos posts nem nas menções.
+  async function limparNotificacoesAnuncios() {
+    if (!window.confirm("Limpar as notificações de anúncios antigas da lista de todos os jovens?\n\nNão apaga os posts do fórum nem os avisos em destaque — só as entradas \"Teresa publicou em Anúncios…\" na lista de notificações.")) return;
+    let total = 0;
+    for (const u of ALLOWED_USERNAMES.filter(x => x !== "ricardo")) {
+      const snap = await getDocs(collection(db, "notifications", u, "items"));
+      const alvos = snap.docs.filter(d => {
+        const n = d.data();
+        return !n.mencao && (n.canal === "anuncios" || (n.text && n.text.includes("em Anúncios")));
+      });
+      await Promise.all(alvos.map(d => deleteDoc(doc(db, "notifications", u, "items", d.id))));
+      total += alvos.length;
+    }
+    alert(`${total} notificação(ões) de anúncios apagada(s) da lista dos jovens. ✓`);
+  }
+
   // ── PUBLICAR POST ──
   async function postForum() {
     if (!fPost.trim() && !mediaFile) return;
@@ -426,6 +443,14 @@ export default function AdminMural() {
               rotuloItem={p => `#${p.canal}: ${p.texto}`}
               onAgendado={() => { setFPost(""); setMediaFile(null); setPushForumPost(false); }}
             />
+            {channel === "anuncios" && (
+              <button onClick={limparNotificacoesAnuncios} style={{
+                marginTop:10, width:"100%", padding:"9px",
+                background:"rgba(244,63,94,0.08)", border:"1px dashed rgba(244,63,94,0.4)",
+                color:"#f43f5e", borderRadius:10, fontWeight:800, fontSize:11, cursor:"pointer" }}>
+                🧹 Limpar notificações de anúncios antigas (da lista de todos os jovens)
+              </button>
+            )}
           </div>
 
           {/* POSTS */}
