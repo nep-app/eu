@@ -39,7 +39,7 @@ export default function HomeAvisos({ user, setTab, setForumCanal, previewMode })
     .filter(a => a.destaque === true)
     .filter(a => !a.target || a.target === "all" || a.target === meu)
     .filter(a => !dispensados.includes(a.id))
-    .slice(0, 3);
+    .slice(0, 1); // só o aviso em destaque atual (o mais recente)
   if (visiveis.length === 0) return null;
 
   // Tema claro (conta teresa) precisa de texto escuro; jovens usam tema escuro.
