@@ -7,7 +7,7 @@ import { ThemeCtx } from "../../JovensApp.jsx";
 import HomeVotacoes from "./HomeVotacoes.jsx";
 
 function fmtDatePt(str) {
-  if (!str) return "";
+  if (!str || typeof str !== "string") return "";
   const [y, m, d] = str.split("-");
   const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
   return `${parseInt(d)} ${MESES[parseInt(m)-1]} ${y}`;

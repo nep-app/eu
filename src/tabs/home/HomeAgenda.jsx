@@ -26,7 +26,7 @@ function groupLabel(dateStr) {
 }
 
 function fmtDatePtShort(str) {
-  if (!str) return "";
+  if (!str || typeof str !== "string") return "";
   const [y, m, d] = str.split("-");
   const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
   return `${parseInt(d)} ${MESES[parseInt(m)-1]}`;

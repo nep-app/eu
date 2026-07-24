@@ -100,8 +100,8 @@ export default function HomeVotacoes({ user }) {
                   {poll.type === "data" ? "✅ Seleciona as datas/horas em que tens disponibilidade (podes escolher várias):" : "Seleciona a tua opção favorita:"}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {poll.options.map(op => {
-                    const votos = poll.votes[op] || [];
+                  {(poll.options || []).map(op => {
+                    const votos = (poll.votes || {})[op] || [];
                     const voteiNesta = votos.includes(user.realName);
                     return (
                       <div key={op}>
