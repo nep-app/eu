@@ -54,13 +54,16 @@ export default function AdminMural() {
     );
   }, []);
 
-  async function notificarTodos(texto, canal = null, push = false) {
+  // soPush=true → serve só para disparar a push; NÃO aparece na lista de
+  // notificações do Início (usado quando o aviso já está em destaque no topo).
+  async function notificarTodos(texto, canal = null, push = false, soPush = false) {
     await Promise.all(
       ALLOWED_USERNAMES
         .filter(u => u !== "ricardo")
         .map(u => addDoc(collection(db, "notifications", u, "items"), {
           from:"teresa", text:texto, date:nowFull(), read:false, ts:Date.now(), push,
           ...(canal ? { canal } : {}),
+          ...(soPush ? { soPush: true } : {}),
         }))
     );
   }
@@ -100,6 +103,19 @@ export default function AdminMural() {
     }, 0);
   }
 
+  // Tira o destaque de todos os outros anúncios (só 1 fica em destaque).
+  async function limparOutrosDestaques(exceptId) {
+    const outros = posts.filter(p => p.destaque && p.id !== exceptId);
+    await Promise.all(outros.map(p => updateDoc(doc(db, "forum", "anuncios", "posts", p.id), { destaque: false })));
+  }
+
+  // Liga/desliga o destaque de um post; ao ligar, substitui o destaque anterior.
+  async function alternarDestaque(p) {
+    const novo = !p.destaque;
+    await updateDoc(doc(db, "forum", "anuncios", "posts", p.id), { destaque: novo });
+    if (novo) await limparOutrosDestaques(p.id);
+  }
+
   // ── PUBLICAR POST ──
   async function postForum() {
     if (!fPost.trim() && !mediaFile) return;
@@ -118,12 +134,19 @@ export default function AdminMural() {
         ...(fDestaque ? { destaque: true } : {}),
         reactions:{ heart:0, fire:0, clap:0, think:0 }, reactedBy:{}, replies:[]
       });
-      // Post de teste (só para a Teresa) não notifica ninguém.
-      if (notificarForum && fPost.trim() && fTarget === "all") {
+      // Notificações (só para posts "para todos"; posts de teste não notificam).
+      if (fPost.trim() && fTarget === "all") {
         const ch = CHANNELS.find(c => c.id === channel);
         const preview = fPost.trim().substring(0, 80);
         const label = ch?.label || channel;
-        await notificarTodos(`${ch?.icon || "🌐"} Teresa publicou em ${label}: "${preview}${fPost.length > 80 ? "…" : ""}"`, channel, pushForumPost);
+        const texto = `${ch?.icon || "🌐"} Teresa publicou em ${label}: "${preview}${fPost.length > 80 ? "…" : ""}"`;
+        if (fDestaque) {
+          // Já aparece em DESTAQUE no Início → não enche a lista de notificações.
+          // Só dispara push, se selecionado (não vai para o feed: soPush=true).
+          if (pushForumPost) await notificarTodos(`📢 Novo aviso da Teresa no Início!`, channel, true, true);
+        } else if (notificarForum) {
+          await notificarTodos(texto, channel, pushForumPost);
+        }
       }
       // @menções → ação pendente
       const mencoes = [...fPost.matchAll(/@(\w+)/g)]
@@ -372,8 +395,13 @@ export default function AdminMural() {
               <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor: fTarget === "all" ? "pointer" : "not-allowed" }}>
                 <input type="checkbox" checked={notificarForum && fTarget === "all"} disabled={fTarget !== "all"} onChange={() => setNotificarForum(v => !v)}
                   style={{ accentColor:CYN, width:14, height:14 }} />
-                Notificar todos os jovens {fTarget !== "all" && "(desligado no modo teste)"}
+                {fDestaque ? "Avisar os jovens" : "Notificar todos os jovens"} {fTarget !== "all" && "(desligado no modo teste)"}
               </label>
+              {fDestaque && notificarForum && fTarget === "all" && (
+                <div style={{ fontSize:10, color:"#64748b", marginLeft:21, marginTop:-2 }}>
+                  Em destaque já aparece no Início — <b>não enche a lista de notificações</b>. Só a push (abaixo) é enviada.
+                </div>
+              )}
               {notificarForum && (
                 <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:11, color:"#94a3b8", cursor:"pointer", marginLeft:21 }}>
                   <input type="checkbox" checked={pushForumPost} onChange={() => setPushForumPost(v => !v)}

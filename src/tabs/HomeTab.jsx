@@ -16,7 +16,8 @@ const ACAO_PENDENTE_TEXTS = [
 ];
 
 function isRelevant(n) {
-  return n.tipo !== "proposta" && !n.mencao && !ACAO_PENDENTE_TEXTS.some(t => n.text?.includes(t));
+  // soPush = notificação que só serve para disparar push (não aparece na lista).
+  return !n.soPush && n.tipo !== "proposta" && !n.mencao && !ACAO_PENDENTE_TEXTS.some(t => n.text?.includes(t));
 }
 
 function parseDateStr(str) {
