@@ -1,8 +1,9 @@
-import { precacheAndRoute } from 'workbox-precaching';
+import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 import { clientsClaim } from 'workbox-core';
 
 self.skipWaiting();
 clientsClaim();
+cleanupOutdatedCaches(); // remove caches de versões antigas (evita ficar preso numa versão velha)
 precacheAndRoute(self.__WB_MANIFEST);
 
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
