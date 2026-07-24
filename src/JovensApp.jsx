@@ -8,6 +8,29 @@ import logoImg from "./logo.png";
 
 export const ThemeCtx = React.createContext(false);
 
+// Rede de segurança: se uma secção rebentar, mostra uma mensagem em vez de
+// deixar a app inteira em branco. Regista o erro na consola para diagnóstico.
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { erro: null }; }
+  static getDerivedStateFromError(error) { return { erro: error }; }
+  componentDidCatch(error, info) { console.error("[JEEP] Erro numa secção:", error, info); }
+  componentDidUpdate(prev) { if (prev.resetKey !== this.props.resetKey && this.state.erro) this.setState({ erro: null }); }
+  render() {
+    if (this.state.erro) {
+      return (
+        <div style={{ margin:"18px 16px", padding:"18px", borderRadius:16, background:"rgba(244,63,94,0.08)", border:"1px solid rgba(244,63,94,0.3)", color:"#fca5a5" }}>
+          <div style={{ fontSize:14, fontWeight:800, marginBottom:6 }}>⚠️ Esta secção teve um problema</div>
+          <div style={{ fontSize:12, color:"#e2e8f0", lineHeight:1.5 }}>
+            O resto da app continua a funcionar. Já registámos o erro para corrigir.
+          </div>
+          <div style={{ fontSize:10, color:"#94a3b8", marginTop:8, wordBreak:"break-word" }}>{String(this.state.erro?.message || this.state.erro)}</div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 import HomeTab     from "./tabs/HomeTab.jsx";
 import DesafiosTab from "./tabs/DesafiosTab.jsx";
 import ForumTab    from "./tabs/ForumTab.jsx";
@@ -272,11 +295,13 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
 
       {/* ── CONTEÚDO ───────────────────────────────────────────────────── */}
       <div style={{ flex:1, overflowY:"auto", paddingBottom:90, ...(previewMode ? { pointerEvents:"none", userSelect:"none" } : {}) }}>
-        {tab === "home"     && <HomeTab     user={user} data={{...allData, features: effectiveFeatures}} setTab={setTab} setDesafiosSubTab={setDesafiosSubTab} setForumCanal={setForumCanal} previewMode={previewMode} />}
-        {tab === "desafios" && <DesafiosTab user={user} data={allData} subTab={desafiosSubTab} setSubTab={setDesafiosSubTab} features={effectiveFeatures} />}
-        {tab === "forum"    && <ForumTab    user={user} data={allData} forumCollection={user.isDemo ? "forum_demo" : "forum"} initialCanal={forumCanal} />}
-        {tab === "pia"      && <PiaTab      user={user} data={allData} />}
-        {tab === "perfil"   && <PerfilTab   user={user} data={allData} features={effectiveFeatures} />}
+        <ErrorBoundary resetKey={tab}>
+          {tab === "home"     && <HomeTab     user={user} data={{...allData, features: effectiveFeatures}} setTab={setTab} setDesafiosSubTab={setDesafiosSubTab} setForumCanal={setForumCanal} previewMode={previewMode} />}
+          {tab === "desafios" && <DesafiosTab user={user} data={allData} subTab={desafiosSubTab} setSubTab={setDesafiosSubTab} features={effectiveFeatures} />}
+          {tab === "forum"    && <ForumTab    user={user} data={allData} forumCollection={user.isDemo ? "forum_demo" : "forum"} initialCanal={forumCanal} />}
+          {tab === "pia"      && <PiaTab      user={user} data={allData} />}
+          {tab === "perfil"   && <PerfilTab   user={user} data={allData} features={effectiveFeatures} />}
+        </ErrorBoundary>
       </div>
 
       {/* ── NAV BAR ────────────────────────────────────────────────────── */}
