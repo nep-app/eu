@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, fetchSignInMethodsForEmail } from "firebase/auth";
 import { doc, setDoc, onSnapshot, arrayUnion } from "firebase/firestore";
 import { auth, db } from "./firebase.js";
 import { AppIcon, BG, CYN } from "./theme.jsx";
@@ -97,13 +97,23 @@ export default function App() {
 
   // Fluxo "novo utilizador": valida o nome contra a lista autorizada e, se
   // estiver, segue direto para a criação de password + RGPD (sem passwords à toa).
-  function irParaRegisto() {
+  async function irParaRegisto() {
     const u = novoUser.toLowerCase().trim();
     setNovoErr("");
     if (!u) { setNovoErr("Escreve o teu nome de utilizador."); return; }
     if (u === "admin" || !ALLOWED_USERNAMES.includes(u)) {
       setNovoErr("Esse nome não está autorizado. Pede à Teresa para te adicionar."); return;
     }
+    // Já existe conta com este nome? → não deixar "criar" de novo; mandar ao login.
+    try {
+      const metodos = await fetchSignInMethodsForEmail(auth, u + "@jeep.app");
+      if (metodos && metodos.length > 0) {
+        setScreen("login"); setUIn(u); setPIn("");
+        setLErr("Já tens conta! Entra com a tua password. (Esqueceste-te? Fala com a Teresa.)");
+        setNovoUser(""); setNovoErr("");
+        return;
+      }
+    } catch (e) { /* se a verificação falhar, seguimos — o passo de criar conta trata do resto */ }
     setRegUser(u); setRegPw(""); setRegPw2(""); setRegErr(""); setGdprOk(false);
     setScreen("register");
   }
