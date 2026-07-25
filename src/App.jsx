@@ -26,6 +26,8 @@ export default function App() {
   const [regPw2, setRegPw2] = useState("");
   const [gdprOk, setGdprOk] = useState(false);
   const [regErr, setRegErr] = useState("");
+  const [novoUser, setNovoUser] = useState("");
+  const [novoErr, setNovoErr] = useState("");
   const [showGdpr, setShowGdpr] = useState(false);
 
   useEffect(() => {
@@ -93,6 +95,19 @@ export default function App() {
     }
   }
 
+  // Fluxo "novo utilizador": valida o nome contra a lista autorizada e, se
+  // estiver, segue direto para a criação de password + RGPD (sem passwords à toa).
+  function irParaRegisto() {
+    const u = novoUser.toLowerCase().trim();
+    setNovoErr("");
+    if (!u) { setNovoErr("Escreve o teu nome de utilizador."); return; }
+    if (u === "admin" || !ALLOWED_USERNAMES.includes(u)) {
+      setNovoErr("Esse nome não está autorizado. Pede à Teresa para te adicionar."); return;
+    }
+    setRegUser(u); setRegPw(""); setRegPw2(""); setRegErr(""); setGdprOk(false);
+    setScreen("register");
+  }
+
   async function doLogout() {
     await signOut(auth);
     setUser(null); setScreen("login"); setUIn(""); setPIn("");
@@ -131,6 +146,24 @@ export default function App() {
     );
   }
 
+  if (screen === "novo") {
+    return (
+      <div style={{ minHeight:"100vh", background:BG, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"system-ui,sans-serif", padding:16, boxSizing: "border-box" }}>
+        <div style={{ background:"rgba(30, 41, 59, 0.7)", borderRadius:24, padding:"36px 30px", width:"100%", maxWidth:320, border:"1px solid rgba(34, 211, 238, 0.2)", backdropFilter:"blur(10px)", boxSizing:"border-box" }}>
+          <div style={{ textAlign:"center", marginBottom:22 }}>
+            <AppIcon size={52}/>
+            <div style={{ fontSize:19, fontWeight:900, color:"white", marginTop:10 }}>Primeira vez aqui? 👋</div>
+            <div style={{ fontSize:12, color:"#94a3b8", marginTop:6, lineHeight:1.5 }}>Escreve o teu nome de utilizador (o que a Teresa te deu). A seguir crias a tua password.</div>
+          </div>
+          <input value={novoUser} autoFocus onChange={e=>setNovoUser(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")irParaRegisto();}} placeholder="O teu nome de utilizador" style={{ width:"100%", padding:"12px 14px", borderRadius:12, background:"rgba(0,0,0,0.3)", border:"1px solid rgba(255,255,255,0.1)", color:"white", fontSize:14, marginBottom:10, outline:"none", boxSizing:"border-box" }}/>
+          {novoErr && <div style={{ color:"#fb7185", fontSize:12, marginBottom:10 }}>{novoErr}</div>}
+          <button onClick={irParaRegisto} style={{ width:"100%", padding:"14px", background:CYN, color:"#0f172a", border:"none", borderRadius:14, fontSize:15, fontWeight:800, cursor:"pointer", boxSizing:"border-box" }}>Continuar →</button>
+          <button onClick={()=>{setScreen("login");setNovoErr("");setNovoUser("");}} style={{ width:"100%", marginTop:10, background:"transparent", color:"#94a3b8", border:"none", fontSize:13, cursor:"pointer", boxSizing:"border-box" }}>← Já tenho conta</button>
+        </div>
+      </div>
+    );
+  }
+
   if (screen === "login") {
     return (
       <div style={{ minHeight:"100vh", background:BG, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"system-ui,sans-serif", padding:16, boxSizing: "border-box" }}>
@@ -144,6 +177,12 @@ export default function App() {
           <input value={pIn} type="password" onChange={e=>setPIn(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")doLogin();}} placeholder="Password" style={{ width:"100%", padding:"12px 14px", borderRadius:12, background:"rgba(0,0,0,0.3)", border:"1px solid rgba(255,255,255,0.1)", color:"white", fontSize:14, marginBottom:10, outline:"none", boxSizing:"border-box" }}/>
           {lErr && <div style={{ color:"#fb7185", fontSize:12, marginBottom:8 }}>{lErr}</div>}
           <button onClick={doLogin} style={{ width:"100%", padding:"14px", background:`linear-gradient(135deg, ${CYN}, #0ea5e9)`, color:"#0f172a", border:"none", borderRadius:14, fontSize:15, fontWeight:800, cursor:"pointer", textTransform:"uppercase", letterSpacing:1, boxSizing:"border-box" }}>Entrar →</button>
+          <div style={{ display:"flex", alignItems:"center", gap:10, margin:"16px 0 12px" }}>
+            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.1)" }}/>
+            <span style={{ fontSize:11, color:"#64748b", fontWeight:700 }}>ou</span>
+            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.1)" }}/>
+          </div>
+          <button onClick={()=>{setScreen("novo");setLErr("");setNovoUser("");setNovoErr("");}} style={{ width:"100%", padding:"13px", background:"transparent", color:CYN, border:`1.5px solid ${CYN}55`, borderRadius:14, fontSize:14, fontWeight:800, cursor:"pointer", boxSizing:"border-box" }}>✨ Primeira vez aqui? Criar conta</button>
         </div>
       </div>
     );
