@@ -2,8 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { doc, updateDoc, deleteDoc, deleteField, collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP, Linkify } from "../../theme.jsx";
-import { nowFull, JEEP_LIST, ALLOWED_USERNAMES } from "../../data.js";
+import { nowFull, JEEP_LIST, ALLOWED_USERNAMES, MTHS } from "../../data.js";
 import Agendador from "./Agendador.jsx";
+
+// Timestamp de uma mensagem: usa ts se existir; senão faz parse da `date`
+// (aceita "23 Jul 2026, 14:30" e o formato antigo "Mai 2026").
+function tsMensagem(m) {
+  if (m.ts) return m.ts;
+  const s = m.date || "";
+  const cheia = s.match(/^(\d{1,2})\s+([A-Za-zÀ-ú]{3})\w*\s+(\d{4})(?:,\s*(\d{1,2}):(\d{2}))?/);
+  if (cheia) {
+    const mon = MTHS.findIndex(x => x.toLowerCase() === cheia[2].toLowerCase().slice(0, 3));
+    if (mon >= 0) return new Date(+cheia[3], mon, +cheia[1], +(cheia[4] || 12), +(cheia[5] || 0)).getTime();
+  }
+  const mesAno = s.match(/^([A-Za-zÀ-ú]{3})\w*\s+(\d{4})/);
+  if (mesAno) {
+    const mon = MTHS.findIndex(x => x.toLowerCase() === mesAno[1].toLowerCase().slice(0, 3));
+    if (mon >= 0) return new Date(+mesAno[2], mon, 1).getTime();
+  }
+  return 0;
+}
 
 export default function AdminMsgs() {
   const [msgs, setMsgs] = useState([]);
@@ -21,7 +39,7 @@ export default function AdminMsgs() {
       (snap) => {
         const lista = snap.docs
           .map(d => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => (b.ts || 0) - (a.ts || 0));
+          .sort((a, b) => tsMensagem(b) - tsMensagem(a));
         setMsgs(lista);
         setLoadErr(null);
       },
