@@ -66,14 +66,21 @@ export default function App() {
     setLErr("");
     if (!u) { setLErr("Introduz o teu username."); return; }
     if (u !== "admin" && u !== "demo" && !ALLOWED_USERNAMES.includes(u)) { setLErr("Username não autorizado."); return; }
+    if (!pIn) { setLErr("Introduz a tua password."); return; }
     try {
       await signInWithEmailAndPassword(auth, u + "@jeep.app", pIn);
     } catch(e) {
-      if (e.code === "auth/user-not-found" || e.code === "auth/invalid-credential" || e.code === "auth/invalid-email") {
-        if (u === "admin") { setLErr("Conta admin não criada."); return; }
-        setRegUser(u); setScreen("register"); return;
+      // O Firebase devolve "invalid-credential" tanto para password errada como
+      // para conta inexistente — não dá para distinguir. Por isso mostramos um
+      // erro claro e encaminhamos para "Criar conta" quem ainda não tem conta,
+      // em vez de saltar automaticamente para o registo (que confundia).
+      if (e.code === "auth/user-not-found" || e.code === "auth/invalid-credential"
+          || e.code === "auth/invalid-email" || e.code === "auth/wrong-password") {
+        setLErr("Username ou password incorretos. Se é a tua primeira vez aqui, usa \"Criar conta\" em baixo. 👇");
+        return;
       }
-      setLErr("Password incorreta.");
+      if (e.code === "auth/too-many-requests") { setLErr("Demasiadas tentativas. Espera um pouco e tenta de novo."); return; }
+      setLErr("Não foi possível entrar. Verifica a ligação e tenta de novo.");
     }
   }
 
