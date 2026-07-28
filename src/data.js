@@ -175,11 +175,11 @@ export const RODA_DIMS = [
 ];
 
 export const CHANNELS = [
-  { id:"anuncios",  icon:"📢", label:"Anúncios",           desc:"Comunicações oficiais da Teresa — novidades, lembretes e informações importantes do programa JEEP.", adminOnly:true },
+  { id:"anuncios",  icon:"📢", label:"Anúncios",           desc:"Comunicações oficiais da Teresa — novidades, lembretes e informações importantes do programa EDUCA+", adminOnly:true },
   { id:"csi",       icon:"🔍", label:"CSI Ludotecas",      desc:"A tua linha de apoio 24/7. Usa este canal para expores desafios, desabafares sobre situações difíceis no terreno e procurares soluções em conjunto com a Teresa e os teus colegas." },
-  { id:"monitor",   icon:"🏆", label:"Super Monitor",      desc:"O palco das tuas vitórias! Partilha as atividades que correram incrivelmente bem, os sorrisos que arrancaste e as pequenas conquistas diárias do teu trabalho." },
-  { id:"backstage", icon:"🎬", label:"Backstage",          desc:"Onde a magia acontece! Mostra fotos do processo, a preparação dos teus PIAs, a sala desarrumada antes da atividade e o 'Work In Progress' do teu projeto." },
-  { id:"coffee",    icon:"☕", label:"Coffee Break",       desc:"A sala de convívio virtual! Um espaço livre de stress onde é literalmente proibido falar de trabalho. Partilha músicas, memes, séries e combina cafés com a malta." },
+  { id:"monitor",   icon:"🏆", label:"Super Monitores",    desc:"O palco das tuas vitórias! Partilha as atividades que correram incrivelmente bem, os sorrisos que arrancaste e as pequenas conquistas diárias do teu trabalho." },
+  { id:"olx",       icon:"🛒", label:"OLX EDUCA+",         desc:"O mercado do EDUCA+! Peçam e ofereçam cenas uns aos outros — materiais, ajuda, trocas, boleias, o que precisarem. Precisas de algo ou tens algo para dar? É aqui." },
+  { id:"coffee",    icon:"☕", label:"Coffee Break",       desc:"A sala de convívio virtual! Um espaço livre de stress onde é literalmente proibido falar de trabalho. Partilha músicas, memes, séries e combinem coisas uns com os outros." },
 ];
 
 export const SURVEY_CATS = [

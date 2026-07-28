@@ -133,6 +133,23 @@ export default function AdminMural() {
     alert(`${total} notificação(ões) de anúncios apagada(s) da lista dos jovens. ✓`);
   }
 
+  // Move os posts antigos do canal "backstage" para "monitor" (Super Monitores).
+  // Mantém autor, reações e comentários. Pode correr uma vez — depois o
+  // backstage fica vazio. Os posts nunca se perdem (só mudam de canal).
+  async function importarBackstage() {
+    if (!window.confirm("Importar todos os posts antigos do Backstage para o Super Monitores?\n\nOs posts passam para este canal (mantêm autor, reações e comentários). É seguro — não se perde nada.")) return;
+    const snap = await getDocs(collection(db, "forum", "backstage", "posts"));
+    if (snap.empty) { alert("Não há posts no Backstage para importar (ou já foram todos importados)."); return; }
+    let n = 0;
+    for (const d of snap.docs) {
+      const dados = d.data();
+      await addDoc(collection(db, "forum", "monitor", "posts"), dados);
+      await deleteDoc(doc(db, "forum", "backstage", "posts", d.id));
+      n++;
+    }
+    alert(`${n} post(s) importado(s) do Backstage para o Super Monitores. ✓`);
+  }
+
   // ── PUBLICAR POST ──
   async function postForum() {
     if (!fPost.trim() && !mediaFile) return;
@@ -449,6 +466,14 @@ export default function AdminMural() {
                 background:"rgba(244,63,94,0.08)", border:"1px dashed rgba(244,63,94,0.4)",
                 color:"#f43f5e", borderRadius:10, fontWeight:800, fontSize:11, cursor:"pointer" }}>
                 🧹 Limpar notificações de anúncios antigas (da lista de todos os jovens)
+              </button>
+            )}
+            {channel === "monitor" && (
+              <button onClick={importarBackstage} style={{
+                marginTop:10, width:"100%", padding:"9px",
+                background:"rgba(50,199,255,0.08)", border:"1px dashed rgba(50,199,255,0.4)",
+                color:CYN, borderRadius:10, fontWeight:800, fontSize:11, cursor:"pointer" }}>
+                🔄 Importar posts antigos do Backstage para aqui
               </button>
             )}
           </div>

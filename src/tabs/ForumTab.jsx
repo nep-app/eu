@@ -12,7 +12,7 @@ const CHANNEL_COLORS = {
   anuncios:  "#f59e0b", // amber — announcements
   csi:       "#ef4444", // red — CSI investigative
   monitor:   "#22c55e", // green — trophies/victories
-  backstage: "#ec4899", // pink — creative/stage
+  olx:       "#a855f7", // purple — marketplace/trocas
   coffee:    "#78716c", // warm brown — coffee
 };
 
