@@ -76,7 +76,8 @@ function PerguntaManager({ allShared, activeQ }) {
     await updateDoc(doc(db, "userData", j.username), {
       perguntasHistorico: arrayUnion({
         week: d.answerDate ? d.answerDate.split(" ")[0] : "anterior",
-        answer: d.answerText, type: d.answerType || "texto", ts: Date.now()
+        answer: d.answerText || "", type: d.answerType || "texto",
+        media: d.answerMedia || null, ts: Date.now()
       })
     });
     await setDoc(doc(db, "userData", j.username), {
@@ -148,6 +149,7 @@ function PerguntaManager({ allShared, activeQ }) {
           answered: !!d.answered,
           answerText: d.answerText || null,
           answerType: d.answerType || null,
+          answerMedia: d.answerMedia || null,
           answerDate: d.answerDate || null,
         };
       });
@@ -189,6 +191,7 @@ function PerguntaManager({ allShared, activeQ }) {
         answered: !!r.answered,
         answerText: r.answerText ?? null,
         answerType: r.answerType ?? null,
+        answerMedia: r.answerMedia ?? null,
         answerDate: r.answerDate ?? null,
       }, { merge: true });
     }
@@ -379,7 +382,9 @@ function PerguntaManager({ allShared, activeQ }) {
                       <span style={{ fontSize:10, color:"#475569" }}>{h.week || "—"}</span>
                       <span style={{ fontSize:10, color:"#475569" }}>{h.type || "texto"}</span>
                     </div>
-                    <div style={{ fontSize:12, color:"#e2e8f0" }}>{h.answer}</div>
+                    {h.answer && <div style={{ fontSize:12, color:"#e2e8f0" }}>{h.answer}</div>}
+                    {h.media && h.type === "audio" && <audio src={h.media} controls style={{ width:"100%", marginTop:4 }} />}
+                    {h.media && h.type !== "audio" && <img src={h.media} alt="resposta" style={{ maxWidth:"100%", borderRadius:8, marginTop:4, display:"block" }} />}
                   </div>
                 ))}
               </div>
@@ -392,7 +397,7 @@ function PerguntaManager({ allShared, activeQ }) {
         <div style={CARD}>
           <div style={SL}>📚 Arquivo de Perguntas Anteriores</div>
           {arquivo.map(a => {
-            const nResp = Object.values(a.respostas || {}).filter(r => r.answered && r.answerText).length;
+            const nResp = Object.values(a.respostas || {}).filter(r => r.answered && (r.answerText || r.answerMedia)).length;
             const quandoArq = a.archivedAt
               ? new Date(a.archivedAt).toLocaleString("pt-PT", { day:"2-digit", month:"2-digit", year:"2-digit", hour:"2-digit", minute:"2-digit" })
               : (a.date || "—");
@@ -423,8 +428,12 @@ function PerguntaManager({ allShared, activeQ }) {
                     return (
                       <div key={j.username} style={{ padding:"7px 0", borderBottom:"1px solid rgba(255,255,255,0.05)", display:"flex", gap:8, alignItems:"flex-start" }}>
                         <span style={{ fontSize:12, fontWeight:800, color:j.color, flexShrink:0, minWidth:70 }}>{j.name}:</span>
-                        {r.answered && r.answerText
-                          ? <span style={{ fontSize:12, color:"#e2e8f0", lineHeight:1.5 }}>{r.answerText}</span>
+                        {r.answered && (r.answerText || r.answerMedia)
+                          ? <span style={{ flex:1 }}>
+                              {r.answerText && <span style={{ fontSize:12, color:"#e2e8f0", lineHeight:1.5, display:"block" }}>{r.answerText}</span>}
+                              {r.answerMedia && r.answerType === "audio" && <audio src={r.answerMedia} controls style={{ width:"100%", marginTop:4 }} />}
+                              {r.answerMedia && r.answerType !== "audio" && <img src={r.answerMedia} alt="resposta" style={{ maxWidth:"100%", borderRadius:8, marginTop:4, display:"block" }} />}
+                            </span>
                           : <span style={{ fontSize:12, color:"#475569" }}>Sem resposta</span>}
                       </div>
                     );

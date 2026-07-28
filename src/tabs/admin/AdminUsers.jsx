@@ -165,11 +165,11 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
   async function resetPergunta(username) {
     if (!window.confirm("Repor a pergunta semanal? O jovem poderá responder de novo. A resposta atual fica guardada no histórico.")) return;
     const uData = allShared[username] || {};
-    if (uData.answerText) {
+    if (uData.answerText || uData.answerMedia) {
       await updateDoc(doc(db, "userData", username), {
         perguntasHistorico: arrayUnion({
-          week: getWeekKey(), answer: uData.answerText,
-          type: uData.answerType || "texto", ts: Date.now()
+          week: getWeekKey(), answer: uData.answerText || "",
+          type: uData.answerType || "texto", media: uData.answerMedia || null, ts: Date.now()
         })
       });
     }
@@ -652,7 +652,9 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
                     {hP.map((e, i) => (
                       <div key={i} style={{ padding:"10px 12px", borderRadius:10, background:"rgba(0,0,0,0.2)", marginBottom:6 }}>
                         <div style={{ fontSize:10, color:"#475569", marginBottom:3 }}>{e.week} · {e.type || "texto"} · {formatarDataHora(e.ts, "")}</div>
-                        <div style={{ fontSize:13, color:"#e2e8f0", lineHeight:1.5 }}>{e.answer || "—"}</div>
+                        {(e.answer || !e.media) && <div style={{ fontSize:13, color:"#e2e8f0", lineHeight:1.5 }}>{e.answer || "—"}</div>}
+                        {e.media && e.type === "audio" && <audio src={e.media} controls style={{ width:"100%", marginTop:4 }} />}
+                        {e.media && e.type !== "audio" && <img src={e.media} alt="resposta" style={{ maxWidth:"100%", borderRadius:8, marginTop:4, display:"block" }} />}
                       </div>
                     ))}
                   </div>

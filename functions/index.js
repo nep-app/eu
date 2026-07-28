@@ -153,7 +153,8 @@ async function publicarPergunta(payload) {
       const ud = (await db.collection("userData").doc(u).get()).data() || {};
       respostas[u] = {
         answered: !!ud.answered, answerText: ud.answerText || null,
-        answerType: ud.answerType || null, answerDate: ud.answerDate || null,
+        answerType: ud.answerType || null, answerMedia: ud.answerMedia || null,
+        answerDate: ud.answerDate || null,
       };
     }));
     await db.collection("perguntasArquivo").add({
