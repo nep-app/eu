@@ -252,7 +252,18 @@ function PerguntaManager({ allShared, activeQ }) {
               <div style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
                 <span style={{ fontSize:13, fontWeight:800, color:j.color, flexShrink:0, minWidth:72 }}>{j.name}:</span>
                 {d.answered
-                  ? <span style={{ fontSize:13, color:"#e2e8f0", lineHeight:1.5, flex:1 }}>{d.answerText}</span>
+                  ? <span style={{ flex:1 }}>
+                      {d.answerText && <span style={{ fontSize:13, color:"#e2e8f0", lineHeight:1.5, display:"block" }}>{d.answerText}</span>}
+                      {d.answerMedia && d.answerType === "audio" && (
+                        <audio src={d.answerMedia} controls style={{ width:"100%", marginTop:4 }} />
+                      )}
+                      {d.answerMedia && d.answerType !== "audio" && (
+                        <img src={d.answerMedia} alt="resposta" style={{ maxWidth:"100%", borderRadius:10, marginTop:4, display:"block", border:"1px solid rgba(255,255,255,0.1)" }} />
+                      )}
+                      {!d.answerText && !d.answerMedia && (
+                        <span style={{ fontSize:12, color:"#64748b", fontStyle:"italic" }}>(respondeu, mas sem conteúdo)</span>
+                      )}
+                    </span>
                   : d.answerText
                     ? <span style={{ flex:1 }}>
                         <span style={{ fontSize:13, color:"#e2e8f0", lineHeight:1.5, display:"block" }}>{d.answerText}</span>
