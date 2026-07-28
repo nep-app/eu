@@ -33,6 +33,32 @@ const MODOS = [
   { id:"mood",      label:"Emoji/Mood",  icon:"🎭" },
 ];
 
+// Mostra a media de uma resposta (áudio/imagem) com pré-visualização + link.
+// Se falhar a pré-ver, o link continua a dar acesso ao ficheiro.
+function RespostaMedia({ media, type }) {
+  const [erro, setErro] = useState(false);
+  if (!media) return null;
+  if (typeof media === "string" && media.startsWith("blob:")) {
+    return <div style={{ fontSize:11, color:"#fbbf24", fontStyle:"italic", marginTop:4 }}>
+      ⚠️ Foto/áudio enviado por uma versão antiga da app — não ficou guardado no servidor.
+    </div>;
+  }
+  const linkStyle = { fontSize:11, color:CYN, fontWeight:700, textDecoration:"underline", display:"inline-block", marginTop:4 };
+  if (type === "audio") {
+    return <span style={{ display:"block", marginTop:4 }}>
+      <audio src={media} controls style={{ width:"100%" }} />
+      <a href={media} target="_blank" rel="noreferrer" style={linkStyle}>🔗 Abrir áudio</a>
+    </span>;
+  }
+  return <span style={{ display:"block", marginTop:4 }}>
+    {!erro && <img src={media} alt="resposta" onError={() => setErro(true)}
+      style={{ maxWidth:"100%", borderRadius:10, display:"block", border:"1px solid rgba(255,255,255,0.1)" }} />}
+    <a href={media} target="_blank" rel="noreferrer" style={linkStyle}>
+      🔗 {erro ? "Abrir ficheiro (não deu para pré-ver)" : "Abrir em nova aba"}
+    </a>
+  </span>;
+}
+
 function PerguntaManager({ allShared, activeQ }) {
   const [activeQEdit, setActiveQEdit] = useState("");
   const [opt1, setOpt1] = useState("");
@@ -257,12 +283,7 @@ function PerguntaManager({ allShared, activeQ }) {
                 {d.answered
                   ? <span style={{ flex:1 }}>
                       {d.answerText && <span style={{ fontSize:13, color:"#e2e8f0", lineHeight:1.5, display:"block" }}>{d.answerText}</span>}
-                      {d.answerMedia && d.answerType === "audio" && (
-                        <audio src={d.answerMedia} controls style={{ width:"100%", marginTop:4 }} />
-                      )}
-                      {d.answerMedia && d.answerType !== "audio" && (
-                        <img src={d.answerMedia} alt="resposta" style={{ maxWidth:"100%", borderRadius:10, marginTop:4, display:"block", border:"1px solid rgba(255,255,255,0.1)" }} />
-                      )}
+                      <RespostaMedia media={d.answerMedia} type={d.answerType} />
                       {!d.answerText && !d.answerMedia && (
                         <span style={{ fontSize:12, color:"#64748b", fontStyle:"italic" }}>(respondeu, mas sem conteúdo)</span>
                       )}
@@ -383,8 +404,7 @@ function PerguntaManager({ allShared, activeQ }) {
                       <span style={{ fontSize:10, color:"#475569" }}>{h.type || "texto"}</span>
                     </div>
                     {h.answer && <div style={{ fontSize:12, color:"#e2e8f0" }}>{h.answer}</div>}
-                    {h.media && h.type === "audio" && <audio src={h.media} controls style={{ width:"100%", marginTop:4 }} />}
-                    {h.media && h.type !== "audio" && <img src={h.media} alt="resposta" style={{ maxWidth:"100%", borderRadius:8, marginTop:4, display:"block" }} />}
+                    <RespostaMedia media={h.media} type={h.type} />
                   </div>
                 ))}
               </div>
@@ -431,8 +451,7 @@ function PerguntaManager({ allShared, activeQ }) {
                         {r.answered && (r.answerText || r.answerMedia)
                           ? <span style={{ flex:1 }}>
                               {r.answerText && <span style={{ fontSize:12, color:"#e2e8f0", lineHeight:1.5, display:"block" }}>{r.answerText}</span>}
-                              {r.answerMedia && r.answerType === "audio" && <audio src={r.answerMedia} controls style={{ width:"100%", marginTop:4 }} />}
-                              {r.answerMedia && r.answerType !== "audio" && <img src={r.answerMedia} alt="resposta" style={{ maxWidth:"100%", borderRadius:8, marginTop:4, display:"block" }} />}
+                              <RespostaMedia media={r.answerMedia} type={r.answerType} />
                             </span>
                           : <span style={{ fontSize:12, color:"#475569" }}>Sem resposta</span>}
                       </div>
