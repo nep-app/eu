@@ -13,7 +13,7 @@ export default function AdminMural() {
   const [channel, setChannel] = useState("anuncios");
   const [posts, setPosts] = useState([]);
   const [fPost, setFPost] = useState("");
-  const [mediaFile, setMediaFile] = useState(null);
+  const [mediaFiles, setMediaFiles] = useState([]); // várias imagens + no máx. 1 vídeo
   const [isUploading, setIsUploading] = useState(false);
   const [expanded, setExpanded] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
@@ -150,20 +150,41 @@ export default function AdminMural() {
     alert(`${n} post(s) importado(s) do Backstage para o Super Monitores. ✓`);
   }
 
+  function adicionarFicheirosAdmin(e) {
+    const escolhidos = Array.from(e.target.files || []);
+    e.target.value = "";
+    setMediaFiles(prev => {
+      const imagens = escolhidos.filter(f => f.type.startsWith("image/"));
+      const videos  = escolhidos.filter(f => f.type.startsWith("video/"));
+      const jaTemVideo = prev.some(f => f.type.startsWith("video/"));
+      let novos = [...prev, ...imagens];
+      if (videos.length > 0) {
+        if (jaTemVideo) alert("Só é permitido 1 vídeo por publicação.");
+        else { novos.push(videos[0]); if (videos.length > 1) alert("Só entra 1 vídeo — fica o primeiro."); }
+      }
+      return novos;
+    });
+  }
+  function removerFicheiroAdmin(idx) {
+    setMediaFiles(prev => prev.filter((_, i) => i !== idx));
+  }
+
   // ── PUBLICAR POST ──
   async function postForum() {
-    if (!fPost.trim() && !mediaFile) return;
+    if (!fPost.trim() && mediaFiles.length === 0) return;
     setIsUploading(true);
-    let mediaUrl = null;
+    let medias = [];
     try {
-      if (mediaFile) {
-        const fileRef = ref(storage, "forum/" + Date.now() + "_" + mediaFile.name);
-        await uploadBytes(fileRef, mediaFile);
-        mediaUrl = await getDownloadURL(fileRef);
+      for (let i = 0; i < mediaFiles.length; i++) {
+        const f = mediaFiles[i];
+        const fileRef = ref(storage, "forum/" + Date.now() + "_" + i + "_" + f.name);
+        await uploadBytes(fileRef, f);
+        const url = await getDownloadURL(fileRef);
+        medias.push({ url, tipo: f.type.startsWith("video/") ? "video" : "image" });
       }
       const docRef = await addDoc(collection(db, "forum", channel, "posts"), {
         user:"Teresa (GO)", username:"admin", color:"#22d3ee",
-        text:fPost, media:mediaUrl, time:nowFull(), ts:Date.now(),
+        text:fPost, media: medias.find(m => m.tipo === "image")?.url || null, medias, time:nowFull(), ts:Date.now(),
         ...(fTarget !== "all" ? { target: fTarget } : {}),
         ...(fDestaque ? { destaque: true } : {}),
         reactions:{ heart:0, fire:0, clap:0, think:0 }, reactedBy:{}, replies:[]
@@ -196,7 +217,7 @@ export default function AdminMural() {
           mencao: true, postId: docRef.id, canal: channel, push: true
         })
       ));
-      setFPost(""); setMediaFile(null); setMencaoDropdown(false); setPushForumPost(false); setFTarget("all"); setFDestaque(false);
+      setFPost(""); setMediaFiles([]); setMencaoDropdown(false); setPushForumPost(false); setFTarget("all"); setFDestaque(false);
     } catch(e) { alert("Erro: " + e.message); }
     setIsUploading(false);
   }
@@ -444,8 +465,19 @@ export default function AdminMural() {
                 </label>
               )}
             </div>
+            {mediaFiles.length > 0 && (
+              <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:10 }}>
+                {mediaFiles.map((f, i) => (
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:6, background:`${CYN}12`, border:`1px solid ${CYN}30`, borderRadius:10, padding:"5px 8px", fontSize:11, fontWeight:700, color:CYN, maxWidth:160 }}>
+                    <span style={{ flexShrink:0 }}>{f.type.startsWith("video/") ? "🎬" : "🖼️"}</span>
+                    <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{f.name}</span>
+                    <span onClick={() => removerFicheiroAdmin(i)} style={{ cursor:"pointer", color:"#f43f5e", fontWeight:900, flexShrink:0 }}>✕</span>
+                  </div>
+                ))}
+              </div>
+            )}
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
-              <input type="file" accept="image/*" onChange={e => { if(e.target.files[0]) setMediaFile(e.target.files[0]); }}
+              <input type="file" accept="image/*,video/*" multiple onChange={adicionarFicheirosAdmin}
                 style={{ fontSize:11, color:"#94a3b8" }}/>
             </div>
             <Agendador
@@ -454,11 +486,11 @@ export default function AdminMural() {
               publicarJa={postForum}
               construirPayload={() => {
                 if (!fPost.trim()) { alert("Escreve algo para publicar."); return null; }
-                if (mediaFile) { alert("Agendar posts com foto ainda não é suportado. Publica já, ou agenda sem foto."); return null; }
+                if (mediaFiles.length) { alert("Agendar posts com foto/vídeo ainda não é suportado. Publica já, ou agenda sem anexos."); return null; }
                 return { canal: channel, texto: fPost.trim(), push: pushForumPost };
               }}
               rotuloItem={p => `#${p.canal}: ${p.texto}`}
-              onAgendado={() => { setFPost(""); setMediaFile(null); setPushForumPost(false); }}
+              onAgendado={() => { setFPost(""); setMediaFiles([]); setPushForumPost(false); }}
             />
             {channel === "anuncios" && (
               <button onClick={limparNotificacoesAnuncios} style={{
