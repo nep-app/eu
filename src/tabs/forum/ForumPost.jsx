@@ -189,15 +189,23 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
               <button onClick={handleGuardarEdicao} style={{ background:CYN, border:"none", borderRadius:10, padding:"0 14px", fontWeight:900, cursor:"pointer", color:"#0f172a", fontSize:13 }}>OK</button>
             </div>
           ) : (
-            <div style={{ fontSize:14, color:"#e2e8f0", lineHeight:1.6, whiteSpace:"pre-wrap", marginBottom:post.media ? 10 : 0 }}>
+            <div style={{ fontSize:14, color:"#e2e8f0", lineHeight:1.6, whiteSpace:"pre-wrap", marginBottom:(post.media || (post.medias||[]).length) ? 10 : 0 }}>
               <Linkify>{post.text}</Linkify>
             </div>
           )}
 
-          {/* Imagem */}
-          {post.media && (
+          {/* Media — várias imagens e/ou 1 vídeo (posts antigos usam post.media) */}
+          {Array.isArray(post.medias) && post.medias.length > 0 ? (
+            <div style={{ display:"flex", flexDirection:"column", gap:8, marginTop:8 }}>
+              {post.medias.map((m, i) => (
+                m.tipo === "video"
+                  ? <video key={i} src={m.url} controls style={{ maxWidth:"100%", borderRadius:14, border:"1px solid rgba(255,255,255,0.06)" }} />
+                  : <img key={i} src={m.url} alt="" style={{ maxWidth:"100%", borderRadius:14, border:"1px solid rgba(255,255,255,0.06)" }} />
+              ))}
+            </div>
+          ) : post.media ? (
             <img src={post.media} alt="" style={{ maxWidth:"100%", borderRadius:14, marginTop:8, border:"1px solid rgba(255,255,255,0.06)" }}/>
-          )}
+          ) : null}
 
           {/* Reações + Responder */}
           <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:12, flexWrap:"wrap" }}>

@@ -7,8 +7,27 @@ import { nowFull, ALLOWED_USERNAMES, CHANNELS, JEEP_LIST } from "../../data.js";
 
 export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollection = "forum" }) {
   const [textoPost,      setTextoPost]      = useState("");
-  const [ficheiroMedia,  setFicheiroMedia]  = useState(null);
+  const [ficheirosMedia, setFicheirosMedia] = useState([]); // várias imagens + no máx. 1 vídeo
   const [estaAEnviar,    setEstaAEnviar]    = useState(false);
+
+  function adicionarFicheiros(e) {
+    const escolhidos = Array.from(e.target.files || []);
+    e.target.value = ""; // permite voltar a escolher os mesmos ficheiros
+    setFicheirosMedia(prev => {
+      const imagens = escolhidos.filter(f => f.type.startsWith("image/"));
+      const videos  = escolhidos.filter(f => f.type.startsWith("video/"));
+      const jaTemVideo = prev.some(f => f.type.startsWith("video/"));
+      let novos = [...prev, ...imagens];
+      if (videos.length > 0) {
+        if (jaTemVideo) alert("Só é permitido 1 vídeo por publicação.");
+        else { novos.push(videos[0]); if (videos.length > 1) alert("Só entra 1 vídeo — fica o primeiro."); }
+      }
+      return novos;
+    });
+  }
+  function removerFicheiro(idx) {
+    setFicheirosMedia(prev => prev.filter((_, i) => i !== idx));
+  }
   const [mencaoDropdown, setMencaoDropdown] = useState(false);
   const [mencaoFiltro,   setMencaoFiltro]   = useState("");
   const [mencaoStart,    setMencaoStart]    = useState(0);
@@ -64,21 +83,24 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
   }
 
   async function publicarPost() {
-    if (!textoPost.trim() && !ficheiroMedia) return alert("Escreve algo ou anexa uma foto!");
+    if (!textoPost.trim() && ficheirosMedia.length === 0) return alert("Escreve algo ou anexa uma foto/vídeo!");
     setEstaAEnviar(true);
-    let urlMedia = null;
+    let medias = [];
     try {
-      if (ficheiroMedia) {
-        const storageRef = ref(storage, `forum/${Date.now()}_${ficheiroMedia.name}`);
-        await uploadBytes(storageRef, ficheiroMedia);
-        urlMedia = await getDownloadURL(storageRef);
+      for (let i = 0; i < ficheirosMedia.length; i++) {
+        const f = ficheirosMedia[i];
+        const storageRef = ref(storage, `forum/${Date.now()}_${i}_${f.name}`);
+        await uploadBytes(storageRef, f);
+        const url = await getDownloadURL(storageRef);
+        medias.push({ url, tipo: f.type.startsWith("video/") ? "video" : "image" });
       }
       const docRef = await addDoc(collection(db, forumCollection, canalAtivo, "posts"), {
         user: user.realName || user.username,
         username: user.username,
         color: user.color || CYN,
         text: textoPost,
-        media: urlMedia,
+        media: medias.find(m => m.tipo === "image")?.url || null, // compatibilidade
+        medias,
         time: nowFull(),
         ts: Date.now(),
         reactions: { heart:0, fire:0, clap:0, think:0 },
@@ -131,7 +153,7 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
         ),
       ]);
       darXPComStreak("Publicou uma partilha no Fórum");
-      setTextoPost(""); setFicheiroMedia(null); setMencaoDropdown(false);
+      setTextoPost(""); setFicheirosMedia([]); setMencaoDropdown(false);
     } catch (e) { alert("Erro ao publicar: " + e.message); }
     setEstaAEnviar(false);
   }
@@ -180,19 +202,31 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
         )}
       </div>
 
+      {ficheirosMedia.length > 0 && (
+        <div style={{ display:"flex", flexWrap:"wrap", gap:6, margin:"6px 0 10px" }}>
+          {ficheirosMedia.map((f, i) => (
+            <div key={i} style={{ display:"flex", alignItems:"center", gap:6, background:`${CYN}12`, border:`1px solid ${CYN}30`, borderRadius:10, padding:"5px 8px", fontSize:11, fontWeight:700, color:CYN, maxWidth:160 }}>
+              <span style={{ flexShrink:0 }}>{f.type.startsWith("video/") ? "🎬" : "🖼️"}</span>
+              <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{f.name}</span>
+              <span onClick={() => removerFicheiro(i)} style={{ cursor:"pointer", color:"#f43f5e", fontWeight:900, flexShrink:0 }}>✕</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <div>
-          <input type="file" id="forum-file-input" accept="image/*"
-            onChange={e => setFicheiroMedia(e.target.files[0])} style={{ display:"none" }} />
+          <input type="file" id="forum-file-input" accept="image/*,video/*" multiple
+            onChange={adicionarFicheiros} style={{ display:"none" }} />
           <label htmlFor="forum-file-input" style={{
             cursor:"pointer", display:"flex", alignItems:"center", gap:6,
-            fontSize:12, fontWeight:800, color: ficheiroMedia ? CYN : TXT_MUT,
+            fontSize:12, fontWeight:800, color: ficheirosMedia.length ? CYN : TXT_MUT,
             padding:"8px 12px", borderRadius:10,
-            background: ficheiroMedia ? `${CYN}12` : "transparent",
-            border: ficheiroMedia ? `1px solid ${CYN}30` : "1px solid transparent",
+            background: ficheirosMedia.length ? `${CYN}12` : "transparent",
+            border: ficheirosMedia.length ? `1px solid ${CYN}30` : "1px solid transparent",
             transition:"all 0.2s",
           }}>
-            {ficheiroMedia ? "📸 Pronto!" : "📎 Foto"}
+            {ficheirosMedia.length ? `📎 ${ficheirosMedia.length} anexo(s) — +` : "📎 Foto/Vídeo"}
           </label>
         </div>
 
