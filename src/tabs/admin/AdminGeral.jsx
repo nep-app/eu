@@ -5,7 +5,23 @@ import { CARD, SL, CYN, GRN, Btn, INP, PNK } from "../../theme.jsx";
 import { nowLabel, nowFull, fmtDate, getWeekKey, buildAutoavEntry, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
 import Agendador from "./Agendador.jsx";
 
-export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
+export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdminTab }) {
+  // Para onde levar ao clicar numa notificação, por tipo.
+  function navegarPorNotif(n) {
+    if (!setAdminTab) return;
+    const t = n.tipo;
+    const destino =
+      (t === "PERGUNTA" || t === "AUTOAVALIACAO" || t === "MISSAO" || t === "QUIZ" || t === "VOTO"
+        || t === "TAREFA_PARTILHADA" || t === "TAREFA_ACEITE" || t === "TAREFA_RECUSADA"
+        || t === "EVENTO_PARTILHADO" || t === "EVENTO_ACEITE" || t === "EVENTO_RECUSADO") ? "programa"
+      : (t === "PIA" || t === "AJUDA_PIA") ? "pia"
+      : (t === "RODA") ? "jovens"
+      : (t === "MENSAGEM") ? "msgs"
+      : (t === "FORUM_POST" || t === "FORUM_REACAO" || t === "FORUM_COMENTARIO") ? "forum"
+      : (t === "SATISFACAO_ANONIMA") ? "satisfacao"
+      : null;
+    if (destino) setAdminTab(destino);
+  }
   const [features, setFeatures] = useState({});
 
   useEffect(() => {
@@ -246,7 +262,12 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs }) {
             return (
               <div key={n.id} style={{ background:"rgba(0,0,0,0.2)", borderRadius:12, marginBottom:8, overflow:"hidden" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", padding:"10px 12px" }}>
-                  <div style={{ fontSize:13, color:"white", flex:1, lineHeight:1.5 }}>{texto}</div>
+                  <div onClick={() => { navegarPorNotif(n); markAdminNotifAsRead(n.id); }}
+                    style={{ fontSize:13, color:"white", flex:1, lineHeight:1.5, cursor:"pointer" }}
+                    title="Ir para o local desta notificação">
+                    {texto}
+                    <span style={{ display:"block", fontSize:10, color:CYN, fontWeight:700, marginTop:2 }}>toca para ver →</span>
+                  </div>
                   <div style={{ display:"flex", gap:5, flexShrink:0, marginLeft:8 }}>
                     {canReply && (
                       <button onClick={() => setFeedbackOpen(p => ({...p, [n.id]: !isOpen}))}

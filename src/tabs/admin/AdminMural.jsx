@@ -478,8 +478,8 @@ export default function AdminMural() {
             )}
           </div>
 
-          {/* POSTS */}
-          {posts.slice().reverse().map(p => (
+          {/* POSTS — ordenados por data (mais recentes primeiro) */}
+          {[...posts].sort((a, b) => (b.ts || 0) - (a.ts || 0)).map(p => (
             <div key={p.id} style={CARD}>
               <div style={{ display:"flex", gap:10 }}>
                 <div style={{ width:36, height:36, borderRadius:"50%", background:`linear-gradient(135deg,${p.color},#000)`,

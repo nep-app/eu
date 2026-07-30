@@ -237,7 +237,7 @@ const ADMIN_TABS = [
 
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "20px 16px" }}>
         {/* RENDERIZAÇÃO DAS FATIAS */}
-        {adminTab === "geral"     && <AdminGeral allShared={allShared} leaderboard={leaderboard} adminNotifs={adminNotifs} />}
+        {adminTab === "geral"     && <AdminGeral allShared={allShared} leaderboard={leaderboard} adminNotifs={adminNotifs} setAdminTab={setAdminTab} />}
         {adminTab === "jovens"    && <AdminJovens amMedals={amMedals} setAmMedals={setAmMedals} allShared={allShared} weekStartTs={weekStartTs} />}
         {adminTab === "programa"  && <AdminPrograma allShared={allShared} events={events} missions={missions} activeQ={activeQ} />}
         {adminTab === "pia"       && <AdminPia allShared={allShared} />}
