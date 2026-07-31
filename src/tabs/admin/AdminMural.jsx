@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc, getDocs } from "firebase/firestore";
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc, getDocs, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
@@ -30,6 +30,14 @@ export default function AdminMural() {
 
   // ── RECURSOS ──
   const [recursos, setRecursos] = useState([]);
+  const [arcadeUsers, setArcadeUsers] = useState([]); // quem pode ver o Arcade EDUCA+
+  useEffect(() => {
+    return onSnapshot(doc(db, "config", "arcade"), s => setArcadeUsers(s.exists() ? (s.data().users || []) : []));
+  }, []);
+  async function toggleArcade(username) {
+    const nova = arcadeUsers.includes(username) ? arcadeUsers.filter(u => u !== username) : [...arcadeUsers, username];
+    await setDoc(doc(db, "config", "arcade"), { users: nova }, { merge: true });
+  }
   const [rTitulo, setRTitulo] = useState("");
   const [rIcone, setRIcone] = useState("📄");
   const [rUrl, setRUrl] = useState("");
@@ -656,6 +664,27 @@ export default function AdminMural() {
 
       {subtab === "recursos" && (
         <>
+          {/* ARCADE — quem pode ver (escondido por defeito) */}
+          <div style={{ ...CARD, border:"1.5px solid rgba(139,92,246,0.35)" }}>
+            <div style={SL}>🎮 Arcade EDUCA+ — quem pode ver</div>
+            <div style={{ fontSize:11, color:"#94a3b8", margin:"6px 0 12px", lineHeight:1.5 }}>
+              Escondido por defeito. Liga só a quem quiseres que apareça nos Recursos. (Tu, na conta Teresa, vês sempre para testar.)
+            </div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+              {JEEP_LIST.filter(j => !["ricardo","demo"].includes(j.username)).map(j => {
+                const on = arcadeUsers.includes(j.username);
+                return (
+                  <button key={j.username} onClick={() => toggleArcade(j.username)} style={{
+                    fontSize:12, fontWeight:800, cursor:"pointer", borderRadius:20, padding:"6px 12px",
+                    border: on ? "1.5px solid #a855f7" : "1px solid rgba(255,255,255,0.12)",
+                    background: on ? "rgba(168,85,247,0.16)" : "rgba(255,255,255,0.03)",
+                    color: on ? "#c084fc" : "#94a3b8",
+                  }}>{on ? "✓ " : ""}{j.name}</button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* ADICIONAR RECURSO */}
           <div style={{ ...CARD, border:`1.5px solid ${CYN}25` }}>
             <div style={SL}>Adicionar Recurso</div>

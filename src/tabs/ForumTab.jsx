@@ -16,9 +16,11 @@ const CHANNEL_COLORS = {
   coffee:    "#78716c", // warm brown — coffee
 };
 
+// Arcade EDUCA+ — escondido por defeito. Só aparece a quem estiver na lista
+// config/arcade.users (gerida pela Teresa no admin) e ao admin/teresa.
+const ARCADE_FIXO = { id:"__arcade", icone:"🎮", titulo:"Arcade EDUCA+", url:"/eu/jogos/arcade-educa.html", desc:"Quatro jogos para dinamizar sessões: Aproxima ou Afasta, Tabu EDUCA, Construtor de Projeto e Como te vês. Funciona offline." };
+
 const RECURSOS_FIXOS = [
-  // Arcade EDUCA+ escondido por agora (o ficheiro continua em public/jogos/).
-  // { id:"__arcade", icone:"🎮", titulo:"Arcade EDUCA+", url:"/eu/jogos/arcade-educa.html", desc:"Três jogos para dinamizar sessões: Aproxima ou Afasta, Tabu e Construtor de Projeto. Funciona offline." },
   { id:"__bem-estar", icone:"📱", titulo:"Guia Bem-estar Digital", url:"/eu/bem-estar-digital.html", desc:"Conceitos, hábitos e ferramentas para uma relação saudável com o digital" },
   {
     id:"__fdr",
@@ -60,7 +62,8 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
   const [canalAtivo, setCanalAtivo] = useState(initialCanal || "anuncios");
   const [listaPosts, setListaPosts]  = useState([]);
   const [allMedals,  setAllMedals]   = useState({});
-  const [recursos,   setRecursos]    = useState(RECURSOS_FIXOS);
+  const [recursosDb, setRecursosDb]  = useState([]);
+  const [arcadeUsers, setArcadeUsers] = useState([]);
 
   // Load current-week medals for all users
   useEffect(() => {
@@ -97,10 +100,20 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
         // Recursos com destinatário específico só aparecem a esse jovem (e ao admin).
         .filter(r => !r.target || r.target === "all" || r.target === user.username || isAdmin(user))
         .sort((a, b) => (b.ts || 0) - (a.ts || 0)); // mais recente primeiro
-      // Os recursos adicionados (mais recentes no topo) antes dos guias fixos.
-      setRecursos([...fromDb, ...RECURSOS_FIXOS]);
+      setRecursosDb(fromDb);
     });
   }, [user.username]);
+
+  // Lista de quem pode ver o Arcade EDUCA+ (escondido por defeito).
+  useEffect(() => {
+    return onSnapshot(doc(db, "config", "arcade"), s => {
+      setArcadeUsers(s.exists() ? (s.data().users || []) : []);
+    });
+  }, []);
+
+  // Arcade só para quem está na lista (ou admin/teresa, para testar).
+  const verArcade = isAdmin(user) || user.username === "teresa" || arcadeUsers.includes(user.username);
+  const recursos = [...recursosDb, ...(verArcade ? [ARCADE_FIXO] : []), ...RECURSOS_FIXOS];
 
   const canalInfo = CHANNELS.find(c => c.id === canalAtivo);
   const adminOnlyLocked = canalInfo?.adminOnly && !isAdmin(user);
