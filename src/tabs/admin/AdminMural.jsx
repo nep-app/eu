@@ -30,13 +30,21 @@ export default function AdminMural() {
 
   // ── RECURSOS ──
   const [recursos, setRecursos] = useState([]);
-  const [arcadeUsers, setArcadeUsers] = useState([]); // quem pode ver o Arcade EDUCA+
+  // Arcade EDUCA+: acesso por jogo (jogos[1..4]) + lista antiga `users` (4 jogos).
+  const [arcadeCfg, setArcadeCfg] = useState({ users: [], jogos: {} });
   useEffect(() => {
-    return onSnapshot(doc(db, "config", "arcade"), s => setArcadeUsers(s.exists() ? (s.data().users || []) : []));
+    return onSnapshot(doc(db, "config", "arcade"), s => {
+      const d = s.exists() ? s.data() : {};
+      setArcadeCfg({ users: d.users || [], jogos: d.jogos || {} });
+    });
   }, []);
-  async function toggleArcade(username) {
-    const nova = arcadeUsers.includes(username) ? arcadeUsers.filter(u => u !== username) : [...arcadeUsers, username];
-    await setDoc(doc(db, "config", "arcade"), { users: nova }, { merge: true });
+  async function toggleArcadeJogo(n, username) {
+    const atual = arcadeCfg.jogos?.[n] || [];
+    const nova = atual.includes(username) ? atual.filter(u => u !== username) : [...atual, username];
+    await setDoc(doc(db, "config", "arcade"), { jogos: { ...(arcadeCfg.jogos || {}), [n]: nova } }, { merge: true });
+  }
+  async function limparAcessoTotalArcade() {
+    await setDoc(doc(db, "config", "arcade"), { users: [] }, { merge: true });
   }
   const [rTitulo, setRTitulo] = useState("");
   const [rIcone, setRIcone] = useState("📄");
@@ -664,25 +672,52 @@ export default function AdminMural() {
 
       {subtab === "recursos" && (
         <>
-          {/* ARCADE — quem pode ver (escondido por defeito) */}
+          {/* ARCADE — quem pode ver, jogo a jogo (escondido por defeito) */}
           <div style={{ ...CARD, border:"1.5px solid rgba(139,92,246,0.35)" }}>
-            <div style={SL}>🎮 Arcade EDUCA+ — quem pode ver</div>
-            <div style={{ fontSize:11, color:"#94a3b8", margin:"6px 0 12px", lineHeight:1.5 }}>
-              Escondido por defeito. Liga só a quem quiseres que apareça nos Recursos. (Tu, na conta Teresa, vês sempre para testar.)
+            <div style={SL}>🎮 Arcade EDUCA+ — quem vê cada jogo</div>
+            <div style={{ fontSize:11, color:"#94a3b8", margin:"6px 0 14px", lineHeight:1.5 }}>
+              Escondido por defeito. Cada jogo aparece nos Recursos como um recurso próprio — liga só a quem quiseres, jogo a jogo, para mostrares um de cada vez. (Tu, na conta Teresa, vês sempre tudo para testar.)
             </div>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-              {JEEP_LIST.filter(j => !["ricardo","demo"].includes(j.username)).map(j => {
-                const on = arcadeUsers.includes(j.username);
-                return (
-                  <button key={j.username} onClick={() => toggleArcade(j.username)} style={{
-                    fontSize:12, fontWeight:800, cursor:"pointer", borderRadius:20, padding:"6px 12px",
-                    border: on ? "1.5px solid #a855f7" : "1px solid rgba(255,255,255,0.12)",
-                    background: on ? "rgba(168,85,247,0.16)" : "rgba(255,255,255,0.03)",
-                    color: on ? "#c084fc" : "#94a3b8",
-                  }}>{on ? "✓ " : ""}{j.name}</button>
-                );
-              })}
-            </div>
+            {[
+              { n:1, nome:"Aproxima ou Afasta?", emoji:"🎯" },
+              { n:2, nome:"Tabu EDUCA", emoji:"🗣️" },
+              { n:3, nome:"Construtor de Projeto", emoji:"🏗️" },
+              { n:4, nome:"Como te vês", emoji:"🪞" },
+            ].map(jogo => {
+              const lista = arcadeCfg.jogos?.[jogo.n] || [];
+              return (
+                <div key={jogo.n} style={{ margin:"0 0 14px" }}>
+                  <div style={{ fontSize:12.5, fontWeight:800, color:"#c084fc", margin:"0 0 8px" }}>
+                    {jogo.emoji} Jogo {jogo.n} · {jogo.nome}
+                    <span style={{ fontWeight:600, color:"#94a3b8", marginLeft:6 }}>
+                      ({lista.length ? `${lista.length} a ver` : "escondido"})
+                    </span>
+                  </div>
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                    {JEEP_LIST.filter(j => !["ricardo","demo"].includes(j.username)).map(j => {
+                      const on = lista.includes(j.username);
+                      return (
+                        <button key={j.username} onClick={() => toggleArcadeJogo(jogo.n, j.username)} style={{
+                          fontSize:12, fontWeight:800, cursor:"pointer", borderRadius:20, padding:"6px 12px",
+                          border: on ? "1.5px solid #a855f7" : "1px solid rgba(255,255,255,0.12)",
+                          background: on ? "rgba(168,85,247,0.16)" : "rgba(255,255,255,0.03)",
+                          color: on ? "#c084fc" : "#94a3b8",
+                        }}>{on ? "✓ " : ""}{j.name}</button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+            {arcadeCfg.users?.length > 0 && (
+              <div style={{ fontSize:11, color:"#94a3b8", marginTop:4, lineHeight:1.5, borderTop:"1px dashed rgba(255,255,255,0.12)", paddingTop:12 }}>
+                Acesso total antigo (veem os 4 jogos): <b style={{ color:"#c084fc" }}>{arcadeCfg.users.join(", ")}</b>.{" "}
+                <button onClick={limparAcessoTotalArcade} style={{
+                  fontSize:11, fontWeight:800, cursor:"pointer", borderRadius:14, padding:"3px 10px", marginLeft:4,
+                  border:"1px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.04)", color:"#94a3b8",
+                }}>Limpar acesso total</button>
+              </div>
+            )}
           </div>
 
           {/* ADICIONAR RECURSO */}

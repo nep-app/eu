@@ -16,9 +16,16 @@ const CHANNEL_COLORS = {
   coffee:    "#78716c", // warm brown — coffee
 };
 
-// Arcade EDUCA+ — escondido por defeito. Só aparece a quem estiver na lista
-// config/arcade.users (gerida pela Teresa no admin) e ao admin/teresa.
-const ARCADE_FIXO = { id:"__arcade", icone:"🎮", titulo:"Arcade EDUCA+", url:"/eu/jogos/arcade-educa.html", desc:"Quatro jogos para dinamizar sessões: Aproxima ou Afasta, Tabu EDUCA, Construtor de Projeto e Como te vês. Funciona offline." };
+// Arcade EDUCA+ — quatro jogos, escondidos por defeito. Cada jogo abre-se
+// sozinho (?jogo=N) e liga-se individualmente no admin, para a Teresa poder
+// mostrar só um de cada vez (config/arcade.jogos[N]). A lista antiga
+// config/arcade.users continua a dar acesso aos quatro (retrocompatível).
+const ARCADE_JOGOS = [
+  { id:"__arcade1", n:1, icone:"🎯", titulo:"Jogo 1 · Aproxima ou Afasta?", url:"/eu/jogos/arcade-educa.html?jogo=1", desc:"Decisões do dia a dia: em cada carta escolhes aproxima, afasta ou depende. Sem nota. Funciona offline." },
+  { id:"__arcade2", n:2, icone:"🗣️", titulo:"Jogo 2 · Tabu EDUCA", url:"/eu/jogos/arcade-educa.html?jogo=2", desc:"Explica a palavra sem dizer as três proibidas. Duas equipas. Funciona offline." },
+  { id:"__arcade3", n:3, icone:"🏗️", titulo:"Jogo 3 · Construtor de Projeto", url:"/eu/jogos/arcade-educa.html?jogo=3", desc:"Liga uma atividade às necessidades da ludoteca. No fim sai o rascunho do PIA. Funciona offline." },
+  { id:"__arcade4", n:4, icone:"🪞", titulo:"Jogo 4 · Como te vês", url:"/eu/jogos/arcade-educa.html?jogo=4", desc:"Dezoito afirmações sobre ti, para treinar a auto-avaliação. Funciona offline." },
+];
 
 const RECURSOS_FIXOS = [
   { id:"__bem-estar", icone:"📱", titulo:"Guia Bem-estar Digital", url:"/eu/bem-estar-digital.html", desc:"Conceitos, hábitos e ferramentas para uma relação saudável com o digital" },
@@ -63,7 +70,7 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
   const [listaPosts, setListaPosts]  = useState([]);
   const [allMedals,  setAllMedals]   = useState({});
   const [recursosDb, setRecursosDb]  = useState([]);
-  const [arcadeUsers, setArcadeUsers] = useState([]);
+  const [arcadeCfg, setArcadeCfg] = useState({ users: [], jogos: {} });
 
   // Load current-week medals for all users
   useEffect(() => {
@@ -104,16 +111,22 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
     });
   }, [user.username]);
 
-  // Lista de quem pode ver o Arcade EDUCA+ (escondido por defeito).
+  // Configuração do Arcade EDUCA+ (escondido por defeito): lista antiga
+  // `users` (acesso aos quatro) + mapa `jogos` (acesso por jogo).
   useEffect(() => {
     return onSnapshot(doc(db, "config", "arcade"), s => {
-      setArcadeUsers(s.exists() ? (s.data().users || []) : []);
+      const d = s.exists() ? s.data() : {};
+      setArcadeCfg({ users: d.users || [], jogos: d.jogos || {} });
     });
   }, []);
 
-  // Arcade só para quem está na lista (ou admin/teresa, para testar).
-  const verArcade = isAdmin(user) || user.username === "teresa" || arcadeUsers.includes(user.username);
-  const recursos = [...recursosDb, ...(verArcade ? [ARCADE_FIXO] : []), ...RECURSOS_FIXOS];
+  // Cada jogo aparece a admin/teresa (para testar), a quem tem acesso total
+  // antigo (`users`) e a quem estiver ligado nesse jogo (`jogos[N]`).
+  const podeArcadeTudo = isAdmin(user) || user.username === "teresa" || (arcadeCfg.users || []).includes(user.username);
+  const jogosVisiveis = ARCADE_JOGOS.filter(j =>
+    podeArcadeTudo || (arcadeCfg.jogos?.[j.n] || []).includes(user.username)
+  );
+  const recursos = [...recursosDb, ...jogosVisiveis, ...RECURSOS_FIXOS];
 
   const canalInfo = CHANNELS.find(c => c.id === canalAtivo);
   const adminOnlyLocked = canalInfo?.adminOnly && !isAdmin(user);
