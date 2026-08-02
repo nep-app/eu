@@ -2651,7 +2651,7 @@ const G4_POOL={
   {f:"adapta",t:"Quando um plano me falha à última hora, fico sem saber o que fazer.",rev:true,freq:true},
   {f:"adapta",t:"Dou uma sessão tão bem para três pessoas como para vinte."},
   {f:"adapta",t:"Quando uma coisa corre mal, mudo de abordagem em vez de insistir na mesma.",freq:true},
-  {f:"adapta",t:"Mudam-me a sala, o horário ou o grupo em cima da hora e eu sigo em frente.",freq:true}
+  {f:"adapta",t:"Mudam-me a sala, o horário ou o grupo em cima da hora e eu lido bem com isso.",freq:true}
  ],
  D3:[
   {f:"auto",t:"Faço o que é preciso sem esperar que alguém me mande.",freq:true},
@@ -2659,7 +2659,7 @@ const G4_POOL={
   {f:"auto",t:"Só avanço com uma coisa depois de alguém me confirmar que está bem.",rev:true,freq:true},
   {f:"auto",t:"Se o responsável falta e a sessão fica comigo sozinho, entro em pânico.",rev:true},
   {f:"proati",t:"Se vejo uma coisa por fazer que não é bem a minha função, faço-a na mesma.",freq:true},
-  {f:"proati",t:"Chego ao espaço e vejo logo o que está por fazer naquele dia.",freq:true},
+  {f:"proati",t:"Quando chego ao espaço, vejo logo o que está por fazer naquele dia.",freq:true},
   {f:"proati",t:"Proponho coisas novas em vez de esperar que alguém proponha.",freq:true},
   {f:"proati",t:"Espero que me digam o que fazer a seguir.",rev:true,freq:true},
   {f:"cumpre",t:"Deixo tarefas a meio e começo outras.",rev:true,freq:true},
@@ -2780,7 +2780,7 @@ const G4_SCALE={
 const G4_FWD=[1,3,5,7,9];                 /* 5 níveis → 1..9 (nunca chega a 10) */
 function g4Val(item,idx){return item.rev?G4_FWD[4-idx]:G4_FWD[idx];}
 function g4BandIdx(b){return G4_BANDAS.findIndex(x=>x[0]===b);}
-function g4Cap(v){return banda(v)==='10'?'8-9':banda(v);}   /* a autoavaliação nunca coroa um 10 */
+function g4Cap(v){const b=banda(Math.round(v));return b==='10'?'8-9':b;}   /* arredonda a média ao degrau mais perto (4.3 → 4 → "3-4"); a autoavaliação nunca coroa um 10 */
 function g4Reset(){
   const qs=[];
   Object.keys(DIMS).forEach(k=>{
@@ -2922,24 +2922,8 @@ function g4Result(){
               <span style="text-align:center;font-size:12.5px;font-weight:700;color:${cor}">${setinha}</span>
             </div>`;}).join('')}
         </div>
-        <p class="q-sub" style="margin-top:12px">Se a coluna da direita é mais baixa, não quer dizer que te estejas a armar — quer dizer que há coisas que <b>tu sabes que fazes e que ninguém te viu fazer</b>. Se é mais alta, há coisas que fazes bem e às quais não dás valor. As duas dão conversa, e é para isso que isto serve: para chegares à avaliação a sério já a saber o que vais dizer. Isto continua a ser um jogo — quem te avalia é uma pessoa que te viu trabalhar, não este ecrã.</p>
+        <p class="q-sub" style="margin-top:12px">Quando a coluna da direita é <b>mais baixa</b> do que a da esquerda — achas que o Local te dá menos do que tu te deste — há duas leituras, e nenhuma é para levar a mal. Uma: fazes coisas que <b>sabes que fazes, mas que ninguém à tua frente chegou a ver</b> — e então o que falta é dá-las a ver. Outra, mais difícil de admitir: pode ser que te estejas a <b>dar um degrau a mais</b> do que aquilo que, por fora, se nota — e aí o trabalho é perceber o que ainda não aparece. Só tu, olhando com honestidade, sabes qual das duas é a tua. Quando a coluna da direita é <b>mais alta</b>, é o contrário: fazes coisas bem e não te dás crédito por elas. Qualquer uma das três dá conversa — e é para isso que isto serve: chegares à avaliação a sério já a saber o que vais dizer. Continua a ser um jogo; quem te avalia é uma pessoa que te viu trabalhar, não este ecrã.</p>
       </div>`;})()}
-    <div class="g4-dims">${Object.keys(DIMS).map(k=>{const v=D[k]; const mb=g4Cap(v); const mi=g4BandIdx(mb);
-      const nb=G4_BANDAS[Math.min(mi+1,5)][0]; const nc=G4_BANDAS[Math.min(mi+1,5)][1];
-      const lb=G4.loc[k];
-      return `<div class="g4-dim">
-        <div class="g4-dim-top"><span class="g4-id" style="color:${DIMS[k].c}">${k}</span><b>${DIMS[k].n}</b><span class="g4-band">${mb}</span></div>
-        <div class="g4-ladder">${G4_BANDAS.map(([bn])=>{
-          const dez=bn==='10';
-          const on=!dez && bn===mb;
-          const loc=lb===bn;
-          return `<div class="rung ${on?'on':''} ${loc?'loc':''}" style="${on?`background:${DIMS[k].c}`:dez?'background:rgba(226,87,76,.10)':''}"><i style="${dez?'color:var(--afasta);text-decoration:line-through;opacity:.8':''}">${bn}</i></div>`;}).join('')}</div>
-        ${lb?`<div class="g4-delta ${dl[k]>0?'up':dl[k]<0?'down':'eq'}">O que te deste: <b>${mb}</b> · o que achas que o Local te dava: <b>${lb}</b> — ${deltaTxt(dl[k])}</div>`:''}
-        <div class="g4-desc">
-          <div class="now" style="border-left-color:${DIMS[k].c}"><span class="lvl">${mb} · ${G4_BANDAS[mi][1]} — onde te puseste</span><p>${G4_DESC[k][mb]}</p></div>
-          ${mi<5?`<div class="next"><span class="lvl">${nb==='10'?'10 · não se dá — está aqui só para leres':'o degrau acima · o que ainda não é verdade sobre ti'}</span><p>${nb==='10'?G4_DESC_LOCAL[k][nb]:G4_DESC[k][nb]}</p></div>`:''}
-        </div>
-      </div>`;}).join('')}</div>
     <div class="g4-read">
       <div class="g4-hl">
         <div class="g4-hl-i"><span class="g4-hl-k">Onde te deste mais</span><b style="color:${DIMS[alta[0]].c}">${alta[0]} · ${DIMS[alta[0]].n}</b></div>
@@ -2952,7 +2936,7 @@ function g4Result(){
       <p style="margin-top:9px">Nenhuma destas é a resposta certa. Se achas que ele te dá menos: <b>o que é que ele vê que tu não estás a contar?</b> Se achas que te dá mais: <b>o que é que fazes bem e não te dás crédito?</b> São essas duas perguntas que levas para a supervisão.</p>
 
       <h4>Porque é que o 10 está riscado</h4>
-      <p>Não é humildade forçada. Vai ler o descritor do 10 em qualquer uma das seis dimensões: nenhum deles fala do que <i>tu</i> fazes — todos falam do que <b>os outros passam a fazer contigo</b>. «É a pessoa a quem se recorre quando há tensão no espaço.» «É quem estabiliza o espaço.» «A equipa conta com ele/a sem andar a verificar.» «É a quem se pergunta quando há um problema.» Isso não é uma nota que se tira, é uma coisa que te reconhecem. Por isso não está em lado nenhum do jogo, nem na tua coluna nem no palpite do Local. Aqui o topo é 9 — e 9 já é «Muito Bom» pela grelha oficial.${dimsDez.length?` Ainda assim puseste-te no máximo possível em <b>${dimsDez.map(k=>DIMS[k].n).join('</b>, <b>')}</b> — vale a pena reler o descritor do 8–9 e ver se te descreve mesmo.`:''}</p>
+      <p>Não é humildade forçada — é que <b>ninguém é um 10, nem é suposto ser</b>. Um 10 seria dizer que já não há nada a melhorar, que o trabalho está aprendido até ao fim; e nesta profissão isso não existe, nem para quem já cá anda há anos. Por isso o 10 fica de fora, na tua coluna e no palpite do Local: não é o objetivo, é uma ideia de perfeição que não serve para te avaliares. Pela grelha oficial o topo real é o <b>9</b> — e 9 já é «Muito Bom». É aí que se chega.</p>
 
       <h4>Se um dia te deres notas mais baixas do que hoje</h4>
       <p>Não é piorares. É perceberes melhor o que o trabalho exige — e isso acontece a toda a gente por volta do terceiro mês.</p>
