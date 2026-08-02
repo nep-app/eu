@@ -497,8 +497,10 @@ h1,h2,h3,.display{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Seg
 .coer li{font-size:14.5px;line-height:1.45;padding:7px 0;border-bottom:1px dashed rgba(247,242,231,.12)}
 .coer li:last-child{border-bottom:none}
 .coer li u{display:block;text-decoration:none;font-size:12.5px;opacity:.6;margin-top:3px}
-/* Modo "1 jogo de cada vez": abre-se ?jogo=1..4 e esconde-se o menu/voltar. */
-body.solo .topbar .btn-sm{display:none!important}
+/* Modo "1 jogo de cada vez": abre-se ?jogo=1..4 e escondem-se TODOS os botoes
+   que levam ao menu (topo e fins de jogo), para so aparecer aquele jogo. */
+body.solo [onclick*="go('home')"],
+body.solo [onclick*="g3Leave"]{display:none!important}
 </style>
 </head>
 <body>
@@ -2288,7 +2290,7 @@ function g4HTML(){
       <div class="pa-meta"><span class="pa-badge">Autoavaliação</span></div></div>
     <h2>Como te vês, por dimensão</h2>
     ${dims}
-    <div class="pa-note"><b>O 10 está fora do jogo — e não é humildade forçada.</b> Nenhum descritor do 10 fala do que tu fazes: todos falam do que os outros passam a fazer contigo — «é a pessoa a quem se recorre quando há tensão no espaço», «é quem estabiliza o espaço», «a equipa conta com ele/a sem andar a verificar». Isso não é uma nota que se tira, é uma coisa que te reconhecem. Por isso não é selecionável nem na autoavaliação nem no palpite do Local. Aqui o topo é 9 — e 9 já é «Muito Bom» pela grelha oficial. É normal dares-te notas mais baixas com o tempo: não é piorar, é perceber melhor o que o trabalho exige.</div>
+    <div class="pa-note"><b>O 10 está fora do jogo — e não é humildade forçada.</b> É que ninguém é um 10, nem é suposto ser: um 10 seria dizer que já não há nada a melhorar, que o trabalho está aprendido até ao fim — e nesta profissão isso não existe, nem para quem já cá anda há anos. Por isso o 10 não é selecionável, nem na autoavaliação nem no palpite do Local: não é o objetivo, é uma ideia de perfeição que não serve para te avaliares. Pela grelha oficial o topo real é o 9 — e 9 já é «Muito Bom». É normal dares-te notas mais baixas com o tempo: não é piorar, é perceber melhor o que o trabalho exige.</div>
     <h2>As afirmações e o que cada resposta valeu</h2>
     <p style="font-size:9pt;color:#57516e;margin:4px 0 8px">Uma afirmação por faceta — cada dimensão é medida sempre pelas mesmas três coisas. O número é o que a resposta conta (1 a 9, nunca 10). As marcadas com ↺ estavam ao contrário: aí, concordar contava a menos.</p>
     ${qs}
@@ -2642,7 +2644,7 @@ const G4_POOL={
  D2:[
   {f:"stress",t:"Levo as chatices do trabalho para casa e fico a matutar nelas.",rev:true,freq:true},
   {f:"stress",t:"Um dia mau estraga-me a semana toda.",rev:true},
-  {f:"stress",t:"Quando há tensão no espaço, sou dos primeiros a ficar em baixo.",rev:true,freq:true},
+  {f:"stress",t:"Quando o ambiente fica pesado no espaço — uma discussão, miúdos alterados, mau clima entre colegas — sou dos primeiros a ficar em baixo.",rev:true,freq:true},
   {f:"stress",t:"Quando está tudo a correr mal ao mesmo tempo, ainda consigo pensar com clareza.",freq:true},
   {f:"frustra",t:"Preciso que as coisas corram como as tinha imaginado.",rev:true,freq:true},
   {f:"frustra",t:"Preparei um jogo e ninguém quer jogar. Sinto uma frustração que me vai crescendo por dentro.",rev:true},
@@ -2922,7 +2924,38 @@ function g4Result(){
               <span style="text-align:center;font-size:12.5px;font-weight:700;color:${cor}">${setinha}</span>
             </div>`;}).join('')}
         </div>
-        <p class="q-sub" style="margin-top:12px">Quando a coluna da direita é <b>mais baixa</b> do que a da esquerda — achas que o Local te dá menos do que tu te deste — há duas leituras, e nenhuma é para levar a mal. Uma: fazes coisas que <b>sabes que fazes, mas que ninguém à tua frente chegou a ver</b> — e então o que falta é dá-las a ver. Outra, mais difícil de admitir: pode ser que te estejas a <b>dar um degrau a mais</b> do que aquilo que, por fora, se nota — e aí o trabalho é perceber o que ainda não aparece. Só tu, olhando com honestidade, sabes qual das duas é a tua. Quando a coluna da direita é <b>mais alta</b>, é o contrário: fazes coisas bem e não te dás crédito por elas. Qualquer uma das três dá conversa — e é para isso que isto serve: chegares à avaliação a sério já a saber o que vais dizer. Continua a ser um jogo; quem te avalia é uma pessoa que te viu trabalhar, não este ecrã.</p>
+        <div style="margin-top:18px"><span class="eyebrow">Como ler a diferença</span></div>
+        <div class="bal-cols" style="margin-top:11px">
+          <div style="border-radius:16px;padding:15px 16px;background:rgba(226,87,76,.08);border:1px solid rgba(226,87,76,.24)">
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px">
+              <span style="font-size:15px;font-weight:800;color:var(--afasta)">▼</span>
+              <b style="font-size:14px;line-height:1.25">Achas que o Local te dá <span style="color:var(--afasta)">menos</span> do que tu te deste</b>
+            </div>
+            <div style="display:flex;gap:10px;margin-bottom:11px">
+              <span style="font-size:17px;line-height:1.3">👁️</span>
+              <p style="font-size:13.5px;line-height:1.45;margin:0">Fazes coisas que <b>sabes que fazes e ninguém à tua frente chegou a ver</b>. O que falta é dá-las a ver.</p>
+            </div>
+            <div style="display:flex;gap:10px">
+              <span style="font-size:17px;line-height:1.3">🪞</span>
+              <p style="font-size:13.5px;line-height:1.45;margin:0">Ou estás a <b>dar-te um degrau a mais</b> do que aquilo que se nota por fora. Aí o trabalho é perceber o que ainda não aparece.</p>
+            </div>
+          </div>
+          <div style="border-radius:16px;padding:15px 16px;background:rgba(46,158,123,.09);border:1px solid rgba(46,158,123,.26)">
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px">
+              <span style="font-size:15px;font-weight:800;color:var(--aproxima)">▲</span>
+              <b style="font-size:14px;line-height:1.25">Achas que o Local te dá <span style="color:var(--aproxima)">mais</span> do que tu te deste</b>
+            </div>
+            <div style="display:flex;gap:10px;margin-bottom:11px">
+              <span style="font-size:17px;line-height:1.3">💡</span>
+              <p style="font-size:13.5px;line-height:1.45;margin:0">Fazes coisas <b>bem e não te dás crédito por elas</b>. Vale a pena dar valor ao que já fazes.</p>
+            </div>
+            <div style="display:flex;gap:10px">
+              <span style="font-size:17px;line-height:1.3">🌀</span>
+              <p style="font-size:13.5px;line-height:1.45;margin:0">Ou estás a <b>contar com um reconhecimento que ainda não ganhaste</b> — a achar que o Local te vê melhor do que te vê mesmo. Confirma-o com quem te avalia.</p>
+            </div>
+          </div>
+        </div>
+        <p class="q-sub" style="margin-top:14px">Só tu, olhando com honestidade, sabes qual destas é a tua. Nenhuma é para levar a mal e qualquer uma dá conversa — é para isso que isto serve: chegares à avaliação a sério já a saber o que vais dizer. Continua a ser um jogo; quem te avalia é uma pessoa que te viu trabalhar, não este ecrã.</p>
       </div>`;})()}
     <div class="g4-read">
       <div class="g4-hl">
