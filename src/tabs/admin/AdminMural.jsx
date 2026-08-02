@@ -676,7 +676,7 @@ export default function AdminMural() {
           <div style={{ ...CARD, border:"1.5px solid rgba(139,92,246,0.35)" }}>
             <div style={SL}>🎮 Arcade EDUCA+ — quem vê cada jogo</div>
             <div style={{ fontSize:11, color:"#94a3b8", margin:"6px 0 14px", lineHeight:1.5 }}>
-              Escondido por defeito. Cada jogo aparece nos Recursos como um recurso próprio — liga só a quem quiseres, jogo a jogo, para mostrares um de cada vez. (Tu, na conta Teresa, vês sempre tudo para testar.)
+              Escondido por defeito. Cada jogo aparece nos Recursos como um recurso próprio — liga só a quem quiseres, jogo a jogo, para mostrares um de cada vez. (Na conta Teresa vês só os jogos que ligares aqui — se ligares só um, só esse aparece.)
             </div>
             {[
               { n:1, nome:"Aproxima ou Afasta?", emoji:"🎯" },

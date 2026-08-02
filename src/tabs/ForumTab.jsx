@@ -120,12 +120,20 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
     });
   }, []);
 
-  // Cada jogo aparece a admin/teresa (para testar), a quem tem acesso total
-  // antigo (`users`) e a quem estiver ligado nesse jogo (`jogos[N]`).
-  const podeArcadeTudo = isAdmin(user) || user.username === "teresa" || (arcadeCfg.users || []).includes(user.username);
-  const jogosVisiveis = ARCADE_JOGOS.filter(j =>
-    podeArcadeTudo || (arcadeCfg.jogos?.[j.n] || []).includes(user.username)
-  );
+  // Regra de visibilidade por jogo:
+  //  - conta admin vê sempre tudo;
+  //  - acesso total antigo (`users`) vê os quatro;
+  //  - quem estiver ligado nesse jogo (`jogos[N]`) vê esse jogo;
+  //  - a teresa vê o que estiver ligado para alguém (para mostrar/testar),
+  //    por isso se só ligares um jogo, só esse aparece na conta dela.
+  const podeArcadeTudo = isAdmin(user) || (arcadeCfg.users || []).includes(user.username);
+  const jogosVisiveis = ARCADE_JOGOS.filter(j => {
+    if (podeArcadeTudo) return true;
+    const lista = arcadeCfg.jogos?.[j.n] || [];
+    if (lista.includes(user.username)) return true;
+    if (user.username === "teresa" && lista.length > 0) return true;
+    return false;
+  });
   const recursos = [...recursosDb, ...jogosVisiveis, ...RECURSOS_FIXOS];
 
   const canalInfo = CHANNELS.find(c => c.id === canalAtivo);
