@@ -2909,10 +2909,10 @@ function g4Result(){
     ${(()=>{const temL=Object.keys(DIMS).some(k=>G4.loc[k]);
       return `<div class="aposta" style="margin:0 0 22px">
         <span class="eyebrow">As duas colunas, lado a lado</span>
-        <p class="bal-lead">À esquerda, a nota que <b>tu</b> te deste. À direita, a nota que <b>tu achas que o Local</b> te daria. ${temL?'A seta mostra a diferença.':'Ainda não deste o palpite do Local.'}</p>
+        <p class="bal-lead">À esquerda, o <b>resultado das tuas respostas</b> às afirmações — não é uma nota que deste, saiu do que respondeste. À direita, a nota que <b>tu achas que o Local</b> te daria — essa é a única que escolhes. ${temL?'A seta mostra a diferença entre as duas.':'Ainda não deste o palpite do Local.'}</p>
         <div style="margin-top:12px">
           <div style="display:grid;grid-template-columns:1fr 62px 62px 84px;gap:6px;align-items:center;padding:0 0 8px;border-bottom:1px solid rgba(255,255,255,.14);font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.6">
-            <span>Dimensão</span><span style="text-align:center">O que<br>te deste</span><span style="text-align:center">O que achas<br>que o Local dá</span><span style="text-align:center">Diferença</span>
+            <span>Dimensão</span><span style="text-align:center">O teu<br>resultado</span><span style="text-align:center">O que achas<br>que o Local dá</span><span style="text-align:center">Diferença</span>
           </div>
           ${Object.keys(DIMS).map(k=>{const mb=g4Cap(D[k]), lb=G4.loc[k], dd=dl[k];
             const cor=dd===null?'rgba(255,255,255,.45)':dd>0?'var(--aproxima,#7ec8a0)':dd<0?'var(--afasta,#e2574c)':'rgba(255,255,255,.7)';
@@ -2929,27 +2929,27 @@ function g4Result(){
           <div style="border-radius:16px;padding:15px 16px;background:rgba(226,87,76,.08);border:1px solid rgba(226,87,76,.24)">
             <div style="display:flex;align-items:center;gap:9px;margin-bottom:5px">
               <span style="font-size:15px;font-weight:800;color:var(--afasta)">▼</span>
-              <b style="font-size:14px;line-height:1.25">Deste-te <span style="color:var(--afasta)">mais</span> a ti do que achas que o Local te daria</b>
+              <b style="font-size:14px;line-height:1.25">O teu palpite do Local ficou <span style="color:var(--afasta)">abaixo</span> do teu resultado</b>
             </div>
-            <p style="font-size:12px;line-height:1.4;margin:0 0 12px;opacity:.7">(as setas ▼ vermelhas na tabela) — confias no teu trabalho mais do que achas que eles o reconhecem.</p>
+            <p style="font-size:12px;line-height:1.4;margin:0 0 12px;opacity:.7">(as setas ▼ vermelhas na tabela) — achas que eles te dariam menos do que as tuas respostas mostram.</p>
             <div style="display:flex;gap:10px;margin-bottom:11px">
               <span style="font-size:17px;line-height:1.3">👁️</span>
               <p style="font-size:13.5px;line-height:1.45;margin:0">Talvez faças coisas boas que <b>eles ainda não te viram fazer</b> — por isso achas que te dariam menos. O que falta é dá-las a ver.</p>
             </div>
             <div style="display:flex;gap:10px">
               <span style="font-size:17px;line-height:1.3">🪞</span>
-              <p style="font-size:13.5px;line-height:1.45;margin:0">Ou estás a <b>dar-te um degrau a mais</b> — e o palpite mais baixo que puseste ao Local está mais perto do que se nota por fora.</p>
+              <p style="font-size:13.5px;line-height:1.45;margin:0">Ou as tuas respostas <b>saíram um bocado acima</b> do que se nota por fora — e o palpite mais baixo que deste ao Local está mais perto disso.</p>
             </div>
           </div>
           <div style="border-radius:16px;padding:15px 16px;background:rgba(46,158,123,.09);border:1px solid rgba(46,158,123,.26)">
             <div style="display:flex;align-items:center;gap:9px;margin-bottom:5px">
               <span style="font-size:15px;font-weight:800;color:var(--aproxima)">▲</span>
-              <b style="font-size:14px;line-height:1.25">Deste-te <span style="color:var(--aproxima)">menos</span> a ti do que achas que o Local te daria</b>
+              <b style="font-size:14px;line-height:1.25">O teu palpite do Local ficou <span style="color:var(--aproxima)">acima</span> do teu resultado</b>
             </div>
-            <p style="font-size:12px;line-height:1.4;margin:0 0 12px;opacity:.7">(as setas ▲ verdes na tabela) — achas que eles te veem melhor do que tu te vês.</p>
+            <p style="font-size:12px;line-height:1.4;margin:0 0 12px;opacity:.7">(as setas ▲ verdes na tabela) — achas que eles te veem melhor do que as tuas respostas mostram.</p>
             <div style="display:flex;gap:10px;margin-bottom:11px">
               <span style="font-size:17px;line-height:1.3">💡</span>
-              <p style="font-size:13.5px;line-height:1.45;margin:0">Provavelmente és <b>mais duro contigo do que eles são</b> — dá-te o crédito que já mereces.</p>
+              <p style="font-size:13.5px;line-height:1.45;margin:0">Se calhar <b>respondeste de forma mais dura contigo</b> do que eles seriam — dá-te o crédito que já mereces.</p>
             </div>
             <div style="display:flex;gap:10px">
               <span style="font-size:17px;line-height:1.3">🌀</span>
