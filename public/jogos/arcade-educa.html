@@ -2629,14 +2629,14 @@ let G4={};
 const G4_POOL={
  D1:[
   {f:"assert",t:"Quando discordo de quem manda mais do que eu, acabo por não dizer nada.",rev:true,freq:true},
-  {f:"assert",t:"Consigo dizer a um colega que fez asneira sem que aquilo vire uma guerra.",freq:true},
+  {f:"assert",t:"Quando acho que um colega errou ou fez algo menos bom, ou não digo nada, ou, se digo, não consigo que seja de forma tranquila.",rev:true,freq:true},
   {f:"assert",t:"Prefiro resolver um mal-entendido na hora, mesmo que seja desconfortável."},
   {f:"assert",t:"Um miúdo goza comigo à frente do grupo. Por dentro, o que me apetece é calá-lo ali mesmo.",rev:true},
   {f:"assert",t:"Consigo fazer-me respeitar pelo grupo sem ser autoritário nem deixar que façam tudo o que querem.",freq:true},
   {f:"assert",t:"Quando sinto que já tenho trabalho a mais para o tempo e a energia que tenho, paro de aceitar novas tarefas e pedidos de favores.",freq:true},
   {f:"apoio",t:"Peço o que preciso a pessoas de fora — escola, junta — sem andar às voltas.",freq:true},
   {f:"apoio",t:"Quando alguém se oferece para me ajudar, aceito em vez de dizer que está tudo controlado.",freq:true},
-  {f:"apoio",t:"Quando me apontam um erro, pergunto o que é que a pessoa viu — em vez de me justificar.",freq:true},
+  {f:"apoio",t:"Quando me apontam um erro, ouço e peço sugestões de melhoria, em vez de me tentar justificar.",freq:true},
   {f:"apoio",t:"Peço feedback sobre o meu trabalho sem esperar que mo venham dar.",freq:true},
   {f:"apoio",t:"Custa-me admitir aos colegas que estou com dificuldade e a precisar de ajuda.",rev:true,freq:true},
   {f:"apoio",t:"Prefiro fingir que entendi uma coisa do que admitir que não percebi.",rev:true,freq:true},
@@ -2645,7 +2645,7 @@ const G4_POOL={
   {f:"equipa",t:"Prefiro fazer as coisas sozinho — assim sei que ficam bem feitas e à minha maneira.",rev:true},
   {f:"equipa",t:"Mudo a maneira de falar consoante esteja com um miúdo, um colega ou a coordenação.",freq:true},
   {f:"equipa",t:"Tento entender os meus colegas quando têm ideias ou opiniões diferentes ou opostas às minhas.",freq:true},
-  {f:"equipa",t:"Guardo uma boa ideia para mim, para depois brilhar sozinho, em vez de a partilhar com a equipa.",rev:true,freq:true}
+  {f:"equipa",t:"Quando tenho uma boa ideia, partilho-a com a equipa em vez de a guardar só para mim.",freq:true}
  ],
  D2:[
   {f:"stress",t:"Levo as chatices do trabalho para casa e fico a matutar nelas.",rev:true,freq:true},
@@ -2657,11 +2657,11 @@ const G4_POOL={
   {f:"frustra",t:"Preciso que as coisas corram como as tinha imaginado.",rev:true,freq:true},
   {f:"frustra",t:"Preparei um jogo e ninguém quer jogar. Sinto uma frustração que me vai crescendo por dentro.",rev:true},
   {f:"frustra",t:"Quando falho uma coisa à frente dos outros, fico com aquilo atravessado o resto do dia.",rev:true,freq:true},
-  {f:"frustra",t:"Consigo dizer «correu mal» sem que aquilo me estrague o resto do turno.",freq:true},
+  {f:"frustra",t:"Quando um miúdo me provoca de propósito, não deixo que me tire do sério.",freq:true},
   {f:"frustra",t:"Se passo a tarde a preparar uma atividade e acontece um imprevisto, não desisto.",freq:true},
   {f:"frustra",t:"Perco facilmente a paciência quando não me entendem à primeira e tenho de repetir muitas vezes a mesma explicação.",rev:true,freq:true},
   {f:"adapta",t:"Quando um plano me falha à última hora, fico sem saber o que fazer.",rev:true,freq:true},
-  {f:"adapta",t:"Quando um miúdo me desmancha a atividade a meio, consigo reorganizar e seguir em frente.",freq:true},
+  {f:"adapta",t:"Se cai uma atividade à última hora, arranjo logo uma alternativa para o grupo não ficar parado.",freq:true},
   {f:"adapta",t:"Quando uma coisa corre mal, mudo de abordagem em vez de insistir na mesma.",freq:true},
   {f:"adapta",t:"Mudam-me a sala, o horário ou o grupo em cima da hora e eu lido bem com isso.",freq:true},
   {f:"adapta",t:"Se falta material para uma atividade ou as coisas não acontecem como planeei, tenho facilidade em inventar outra coisa no momento.",freq:true},
@@ -2702,7 +2702,7 @@ const G4_POOL={
   {f:"critica",t:"Quando algo corre mal, o meu foco é logo perceber de quem foi a culpa e só depois penso no que posso aprender com a situação.",rev:true,freq:true},
   {f:"metas",t:"Sei o que quero estar a fazer daqui a dois anos, e o que me falta para lá chegar."},
   {f:"metas",t:"Tenho um plano para depois do EDUCA+ com passos concretos, não só uma ideia vaga."},
-  {f:"metas",t:"Quando penso no futuro, sei o que quero mas não faço ideia por onde se começa.",rev:true,freq:true},
+  {f:"metas",t:"Tenho objetivos para o futuro, mas não sei bem que passos dar para lá chegar.",rev:true,freq:true},
   {f:"metas",t:"Faço escolhas no dia a dia a pensar onde quero chegar, e não só no que dá jeito agora.",freq:true},
   {f:"metas",t:"Sei que tipo de formações e passos tenho de dar para atingir os meus objetivos."},
   {f:"metas",t:"Evito pensar no futuro; gosto mais de viver o presente.",rev:true,freq:true}
@@ -2818,6 +2818,7 @@ const G4_FWD=[1,3,5,7,9];                 /* 5 níveis → 1..9 (nunca chega a 1
 function g4Val(item,idx){return item.rev?G4_FWD[4-idx]:G4_FWD[idx];}
 function g4BandIdx(b){return G4_BANDAS.findIndex(x=>x[0]===b);}
 function g4Cap(v){const b=banda(Math.round(v));return b==='10'?'8-9':b;}   /* arredonda a média ao degrau mais perto (4.3 → 4 → "3-4"); a autoavaliação nunca coroa um 10 */
+function g4Num(v){return Math.max(1,Math.min(9,Math.round(v)));}   /* média → número inteiro 1..9 (8.3 → 8) para mostrar na coluna, em vez do degrau */
 function g4Reset(){
   const qs=[];
   Object.keys(DIMS).forEach(k=>{
@@ -2940,7 +2941,10 @@ function g4Result(){
   const acima=Object.keys(DIMS).filter(k=>dl[k]>0), abaixo=Object.keys(DIMS).filter(k=>dl[k]<0), igual=Object.keys(DIMS).filter(k=>dl[k]===0);
   const deltaTxt=d=>d===null?'':d===0?'exatamente o mesmo degrau':d>0?`${d} degrau${d>1?'s':''} acima do que te deste`:`${-d} degrau${d<-1?'s':''} abaixo do que te deste`;
   b.innerHTML=`<span class="eyebrow">O teu retrato · como te vês hoje</span>
-    <p class="hint" style="max-width:62ch;margin:8px 0 20px">Isto é a <b>tua</b> leitura de ti, com o palpite do que o Local diria ao lado.</p>
+    <p class="hint" style="max-width:62ch;margin:8px 0 14px">Isto é a <b>tua</b> leitura de ti, com o palpite do que o Local diria ao lado.</p>
+    <div style="margin:0 0 22px;padding:14px 16px;border-radius:14px;background:rgba(255,216,77,.10);border:1px solid rgba(255,216,77,.38)">
+      <p style="margin:0;font-size:13.5px;line-height:1.5"><b style="color:var(--postit)">Isto não é ciência! 🙂</b> É só um jogo para te ajudar a pensar na forma como te avalias a ti e em como achas que o teu Local te vê. Quem te avalia a sério é uma pessoa que te viu trabalhar, não este ecrã.</p>
+    </div>
     ${(()=>{const temL=Object.keys(DIMS).some(k=>G4.loc[k]);
       return `<div class="aposta" style="margin:0 0 22px">
         <span class="eyebrow">As duas colunas, lado a lado</span>
@@ -2954,7 +2958,7 @@ function g4Result(){
             const setinha=dd===null?'—':dd>0?`▲ +${dd}`:dd<0?`▼ ${dd}`:'= igual';
             return `<div style="display:grid;grid-template-columns:1fr 62px 62px 84px;gap:6px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.07)">
               <span style="font-size:13.5px;line-height:1.3"><b style="color:${DIMS[k].c}">${k}</b> ${DIMS[k].n}</span>
-              <span style="text-align:center;font-weight:700">${mb}</span>
+              <span style="text-align:center;font-weight:700">${g4Num(D[k])}</span>
               <span style="text-align:center;font-weight:700;opacity:${lb?1:.35}">${lb||'—'}</span>
               <span style="text-align:center;font-size:12.5px;font-weight:700;color:${cor}">${setinha}</span>
             </div>`;}).join('')}
@@ -2969,7 +2973,7 @@ function g4Result(){
               <span style="font-size:15px;font-weight:800;color:var(--afasta)">▼</span>
               <b style="font-size:14px;line-height:1.25">O teu palpite do Local ficou <span style="color:var(--afasta)">abaixo</span> do teu resultado</b>
             </div>
-            <p style="font-size:12px;line-height:1.4;margin:0 0 12px;opacity:.75">Aconteceu ${abaixo.length>1?`em <b>${abaixo.length}</b> dimensões`:`na dimensão <b>${abaixo[0]}</b>`} (${abaixo.join(', ')}) — aí achas que eles te dariam <b>menos</b> do que as tuas respostas mostram. Duas leituras:</p>
+            <p style="font-size:12px;line-height:1.4;margin:0 0 12px;opacity:.75">Achas que o Local te daria <b>menos</b> do que as tuas respostas mostram ${abaixo.length>1?`em <b>${abaixo.length}</b> dimensões (${abaixo.map(k=>DIMS[k].n).join(', ')})`:`na dimensão <b>${DIMS[abaixo[0]].n}</b>`}. Duas leituras:</p>
             <div style="display:flex;gap:10px;margin-bottom:11px">
               <span style="font-size:17px;line-height:1.3">👁️</span>
               <p style="font-size:13.5px;line-height:1.45;margin:0">Talvez faças coisas boas que <b>eles ainda não te viram fazer</b> — por isso achas que te dariam menos. O que falta é dá-las a ver.</p>
@@ -2984,7 +2988,7 @@ function g4Result(){
               <span style="font-size:15px;font-weight:800;color:var(--aproxima)">▲</span>
               <b style="font-size:14px;line-height:1.25">O teu palpite do Local ficou <span style="color:var(--aproxima)">acima</span> do teu resultado</b>
             </div>
-            <p style="font-size:12px;line-height:1.4;margin:0 0 12px;opacity:.75">Aconteceu ${acima.length>1?`em <b>${acima.length}</b> dimensões`:`na dimensão <b>${acima[0]}</b>`} (${acima.join(', ')}) — aí achas que eles te veem <b>melhor</b> do que as tuas respostas mostram. Duas leituras:</p>
+            <p style="font-size:12px;line-height:1.4;margin:0 0 12px;opacity:.75">Achas que o Local te vê <b>melhor</b> do que as tuas respostas mostram ${acima.length>1?`em <b>${acima.length}</b> dimensões (${acima.map(k=>DIMS[k].n).join(', ')})`:`na dimensão <b>${DIMS[acima[0]].n}</b>`}. Duas leituras:</p>
             <div style="display:flex;gap:10px;margin-bottom:11px">
               <span style="font-size:17px;line-height:1.3">💡</span>
               <p style="font-size:13.5px;line-height:1.45;margin:0">Se calhar <b>respondeste de forma mais dura contigo</b> do que eles seriam — dá-te o crédito que já mereces.</p>
@@ -2994,8 +2998,18 @@ function g4Result(){
               <p style="font-size:13.5px;line-height:1.45;margin:0">Ou estás a <b>contar com um reconhecimento que ainda não ganhaste</b> — a achar que o Local te vê melhor do que te vê mesmo. Confirma com quem te avalia.</p>
             </div>
           </div>`:''}
+          ${igual.length?`<div style="border-radius:16px;padding:15px 16px;background:rgba(74,108,240,.08);border:1px solid rgba(74,108,240,.24)">
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:5px">
+              <span style="font-size:15px;font-weight:800;color:var(--marker)">=</span>
+              <b style="font-size:14px;line-height:1.25">O teu palpite do Local ficou <span style="color:var(--marker)">igual</span> ao teu resultado</b>
+            </div>
+            <p style="font-size:12px;line-height:1.4;margin:0 0 12px;opacity:.75">${igual.length>1?`Em <b>${igual.length}</b> dimensões (${igual.map(k=>DIMS[k].n).join(', ')})`:`Na dimensão <b>${DIMS[igual[0]].n}</b>`} vês-te <b>tal como achas que eles te veem</b>.</p>
+            <div style="display:flex;gap:10px">
+              <span style="font-size:17px;line-height:1.3">🎯</span>
+              <p style="font-size:13.5px;line-height:1.45;margin:0">Boa base: a tua leitura e o que achas que passa cá para fora estão alinhados. Na conversa, confirma se essa também é a leitura de quem te avalia.</p>
+            </div>
+          </div>`:''}
         </div>
-        ${(!acima.length&&!abaixo.length)?`<p class="q-sub" style="margin-top:11px">Em todas as dimensões o teu palpite do Local <b>bateu certo</b> com o teu resultado — vês-te tal como achas que eles te veem. É uma boa base para a conversa.</p>`:''}
         <p class="q-sub" style="margin-top:14px">Só tu, olhando com honestidade, sabes qual destas é a tua. Nenhuma é para levar a mal e qualquer uma dá conversa — é para isso que isto serve: chegares à avaliação a sério já a saber o que vais dizer. Continua a ser um jogo; quem te avalia é uma pessoa que te viu trabalhar, não este ecrã.</p>
         `:`<p class="q-sub" style="margin-top:16px">Ainda não deste o palpite do que o Local te daria, por isso não há diferença para ler. Se quiseres, volta atrás e dá o palpite.</p>`}
       </div>`;})()}
@@ -3008,10 +3022,10 @@ function g4Result(){
       <p style="margin-top:9px">E, seja para que lado for a diferença entre as colunas, ficam duas perguntas para levares à supervisão: <b>o que é que o Local vê que tu não estás a contar?</b> e <b>o que é que fazes bem e não te dás crédito?</b></p>
 
       <h4>Porque é que o 10 está riscado</h4>
-      <p>Não é humildade forçada — é que <b>ninguém é um 10, nem é suposto ser</b>. Um 10 seria dizer que já não há nada a melhorar, que o trabalho está aprendido até ao fim; e nesta profissão isso não existe, nem para quem já cá anda há anos. Por isso o 10 fica de fora, na tua coluna e no palpite do Local: não é o objetivo, é uma ideia de perfeição que não serve para te avaliares. Pela grelha oficial o topo real é o <b>9</b> — e 9 já é «Muito Bom». É aí que se chega.</p>
+      <p>Não é humildade forçada — é que <b>ninguém começa a ser um 10, nem é suposto ser!</b> Um 10 seria dizer que já não há nada a melhorar, que o trabalho está perfeito e não tens nada a aprender. Por isso aqui o 10 fica de fora, na tua coluna e no palpite do Local. O máximo possível é o <b>9</b>, e já isso é muito difícil de atingir, até para quem trabalha nesta área há muitos anos!</p>
 
-      <h4>Se te deres notas mais baixas do que no início</h4>
-      <p>É normal. As notas que te dás agora podem ser mais baixas do que as dos primeiros tempos — e <b>isto não significa que estejas a piorar</b>. Pelo contrário: com o tempo percebes melhor tudo o que o trabalho exige e passas a avaliar-te de forma mais exigente e realista. Depois, à medida que fores mesmo crescendo no trabalho, elas voltam a subir. 🙂</p>
+      <h4>Se as tuas autoavaliações estiverem com notas mais baixas agora do que no início…</h4>
+      <p>É normal! E <b>isto não significa que estejas a piorar</b>, pelo contrário: com o tempo percebes melhor tudo o que o trabalho exige e passas a avaliar-te de forma mais exigente e realista. Depois, à medida que fores mesmo crescendo e evoluindo, elas voltam a subir. 🙂</p>
     </div>
     <div class="g4-rev">
       <span class="eyebrow">As ${G4.qs.length} afirmações — e quanto valeu cada resposta</span>
@@ -3019,7 +3033,7 @@ function g4Result(){
       ${Object.keys(DIMS).map(k=>{
         const meus=G4.qs.map((A,i)=>({A,i})).filter(x=>x.A.k===k);
         return `<div class="revdim">
-          <div class="revdim-h"><span class="g4-id" style="color:${DIMS[k].c}">${k}</span><b>${DIMS[k].n}</b><span class="revdim-m">média ${D[k].toFixed(1)} → ${g4Cap(D[k])}</span></div>
+          <div class="revdim-h"><span class="g4-id" style="color:${DIMS[k].c}">${k}</span><b>${DIMS[k].n}</b><span class="revdim-m">média ${D[k].toFixed(1)} → ${g4Num(D[k])}</span></div>
           ${meus.map(({A,i})=>{const labels=A.freq?G4_SCALE.freq:G4_SCALE.agree; const meu=G4.ans[i];
             return `<div class="revq">
               <div class="revq-top"><span class="g4-id" style="opacity:.5">${A.rev?'↺':'·'}</span><b>${A.t}</b></div>
