@@ -2661,7 +2661,7 @@ const G4_POOL={
   {f:"frustra",t:"Se passo a tarde a preparar uma atividade e acontece um imprevisto, não desisto.",freq:true},
   {f:"frustra",t:"Perco facilmente a paciência quando não me entendem à primeira e tenho de repetir muitas vezes a mesma explicação.",rev:true,freq:true},
   {f:"adapta",t:"Quando um plano me falha à última hora, fico sem saber o que fazer.",rev:true,freq:true},
-  {f:"adapta",t:"Dou uma sessão tão bem para três pessoas como para vinte."},
+  {f:"adapta",t:"Quando um miúdo me desmancha a atividade a meio, consigo reorganizar e seguir em frente.",freq:true},
   {f:"adapta",t:"Quando uma coisa corre mal, mudo de abordagem em vez de insistir na mesma.",freq:true},
   {f:"adapta",t:"Mudam-me a sala, o horário ou o grupo em cima da hora e eu lido bem com isso.",freq:true},
   {f:"adapta",t:"Se falta material para uma atividade ou as coisas não acontecem como planeei, tenho facilidade em inventar outra coisa no momento.",freq:true},
@@ -2669,7 +2669,7 @@ const G4_POOL={
  ],
  D3:[
   {f:"auto",t:"Faço o que é preciso sem esperar que alguém me mande.",freq:true},
-  {f:"auto",t:"Prefiro decidir e arriscar a ficar à espera de instruções."},
+  {f:"auto",t:"Nas situações que já conheço bem, decido e avanço sem precisar que me confirmem.",freq:true},
   {f:"auto",t:"Só avanço com uma coisa depois de alguém me confirmar que está bem.",rev:true,freq:true},
   {f:"auto",t:"Se o responsável falta e a sessão fica comigo sozinho, entro em pânico.",rev:true},
   {f:"auto",t:"Se por acaso sou o primeiro a chegar à ludoteca, aproveito para descansar antes de o resto da equipa chegar.",rev:true,freq:true},
@@ -2736,10 +2736,10 @@ const G4_POOL={
   {f:"postura",t:"Se um miúdo me conta um segredo grave, guardo-o só para mim.",rev:true},
   {f:"postura",t:"Trabalho pior com miúdos de quem não gosto.",rev:true,freq:true},
   {f:"postura",t:"Quando não sei uma resposta, digo que não sei e vou descobrir.",freq:true},
-  {f:"postura",t:"Um miúdo prefere claramente outro monitor a mim. Por dentro, fico picado.",rev:true},
+  {f:"postura",t:"Consigo trabalhar bem com um miúdo mesmo quando sinto que ele não gosta de mim ou prefere outro monitor.",freq:true},
   {f:"postura",t:"Às vezes chego atrasado ou mal preparado para uma atividade porque não me apeteceu esforçar-me mais.",rev:true,freq:true},
   {f:"postura",t:"Consigo manter-me calmo — ou pelo menos parecê-lo — mesmo quando alguém está a ser indelicado comigo.",freq:true},
-  {f:"casa",t:"As regras e rotinas do espaço fazem-me sentido — cumpro-as porque percebo para que servem."},
+  {f:"casa",t:"Cumpro as regras do espaço mesmo quando não concordo com alguma — e, se acho que está errada, falo sobre isso em vez de a ignorar."},
   {f:"casa",t:"Sei qual é o objetivo do projeto onde trabalho, e não só as tarefas que me pedem."},
   {f:"casa",t:"Se há coisas no meu local de trabalho que são feitas de uma maneira que acho errada, faço à minha maneira e pronto.",rev:true,freq:true},
   {f:"casa",t:"Sei exatamente o que se espera de mim naquele espaço."},
@@ -2959,14 +2959,17 @@ function g4Result(){
               <span style="text-align:center;font-size:12.5px;font-weight:700;color:${cor}">${setinha}</span>
             </div>`;}).join('')}
         </div>
-        <div style="margin-top:18px"><span class="eyebrow">Como ler a diferença</span></div>
+        ${temL?`
+        <h4 style="margin:20px 0 0">A distância entre as duas colunas</h4>
+        <p class="q-sub" style="margin-top:7px">${acima.length?`Em <b class="g4-num">${acima.length}</b> ${acima.length>1?'dimensões':'dimensão'} achas que o Local te dá <b>mais</b> do que o teu resultado. `:''}${abaixo.length?`Em <b class="g4-num">${abaixo.length}</b> achas que te dá <b>menos</b>. `:''}${igual.length?`Em <b class="g4-num">${igual.length}</b> ${igual.length>1?'batem':'bate'} certo. `:''}</p>
+        <div style="margin-top:16px"><span class="eyebrow">Como ler a diferença</span></div>
         <div class="bal-cols" style="margin-top:11px">
-          <div style="border-radius:16px;padding:15px 16px;background:rgba(226,87,76,.08);border:1px solid rgba(226,87,76,.24)">
+          ${abaixo.length?`<div style="border-radius:16px;padding:15px 16px;background:rgba(226,87,76,.08);border:1px solid rgba(226,87,76,.24)">
             <div style="display:flex;align-items:center;gap:9px;margin-bottom:5px">
               <span style="font-size:15px;font-weight:800;color:var(--afasta)">▼</span>
               <b style="font-size:14px;line-height:1.25">O teu palpite do Local ficou <span style="color:var(--afasta)">abaixo</span> do teu resultado</b>
             </div>
-            <p style="font-size:12px;line-height:1.4;margin:0 0 12px;opacity:.7">(as setas ▼ vermelhas na tabela) — achas que eles te dariam menos do que as tuas respostas mostram.</p>
+            <p style="font-size:12px;line-height:1.4;margin:0 0 12px;opacity:.75">Aconteceu ${abaixo.length>1?`em <b>${abaixo.length}</b> dimensões`:`na dimensão <b>${abaixo[0]}</b>`} (${abaixo.join(', ')}) — aí achas que eles te dariam <b>menos</b> do que as tuas respostas mostram. Duas leituras:</p>
             <div style="display:flex;gap:10px;margin-bottom:11px">
               <span style="font-size:17px;line-height:1.3">👁️</span>
               <p style="font-size:13.5px;line-height:1.45;margin:0">Talvez faças coisas boas que <b>eles ainda não te viram fazer</b> — por isso achas que te dariam menos. O que falta é dá-las a ver.</p>
@@ -2975,13 +2978,13 @@ function g4Result(){
               <span style="font-size:17px;line-height:1.3">🪞</span>
               <p style="font-size:13.5px;line-height:1.45;margin:0">Ou as tuas respostas <b>saíram um bocado acima</b> do que se nota por fora — e o palpite mais baixo que deste ao Local está mais perto disso.</p>
             </div>
-          </div>
-          <div style="border-radius:16px;padding:15px 16px;background:rgba(46,158,123,.09);border:1px solid rgba(46,158,123,.26)">
+          </div>`:''}
+          ${acima.length?`<div style="border-radius:16px;padding:15px 16px;background:rgba(46,158,123,.09);border:1px solid rgba(46,158,123,.26)">
             <div style="display:flex;align-items:center;gap:9px;margin-bottom:5px">
               <span style="font-size:15px;font-weight:800;color:var(--aproxima)">▲</span>
               <b style="font-size:14px;line-height:1.25">O teu palpite do Local ficou <span style="color:var(--aproxima)">acima</span> do teu resultado</b>
             </div>
-            <p style="font-size:12px;line-height:1.4;margin:0 0 12px;opacity:.7">(as setas ▲ verdes na tabela) — achas que eles te veem melhor do que as tuas respostas mostram.</p>
+            <p style="font-size:12px;line-height:1.4;margin:0 0 12px;opacity:.75">Aconteceu ${acima.length>1?`em <b>${acima.length}</b> dimensões`:`na dimensão <b>${acima[0]}</b>`} (${acima.join(', ')}) — aí achas que eles te veem <b>melhor</b> do que as tuas respostas mostram. Duas leituras:</p>
             <div style="display:flex;gap:10px;margin-bottom:11px">
               <span style="font-size:17px;line-height:1.3">💡</span>
               <p style="font-size:13.5px;line-height:1.45;margin:0">Se calhar <b>respondeste de forma mais dura contigo</b> do que eles seriam — dá-te o crédito que já mereces.</p>
@@ -2990,26 +2993,25 @@ function g4Result(){
               <span style="font-size:17px;line-height:1.3">🌀</span>
               <p style="font-size:13.5px;line-height:1.45;margin:0">Ou estás a <b>contar com um reconhecimento que ainda não ganhaste</b> — a achar que o Local te vê melhor do que te vê mesmo. Confirma com quem te avalia.</p>
             </div>
-          </div>
+          </div>`:''}
         </div>
+        ${(!acima.length&&!abaixo.length)?`<p class="q-sub" style="margin-top:11px">Em todas as dimensões o teu palpite do Local <b>bateu certo</b> com o teu resultado — vês-te tal como achas que eles te veem. É uma boa base para a conversa.</p>`:''}
         <p class="q-sub" style="margin-top:14px">Só tu, olhando com honestidade, sabes qual destas é a tua. Nenhuma é para levar a mal e qualquer uma dá conversa — é para isso que isto serve: chegares à avaliação a sério já a saber o que vais dizer. Continua a ser um jogo; quem te avalia é uma pessoa que te viu trabalhar, não este ecrã.</p>
+        `:`<p class="q-sub" style="margin-top:16px">Ainda não deste o palpite do que o Local te daria, por isso não há diferença para ler. Se quiseres, volta atrás e dá o palpite.</p>`}
       </div>`;})()}
     <div class="g4-read">
       <div class="g4-hl">
         <div class="g4-hl-i"><span class="g4-hl-k">Onde te deste mais</span><b style="color:${DIMS[alta[0]].c}">${alta[0]} · ${DIMS[alta[0]].n}</b></div>
         <div class="g4-hl-i"><span class="g4-hl-k">Onde te deste menos</span><b style="color:${DIMS[baixa[0]].c}">${baixa[0]} · ${DIMS[baixa[0]].n}</b></div>
       </div>
-      <p class="g4-big">É pela de baixo que vale a pena começar. Não porque sejas mau nisso — porque é aí que um mês de trabalho se nota.</p>
-
-      <h4>A distância entre as duas colunas</h4>
-      <p>${acima.length?`Em <b class="g4-num">${acima.length}</b> ${acima.length>1?'dimensões':'dimensão'} achas que o Local te dá <b>mais</b> do que tu te deste. `:''}${abaixo.length?`Em <b class="g4-num">${abaixo.length}</b> achas que te dá <b>menos</b>. `:''}${igual.length?`Em <b class="g4-num">${igual.length}</b> bate certo. `:''}</p>
-      <p style="margin-top:9px">Nenhuma destas é a resposta certa. Se achas que ele te dá menos: <b>o que é que ele vê que tu não estás a contar?</b> Se achas que te dá mais: <b>o que é que fazes bem e não te dás crédito?</b> São essas duas perguntas que levas para a supervisão.</p>
+      <p class="g4-big">É pela <b>de baixo</b> — a dimensão onde te deste menos, ou seja, aquela em que à partida sentes mais dificuldade — que vale a pena começar. Não porque sejas mau nisso, mas porque é aí que um mês de trabalho mais se nota.</p>
+      <p style="margin-top:9px">E, seja para que lado for a diferença entre as colunas, ficam duas perguntas para levares à supervisão: <b>o que é que o Local vê que tu não estás a contar?</b> e <b>o que é que fazes bem e não te dás crédito?</b></p>
 
       <h4>Porque é que o 10 está riscado</h4>
       <p>Não é humildade forçada — é que <b>ninguém é um 10, nem é suposto ser</b>. Um 10 seria dizer que já não há nada a melhorar, que o trabalho está aprendido até ao fim; e nesta profissão isso não existe, nem para quem já cá anda há anos. Por isso o 10 fica de fora, na tua coluna e no palpite do Local: não é o objetivo, é uma ideia de perfeição que não serve para te avaliares. Pela grelha oficial o topo real é o <b>9</b> — e 9 já é «Muito Bom». É aí que se chega.</p>
 
       <h4>Se um dia te deres notas mais baixas do que hoje</h4>
-      <p>Não é piorares. É perceberes melhor o que o trabalho exige — e isso acontece a toda a gente por volta do terceiro mês.</p>
+      <p>É normal que as notas que te deste agora, no início, venham a ser <b>mais altas</b> do que as que te vais dar mais para a frente. Não quer dizer que estejas a piorar — é que, com o tempo, <b>percebes melhor tudo o que o trabalho exige</b> e passas a avaliar-te de forma mais exigente. Acontece a toda a gente, por volta do terceiro mês.</p>
     </div>
     <div class="g4-rev">
       <span class="eyebrow">As ${G4.qs.length} afirmações — e quanto valeu cada resposta</span>
