@@ -2272,29 +2272,43 @@ function g4HTML(){
   const byDim={};Object.keys(DIMS).forEach(k=>byDim[k]=[]);
   G4.qs.forEach((A,i)=>{if(G4.ans[i]!==undefined)byDim[A.k].push(g4Val(A,G4.ans[i]));});
   const D={};Object.keys(DIMS).forEach(k=>{const a=byDim[k];D[k]=a.length?a.reduce((x,y)=>x+y,0)/a.length:5;});
-  const dims=Object.keys(DIMS).map(k=>{
-    const mb=g4Cap(D[k]); const mi=g4BandIdx(mb); const lb=(G4.loc||{})[k];
-    const d=lb?g4BandIdx(lb)-mi:null;
-    const dtxt=d===null?'':d===0?'o mesmo degrau':d>0?`+${d} degrau${d>1?'s':''} acima do teu`:`${-d} degrau${d<-1?'s':''} abaixo do teu`;
-    const nb=G4_BANDAS[Math.min(mi+1,5)];
-    return `<div class="pa-dim"><b>${DIMS[k].n}</b><span class="pa-band">${mb}${lb?` · Local: ${lb}`:''}</span></div>
-      ${lb?`<p class="pa-delta">Tu: <b>${mb}</b> · palpite do Local: <b>${lb}</b> — ${dtxt}</p>`:''}
-      <p class="pa-desc"><b>${mb} · ${G4_BANDAS[mi][1]} — onde te puseste.</b> ${pesc(G4_DESC[k][mb])}</p>
-      ${mi<5?`<p class="pa-desc nx"><b>${nb[0]==='10'?'10 — não se dá, está aqui só para ler.':'O degrau acima — o que ainda não é verdade.'}</b> ${pesc(nb[0]==='10'?G4_DESC_LOCAL[k][nb[0]]:G4_DESC[k][nb[0]])}</p>`:''}`;
+  const dl={};Object.keys(DIMS).forEach(k=>{const l=(G4.loc||{})[k];dl[k]=(l===undefined||l===null)?null:g4BandIdx(l)-g4BandIdx(g4Cap(D[k]));});
+  const temL=Object.keys(DIMS).some(k=>(G4.loc||{})[k]);
+  const acima=Object.keys(DIMS).filter(k=>dl[k]>0),abaixo=Object.keys(DIMS).filter(k=>dl[k]<0),igual=Object.keys(DIMS).filter(k=>dl[k]===0);
+  const ord=Object.keys(DIMS).map(k=>[k,D[k]]).sort((a,b)=>b[1]-a[1]);
+  const alta=ord[0][0],baixa=ord[ord.length-1][0];
+  const nomes=arr=>arr.map(k=>DIMS[k].n).join(', ');
+  const linhas=Object.keys(DIMS).map(k=>{
+    const lb=(G4.loc||{})[k],dd=dl[k];
+    const setinha=dd===null?'—':dd>0?`▲ +${dd}`:dd<0?`▼ ${dd}`:'= igual';
+    return `<tr><td style="padding:5px 6px;border-bottom:1px solid #e5e0f0">${pesc(DIMS[k].n)}</td><td style="padding:5px 6px;border-bottom:1px solid #e5e0f0;text-align:center;font-weight:700">${g4Num(D[k])}</td><td style="padding:5px 6px;border-bottom:1px solid #e5e0f0;text-align:center">${lb||'—'}</td><td style="padding:5px 6px;border-bottom:1px solid #e5e0f0;text-align:center;font-size:8.5pt">${setinha}</td></tr>`;
   }).join('');
   const qs=G4.qs.map((A,i)=>{const labels=A.freq?G4_SCALE.freq:G4_SCALE.agree;const meu=G4.ans[i];
     return `<div class="pa-q"><div class="pa-qt">${A.k} · ${pesc(G4_FACETS[A.k][A.f])}${A.rev?' ↺':''} · ${pesc(A.t)}</div>
-      <div class="pa-ans"><span class="v">${meu!==undefined?g4Val(A,meu):'—'}</span> ${meu!==undefined?pesc(labels[meu]):'(sem resposta)'}</div></div>`;}).join('');
+      <div class="pa-ans"><span class="v">${meu!==undefined?g4Val(A,meu):'—'}</span> ${meu!==undefined?pesc(labels[meu]):'(sem resposta)'}</div>
+      <p class="pa-desc" style="opacity:.85;margin-top:2px">Porquê: ${pesc(G4_PORQUE[A.f])}</p></div>`;}).join('');
   return `<div class="pa-doc">
     <div class="pa-head"><div><p class="pa-kicker">Programa EDUCA+ · Como te vês</p><h1>O teu retrato</h1></div>
       <div class="pa-meta"><span class="pa-badge">Autoavaliação</span></div></div>
-    <h2>Como te vês, por dimensão</h2>
-    ${dims}
-    <div class="pa-note"><b>O 10 está fora do jogo — e não é humildade forçada.</b> É que ninguém é um 10, nem é suposto ser: um 10 seria dizer que já não há nada a melhorar, que o trabalho está aprendido até ao fim — e nesta profissão isso não existe, nem para quem já cá anda há anos. Por isso o 10 não é selecionável, nem na autoavaliação nem no palpite do Local: não é o objetivo, é uma ideia de perfeição que não serve para te avaliares. Pela grelha oficial o topo real é o 9 — e 9 já é «Muito Bom». É normal dares-te notas mais baixas com o tempo: não é piorar, é perceber melhor o que o trabalho exige.</div>
+    <div class="pa-note"><b>Isto não é ciência!</b> É só um jogo para te ajudar a pensar na forma como te avalias a ti e em como achas que o teu Local te vê. Quem te avalia a sério é uma pessoa que te viu trabalhar, não este documento.</div>
+    <h2>As duas colunas, lado a lado</h2>
+    <p class="pa-desc">À esquerda, o <b>resultado das tuas respostas</b> (um número de 1 a 9) — não é uma nota que deste, saiu do que respondeste. À direita, a nota que achas que o <b>Local</b> te daria (o degrau que escolheste).</p>
+    <table style="width:100%;border-collapse:collapse;font-size:9pt;margin:6px 0 10px">
+      <thead><tr><th style="text-align:left;padding:5px 6px;border-bottom:1.5px solid #cfc7de;font-size:8pt;text-transform:uppercase;color:#7a7490">Dimensão</th><th style="padding:5px 6px;border-bottom:1.5px solid #cfc7de;font-size:8pt;text-transform:uppercase;color:#7a7490">O teu resultado</th><th style="padding:5px 6px;border-bottom:1.5px solid #cfc7de;font-size:8pt;text-transform:uppercase;color:#7a7490">Palpite do Local</th><th style="padding:5px 6px;border-bottom:1.5px solid #cfc7de;font-size:8pt;text-transform:uppercase;color:#7a7490">Dif.</th></tr></thead>
+      <tbody>${linhas}</tbody>
+    </table>
+    ${temL?`<h2>A distância entre as duas colunas</h2>
+    <p class="pa-desc">${acima.length?`Em <b>${acima.length}</b> ${acima.length>1?'dimensões':'dimensão'} achas que o Local te dá <b>mais</b> do que o teu resultado (${pesc(nomes(acima))}). `:''}${abaixo.length?`Em <b>${abaixo.length}</b> achas que te dá <b>menos</b> (${pesc(nomes(abaixo))}). `:''}${igual.length?`Em <b>${igual.length}</b> bate certo (${pesc(nomes(igual))}). `:''}</p>
+    <p class="pa-desc">Seja para que lado for a diferença, ficam duas perguntas para levares à supervisão: <b>o que é que o Local vê que tu não estás a contar?</b> e <b>o que é que fazes bem e não te dás crédito?</b></p>`:`<p class="pa-desc">Ainda não deste o palpite do que o Local te daria, por isso não há diferença para ler.</p>`}
+    <h2>Por onde começar</h2>
+    <p class="pa-desc"><b>Deste-te mais em:</b> ${pesc(DIMS[alta].n)}. &nbsp; <b>Menos em:</b> ${pesc(DIMS[baixa].n)}.</p>
+    <p class="pa-desc">É pela <b>de baixo</b> — a dimensão onde te deste menos, ou seja, aquela em que à partida sentes mais dificuldade — que vale a pena começar. Não porque sejas mau nisso, mas porque é aí que um mês de trabalho mais se nota.</p>
+    <div class="pa-note"><b>Porque é que o 10 está riscado.</b> Não é humildade forçada — é que ninguém começa a ser um 10, nem é suposto ser! Um 10 seria dizer que já não há nada a melhorar, que o trabalho está perfeito e não tens nada a aprender. Por isso aqui o 10 fica de fora, na tua coluna e no palpite do Local. O máximo possível é o 9, e já isso é muito difícil de atingir, até para quem trabalha nesta área há muitos anos!</div>
+    <div class="pa-note"><b>Se as tuas autoavaliações estiverem com notas mais baixas agora do que no início…</b> É normal! E isto não significa que estejas a piorar, pelo contrário: com o tempo percebes melhor tudo o que o trabalho exige e passas a avaliar-te de forma mais exigente e realista. Depois, à medida que fores mesmo crescendo e evoluindo, elas voltam a subir.</div>
     <h2>As afirmações e o que cada resposta valeu</h2>
     <p style="font-size:9pt;color:#57516e;margin:4px 0 8px">Uma afirmação por faceta — cada dimensão é medida sempre pelas mesmas três coisas. O número é o que a resposta conta (1 a 9, nunca 10). As marcadas com ↺ estavam ao contrário: aí, concordar contava a menos.</p>
     ${qs}
-    <p class="pa-foot">Autoavaliação gerada no jogo «Como te vês». Descritores retirados do documento oficial de autoavaliação JEEP do Programa EDUCA+. É a leitura do próprio e não substitui a avaliação formal do programa.</p>
+    <p class="pa-foot">Autoavaliação gerada no jogo «Como te vês». É a leitura do próprio e não substitui a avaliação formal do programa.</p>
   </div>`;
 }
 function g4PDF(){ paOpen('Como te vês', g4HTML()); }
