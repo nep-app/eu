@@ -2283,7 +2283,7 @@ function g4HTML(){
     const setinha=dd===null?'—':dd>0?`▲ +${dd}`:dd<0?`▼ ${dd}`:'= igual';
     return `<tr><td style="padding:5px 6px;border-bottom:1px solid #e5e0f0">${pesc(DIMS[k].n)}</td><td style="padding:5px 6px;border-bottom:1px solid #e5e0f0;text-align:center;font-weight:700">${g4Num(D[k])}</td><td style="padding:5px 6px;border-bottom:1px solid #e5e0f0;text-align:center">${lb||'—'}</td><td style="padding:5px 6px;border-bottom:1px solid #e5e0f0;text-align:center;font-size:8.5pt">${setinha}</td></tr>`;
   }).join('');
-  const qs=G4.qs.map((A,i)=>{const labels=A.freq?G4_SCALE.freq:G4_SCALE.agree;const meu=G4.ans[i];
+  const qs=G4.qs.map((A,i)=>{const labels=g4Labels(A);const meu=G4.ans[i];
     return `<div class="pa-q"><div class="pa-qt">${A.k} · ${pesc(G4_FACETS[A.k][A.f])}${A.rev?' ↺':''} · ${pesc(A.t)}</div>
       <div class="pa-ans"><span class="v">${meu!==undefined?g4Val(A,meu):'—'}</span> ${meu!==undefined?pesc(labels[meu]):'(sem resposta)'}</div>
       <p class="pa-desc" style="opacity:.85;margin-top:2px">Porquê: ${pesc(G4_PORQUE[A.f])}</p></div>`;}).join('');
@@ -2723,9 +2723,9 @@ const G4_POOL={
  ],
  D5:[
   {f:"digital",t:"Faço um cartaz, uma folha de presenças e uma publicação sem pedir ajuda."},
-  {f:"digital",t:"Quando um equipamento não funciona — colunas, projetor, tablet — tento resolver antes de chamar alguém.",freq:true},
+  {f:"digital",t:"Resolver um equipamento que não está a funcionar (colunas, projetor, tablet).",cap:true},
   {f:"digital",t:"Aparece-me uma ferramenta digital nova para usar na sessão e a minha reação é «isto não é comigo».",rev:true},
-  {f:"digital",t:"Sei responder a um email, imprimir um documento ou procurar algo online (casa, trabalho, etc.) sem problemas."},
+  {f:"digital",t:"Responder a um email, imprimir um documento ou procurar algo online (casa, trabalho, etc.).",cap:true},
   {f:"digital",t:"Quando tenho de aprender a mexer numa ferramenta digital nova, desisto logo e peço a outra pessoa, porque parto do princípio de que não sou capaz.",rev:true,freq:true},
   {f:"cidada",t:"Reenvio uma notícia se me parecer verdade, sem ir ver de onde veio.",rev:true,freq:true},
   {f:"cidada",t:"Sei explicar a um miúdo por que é que não deve pôr certas coisas online."},
@@ -2733,20 +2733,20 @@ const G4_POOL={
   {f:"cidada",t:"Não acho que tenha de ter muito cuidado com o que partilho nas minhas redes sociais, porque confio nas pessoas que lá tenho.",rev:true},
   {f:"cidada",t:"Evito meter-me nos conflitos entre eles — por exemplo, se vir um miúdo a ser gozado.",rev:true,freq:true},
   {f:"buro",t:"Fico à rasca quando tenho de tratar de coisas online — inscrições, formulários.",rev:true,freq:true},
-  {f:"buro",t:"Trato sozinho da minha papelada — finanças, segurança social, renovar documentos — sem precisar que alguém trate por mim.",freq:true},
-  {f:"buro",t:"Quando me pedem um documento que não tenho, sei onde se tira e vou tratar disso.",freq:true},
+  {f:"buro",t:"Tratar da minha papelada sozinho — finanças, segurança social, renovar documentos.",cap:true},
+  {f:"buro",t:"Saber onde se tira um documento que me peçam e ir tratar disso.",cap:true},
   {f:"buro",t:"Marcar uma consulta, pedir uma declaração ou responder a uma carta oficial é coisa que adio até ao limite.",rev:true,freq:true},
   {f:"buro",t:"Já ajudei alguém — colega, miúdo, alguém lá de casa — a tratar de um assunto burocrático."},
   {f:"buro",t:"Consigo ler um recibo de vencimento ou um contrato e perceber o essencial."},
-  {f:"buro",t:"Sei resolver os meus problemas sozinho — por exemplo, ir às finanças, ao centro de saúde ou a outro serviço."}
+  {f:"buro",t:"Resolver os meus assuntos em serviços — finanças, centro de saúde, etc.",cap:true}
  ],
  D6:[
   {f:"ativ",t:"Sei porque é que faço uma atividade da maneira que a faço — não é só porque sim."},
-  {f:"ativ",t:"Consigo dar a mesma atividade a um grupo de 10 anos e a um de 16, mudando o que é preciso sem perder a qualidade."},
+  {f:"ativ",t:"Dar a mesma atividade a um grupo de 10 anos e a um de 16, mudando o que é preciso sem perder a qualidade.",cap:true},
   {f:"ativ",t:"Preparo as sessões antes, mesmo quando ninguém vai verificar.",freq:true},
   {f:"ativ",t:"Depois de uma sessão que correu mal, mudo alguma coisa na seguinte.",freq:true},
   {f:"ativ",t:"Tenho sempre um plano B para o caso de uma atividade não resultar."},
-  {f:"ativ",t:"Sei como avaliar as atividades que faço, para depois conseguir mostrar aos outros que funcionaram e porquê."},
+  {f:"ativ",t:"Avaliar as atividades que faço, para depois mostrar aos outros que funcionaram e porquê.",cap:true},
   {f:"postura",t:"Se um miúdo me conta um segredo grave, guardo-o só para mim.",rev:true},
   {f:"postura",t:"Trabalho pior com miúdos de quem não gosto.",rev:true,freq:true},
   {f:"postura",t:"Quando não sei uma resposta, digo que não sei e vou descobrir.",freq:true},
@@ -2848,8 +2848,14 @@ const G4_DESC={
 };
 const G4_SCALE={
  agree:['Discordo','Discordo um pouco','Mais ou menos','Concordo','Concordo muito'],
- freq:['Quase nunca','Raramente','Às vezes','Muitas vezes','Quase sempre']
+ freq:['Quase nunca','Raramente','Às vezes','Muitas vezes','Quase sempre'],
+ cap:['Muito mal','Mal','Assim-assim','Bem','Muito bem']  /* autoeficácia: "not at all well → very well" (SEQ-C) */
 };
+/* Cada afirmação usa uma de três escalas: cap (competência), freq (frequência)
+   ou, por defeito, concordância. Estas duas ajudas dão a escala e o cabeçalho. */
+function g4Labels(A){return A.cap?G4_SCALE.cap:A.freq?G4_SCALE.freq:G4_SCALE.agree;}
+function g4Kicker(A){return A.cap?'Como te sais nisto?':A.freq?'Com que frequência...':'Concordas com isto?';}
+function g4KickCor(A){return A.cap?'#2E9E7B':A.freq?'#FFD84D':'#4A6CF0';}  /* cor da etiqueta por escala */
 const G4_FWD=[1,3,5,7,9];                 /* 5 níveis → 1..9 (nunca chega a 10) */
 function g4Val(item,idx){return item.rev?G4_FWD[4-idx]:G4_FWD[idx];}
 function g4BandIdx(b){return G4_BANDAS.findIndex(x=>x[0]===b);}
@@ -2871,7 +2877,7 @@ function g4Draw(){
   const b=document.getElementById('g4-body');
   if(G4.step===0){
     b.innerHTML=`<div class="g4-intro">
-      <p style="max-width:60ch;font-size:17px;color:var(--chalk)">Isto <b>não é o PIA</b> e não é um teste. São <b>18 afirmações sobre o teu dia a dia</b> — umas de concordância, outras de frequência. Para cada uma, diz o que é <b>mesmo verdade sobre ti</b>, não o que fica bem.</p>
+      <p style="max-width:60ch;font-size:17px;color:var(--chalk)">Isto <b>não é o PIA</b> e não é um teste. São <b>18 afirmações sobre o teu dia a dia</b> — nalgumas dizes se concordas, noutras com que frequência acontece, e noutras como te sais. Para cada uma, diz o que é <b>mesmo verdade sobre ti</b>, não o que fica bem.</p>
       <p style="max-width:60ch;font-size:17px;color:var(--chalk);margin-top:14px"><b>Atenção: nem sempre concordar é "melhor".</b> Algumas afirmações estão ao contrário de propósito, e não te digo quais. Por isso não há resposta óbvia para escolher — só há a tua.</p>
       <p style="max-width:60ch;font-size:17px;color:var(--chalk);margin-top:14px">Depois pergunto-te uma segunda coisa: <b>que nota achas que o teu Local te daria</b>. No fim vês as duas leituras lado a lado, com os <b>descritores da grelha</b> do EDUCA+, em linguagem simples, para o degrau onde te puseste.</p>
       <p class="hint" style="max-width:60ch;margin-top:14px">Não tem nota nem certo nem errado.</p>
@@ -2882,9 +2888,9 @@ function g4Draw(){
     const f=Object.keys(G4.ans).length;
     const total=G4.qs.length;
     b.innerHTML=`<div class="aviso"><b>Diz o que é verdade sobre ti</b> — não o que soa bem. Nem sempre concordar conta a favor. Para desmarcar, clica outra vez na mesma.</div>
-      ${G4.qs.map((A,i)=>{const labels=A.freq?G4_SCALE.freq:G4_SCALE.agree;
+      ${G4.qs.map((A,i)=>{const labels=g4Labels(A);
         return `<div class="autoq">
-        <span class="autoq-dim" style="color:var(--chalk);opacity:.5">${A.freq?'Com que frequência...':'Concordas com isto?'}</span>
+        <span class="autoq-dim" style="display:inline-block;opacity:1;font-size:11.5px;font-weight:800;padding:4px 11px;border-radius:999px;color:${g4KickCor(A)};background:${g4KickCor(A)}1f;border:1px solid ${g4KickCor(A)}66">${g4Kicker(A)}</span>
         <p class="autoq-q">${A.t}</p>
         <div class="autoq-opts">${labels.map((lab,idx)=>`<button class="autoq-opt ${G4.ans[i]===idx?'on':''}" onclick="if(G4.ans[${i}]===${idx}){delete G4.ans[${i}];}else{G4.ans[${i}]=${idx};}g4Draw()">${lab}</button>`).join('')}</div>
       </div>`;}).join('')}
@@ -3070,7 +3076,7 @@ function g4Result(){
         const meus=G4.qs.map((A,i)=>({A,i})).filter(x=>x.A.k===k);
         return `<div class="revdim">
           <div class="revdim-h"><span class="g4-id" style="color:${DIMS[k].c}">${k}</span><b>${DIMS[k].n}</b><span class="revdim-m">média ${D[k].toFixed(1)} → ${g4Num(D[k])}</span></div>
-          ${meus.map(({A,i})=>{const labels=A.freq?G4_SCALE.freq:G4_SCALE.agree; const meu=G4.ans[i];
+          ${meus.map(({A,i})=>{const labels=g4Labels(A); const meu=G4.ans[i];
             return `<div class="revq">
               <div class="revq-top"><span class="g4-id" style="opacity:.5">${A.rev?'↺':'·'}</span><b>${A.t}</b></div>
               <p class="hint" style="margin:-4px 0 8px;opacity:.6">${G4_FACETS[A.k][A.f]}</p>
