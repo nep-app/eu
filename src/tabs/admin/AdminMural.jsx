@@ -52,6 +52,7 @@ export default function AdminMural() {
   const [rDesc, setRDesc] = useState("");
   const [rFile, setRFile] = useState(null);      // ficheiro a carregar (PDF, etc.)
   const [rTarget, setRTarget] = useState("all"); // "all" ou username de um jovem
+  const [rCategoria, setRCategoria] = useState("guia"); // secção onde aparece: jogo/guia/site/doc
   const [notificarRecurso, setNotificarRecurso] = useState(true);
   const [pushRecurso,      setPushRecurso]      = useState(false);
   const [enviandoR, setEnviandoR] = useState(false);
@@ -321,7 +322,7 @@ export default function AdminMural() {
       }
       await addDoc(collection(db, "recursos"), {
         titulo:rTitulo.trim(), icone:rIcone.trim()||"📄",
-        url, desc:rDesc.trim(), target:rTarget, ts:Date.now(), addedAt:nowFull()
+        url, desc:rDesc.trim(), target:rTarget, categoria:rCategoria, ts:Date.now(), addedAt:nowFull()
       });
       if (notificarRecurso) {
         const texto = `📚 Novo recurso disponível: ${rTitulo.trim().substring(0,60)}`;
@@ -333,7 +334,7 @@ export default function AdminMural() {
           });
         }
       }
-      setRTitulo(""); setRUrl(""); setRDesc(""); setRIcone("📄"); setPushRecurso(false); setRFile(null); setRTarget("all");
+      setRTitulo(""); setRUrl(""); setRDesc(""); setRIcone("📄"); setPushRecurso(false); setRFile(null); setRTarget("all"); setRCategoria("guia");
     } catch(e) { alert("Erro: " + e.message); }
     setEnviandoR(false);
   }
@@ -739,6 +740,21 @@ export default function AdminMural() {
             </div>
             <input value={rDesc} onChange={e => setRDesc(e.target.value)}
               placeholder="Descrição curta (opcional)" style={{ ...INP }} />
+            <div style={{ marginBottom:10 }}>
+              <div style={{ fontSize:11, color:CYN, fontWeight:800, marginBottom:5 }}>SECÇÃO (onde aparece nos Recursos):</div>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                {[{v:"jogo",l:"🎮 Jogos"},{v:"guia",l:"📘 Guias"},{v:"site",l:"🌐 Sites"},{v:"doc",l:"📄 Documentos"}].map(c => {
+                  const on = rCategoria === c.v;
+                  return (
+                    <button key={c.v} onClick={() => setRCategoria(c.v)} style={{
+                      fontSize:12, fontWeight:800, cursor:"pointer", borderRadius:16, padding:"6px 12px",
+                      border: on ? `1.5px solid ${CYN}` : "1px solid rgba(255,255,255,0.12)",
+                      background: on ? `${CYN}20` : "rgba(255,255,255,0.03)", color: on ? CYN : "#94a3b8",
+                    }}>{c.l}</button>
+                  );
+                })}
+              </div>
+            </div>
             <div style={{ marginBottom:10 }}>
               <div style={{ fontSize:11, color:CYN, fontWeight:800, marginBottom:5 }}>PARA QUEM:</div>
               <select value={rTarget} onChange={e => setRTarget(e.target.value)}

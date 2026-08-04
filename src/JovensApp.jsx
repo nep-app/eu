@@ -34,14 +34,14 @@ class ErrorBoundary extends React.Component {
 import HomeTab     from "./tabs/HomeTab.jsx";
 import DesafiosTab from "./tabs/DesafiosTab.jsx";
 import ForumTab    from "./tabs/ForumTab.jsx";
-import PiaTab      from "./tabs/PiaTab.jsx";
+import RecursosTab from "./tabs/RecursosTab.jsx";
 import PerfilTab   from "./tabs/PerfilTab.jsx";
 
 const NAV = [
   ["home",     "🏠", "Início"],
   ["desafios", "⚡", "Desafios"],
   ["forum",    "🌐", "Fórum"],
-  ["pia",      "🚀", "PIA"],
+  ["pia",      "🚀", "PIA +"],
   ["perfil",   "👤", "Perfil"],
 ];
 
@@ -299,7 +299,7 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
           {tab === "home"     && <HomeTab     user={user} data={{...allData, features: effectiveFeatures}} setTab={setTab} setDesafiosSubTab={setDesafiosSubTab} setForumCanal={setForumCanal} previewMode={previewMode} />}
           {tab === "desafios" && <DesafiosTab user={user} data={allData} subTab={desafiosSubTab} setSubTab={setDesafiosSubTab} features={effectiveFeatures} />}
           {tab === "forum"    && <ForumTab    user={user} data={allData} forumCollection={user.isDemo ? "forum_demo" : "forum"} initialCanal={forumCanal} />}
-          {tab === "pia"      && <PiaTab      user={user} data={allData} />}
+          {tab === "pia"      && <RecursosTab user={user} data={allData} />}
           {tab === "perfil"   && <PerfilTab   user={user} data={allData} features={effectiveFeatures} />}
         </ErrorBoundary>
       </div>

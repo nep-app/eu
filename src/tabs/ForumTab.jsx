@@ -16,31 +16,6 @@ const CHANNEL_COLORS = {
   coffee:    "#78716c", // warm brown — coffee
 };
 
-// Arcade EDUCA+ — quatro jogos, escondidos por defeito. Cada jogo abre-se
-// sozinho (?jogo=N) e liga-se individualmente no admin, para a Teresa poder
-// mostrar só um de cada vez (config/arcade.jogos[N]). A lista antiga
-// config/arcade.users continua a dar acesso aos quatro (retrocompatível).
-const ARCADE_JOGOS = [
-  { id:"__arcade1", n:1, icone:"🎯", titulo:"Jogo 1 · Aproxima ou Afasta?", url:"/eu/jogos/arcade-educa.html?jogo=1", desc:"Decisões do dia a dia: em cada carta escolhes aproxima, afasta ou depende. Sem nota. Funciona offline." },
-  { id:"__arcade2", n:2, icone:"🗣️", titulo:"Jogo 2 · Tabu EDUCA", url:"/eu/jogos/arcade-educa.html?jogo=2", desc:"Explica a palavra sem dizer as três proibidas. Duas equipas. Funciona offline." },
-  { id:"__arcade3", n:3, icone:"🏗️", titulo:"Jogo 3 · Construtor de Projeto", url:"/eu/jogos/arcade-educa.html?jogo=3", desc:"Liga uma atividade às necessidades da ludoteca. No fim sai o rascunho do PIA. Funciona offline." },
-  { id:"__arcade4", n:4, icone:"🪞", titulo:"Jogo 4 · Como te vês", url:"/eu/jogos/arcade-educa.html?jogo=4", desc:"Dezoito afirmações sobre ti, para treinar a auto-avaliação. Funciona offline." },
-];
-
-const RECURSOS_FIXOS = [
-  { id:"__bem-estar", icone:"📱", titulo:"Guia Bem-estar Digital", url:"/eu/bem-estar-digital.html", desc:"Conceitos, hábitos e ferramentas para uma relação saudável com o digital" },
-  {
-    id:"__fdr",
-    icone:"⚽",
-    titulo:"Manual de Treino de Competências",
-    desc:"Ferramenta da Associação CAIS para desenvolver valores e competências pessoais e sociais com crianças e jovens",
-    sublinks: [
-      { label:"🎯 Resumo de Dinâmicas", url:"/eu/resumo-dinamicas-fdr.html", desc:"Seleção de dinâmicas do manual, preparada pela Teresa, para usar no dia-a-dia e para dinamizar com crianças e jovens nos vossos espaços" },
-      { label:"📖 Manual Completo", url:"https://drive.google.com/file/d/1T-2eomdfBOgYXnsCAZHkEuV4PBq9N8zq/view?usp=sharing", desc:"Manual original da Associação CAIS com todas as dinâmicas, energizers e indicações de debriefing para 20 competências pessoais e sociais" },
-    ],
-  },
-];
-
 const isAdmin = (u) => u?.username === "admin";
 
 function parseTimeStr(t) {
@@ -69,8 +44,6 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
   const [canalAtivo, setCanalAtivo] = useState(initialCanal || "anuncios");
   const [listaPosts, setListaPosts]  = useState([]);
   const [allMedals,  setAllMedals]   = useState({});
-  const [recursosDb, setRecursosDb]  = useState([]);
-  const [arcadeCfg, setArcadeCfg] = useState({ users: [], jogos: {} });
 
   // Load current-week medals for all users
   useEffect(() => {
@@ -101,40 +74,6 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
     });
   }, [canalAtivo, forumCollection]);
 
-  useEffect(() => {
-    return onSnapshot(collection(db, "recursos"), snap => {
-      const fromDb = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-        // Recursos com destinatário específico só aparecem a esse jovem (e ao admin).
-        .filter(r => !r.target || r.target === "all" || r.target === user.username || isAdmin(user))
-        .sort((a, b) => (b.ts || 0) - (a.ts || 0)); // mais recente primeiro
-      setRecursosDb(fromDb);
-    });
-  }, [user.username]);
-
-  // Configuração do Arcade EDUCA+ (escondido por defeito): lista antiga
-  // `users` (acesso aos quatro) + mapa `jogos` (acesso por jogo).
-  useEffect(() => {
-    return onSnapshot(doc(db, "config", "arcade"), s => {
-      const d = s.exists() ? s.data() : {};
-      setArcadeCfg({ users: d.users || [], jogos: d.jogos || {} });
-    });
-  }, []);
-
-  // Regra de visibilidade por jogo:
-  //  - conta admin vê sempre tudo;
-  //  - acesso total antigo (`users`) vê os quatro;
-  //  - quem estiver ligado nesse jogo (`jogos[N]`) vê esse jogo;
-  //  - a teresa vê o que estiver ligado para alguém (para mostrar/testar),
-  //    por isso se só ligares um jogo, só esse aparece na conta dela.
-  const podeArcadeTudo = isAdmin(user) || (arcadeCfg.users || []).includes(user.username);
-  const jogosVisiveis = ARCADE_JOGOS.filter(j => {
-    if (podeArcadeTudo) return true;
-    const lista = arcadeCfg.jogos?.[j.n] || [];
-    if (lista.includes(user.username)) return true;
-    if (user.username === "teresa" && lista.length > 0) return true;
-    return false;
-  });
-  const recursos = [...recursosDb, ...jogosVisiveis, ...RECURSOS_FIXOS];
 
   const canalInfo = CHANNELS.find(c => c.id === canalAtivo);
   const adminOnlyLocked = canalInfo?.adminOnly && !isAdmin(user);
@@ -142,13 +81,14 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
   return (
     <div style={{ paddingBottom:100 }}>
 
-      {/* ── CANAIS + RECURSOS ──────────────────────────────────────────── */}
-      <div style={{ padding:"16px 16px 0", display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
+      {/* ── CANAIS ─────────────────────────────────────────────────────── */}
+      <div style={{ padding:"16px 16px 0", display:"flex", flexWrap:"wrap", justifyContent:"center", gap:8 }}>
         {CHANNELS.map(ch => {
           const sel = canalAtivo === ch.id;
           const chColor = CHANNEL_COLORS[ch.id] || CYN;
           return (
             <button key={ch.id} onClick={() => setCanalAtivo(ch.id)} style={{
+              flex:"0 0 calc(33.333% - 6px)",
               display:"flex", flexDirection:"column", alignItems:"center", gap:4,
               padding:"12px 8px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
               border: sel ? `1px solid ${chColor}60` : `1px solid ${chColor}35`,
@@ -161,103 +101,9 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
             </button>
           );
         })}
-        {/* Recursos — mostra só 1 botão no grid (abre lista inline) */}
-        <button onClick={async () => {
-          setCanalAtivo("__recursos");
-          const uData = data.userData || {};
-          const semana = getWeekKey();
-          const ts = Date.now();
-          const hist = (data.history) || [];
-          if (!uData.recursosVisitados) {
-            // Primeira vez de sempre → 20 XP.
-            const newHistory = [...hist, { date:nowLabel(), action:"Visitou os recursos", ts, xp:20 }];
-            await setDoc(doc(db, "userData", user.username), { recursosVisitados:true, recursosXpWeek:semana, history:newHistory, weekXp:(uData.weekXp||0)+20 }, { merge:true });
-          } else if (uData.recursosXpWeek !== semana) {
-            // Já visitou antes, mas ainda não ganhou XP esta semana → 10 XP (1x/semana).
-            const newHistory = [...hist, { date:nowLabel(), action:"Voltou a visitar os recursos", ts, xp:10 }];
-            await setDoc(doc(db, "userData", user.username), { recursosXpWeek:semana, history:newHistory, weekXp:(uData.weekXp||0)+10 }, { merge:true });
-          }
-          // Se já ganhou XP esta semana, visitar de novo não dá mais nada.
-        }} style={{
-          display:"flex", flexDirection:"column", alignItems:"center", gap:4,
-          padding:"12px 8px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
-          border: canalAtivo === "__recursos" ? "1px solid rgba(139,92,246,0.60)" : "1px solid rgba(139,92,246,0.35)",
-          background: canalAtivo === "__recursos" ? "rgba(139,92,246,0.18)" : "rgba(139,92,246,0.07)",
-          color: canalAtivo === "__recursos" ? "#a78bfa" : "#a78bfacc",
-          boxShadow: canalAtivo === "__recursos" ? "0 0 0 1px rgba(99,102,241,0.25)" : "none",
-        }}>
-          <span style={{ fontSize:20 }}>📚</span>
-          <span style={{ fontSize:9, fontWeight:900, textAlign:"center", letterSpacing:0.3, textTransform:"uppercase", lineHeight:1.3 }}>Recursos</span>
-        </button>
       </div>
 
-      {canalAtivo === "__recursos" ? (
-        /* ── VISTA DE RECURSOS ──────────────────────────────────────── */
-        <div style={{ padding:"16px 16px 0" }}>
-          <div style={{ fontSize:10, fontWeight:900, letterSpacing:2, color: isTeresa ? "#4a3f80" : "#6366f1", textTransform:"uppercase", marginBottom:12 }}>
-            📚 Recursos
-          </div>
-          {recursos.length === 0 ? (
-            <div style={{ textAlign:"center", padding:"30px 20px", color: light ? "#6b5fa8" : TXT_MUT, fontSize:13 }}>
-              Ainda não há recursos disponíveis.
-            </div>
-          ) : (
-            recursos.map(r => {
-              const cardStyle = {
-                padding:"14px 16px", borderRadius:18, marginBottom:10,
-                background: isTeresa ? "rgba(99,102,241,0.10)" : "rgba(99,102,241,0.08)",
-                border: isTeresa ? "1px solid rgba(99,102,241,0.40)" : "1px solid rgba(99,102,241,0.20)",
-              };
-              if (r.sublinks) {
-                return (
-                  <div key={r.id} style={cardStyle}>
-                    <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:12 }}>
-                      <span style={{ fontSize:26, flexShrink:0 }}>{r.icone || "📄"}</span>
-                      <div style={{ flex:1 }}>
-                        <div style={{ fontSize:13, fontWeight:800, color: isTeresa ? "#6d28d9" : "#a5b4fc" }}>{r.titulo}</div>
-                        {r.desc && <div style={{ fontSize:11, color: isTeresa ? "#7c3aed" : "#818cf8", marginTop:2 }}>{r.desc}</div>}
-                      </div>
-                    </div>
-                    <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                      {r.sublinks.map((sl, i) => {
-                        const slUrl = /^(https?:\/\/|\/)/.test(sl.url) ? sl.url : "#";
-                        const isPdf = sl.url.endsWith(".pdf");
-                        return (
-                          <div key={i} onClick={() => window.open(slUrl, "_blank")} style={{
-                            display:"flex", flexDirection:"column", gap:2, padding:"10px 14px", borderRadius:12,
-                            background: isTeresa ? "rgba(99,102,241,0.12)" : "rgba(99,102,241,0.10)",
-                            border: isTeresa ? "1px solid rgba(99,102,241,0.35)" : "1px solid rgba(99,102,241,0.18)",
-                            cursor:"pointer", transition:"all 0.15s",
-                          }}>
-                            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                              <span style={{ fontSize:12, fontWeight:800, color: isTeresa ? "#5b21b6" : "#a5b4fc" }}>{sl.label}</span>
-                              <span style={{ fontSize:12, color: isTeresa ? "#7c3aed" : "#818cf8" }}>{isPdf ? "⬇️" : "→"}</span>
-                            </div>
-                            {sl.desc && <div style={{ fontSize:10, color: isTeresa ? "#7c3aed" : "#818cf8", lineHeight:1.4 }}>{sl.desc}</div>}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              }
-              const safeUrl = /^(https?:\/\/|\/)/.test(r.url) ? r.url : "#";
-              return (
-                <a key={r.id} href={safeUrl} target="_blank" rel="noreferrer" style={{
-                  ...cardStyle, display:"flex", alignItems:"center", gap:14, textDecoration:"none", transition:"all 0.15s",
-                }}>
-                  <span style={{ fontSize:26, flexShrink:0 }}>{r.icone || "📄"}</span>
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontSize:13, fontWeight:800, color: isTeresa ? "#6d28d9" : "#a5b4fc" }}>{r.titulo}</div>
-                    {r.desc && <div style={{ fontSize:11, color: isTeresa ? "#7c3aed" : "#818cf8", marginTop:2 }}>{r.desc}</div>}
-                  </div>
-                  <span style={{ fontSize:14, color: isTeresa ? "#7c3aed" : "#818cf8" }}>→</span>
-                </a>
-              );
-            })
-          )}
-        </div>
-      ) : (
+      {(
         <>
           {/* ── INFO DO CANAL ────────────────────────────────────────── */}
           <div style={{ margin:"12px 16px 0", padding:"12px 16px", borderRadius:16,
