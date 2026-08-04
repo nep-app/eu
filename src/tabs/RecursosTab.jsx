@@ -37,9 +37,7 @@ const RECURSOS_FIXOS = [
 // decide onde aparece. Recursos sem categoria caem em "guias".
 const SECOES = [
   { id:"pia",     icone:"🚀", label:"PIA" },
-  { id:"jogo",    icone:"🎮", label:"Jogos" },
-  { id:"roda",    icone:"🌸", label:"Roda" },
-  { id:"capsula", icone:"💌", label:"Cápsula" },
+  { id:"jogo",    icone:"🎲", label:"Atividades" },
   { id:"guia",    icone:"📘", label:"Guias" },
   { id:"site",    icone:"🌐", label:"Sites" },
   { id:"doc",     icone:"📄", label:"Documentos" },
@@ -56,6 +54,7 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
   const light = useContext(ThemeCtx);
   const isTeresa = user?.username === "teresa";
   const [secao, setSecao] = useState("pia");
+  const [atividade, setAtividade] = useState(null); // dentro de "Atividades": null|"roda"|"capsula"
   const [recursosDb, setRecursosDb] = useState([]);
   const [arcadeCfg, setArcadeCfg] = useState({ users: [], jogos: {} });
 
@@ -167,6 +166,29 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
     );
   };
 
+  const voltarStyle = {
+    background:"rgba(139,92,246,0.10)", border:"1px solid rgba(139,92,246,0.30)",
+    color:"#a78bfa", borderRadius:12, padding:"7px 14px", fontSize:12, fontWeight:800,
+    cursor:"pointer", marginBottom:14,
+  };
+
+  const renderActivityButton = (icone, titulo, desc, onClick) => (
+    <button key={titulo} onClick={onClick} style={{
+      width:"100%", textAlign:"left", cursor:"pointer",
+      padding:"14px 16px", borderRadius:18, marginBottom:10,
+      background: isTeresa ? "rgba(99,102,241,0.10)" : "rgba(99,102,241,0.08)",
+      border: isTeresa ? "1px solid rgba(99,102,241,0.40)" : "1px solid rgba(99,102,241,0.20)",
+      display:"flex", alignItems:"center", gap:14,
+    }}>
+      <span style={{ fontSize:26, flexShrink:0 }}>{icone}</span>
+      <div style={{ flex:1 }}>
+        <div style={{ fontSize:13, fontWeight:800, color:roxo }}>{titulo}</div>
+        <div style={{ fontSize:11, color:roxo2, marginTop:2 }}>{desc}</div>
+      </div>
+      <span style={{ fontSize:14, color:roxo2 }}>→</span>
+    </button>
+  );
+
   return (
     <div style={{ paddingBottom:100 }}>
       {/* ── SUB-NAVEGAÇÃO (PIA · Jogos · Guias · Sites · Documentos) ── */}
@@ -174,7 +196,7 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
         {SECOES.map(s => {
           const sel = secao === s.id;
           return (
-            <button key={s.id} onClick={() => setSecao(s.id)} style={{
+            <button key={s.id} onClick={() => { setSecao(s.id); setAtividade(null); }} style={{
               display:"flex", flexDirection:"column", alignItems:"center", gap:3, flex:"0 0 auto",
               minWidth:64, padding:"10px 10px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
               border: sel ? "1px solid rgba(139,92,246,0.60)" : "1px solid rgba(139,92,246,0.30)",
@@ -191,13 +213,28 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
 
       {secao === "pia" ? (
         <PiaTab user={user} data={data} />
-      ) : secao === "roda" ? (
+      ) : secao === "jogo" ? (
         <div style={{ padding:"16px 16px 0" }}>
-          <RodaVida user={user} data={data} features={features} />
-        </div>
-      ) : secao === "capsula" ? (
-        <div style={{ padding:"16px 16px 0" }}>
-          <Capsulas user={user} data={data} />
+          {atividade === "roda" ? (
+            <>
+              <button onClick={() => setAtividade(null)} style={voltarStyle}>← Atividades</button>
+              <RodaVida user={user} data={data} features={features} />
+            </>
+          ) : atividade === "capsula" ? (
+            <>
+              <button onClick={() => setAtividade(null)} style={voltarStyle}>← Atividades</button>
+              <Capsulas user={user} data={data} />
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize:10, fontWeight:900, letterSpacing:2, color: isTeresa ? "#4a3f80" : "#6366f1", textTransform:"uppercase", marginBottom:12 }}>
+                🎲 Atividades
+              </div>
+              {renderActivityButton("🌸", "Roda da Vida", "Avalia as diferentes áreas da tua vida e envia à Teresa.", () => setAtividade("roda"))}
+              {renderActivityButton("💌", "Cápsulas do Tempo", "Deixa mensagens trancadas para o teu futuro.", () => setAtividade("capsula"))}
+              {listaDa("jogo").map(renderCard)}
+            </>
+          )}
         </div>
       ) : (
         <div style={{ padding:"16px 16px 0" }}>

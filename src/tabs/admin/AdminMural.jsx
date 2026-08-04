@@ -747,7 +747,7 @@ export default function AdminMural({ only = null }) {
             <div style={{ marginBottom:10 }}>
               <div style={{ fontSize:11, color:CYN, fontWeight:800, marginBottom:5 }}>SECÇÃO (onde aparece nos Recursos):</div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                {[{v:"jogo",l:"🎮 Jogos"},{v:"guia",l:"📘 Guias"},{v:"site",l:"🌐 Sites"},{v:"doc",l:"📄 Documentos"}].map(c => {
+                {[{v:"jogo",l:"🎲 Atividades"},{v:"guia",l:"📘 Guias"},{v:"site",l:"🌐 Sites"},{v:"doc",l:"📄 Documentos"}].map(c => {
                   const on = rCategoria === c.v;
                   return (
                     <button key={c.v} onClick={() => setRCategoria(c.v)} style={{
@@ -835,14 +835,14 @@ export default function AdminMural({ only = null }) {
                     <div style={{ fontSize:11, color:`${CYN}90`, wordBreak:"break-all", marginBottom:6 }}>{r.url}</div>
                     <div style={{ display:"flex", flexWrap:"wrap", gap:4, alignItems:"center" }}>
                       <span style={{ fontSize:10, color:"#64748b", fontWeight:800, marginRight:2 }}>Secção:</span>
-                      {[{v:"jogo",l:"🎮"},{v:"guia",l:"📘"},{v:"site",l:"🌐"},{v:"doc",l:"📄"}].map(c => {
+                      {[{v:"jogo",l:"🎲"},{v:"guia",l:"📘"},{v:"site",l:"🌐"},{v:"doc",l:"📄"}].map(c => {
                         const on = (r.categoria || "guia") === c.v;
                         return (
                           <button key={c.v} onClick={() => updateDoc(doc(db, "recursos", r.id), { categoria: c.v })} style={{
                             fontSize:11, fontWeight:800, cursor:"pointer", borderRadius:12, padding:"2px 8px",
                             border: on ? `1.5px solid ${CYN}` : "1px solid rgba(255,255,255,0.12)",
                             background: on ? `${CYN}20` : "rgba(255,255,255,0.03)", color: on ? CYN : "#94a3b8",
-                          }}>{c.l} {c.v === "jogo" ? "Jogos" : c.v === "guia" ? "Guias" : c.v === "site" ? "Sites" : "Docs"}</button>
+                          }}>{c.l} {c.v === "jogo" ? "Atividades" : c.v === "guia" ? "Guias" : c.v === "site" ? "Sites" : "Docs"}</button>
                         );
                       })}
                     </div>
