@@ -40,7 +40,7 @@ const SECOES = [
   { id:"jogo",    icone:"🎲", label:"Atividades" },
   { id:"guia",    icone:"📘", label:"Guias" },
   { id:"site",    icone:"🌐", label:"Sites" },
-  { id:"doc",     icone:"📄", label:"Documentos" },
+  { id:"doc",     icone:"📄", label:"Docs" },
 ];
 
 const VAZIO = {
@@ -192,13 +192,13 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
   return (
     <div style={{ paddingBottom:100 }}>
       {/* ── SUB-NAVEGAÇÃO (PIA · Jogos · Guias · Sites · Documentos) ── */}
-      <div style={{ display:"flex", gap:8, padding:"16px 16px 0", overflowX:"auto", justifyContent:"center" }}>
+      <div style={{ display:"flex", gap:6, padding:"16px 12px 0", justifyContent:"center" }}>
         {SECOES.map(s => {
           const sel = secao === s.id;
           return (
             <button key={s.id} onClick={() => { setSecao(s.id); setAtividade(null); }} style={{
-              display:"flex", flexDirection:"column", alignItems:"center", gap:3, flex:"0 0 auto",
-              minWidth:64, padding:"10px 10px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
+              display:"flex", flexDirection:"column", alignItems:"center", gap:3, flex:"1 1 0", minWidth:0,
+              padding:"10px 4px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
               border: sel ? "1px solid rgba(139,92,246,0.60)" : "1px solid rgba(139,92,246,0.30)",
               background: sel ? "rgba(139,92,246,0.18)" : "rgba(139,92,246,0.06)",
               color: sel ? "#a78bfa" : "#a78bfacc",
