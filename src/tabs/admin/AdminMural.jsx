@@ -6,8 +6,10 @@ import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
 import { nowLabel, nowFull, CHANNELS, JEEP_LIST, FORUM_REACTIONS, ALLOWED_USERNAMES } from "../../data.js";
 import Agendador from "./Agendador.jsx";
 
-export default function AdminMural() {
-  const [subtab, setSubtab] = useState("forum");
+export default function AdminMural({ only = null }) {
+  // `only` = "forum" ou "recursos": mostra só essa parte e esconde o switcher
+  // (usado para separar Fórum e Recursos em abas diferentes do admin).
+  const [subtab, setSubtab] = useState(only || "forum");
 
   // ── FORUM ──
   const [channel, setChannel] = useState("anuncios");
@@ -377,17 +379,19 @@ export default function AdminMural() {
 
   return (
     <div>
-      {/* SUB-TABS */}
-      <div style={{ display:"flex", gap:0, marginBottom:16, background:"rgba(0,0,0,0.3)", borderRadius:14, padding:4 }}>
-        {[["forum","🌐 Fórum"],["recursos","📚 Recursos"]].map(([id,label]) => (
-          <button key={id} onClick={() => setSubtab(id)} style={{
-            flex:1, padding:"9px", borderRadius:10, border:"none", cursor:"pointer",
-            background: subtab===id ? `${CYN}20` : "transparent",
-            color: subtab===id ? CYN : "#94a3b8", fontWeight:800, fontSize:13,
-            boxShadow: subtab===id ? `0 0 0 1px ${CYN}35` : "none",
-          }}>{label}</button>
-        ))}
-      </div>
+      {/* SUB-TABS (escondidos quando a aba já é só uma parte) */}
+      {!only && (
+        <div style={{ display:"flex", gap:0, marginBottom:16, background:"rgba(0,0,0,0.3)", borderRadius:14, padding:4 }}>
+          {[["forum","🌐 Fórum"],["recursos","📚 Recursos"]].map(([id,label]) => (
+            <button key={id} onClick={() => setSubtab(id)} style={{
+              flex:1, padding:"9px", borderRadius:10, border:"none", cursor:"pointer",
+              background: subtab===id ? `${CYN}20` : "transparent",
+              color: subtab===id ? CYN : "#94a3b8", fontWeight:800, fontSize:13,
+              boxShadow: subtab===id ? `0 0 0 1px ${CYN}35` : "none",
+            }}>{label}</button>
+          ))}
+        </div>
+      )}
 
       {subtab === "forum" && (
         <>

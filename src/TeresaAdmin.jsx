@@ -10,6 +10,7 @@ import AdminJovens from './tabs/admin/AdminJovens.jsx';
 import AdminPrograma from './tabs/admin/AdminPrograma.jsx';
 import AdminPia from './tabs/admin/AdminPia.jsx';
 import AdminMural from './tabs/admin/AdminMural.jsx';
+import AdminPiaMais from './tabs/admin/AdminPiaMais.jsx';
 import AdminSatisfacao from './tabs/admin/AdminSatisfacao.jsx';
 import AdminMsgs from './tabs/admin/AdminMsgs.jsx';
 import JovensApp from './JovensApp.jsx';
@@ -144,7 +145,7 @@ const ADMIN_TABS = [
     ["geral",     unreadNotifsCount > 0 ? `📊 Geral (${unreadNotifsCount})` : "📊 Geral"],
     ["jovens",    "👥 Jovens"],
     ["programa",  "🎯 Programa"],
-    ["pia",       "📋 PIA"],
+    ["pia",       "📋 PIA +"],
     ["forum",     "🌐 Fórum"],
     ["satisfacao","😊 Satisfação"],
     ["msgs",      "💬 Msgs"],
@@ -240,8 +241,8 @@ const ADMIN_TABS = [
         {adminTab === "geral"     && <AdminGeral allShared={allShared} leaderboard={leaderboard} adminNotifs={adminNotifs} setAdminTab={setAdminTab} />}
         {adminTab === "jovens"    && <AdminJovens amMedals={amMedals} setAmMedals={setAmMedals} allShared={allShared} weekStartTs={weekStartTs} />}
         {adminTab === "programa"  && <AdminPrograma allShared={allShared} events={events} missions={missions} activeQ={activeQ} />}
-        {adminTab === "pia"       && <AdminPia allShared={allShared} />}
-        {adminTab === "forum"     && <AdminMural />}
+        {adminTab === "pia"       && <AdminPiaMais allShared={allShared} />}
+        {adminTab === "forum"     && <AdminMural only="forum" />}
         {adminTab === "satisfacao"&& <AdminSatisfacao />}
         {adminTab === "msgs"      && <AdminMsgs />}
         {adminTab === "preview"   && !previewUser && (
