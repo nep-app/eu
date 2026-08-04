@@ -828,7 +828,20 @@ export default function AdminMural() {
                       </div>
                     )}
                     {r.desc && <div style={{ fontSize:12, color:"#94a3b8", marginBottom:4 }}>{r.desc}</div>}
-                    <div style={{ fontSize:11, color:`${CYN}90`, wordBreak:"break-all" }}>{r.url}</div>
+                    <div style={{ fontSize:11, color:`${CYN}90`, wordBreak:"break-all", marginBottom:6 }}>{r.url}</div>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:4, alignItems:"center" }}>
+                      <span style={{ fontSize:10, color:"#64748b", fontWeight:800, marginRight:2 }}>Secção:</span>
+                      {[{v:"jogo",l:"🎮"},{v:"guia",l:"📘"},{v:"site",l:"🌐"},{v:"doc",l:"📄"}].map(c => {
+                        const on = (r.categoria || "guia") === c.v;
+                        return (
+                          <button key={c.v} onClick={() => updateDoc(doc(db, "recursos", r.id), { categoria: c.v })} style={{
+                            fontSize:11, fontWeight:800, cursor:"pointer", borderRadius:12, padding:"2px 8px",
+                            border: on ? `1.5px solid ${CYN}` : "1px solid rgba(255,255,255,0.12)",
+                            background: on ? `${CYN}20` : "rgba(255,255,255,0.03)", color: on ? CYN : "#94a3b8",
+                          }}>{c.l} {c.v === "jogo" ? "Jogos" : c.v === "guia" ? "Guias" : c.v === "site" ? "Sites" : "Docs"}</button>
+                        );
+                      })}
+                    </div>
                   </div>
                   <div style={{ display:"flex", flexDirection:"column", gap:4, flexShrink:0 }}>
                     <div style={{ display:"flex", gap:4 }}>

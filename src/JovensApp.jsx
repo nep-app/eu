@@ -299,7 +299,7 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
           {tab === "home"     && <HomeTab     user={user} data={{...allData, features: effectiveFeatures}} setTab={setTab} setDesafiosSubTab={setDesafiosSubTab} setForumCanal={setForumCanal} previewMode={previewMode} />}
           {tab === "desafios" && <DesafiosTab user={user} data={allData} subTab={desafiosSubTab} setSubTab={setDesafiosSubTab} features={effectiveFeatures} />}
           {tab === "forum"    && <ForumTab    user={user} data={allData} forumCollection={user.isDemo ? "forum_demo" : "forum"} initialCanal={forumCanal} />}
-          {tab === "pia"      && <RecursosTab user={user} data={allData} />}
+          {tab === "pia"      && <RecursosTab user={user} data={allData} features={effectiveFeatures} />}
           {tab === "perfil"   && <PerfilTab   user={user} data={allData} features={effectiveFeatures} />}
         </ErrorBoundary>
       </div>

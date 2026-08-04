@@ -5,6 +5,8 @@ import { TXT_MUT } from "../theme.jsx";
 import { getWeekKey, nowLabel } from "../data.js";
 import { ThemeCtx } from "../JovensApp.jsx";
 import PiaTab from "./PiaTab.jsx";
+import RodaVida from "./RodaVida.jsx";
+import Capsulas from "./Capsulas.jsx";
 
 const isAdmin = (u) => u?.username === "admin";
 
@@ -34,11 +36,13 @@ const RECURSOS_FIXOS = [
 // Secções da aba. A categoria de cada recurso (campo `categoria`, gerido no admin)
 // decide onde aparece. Recursos sem categoria caem em "guias".
 const SECOES = [
-  { id:"pia",   icone:"🚀", label:"PIA" },
-  { id:"jogo",  icone:"🎮", label:"Jogos" },
-  { id:"guia",  icone:"📘", label:"Guias" },
-  { id:"site",  icone:"🌐", label:"Sites" },
-  { id:"doc",   icone:"📄", label:"Documentos" },
+  { id:"pia",     icone:"🚀", label:"PIA" },
+  { id:"jogo",    icone:"🎮", label:"Jogos" },
+  { id:"roda",    icone:"🌸", label:"Roda" },
+  { id:"capsula", icone:"💌", label:"Cápsula" },
+  { id:"guia",    icone:"📘", label:"Guias" },
+  { id:"site",    icone:"🌐", label:"Sites" },
+  { id:"doc",     icone:"📄", label:"Documentos" },
 ];
 
 const VAZIO = {
@@ -48,7 +52,7 @@ const VAZIO = {
   doc:  "Ainda não há documentos disponíveis.",
 };
 
-export default function RecursosTab({ user, data = {} }) {
+export default function RecursosTab({ user, data = {}, features = {} }) {
   const light = useContext(ThemeCtx);
   const isTeresa = user?.username === "teresa";
   const [secao, setSecao] = useState("pia");
@@ -76,7 +80,7 @@ export default function RecursosTab({ user, data = {} }) {
   // XP por visitar os recursos (jogos/guias/sites/docs — não o PIA):
   // 20 na 1ª vez de sempre, depois 10 uma vez por semana.
   useEffect(() => {
-    if (secao === "pia") return;
+    if (!["jogo","guia","site","doc"].includes(secao)) return;
     const uData = data.userData || {};
     const semana = getWeekKey();
     const ts = Date.now();
@@ -187,6 +191,14 @@ export default function RecursosTab({ user, data = {} }) {
 
       {secao === "pia" ? (
         <PiaTab user={user} data={data} />
+      ) : secao === "roda" ? (
+        <div style={{ padding:"16px 16px 0" }}>
+          <RodaVida user={user} data={data} features={features} />
+        </div>
+      ) : secao === "capsula" ? (
+        <div style={{ padding:"16px 16px 0" }}>
+          <Capsulas user={user} data={data} />
+        </div>
       ) : (
         <div style={{ padding:"16px 16px 0" }}>
           <div style={{ fontSize:10, fontWeight:900, letterSpacing:2, color: isTeresa ? "#4a3f80" : "#6366f1", textTransform:"uppercase", marginBottom:12 }}>
