@@ -2640,7 +2640,7 @@ const G4_POOL={
   {f:"apoio",t:"Peço feedback sobre o meu trabalho sem esperar que mo venham dar.",freq:true},
   {f:"apoio",t:"Custa-me admitir aos colegas que estou com dificuldade e a precisar de ajuda.",rev:true,freq:true},
   {f:"apoio",t:"Prefiro fingir que entendi uma coisa do que admitir que não percebi.",rev:true,freq:true},
-  {f:"equipa",t:"Numa reunião, dou a minha opinião mesmo quando é diferente da dos outros.",freq:true},
+  {f:"equipa",t:"Numa reunião, dou a minha opinião mesmo quando é diferente da dos outros e apesar de eles terem mais experiência do que eu.",freq:true},
   {f:"equipa",t:"Quando alguém me responde torto, respondo na mesma moeda.",rev:true,freq:true},
   {f:"equipa",t:"Prefiro fazer as coisas sozinho — assim sei que ficam bem feitas e à minha maneira.",rev:true},
   {f:"equipa",t:"Mudo a maneira de falar consoante esteja com um miúdo, um colega ou a coordenação.",freq:true},
@@ -2657,11 +2657,11 @@ const G4_POOL={
   {f:"frustra",t:"Preciso que as coisas corram como as tinha imaginado.",rev:true,freq:true},
   {f:"frustra",t:"Preparei um jogo e ninguém quer jogar. Sinto uma frustração que me vai crescendo por dentro.",rev:true},
   {f:"frustra",t:"Quando falho uma coisa à frente dos outros, fico com aquilo atravessado o resto do dia.",rev:true,freq:true},
-  {f:"frustra",t:"Quando um miúdo está a testar-me — a responder torto e a fazer o contrário do que peço só para ver como reajo — não deixo que me tire do sério.",freq:true},
+  {f:"frustra",t:"Quando um miúdo me responde torto e não obedece, não deixo que isso me tire do sério.",freq:true},
   {f:"frustra",t:"Se passo a tarde a preparar uma atividade e acontece um imprevisto, não desisto.",freq:true},
   {f:"frustra",t:"Perco facilmente a paciência quando não me entendem à primeira e tenho de repetir muitas vezes a mesma explicação.",rev:true,freq:true},
   {f:"adapta",t:"Quando um plano me falha à última hora, fico sem saber o que fazer.",rev:true,freq:true},
-  {f:"adapta",t:"A meio de uma atividade, um miúdo começa a portar-se mal e a arrastar o grupo atrás dele — consigo dar a volta e continuar a sessão sem deitar tudo a perder.",freq:true},
+  {f:"adapta",t:"A meio de uma atividade, um miúdo começa a portar-se mal e a arrastar o grupo atrás dele; isso desconcentra-me e acabo por me deixar afetar, sem conseguir dar a volta.",rev:true,freq:true},
   {f:"adapta",t:"Quando uma coisa corre mal, mudo de abordagem em vez de insistir na mesma.",freq:true},
   {f:"adapta",t:"Mudam-me a sala, o horário ou o grupo em cima da hora e eu lido bem com isso.",freq:true},
   {f:"adapta",t:"Se falta material para uma atividade ou as coisas não acontecem como planeei, tenho facilidade em inventar outra coisa no momento.",freq:true},
@@ -2702,7 +2702,7 @@ const G4_POOL={
   {f:"critica",t:"Quando algo corre mal, o meu foco é logo perceber de quem foi a culpa e só depois penso no que posso aprender com a situação.",rev:true,freq:true},
   {f:"metas",t:"Sei o que quero estar a fazer daqui a dois anos, e o que me falta para lá chegar."},
   {f:"metas",t:"Tenho um plano para depois do EDUCA+ com passos concretos, não só uma ideia vaga."},
-  {f:"metas",t:"Ainda não tenho objetivos concretos para o futuro — quando penso nisso, fico sem saber o que quero.",rev:true,freq:true},
+  {f:"metas",t:"Ainda tenho muitas dúvidas em relação ao meu futuro — o que quero concretizar, ou como fazer para atingir o que pretendo.",rev:true,freq:true},
   {f:"metas",t:"Faço escolhas no dia a dia a pensar onde quero chegar, e não só no que dá jeito agora.",freq:true},
   {f:"metas",t:"Sei que tipo de formações e passos tenho de dar para atingir os meus objetivos."},
   {f:"metas",t:"Evito pensar no futuro; gosto mais de viver o presente.",rev:true,freq:true}
@@ -2756,6 +2756,28 @@ const G4_FACETS={
  D4:{conhece:"Conhecer-se",critica:"Encaixar a crítica",metas:"Saber para onde vais"},
  D5:{digital:"Ferramentas digitais",cidada:"Cidadania e informação",buro:"Papelada e vida adulta"},
  D6:{ativ:"As atividades",postura:"Postura profissional",casa:"O teu lugar na casa"}
+};
+/* Porquê de cada faceta — explicação simples, para a lista final dizer porque é
+   que uma resposta conta como boa ou menos boa. Chave = código da faceta. */
+const G4_PORQUE={
+ assert:"Saber dizer o que é preciso — dar um reparo, discordar, pôr limites — sem explodir nem engolir tudo faz parte de comunicar bem.",
+ apoio:"Pedir ajuda quando precisas e ouvir uma crítica sem te fechares é o que te faz crescer com a equipa.",
+ equipa:"Ouvir os outros, partilhar o que pensas e trabalhar com eles é a base de uma boa relação em equipa.",
+ stress:"Manteres a cabeça no lugar quando há tensão ou muita coisa ao mesmo tempo ajuda-te a ti e a quem está à tua volta.",
+ frustra:"Nem tudo corre como planeado — saber lidar com isso, sem descarregar nos outros, é essencial neste trabalho.",
+ adapta:"As coisas mudam à última hora a toda a hora — conseguir dar a volta sem bloquear faz toda a diferença.",
+ auto:"Fazer o que é preciso sem esperar sempre por ordens mostra que se pode contar contigo.",
+ proati:"Reparar no que precisa de ser feito antes de alguém apontar mostra que estás mesmo presente.",
+ cumpre:"Terminar o que começas e cumprir o que combinas é o que faz confiarem em ti.",
+ conhece:"Conheceres os teus pontos fortes e fracos ajuda-te a saber onde melhorar.",
+ critica:"Aceitar uma crítica e aprender com ela, em vez de te defenderes, é o que te faz evoluir.",
+ metas:"Teres uma ideia clara de onde queres chegar ajuda-te a fazer melhores escolhas hoje.",
+ digital:"Saber usar as ferramentas digitais do dia a dia dá-te autonomia no trabalho.",
+ cidada:"Pensar antes de partilhar, proteger os miúdos e agir com valores faz parte de seres um bom exemplo.",
+ buro:"Tratares da tua papelada e dos teus assuntos sozinho é uma parte importante de seres autónomo.",
+ ativ:"Preparar, adaptar e avaliar o que fazes com o grupo é o coração do trabalho de mediador.",
+ postura:"A forma como te comportas — com os miúdos, os colegas e nos dias maus — define o profissional que és.",
+ casa:"Perceberes o teu papel, as regras e os objetivos do espaço ajuda-te a fazer parte da equipa."
 };
 const G4_BANDAS=[["1-2","Insuficiente"],["3-4","Abaixo do esperado"],["5","Suficiente"],["6-7","Bom"],["8-9","Muito Bom"],["10","Excelente"]];
 /* Descritores oficiais de autoavaliação do EDUCA+ (documento «Descritores de
@@ -3039,7 +3061,7 @@ function g4Result(){
               <div class="revq-top"><span class="g4-id" style="opacity:.5">${A.rev?'↺':'·'}</span><b>${A.t}</b></div>
               <p class="hint" style="margin:-4px 0 8px;opacity:.6">${G4_FACETS[A.k][A.f]}</p>
               ${labels.map((lab,idx)=>`<div class="revl ${idx===meu?'meu':''}"><span class="revn">${g4Val(A,idx)}</span><span>${lab}</span>${idx===meu?'<em>a tua</em>':''}</div>`).join('')}
-              ${A.rev?`<p class="hint" style="margin-top:6px;opacity:.7">↺ ao contrário — repara como o número desce à medida que concordas mais.</p>`:''}
+              <p class="hint" style="margin-top:8px;opacity:.8;line-height:1.45"><b style="opacity:.9">Porquê:</b> ${G4_PORQUE[A.f]} ${A.rev?'<b>Aqui é ao contrário</b> — por isso, quanto mais concordas, <b>mais baixo</b> o número (a frase descreve o oposto do que se espera).':'Por isso, quanto mais concordas, <b>mais alto</b> o número.'}</p>
             </div>`;}).join('')}
         </div>`;}).join('')}
     </div>
