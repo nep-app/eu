@@ -3061,7 +3061,7 @@ function g4Result(){
               <div class="revq-top"><span class="g4-id" style="opacity:.5">${A.rev?'↺':'·'}</span><b>${A.t}</b></div>
               <p class="hint" style="margin:-4px 0 8px;opacity:.6">${G4_FACETS[A.k][A.f]}</p>
               ${labels.map((lab,idx)=>`<div class="revl ${idx===meu?'meu':''}"><span class="revn">${g4Val(A,idx)}</span><span>${lab}</span>${idx===meu?'<em>a tua</em>':''}</div>`).join('')}
-              <p class="hint" style="margin-top:8px;opacity:.8;line-height:1.45"><b style="opacity:.9">Porquê:</b> ${G4_PORQUE[A.f]} ${A.rev?'<b>Aqui é ao contrário</b> — por isso, quanto mais concordas, <b>mais baixo</b> o número (a frase descreve o oposto do que se espera).':'Por isso, quanto mais concordas, <b>mais alto</b> o número.'}</p>
+              <p class="hint" style="margin-top:8px;opacity:.8;line-height:1.45"><b style="opacity:.9">Porquê:</b> ${G4_PORQUE[A.f]}</p>
             </div>`;}).join('')}
         </div>`;}).join('')}
     </div>
