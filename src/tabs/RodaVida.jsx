@@ -41,6 +41,17 @@ export default function RodaVida({ user, data, features = {} }) {
     setDoc(doc(db, "userData", user.username), { roda: { ...roda, [id]: val } }, { merge: true });
   };
 
+  // Gravação "anterior" a mostrar tracejada: normalmente a última gravada. Mas se
+  // acabaste de gravar (a atual é igual à última), a "anterior" verdadeira é a de
+  // antes dessa — senão a linha tracejada sobrepunha-se à cheia e não se via.
+  const prevSave = (() => {
+    if (!rodaSaves.length) return null;
+    const last = rodaSaves[rodaSaves.length - 1];
+    const igualUltima = RODA_DIMS.every(d => (roda[d.id] ?? 0) === (last.scores?.[d.id] ?? 0));
+    if (igualUltima) return rodaSaves.length >= 2 ? rodaSaves[rodaSaves.length - 2] : null;
+    return last;
+  })();
+
   if (!features.rodaVida) return (
     <div style={{ ...thm.card, textAlign:"center", padding:"48px 20px" }}>
       <div style={{ fontSize:48, marginBottom:12 }}>🔐</div>
@@ -55,10 +66,10 @@ export default function RodaVida({ user, data, features = {} }) {
     <div>
       <div style={thm.card}>
         <div style={thm.sl}>A Minha Roda Atual</div>
-        <RadarChart scores={roda} color={PNK} prev={rodaSaves.length > 0 ? rodaSaves[rodaSaves.length - 1].scores : null} />
+        <RadarChart scores={roda} color={PNK} prev={prevSave ? prevSave.scores : null} />
         <div style={{ fontSize:10, color:thm.muted, textAlign:"center", marginTop:8, lineHeight:1.5 }}>
           De 0 a 10 — quando a roda fica torta, é porque alguma área precisa de atenção.<br/>
-          {rodaSaves.length > 0 && <span>Linha tracejada = avaliação anterior ({rodaSaves[rodaSaves.length-1].label}).</span>}
+          {prevSave && <span>Linha tracejada = avaliação anterior ({prevSave.label}).</span>}
         </div>
       </div>
 
