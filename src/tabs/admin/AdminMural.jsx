@@ -262,6 +262,14 @@ export default function AdminMural({ only = null }) {
       await deleteDoc(doc(db, "forum", channel, "posts", pid));
   }
 
+  // Editar o texto de um post (usado para os posts do próprio admin).
+  const [editandoPost, setEditandoPost] = useState(null);
+  const [editPostText, setEditPostText] = useState("");
+  async function guardarEdicaoPost(pid) {
+    await updateDoc(doc(db, "forum", channel, "posts", pid), { text: editPostText.trim(), editado: true });
+    setEditandoPost(null);
+  }
+
   async function sendReply(pid) {
     if (!replyTxt.trim()) return;
     const cur = posts.find(p => p.id === pid);
@@ -560,7 +568,23 @@ export default function AdminMural({ only = null }) {
                       <span style={{ fontSize:11, color:"#94a3b8" }}>{p.time}</span>
                     </div>
                   </div>
-                  {p.text && <div style={{ fontSize:13, color:"#cbd5e1", marginTop:4, lineHeight:1.55 }}>{p.text}</div>}
+                  {editandoPost === p.id ? (
+                    <div style={{ marginTop:6 }}>
+                      <textarea value={editPostText} onChange={e => setEditPostText(e.target.value)} rows={4}
+                        style={{ ...INP, width:"100%", resize:"vertical", fontSize:13 }} />
+                      <div style={{ display:"flex", gap:8, marginTop:6 }}>
+                        <button onClick={() => guardarEdicaoPost(p.id)} style={{
+                          padding:"7px 16px", background:`${CYN}20`, border:`1.5px solid ${CYN}40`,
+                          color:CYN, borderRadius:10, fontWeight:900, fontSize:13, cursor:"pointer" }}>Guardar</button>
+                        <button onClick={() => setEditandoPost(null)} style={{
+                          padding:"7px 14px", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)",
+                          color:"#94a3b8", borderRadius:10, fontSize:13, cursor:"pointer" }}>Cancelar</button>
+                      </div>
+                    </div>
+                  ) : (
+                    p.text && <div style={{ fontSize:13, color:"#cbd5e1", marginTop:4, lineHeight:1.55 }}>{p.text}
+                      {p.editado && <span style={{ fontSize:10, color:"#64748b", marginLeft:6 }}>(editado)</span>}</div>
+                  )}
                   {p.media && <img src={p.media} alt="" style={{ maxWidth:"100%", borderRadius:12, marginTop:8, border:"1px solid rgba(255,255,255,0.1)" }}/>}
 
                   <div style={{ marginTop:10, display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" }}>
@@ -621,8 +645,12 @@ export default function AdminMural({ only = null }) {
                       await notificarTodos(`${ch?.icon || "🌐"} ${nome} publicou em ${label}${preview ? `: "${preview}${p.text.length > 80 ? "…" : ""}"` : ""}`, channel, true);
                       alert("Notificação enviada a todos (com push)! ✅");
                     }} style={{ fontSize:12, color:CYN, cursor:"pointer", fontWeight:700 }}>🔔 Notificar</span>
+                    {(p.username === "admin" || p.user === "Teresa (GO)") && editandoPost !== p.id && (
+                      <span onClick={() => { setEditandoPost(p.id); setEditPostText(p.text || ""); }}
+                        style={{ fontSize:12, color:CYN, cursor:"pointer", fontWeight:600, marginLeft:"auto" }}>✏️ Editar</span>
+                    )}
                     <span onClick={() => deleteForumPost(p.id)}
-                      style={{ fontSize:12, color:PNK, cursor:"pointer", marginLeft:"auto" }}>🗑️ Apagar</span>
+                      style={{ fontSize:12, color:PNK, cursor:"pointer", marginLeft:(p.username === "admin" || p.user === "Teresa (GO)") ? 0 : "auto" }}>🗑️ Apagar</span>
                   </div>
                 </div>
               </div>
