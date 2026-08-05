@@ -2692,7 +2692,7 @@ const G4_POOL={
   {f:"proati",t:"Quando chego ao espaço, vejo logo o que está por fazer naquele dia.",freq:true},
   {f:"proati",t:"Proponho coisas novas em vez de esperar que alguém proponha.",freq:true},
   {f:"proati",t:"Espero que me digam o que fazer a seguir.",rev:true,freq:true},
-  {f:"proati",t:"Normalmente têm de me avisar quando um miúdo está diferente do costume ou mais em baixo, porque sozinho não costumo reparar.",rev:true,freq:true},
+  {f:"proati",t:"Têm de me avisar quando um miúdo está diferente do costume ou mais em baixo, porque sozinho não costumo reparar.",rev:true,freq:true},
   {f:"proati",t:"Estou sempre atento ao material que temos e certifico-me de que é reposto a tempo antes de terminar.",freq:true},
   {f:"cumpre",t:"Deixo tarefas a meio e começo outras.",rev:true,freq:true},
   {f:"cumpre",t:"Entrego as coisas em cima da hora.",rev:true,freq:true},
@@ -2751,7 +2751,7 @@ const G4_POOL={
   {f:"postura",t:"Trabalho pior com miúdos de quem não gosto.",rev:true,freq:true},
   {f:"postura",t:"Quando não sei uma resposta, digo que não sei e vou descobrir.",freq:true},
   {f:"postura",t:"Consigo trabalhar bem com um miúdo mesmo quando sinto que ele não gosta de mim ou prefere outro monitor.",freq:true},
-  {f:"postura",t:"Às vezes chego atrasado ou mal preparado para uma atividade porque não me apeteceu esforçar-me mais.",rev:true,freq:true},
+  {f:"postura",t:"Chego atrasado ou mal preparado para uma atividade porque não me apetece esforçar-me mais.",rev:true,freq:true},
   {f:"postura",t:"Consigo manter-me calmo — ou pelo menos parecê-lo — mesmo quando alguém está a ser indelicado comigo.",freq:true},
   {f:"casa",t:"Quando há regras no espaço que não entendo ou com as quais discordo, não questiono e limito-me a segui-las.",rev:true,freq:true},
   {f:"casa",t:"Sei qual é o objetivo do projeto onde trabalho, e não só as tarefas que me pedem."},
@@ -2854,7 +2854,7 @@ const G4_SCALE={
 /* Cada afirmação usa uma de três escalas: cap (competência), freq (frequência)
    ou, por defeito, concordância. Estas duas ajudas dão a escala e o cabeçalho. */
 function g4Labels(A){return A.cap?G4_SCALE.cap:A.freq?G4_SCALE.freq:G4_SCALE.agree;}
-function g4Kicker(A){return A.cap?'Como é que lidas com isto?':A.freq?'Com que frequência...':'Concordas com isto?';}
+function g4Kicker(A){return A.cap?'Como é que lidas com isto?':A.freq?'Com que frequência é assim?':'Concordas com isto?';}
 function g4KickCor(A){return A.cap?'#2E9E7B':A.freq?'#FFD84D':'#4A6CF0';}  /* cor da etiqueta por escala */
 const G4_FWD=[1,3,5,7,9];                 /* 5 níveis → 1..9 (nunca chega a 10) */
 function g4Val(item,idx){return item.rev?G4_FWD[4-idx]:G4_FWD[idx];}
