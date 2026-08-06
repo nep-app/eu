@@ -15,6 +15,9 @@ export default defineConfig({
       injectManifest: {
         // App shell + assets são poucos; sem limite artificial de tamanho
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+        // Os jogos NÃO entram no precache — são servidos NetworkFirst (ver sw.js),
+        // para as alterações aparecerem sempre sem ficarem presas em cache.
+        globIgnores: ['**/jogos/**'],
       },
       includeAssets: ['logo.png'],
       manifest: {
