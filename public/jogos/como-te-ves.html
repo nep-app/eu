@@ -2867,7 +2867,7 @@ function g4Reset(){
     Object.keys(G4_FACETS[k]).forEach(fac=>{
       const cand=G4_POOL[k].filter(it=>it.f===fac);
       const it=shuffle([...cand])[0];
-      if(it)qs.push({k,f:fac,t:it.t,rev:!!it.rev,freq:!!it.freq});
+      if(it)qs.push({k,f:fac,t:it.t,rev:!!it.rev,freq:!!it.freq,cap:!!it.cap});
     });
   });
   G4={step:0,qs:shuffle(qs),ans:{},loc:{}};
