@@ -2301,8 +2301,11 @@ function g4HTML(){
       <tbody>${linhas}</tbody>
     </table>
     ${temL?`<h2>A distância entre as duas colunas</h2>
-    <p class="pa-desc">${acima.length?`Em <b>${acima.length}</b> ${acima.length>1?'dimensões':'dimensão'} achas que o Local te dá <b>mais</b> do que o teu resultado (${pesc(nomes(acima))}). `:''}${abaixo.length?`Em <b>${abaixo.length}</b> achas que te dá <b>menos</b> (${pesc(nomes(abaixo))}). `:''}${igual.length?`Em <b>${igual.length}</b> bate certo (${pesc(nomes(igual))}). `:''}</p>
-    <p class="pa-desc">Seja para que lado for a diferença, ficam duas perguntas para levares à supervisão: <b>o que é que o Local vê que tu não estás a contar?</b> e <b>o que é que fazes bem e não te dás crédito?</b></p>`:`<p class="pa-desc">Ainda não deste o palpite do que o Local te daria, por isso não há diferença para ler.</p>`}
+    <p class="pa-desc">${acima.length?`Em <b>${acima.length}</b> ${acima.length>1?'dimensões':'dimensão'} achas que o Local te dá <b>mais</b> do que o teu resultado. `:''}${abaixo.length?`Em <b>${abaixo.length}</b> achas que te dá <b>menos</b>. `:''}${igual.length?`Em <b>${igual.length}</b> ${igual.length>1?'batem':'bate'} certo. `:''}</p>
+    ${abaixo.length?`<p class="pa-desc"><b>Onde achas que te dão menos</b> (${pesc(nomes(abaixo))}): aqui vês-te melhor do que achas que o Local te vê. Pode ser que faças coisas boas que eles ainda não tiveram como ver — vale a pena mostrá-las e falar delas na avaliação.</p>`:''}
+    ${acima.length?`<p class="pa-desc"><b>Onde achas que te dão mais</b> (${pesc(nomes(acima))}): aqui achas que o Local te vê melhor do que tu te vês. Se calhar estás a ser exigente de mais contigo — dá-te o crédito que mereces. Na conversa, confirma se eles veem o mesmo.</p>`:''}
+    ${igual.length?`<p class="pa-desc"><b>Onde bate certo</b> (${pesc(nomes(igual))}): vês-te tal como achas que eles te veem. Boa base para a conversa.</p>`:''}
+    <p class="pa-desc">Nenhuma é para levar a mal e qualquer uma dá conversa — é para isso que isto serve: chegares à avaliação a sério já a saber o que vais dizer.</p>`:`<p class="pa-desc">Ainda não deste o palpite do que o Local te daria, por isso não há diferença para ler.</p>`}
     <h2>Por onde começar</h2>
     <p class="pa-desc"><b>Deste-te mais em:</b> ${pesc(DIMS[alta].n)}. &nbsp; <b>Menos em:</b> ${pesc(DIMS[baixa].n)}.</p>
     <p class="pa-desc">É pela <b>de baixo</b> — a dimensão onde te deste menos, ou seja, aquela em que à partida sentes mais dificuldade — que vale a pena começar. Não porque sejas mau nisso, mas porque é aí que um mês de trabalho mais se nota.</p>
