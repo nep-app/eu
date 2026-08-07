@@ -2990,7 +2990,7 @@ function g4Result(){
     if(dd>0)return `<div style="font-size:12.5px;margin-top:6px;padding:8px 11px;border-radius:10px;line-height:1.45;color:#bfe6d2;background:rgba(46,158,123,.14)">As tuas respostas sugerem que achas que o teu <b>Local te avalia de forma mais positiva</b> do que tu te vês a ti próprio/a.</div>`;
     if(dd<0)return `<div style="font-size:12.5px;margin-top:6px;padding:8px 11px;border-radius:10px;line-height:1.45;color:#f3c0bb;background:rgba(226,87,76,.14)">As tuas respostas sugerem que achas que o teu <b>Local te avalia de forma menos positiva</b> do que tu te vês a ti próprio/a.</div>`;
     return `<div style="font-size:12.5px;margin-top:6px;padding:8px 11px;border-radius:10px;line-height:1.45;color:var(--chalk);background:rgba(207,199,222,.10)">As tuas respostas sugerem que a forma como te vês a ti próprio/a <b>coincide</b> com a avaliação que achas que o teu Local faz de ti.</div>`;};
-  const STYLE=`<style>.g4det{background:rgba(247,242,231,.04);border:1px solid rgba(247,242,231,.1);border-radius:14px;padding:0 15px;margin-top:10px}.g4det>summary{cursor:pointer;font-weight:800;font-size:14.5px;padding:13px 0;color:var(--postit);list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}.g4det>summary::-webkit-details-marker{display:none}.g4det>summary::after{content:'▾';opacity:.55;font-size:13px}.g4det[open]>summary::after{content:'▴'}.g4det.hot{background:rgba(255,216,77,.08);border:1.5px solid rgba(255,216,77,.4)}</style>`;
+  const STYLE=`<style>.g4det{background:rgba(247,242,231,.04);border:1px solid rgba(247,242,231,.1);border-radius:14px;padding:0 15px;margin-top:10px}.g4det>summary{cursor:pointer;font-weight:800;font-size:14.5px;padding:13px 0;color:var(--postit);list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}.g4det>summary::-webkit-details-marker{display:none}.g4det>summary::after{content:'▾';opacity:.55;font-size:13px}.g4det[open]>summary::after{content:'▴'}.g4det.hot{background:rgba(74,108,240,.14);border:1.5px solid rgba(74,108,240,.55);box-shadow:0 0 0 3px rgba(74,108,240,.07);margin-top:18px}.g4det.hot>summary{color:#a9beff;font-size:15.5px}</style>`;
   b.innerHTML=`${STYLE}
     <span class="eyebrow">O teu retrato · como te vês hoje</span>
     <div style="margin:12px 0 22px;padding:14px 16px;border-radius:14px;background:rgba(255,216,77,.10);border:1px solid rgba(255,216,77,.38)">
@@ -3039,7 +3039,7 @@ function g4Result(){
     <details class="g4det"><summary>Se as tuas autoavaliações estiverem com notas mais baixas agora do que no início…</summary>
       <p class="q-sub" style="padding-bottom:6px">É normal! E <b>não significa que estejas a piorar</b>, pelo contrário: com o tempo percebes melhor tudo o que o trabalho exige e passas a avaliar-te de forma mais exigente e realista. Depois, à medida que fores mesmo crescendo e evoluindo, elas voltam a subir. 🙂</p></details>
 
-    <details class="g4det hot"><summary>Ver as ${G4.qs.length} afirmações e o que cada resposta valeu</summary>
+    <details class="g4det hot"><summary>📋 Ver as ${G4.qs.length} afirmações e o que cada resposta valeu</summary>
       <div class="g4-rev" style="padding-bottom:8px">
         <p class="hint" style="margin:2px 0 18px;max-width:66ch">Cada resposta vale um número de <b>1 a 9</b>. A média das respostas de cada dimensão é a tua nota. As marcadas com <b>↺</b> estavam ao contrário: aí, concordar/fazer vale <b>menos</b>.</p>
         ${Object.keys(DIMS).map(k=>{ const meus=G4.qs.map((A,i)=>({A,i})).filter(x=>x.A.k===k);
