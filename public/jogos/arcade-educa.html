@@ -391,12 +391,15 @@ h1,h2,h3,.display{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Seg
 .g4-lead{font-size:23px;line-height:1.28;font-weight:800;letter-spacing:-.015em;color:var(--paper);font-family:'Bricolage Grotesque',system-ui,-apple-system,sans-serif;margin:12px 0 10px;max-width:20ch}
 .g4-lead em{font-style:normal;color:var(--postit)}
 .g4-pede{font-size:15.5px;line-height:1.45;color:var(--postit);opacity:.9;margin-top:10px;border-left:2px solid rgba(255,216,77,.45);padding-left:11px}
-.g4-loc{display:flex;gap:5px}
-.g4-locb{flex:1;display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:center;text-align:center;padding:10px 4px;min-height:48px}
-.g4-locb-off{opacity:.42;cursor:not-allowed;background:rgba(226,87,76,.07)}
-.g4-locb-off b{color:var(--afasta);text-decoration:line-through}
-.g4-locb b{font-family:ui-monospace,monospace;font-size:14px;line-height:1}
-.g4-locb span{font-size:9px;opacity:.72;line-height:1.15}
+.g4esc{display:flex;align-items:flex-end;gap:5px;height:148px}
+.g4esc button{flex:1;border:none;border-radius:10px 10px 5px 5px;cursor:pointer;color:#fff;font-weight:800;display:flex;align-items:flex-end;justify-content:center;padding:0 2px 8px;transition:.18s;opacity:.34;filter:grayscale(.45)}
+.g4esc button .n{font-family:ui-monospace,monospace;font-size:13px;line-height:1;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.g4esc button.on{opacity:1;filter:none;transform:translateY(-5px);box-shadow:0 9px 20px rgba(0,0,0,.45)}
+.g4esc button.lk{opacity:.4;cursor:not-allowed;background:repeating-linear-gradient(45deg,#4a4066,#4a4066 6px,#3a3252 6px,#3a3252 12px)!important}
+.g4esc button.lk .n{text-decoration:line-through}
+.g4escn{display:flex;gap:5px;margin-top:7px}
+.g4escn span{flex:1;text-align:center;font-size:8.5px;color:var(--chalk);opacity:.6;line-height:1.15}
+.g4escn span.on{opacity:1;color:var(--paper);font-weight:800}
 .rung.loc{box-shadow:inset 0 0 0 2px var(--postit)}
 .g4-delta{margin-top:10px;font-size:13.5px;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;padding:7px 10px;border-radius:2px;background:rgba(247,242,231,.06)}
 .g4-delta.up{color:var(--depende)}
@@ -2795,6 +2798,8 @@ const G4_PORQUE={
  casa:"Perceberes o teu papel, as regras e os objetivos do espaço ajuda-te a fazer parte da equipa."
 };
 const G4_BANDAS=[["1-2","Insuficiente"],["3-4","Abaixo do esperado"],["5","Suficiente"],["6-7","Bom"],["8-9","Muito Bom"],["10","Excelente"]];
+const G4_ESCC=["#E2574C","#E8894C","#E4BE45","#8FB964","#2E9E7B"]; /* escada: vermelho→verde (sobe = melhor) */
+const G4_ESCH=[60,82,102,122,146];                                 /* alturas crescentes dos degraus dáveis */
 /* Descritores oficiais de autoavaliação do EDUCA+ (documento «Descritores de
    Autoavaliação — JEEP», versão revista). Texto tal e qual. */
 const G4_DESC={
@@ -2963,10 +2968,11 @@ function g4Local(){
     ${Object.keys(DIMS).map(k=>`<div class="autoq">
       <span class="autoq-dim" style="color:${DIMS[k].c}">${k}</span>
       <p class="autoq-q">${DIMS[k].n}</p>
-      <div class="g4-loc">${G4_BANDAS.map(([bn,cl])=>bn==='10'
-        ?`<button class="autoq-opt g4-locb g4-locb-off" disabled title="O 10 não se dá — reconhece-se."><b>${bn}</b><span>${cl}</span></button>`
-        :`<button class="autoq-opt g4-locb ${G4.loc[k]===bn?'on':''}" onclick="if(G4.loc['${k}']==='${bn}'){delete G4.loc['${k}'];}else{G4.loc['${k}']='${bn}';}g4Draw()"><b>${bn}</b><span>${cl}</span></button>`).join('')}</div>
-      ${G4.loc[k]?`<p class="hint" style="margin-top:9px;opacity:.8">${G4_DESC_LOCAL[k][G4.loc[k]]}</p>`:`<p class="g4-pede">Escolhe um degrau para leres o descritor que o Local tem à frente.</p>`}
+      <div class="g4esc">${G4_BANDAS.map(([bn,cl],idx)=>idx===5
+        ?`<button class="lk" style="height:146px" disabled title="O 10 não se dá — reconhece-se."><span class="n">🔒 ${bn}</span></button>`
+        :`<button class="${G4.loc[k]===bn?'on':''}" style="background:${G4_ESCC[idx]};height:${G4_ESCH[idx]}px" onclick="if(G4.loc['${k}']==='${bn}'){delete G4.loc['${k}'];}else{G4.loc['${k}']='${bn}';}g4Draw()"><span class="n">${bn}</span></button>`).join('')}</div>
+      <div class="g4escn">${G4_BANDAS.map(([bn,cl])=>`<span class="${G4.loc[k]===bn?'on':''}">${cl}</span>`).join('')}</div>
+      ${G4.loc[k]?`<p class="hint" style="margin-top:11px;opacity:.85"><b style="color:var(--paper)">${G4.loc[k]} · ${G4_BANDAS.find(b=>b[0]===G4.loc[k])[1]}</b><br>${G4_DESC_LOCAL[k][G4.loc[k]]}</p>`:`<p class="g4-pede">Escolhe um degrau para leres o descritor que o Local tem à frente.</p>`}
     </div>`).join('')}
     <p class="counter">${f}/6 escolhidas</p>
     <div class="nav"><button class="btn" onclick="G4.step=1;g4Draw();window.scrollTo(0,0)">← Voltar às afirmações</button>
@@ -3027,8 +3033,8 @@ function g4Result(){
     ${temL?`<details class="g4det"><summary>Como ler a diferença entre ti e o Local</summary>
       <div style="padding-bottom:6px">
         <p class="q-sub">${acima.length?`Em <b>${acima.length}</b> ${acima.length>1?'dimensões':'dimensão'} achas que o Local te dá <b>mais</b> do que o teu resultado. `:''}${abaixo.length?`Em <b>${abaixo.length}</b> achas que te dá <b>menos</b>. `:''}${igual.length?`Em <b>${igual.length}</b> ${igual.length>1?'batem':'bate'} certo.`:''}</p>
-        ${abaixo.length?`<p class="q-sub" style="margin-top:10px"><b style="color:var(--afasta)">Onde achas que te dão menos</b> (${abaixo.map(k=>DIMS[k].n).join(', ')}): ou fazes coisas boas que <b>eles ainda não te viram fazer</b> — e o que falta é dá-las a ver —, ou as tuas respostas <b>saíram um bocado acima</b> do que se nota por fora.</p>`:''}
-        ${acima.length?`<p class="q-sub" style="margin-top:10px"><b style="color:var(--aproxima)">Onde achas que te dão mais</b> (${acima.map(k=>DIMS[k].n).join(', ')}): ou és <b>mais duro contigo</b> do que eles seriam — dá-te o crédito que já mereces —, ou estás a <b>contar com um reconhecimento que ainda não ganhaste</b>. Confirma com quem te avalia.</p>`:''}
+        ${abaixo.length?`<p class="q-sub" style="margin-top:10px"><b style="color:var(--afasta)">Onde achas que te dão menos</b> (${abaixo.map(k=>DIMS[k].n).join(', ')}): aqui <b>vês-te melhor do que achas que o Local te vê</b>. Pode ser que faças coisas boas que eles ainda não tiveram como ver — vale a pena mostrá-las e falar delas na avaliação.</p>`:''}
+        ${acima.length?`<p class="q-sub" style="margin-top:10px"><b style="color:var(--aproxima)">Onde achas que te dão mais</b> (${acima.map(k=>DIMS[k].n).join(', ')}): aqui <b>achas que o Local te vê melhor do que tu te vês</b>. Se calhar estás a ser exigente de mais contigo — dá-te o crédito que mereces. Na conversa, confirma se eles veem o mesmo.</p>`:''}
         ${igual.length?`<p class="q-sub" style="margin-top:10px"><b style="color:var(--marker)">Onde bate certo</b> (${igual.map(k=>DIMS[k].n).join(', ')}): vês-te tal como achas que eles te veem. Boa base para a conversa.</p>`:''}
         <p class="q-sub" style="margin-top:10px">Nenhuma é para levar a mal e qualquer uma dá conversa — é para isso que isto serve: chegares à avaliação a sério já a saber o que vais dizer.</p>
       </div></details>`:''}
