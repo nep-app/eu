@@ -2983,16 +2983,15 @@ function g4Result(){
   const dl={}; Object.keys(DIMS).forEach(k=>{ const l=G4.loc[k]; dl[k]=(l===undefined)?null:g4BandIdx(l)-g4BandIdx(g4Cap(D[k])); });
   const acima=Object.keys(DIMS).filter(k=>dl[k]>0), abaixo=Object.keys(DIMS).filter(k=>dl[k]<0), igual=Object.keys(DIMS).filter(k=>dl[k]===0);
   const deltaTxt=d=>d===null?'':d===0?'exatamente o mesmo degrau':d>0?`${d} degrau${d>1?'s':''} acima do que te deste`:`${-d} degrau${d<-1?'s':''} abaixo do que te deste`;
-  const locNum=b=>({'1-2':2,'3-4':4,'5':5,'6-7':7,'8-9':9,'10':9})[b]||5;
+  const locMid=b=>({'1-2':1.5,'3-4':3.5,'5':5,'6-7':6.5,'8-9':8.5,'10':9})[b]||5;
   const temL=Object.keys(DIMS).some(k=>G4.loc[k]);
-  const barra=(v,c)=>`<div style="flex:1;height:18px;background:rgba(247,242,231,.07);border-radius:9px;overflow:hidden"><div style="height:100%;width:${Math.round(Math.min(v,9)/9*100)}%;background:${c};border-radius:9px"></div></div><span style="font-size:14px;font-weight:800;width:16px;text-align:right">${v}</span>`;
+  const barra=(v,c,lab)=>`<div style="flex:1;height:18px;background:rgba(247,242,231,.07);border-radius:9px;overflow:hidden"><div style="height:100%;width:${Math.round(Math.min(v,9)/9*100)}%;background:${c};border-radius:9px"></div></div><span style="font-size:13.5px;font-weight:800;min-width:30px;text-align:right;white-space:nowrap">${lab}</span>`;
   const cmpTag=k=>{const dd=dl[k];if(dd===null)return '';
     if(dd>0)return `<div style="font-size:12px;margin-top:6px;padding:6px 10px;border-radius:10px;line-height:1.4;color:#bfe6d2;background:rgba(46,158,123,.14)">Achas que o <b>Local te avalia melhor</b> do que tu a ti.</div>`;
     if(dd<0)return `<div style="font-size:12px;margin-top:6px;padding:6px 10px;border-radius:10px;line-height:1.4;color:#f3c0bb;background:rgba(226,87,76,.14)">Achas que o <b>Local te avalia mais abaixo</b> do que tu a ti.</div>`;
     return `<div style="font-size:12px;margin-top:6px;padding:6px 10px;border-radius:10px;line-height:1.4;color:var(--chalk);background:rgba(207,199,222,.10)">Vês-te <b>como achas que o Local te vê</b>.</div>`;};
-  const SUM='cursor:pointer;font-weight:800;font-size:14.5px;padding:13px 0;color:var(--postit);list-style:none';
-  const DET='background:rgba(247,242,231,.04);border:1px solid rgba(247,242,231,.1);border-radius:14px;padding:0 15px;margin-top:10px';
-  b.innerHTML=`
+  const STYLE=`<style>.g4det{background:rgba(247,242,231,.04);border:1px solid rgba(247,242,231,.1);border-radius:14px;padding:0 15px;margin-top:10px}.g4det>summary{cursor:pointer;font-weight:800;font-size:14.5px;padding:13px 0;color:var(--postit);list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}.g4det>summary::-webkit-details-marker{display:none}.g4det>summary::after{content:'▾';opacity:.55;font-size:13px}.g4det[open]>summary::after{content:'▴'}.g4det.hot{background:rgba(255,216,77,.08);border:1.5px solid rgba(255,216,77,.4)}</style>`;
+  b.innerHTML=`${STYLE}
     <span class="eyebrow">O teu retrato · como te vês hoje</span>
     <div style="margin:12px 0 22px;padding:14px 16px;border-radius:14px;background:rgba(255,216,77,.10);border:1px solid rgba(255,216,77,.38)">
       <p style="margin:0;font-size:13.5px;line-height:1.5"><b style="color:var(--postit)">Isto não é ciência! 🙂</b> É só um jogo para te ajudar a pensar na forma como te avalias a ti e em como achas que o teu Local te vê. Quem te avalia a sério é uma pessoa que te viu trabalhar, não este ecrã.</p>
@@ -3018,14 +3017,14 @@ function g4Result(){
     ${Object.keys(DIMS).map(k=>{const lb=G4.loc[k];
       return `<div style="margin-bottom:18px">
         <div style="display:flex;align-items:center;gap:7px;font-size:14.5px;margin-bottom:7px"><span style="width:11px;height:11px;border-radius:50%;background:${DIMS[k].c};flex-shrink:0"></span><b>${DIMS[k].n}</b></div>
-        <div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="font-size:11px;width:42px;color:var(--chalk);flex-shrink:0">Tu</span>${barra(g4Num(D[k]),DIMS[k].c)}</div>
-        ${lb?`<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="font-size:11px;width:42px;color:var(--chalk);opacity:.6;flex-shrink:0">Local</span>${barra(locNum(lb),'#8a8298')}</div>`:''}
+        <div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="font-size:11px;width:42px;color:var(--chalk);flex-shrink:0">Tu</span>${barra(g4Num(D[k]),DIMS[k].c,g4Num(D[k]))}</div>
+        ${lb?`<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="font-size:11px;width:42px;color:var(--chalk);opacity:.6;flex-shrink:0">Local</span>${barra(locMid(lb),'#8a8298',lb)}</div>`:''}
         ${cmpTag(k)}
       </div>`;}).join('')}
 
     <span class="eyebrow" style="display:block;margin:26px 0 6px">Queres perceber melhor? (abre se quiseres)</span>
 
-    ${temL?`<details style="${DET}"><summary style="${SUM}">Como ler a diferença entre ti e o Local</summary>
+    ${temL?`<details class="g4det"><summary>Como ler a diferença entre ti e o Local</summary>
       <div style="padding-bottom:6px">
         <p class="q-sub">${acima.length?`Em <b>${acima.length}</b> ${acima.length>1?'dimensões':'dimensão'} achas que o Local te dá <b>mais</b> do que o teu resultado. `:''}${abaixo.length?`Em <b>${abaixo.length}</b> achas que te dá <b>menos</b>. `:''}${igual.length?`Em <b>${igual.length}</b> ${igual.length>1?'batem':'bate'} certo.`:''}</p>
         ${abaixo.length?`<p class="q-sub" style="margin-top:10px"><b style="color:var(--afasta)">Onde achas que te dão menos</b> (${abaixo.map(k=>DIMS[k].n).join(', ')}): ou fazes coisas boas que <b>eles ainda não te viram fazer</b> — e o que falta é dá-las a ver —, ou as tuas respostas <b>saíram um bocado acima</b> do que se nota por fora.</p>`:''}
@@ -3034,19 +3033,13 @@ function g4Result(){
         <p class="q-sub" style="margin-top:10px">Nenhuma é para levar a mal e qualquer uma dá conversa — é para isso que isto serve: chegares à avaliação a sério já a saber o que vais dizer.</p>
       </div></details>`:''}
 
-    <details style="${DET}"><summary style="${SUM}">Por onde começar a trabalhar</summary>
-      <div style="padding-bottom:6px">
-        <p class="q-sub">É pela <b>de baixo</b> — a dimensão onde te deste menos (${DIMS[baixa[0]].n}), aquela em que à partida sentes mais dificuldade — que vale a pena começar. Não porque sejas mau nisso, mas porque é aí que um mês de trabalho mais se nota.</p>
-        <p class="q-sub" style="margin-top:9px">E ficam duas perguntas para levares à supervisão: <b>o que é que o Local vê que tu não estás a contar?</b> e <b>o que é que fazes bem e não te dás crédito?</b></p>
-      </div></details>
-
-    <details style="${DET}"><summary style="${SUM}">Porque é que o 10 está de fora</summary>
+    <details class="g4det"><summary>Porque é que o 10 está de fora</summary>
       <p class="q-sub" style="padding-bottom:6px">Não é humildade forçada — é que <b>ninguém começa a ser um 10, nem é suposto ser!</b> Um 10 seria dizer que já não há nada a melhorar, que o trabalho está perfeito e não tens nada a aprender. Por isso aqui o 10 fica de fora, na tua leitura e no palpite do Local. O máximo possível é o <b>9</b>, e já isso é muito difícil de atingir, até para quem trabalha nesta área há muitos anos!</p></details>
 
-    <details style="${DET}"><summary style="${SUM}">E se me der notas mais baixas mais tarde?</summary>
+    <details class="g4det"><summary>Se as tuas autoavaliações estiverem com notas mais baixas agora do que no início…</summary>
       <p class="q-sub" style="padding-bottom:6px">É normal! E <b>não significa que estejas a piorar</b>, pelo contrário: com o tempo percebes melhor tudo o que o trabalho exige e passas a avaliar-te de forma mais exigente e realista. Depois, à medida que fores mesmo crescendo e evoluindo, elas voltam a subir. 🙂</p></details>
 
-    <details style="${DET}"><summary style="${SUM}">Ver as ${G4.qs.length} afirmações e o que cada resposta valeu</summary>
+    <details class="g4det hot"><summary>Ver as ${G4.qs.length} afirmações e o que cada resposta valeu</summary>
       <div class="g4-rev" style="padding-bottom:8px">
         <p class="hint" style="margin:2px 0 18px;max-width:66ch">Cada resposta vale um número de <b>1 a 9</b>. A média das respostas de cada dimensão é a tua nota. As marcadas com <b>↺</b> estavam ao contrário: aí, concordar/fazer vale <b>menos</b>.</p>
         ${Object.keys(DIMS).map(k=>{ const meus=G4.qs.map((A,i)=>({A,i})).filter(x=>x.A.k===k);
