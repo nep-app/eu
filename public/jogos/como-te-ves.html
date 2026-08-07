@@ -2983,109 +2983,85 @@ function g4Result(){
   const dl={}; Object.keys(DIMS).forEach(k=>{ const l=G4.loc[k]; dl[k]=(l===undefined)?null:g4BandIdx(l)-g4BandIdx(g4Cap(D[k])); });
   const acima=Object.keys(DIMS).filter(k=>dl[k]>0), abaixo=Object.keys(DIMS).filter(k=>dl[k]<0), igual=Object.keys(DIMS).filter(k=>dl[k]===0);
   const deltaTxt=d=>d===null?'':d===0?'exatamente o mesmo degrau':d>0?`${d} degrau${d>1?'s':''} acima do que te deste`:`${-d} degrau${d<-1?'s':''} abaixo do que te deste`;
-  b.innerHTML=`<span class="eyebrow">O teu retrato · como te vês hoje</span>
-    <p class="hint" style="max-width:62ch;margin:8px 0 14px">Isto é a <b>tua</b> leitura de ti, com o palpite do que o Local diria ao lado.</p>
-    <div style="margin:0 0 22px;padding:14px 16px;border-radius:14px;background:rgba(255,216,77,.10);border:1px solid rgba(255,216,77,.38)">
+  const locNum=b=>({'1-2':2,'3-4':4,'5':5,'6-7':7,'8-9':9,'10':9})[b]||5;
+  const temL=Object.keys(DIMS).some(k=>G4.loc[k]);
+  const barra=(v,c)=>`<div style="flex:1;height:18px;background:rgba(247,242,231,.07);border-radius:9px;overflow:hidden"><div style="height:100%;width:${Math.round(Math.min(v,9)/9*100)}%;background:${c};border-radius:9px"></div></div><span style="font-size:14px;font-weight:800;width:16px;text-align:right">${v}</span>`;
+  const cmpTag=k=>{const dd=dl[k];if(dd===null)return '';
+    if(dd>0)return `<div style="font-size:12px;margin-top:6px;padding:6px 10px;border-radius:10px;line-height:1.4;color:#bfe6d2;background:rgba(46,158,123,.14)">Achas que o <b>Local te avalia melhor</b> do que tu a ti.</div>`;
+    if(dd<0)return `<div style="font-size:12px;margin-top:6px;padding:6px 10px;border-radius:10px;line-height:1.4;color:#f3c0bb;background:rgba(226,87,76,.14)">Achas que o <b>Local te avalia mais abaixo</b> do que tu a ti.</div>`;
+    return `<div style="font-size:12px;margin-top:6px;padding:6px 10px;border-radius:10px;line-height:1.4;color:var(--chalk);background:rgba(207,199,222,.10)">Vês-te <b>como achas que o Local te vê</b>.</div>`;};
+  const SUM='cursor:pointer;font-weight:800;font-size:14.5px;padding:13px 0;color:var(--postit);list-style:none';
+  const DET='background:rgba(247,242,231,.04);border:1px solid rgba(247,242,231,.1);border-radius:14px;padding:0 15px;margin-top:10px';
+  b.innerHTML=`
+    <span class="eyebrow">O teu retrato · como te vês hoje</span>
+    <div style="margin:12px 0 22px;padding:14px 16px;border-radius:14px;background:rgba(255,216,77,.10);border:1px solid rgba(255,216,77,.38)">
       <p style="margin:0;font-size:13.5px;line-height:1.5"><b style="color:var(--postit)">Isto não é ciência! 🙂</b> É só um jogo para te ajudar a pensar na forma como te avalias a ti e em como achas que o teu Local te vê. Quem te avalia a sério é uma pessoa que te viu trabalhar, não este ecrã.</p>
     </div>
-    ${(()=>{const temL=Object.keys(DIMS).some(k=>G4.loc[k]);
-      return `<div class="aposta" style="margin:0 0 22px">
-        <span class="eyebrow">As duas colunas, lado a lado</span>
-        <p class="bal-lead">À esquerda, o <b>resultado das tuas respostas</b> às afirmações — não é uma nota que deste, saiu do que respondeste. À direita, a nota que <b>tu achas que o Local</b> te daria — essa é a única que escolhes. ${temL?'A seta mostra a diferença entre as duas.':'Ainda não deste o palpite do Local.'}</p>
-        <div style="margin-top:12px">
-          <div style="display:grid;grid-template-columns:1fr 62px 62px 84px;gap:6px;align-items:center;padding:0 0 8px;border-bottom:1px solid rgba(255,255,255,.14);font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.6">
-            <span>Dimensão</span><span style="text-align:center">O teu<br>resultado</span><span style="text-align:center">O que achas<br>que o Local dá</span><span style="text-align:center">Diferença</span>
-          </div>
-          ${Object.keys(DIMS).map(k=>{const mb=g4Cap(D[k]), lb=G4.loc[k], dd=dl[k];
-            const cor=dd===null?'rgba(255,255,255,.45)':dd>0?'var(--aproxima,#7ec8a0)':dd<0?'var(--afasta,#e2574c)':'rgba(255,255,255,.7)';
-            const setinha=dd===null?'—':dd>0?`▲ +${dd}`:dd<0?`▼ ${dd}`:'= igual';
-            return `<div style="display:grid;grid-template-columns:1fr 62px 62px 84px;gap:6px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.07)">
-              <span style="font-size:13.5px;line-height:1.3"><b style="color:${DIMS[k].c}">${k}</b> ${DIMS[k].n}</span>
-              <span style="text-align:center;font-weight:700">${g4Num(D[k])}</span>
-              <span style="text-align:center;font-weight:700;opacity:${lb?1:.35}">${lb||'—'}</span>
-              <span style="text-align:center;font-size:12.5px;font-weight:700;color:${cor}">${setinha}</span>
-            </div>`;}).join('')}
-        </div>
-        ${temL?`
-        <h4 style="margin:20px 0 0">A distância entre as duas colunas</h4>
-        <p class="q-sub" style="margin-top:7px">${acima.length?`Em <b class="g4-num">${acima.length}</b> ${acima.length>1?'dimensões':'dimensão'} achas que o Local te dá <b>mais</b> do que o teu resultado. `:''}${abaixo.length?`Em <b class="g4-num">${abaixo.length}</b> achas que te dá <b>menos</b>. `:''}${igual.length?`Em <b class="g4-num">${igual.length}</b> ${igual.length>1?'batem':'bate'} certo. `:''}</p>
-        <div style="margin-top:16px"><span class="eyebrow">Como ler a diferença</span></div>
-        <div class="bal-cols" style="margin-top:11px">
-          ${abaixo.length?`<div style="border-radius:16px;padding:15px 16px;background:rgba(226,87,76,.08);border:1px solid rgba(226,87,76,.24)">
-            <div style="display:flex;align-items:center;gap:9px;margin-bottom:5px">
-              <span style="font-size:15px;font-weight:800;color:var(--afasta)">▼</span>
-              <b style="font-size:14px;line-height:1.25">O teu palpite do Local ficou <span style="color:var(--afasta)">abaixo</span> do teu resultado</b>
-            </div>
-            <p style="font-size:12px;line-height:1.4;margin:0 0 12px;opacity:.75">Achas que o Local te daria <b>menos</b> do que as tuas respostas mostram ${abaixo.length>1?`em <b>${abaixo.length}</b> dimensões (${abaixo.map(k=>DIMS[k].n).join(', ')})`:`na dimensão <b>${DIMS[abaixo[0]].n}</b>`}. Duas leituras:</p>
-            <div style="display:flex;gap:10px;margin-bottom:11px">
-              <span style="font-size:17px;line-height:1.3">👁️</span>
-              <p style="font-size:13.5px;line-height:1.45;margin:0">Talvez faças coisas boas que <b>eles ainda não te viram fazer</b> — por isso achas que te dariam menos. O que falta é dá-las a ver.</p>
-            </div>
-            <div style="display:flex;gap:10px">
-              <span style="font-size:17px;line-height:1.3">🪞</span>
-              <p style="font-size:13.5px;line-height:1.45;margin:0">Ou as tuas respostas <b>saíram um bocado acima</b> do que se nota por fora — e o palpite mais baixo que deste ao Local está mais perto disso.</p>
-            </div>
-          </div>`:''}
-          ${acima.length?`<div style="border-radius:16px;padding:15px 16px;background:rgba(46,158,123,.09);border:1px solid rgba(46,158,123,.26)">
-            <div style="display:flex;align-items:center;gap:9px;margin-bottom:5px">
-              <span style="font-size:15px;font-weight:800;color:var(--aproxima)">▲</span>
-              <b style="font-size:14px;line-height:1.25">O teu palpite do Local ficou <span style="color:var(--aproxima)">acima</span> do teu resultado</b>
-            </div>
-            <p style="font-size:12px;line-height:1.4;margin:0 0 12px;opacity:.75">Achas que o Local te vê <b>melhor</b> do que as tuas respostas mostram ${acima.length>1?`em <b>${acima.length}</b> dimensões (${acima.map(k=>DIMS[k].n).join(', ')})`:`na dimensão <b>${DIMS[acima[0]].n}</b>`}. Duas leituras:</p>
-            <div style="display:flex;gap:10px;margin-bottom:11px">
-              <span style="font-size:17px;line-height:1.3">💡</span>
-              <p style="font-size:13.5px;line-height:1.45;margin:0">Se calhar <b>respondeste de forma mais dura contigo</b> do que eles seriam — dá-te o crédito que já mereces.</p>
-            </div>
-            <div style="display:flex;gap:10px">
-              <span style="font-size:17px;line-height:1.3">🌀</span>
-              <p style="font-size:13.5px;line-height:1.45;margin:0">Ou estás a <b>contar com um reconhecimento que ainda não ganhaste</b> — a achar que o Local te vê melhor do que te vê mesmo. Confirma com quem te avalia.</p>
-            </div>
-          </div>`:''}
-          ${igual.length?`<div style="border-radius:16px;padding:15px 16px;background:rgba(74,108,240,.08);border:1px solid rgba(74,108,240,.24)">
-            <div style="display:flex;align-items:center;gap:9px;margin-bottom:5px">
-              <span style="font-size:15px;font-weight:800;color:var(--marker)">=</span>
-              <b style="font-size:14px;line-height:1.25">O teu palpite do Local ficou <span style="color:var(--marker)">igual</span> ao teu resultado</b>
-            </div>
-            <p style="font-size:12px;line-height:1.4;margin:0 0 12px;opacity:.75">${igual.length>1?`Em <b>${igual.length}</b> dimensões (${igual.map(k=>DIMS[k].n).join(', ')})`:`Na dimensão <b>${DIMS[igual[0]].n}</b>`} vês-te <b>tal como achas que eles te veem</b>.</p>
-            <div style="display:flex;gap:10px">
-              <span style="font-size:17px;line-height:1.3">🎯</span>
-              <p style="font-size:13.5px;line-height:1.45;margin:0">Boa base: a tua leitura e o que achas que passa cá para fora estão alinhados. Na conversa, confirma se essa também é a leitura de quem te avalia.</p>
-            </div>
-          </div>`:''}
-        </div>
-        <p class="q-sub" style="margin-top:14px">Só tu, olhando com honestidade, sabes qual destas é a tua. Nenhuma é para levar a mal e qualquer uma dá conversa — é para isso que isto serve: chegares à avaliação a sério já a saber o que vais dizer. Continua a ser um jogo; quem te avalia é uma pessoa que te viu trabalhar, não este ecrã.</p>
-        `:`<p class="q-sub" style="margin-top:16px">Ainda não deste o palpite do que o Local te daria, por isso não há diferença para ler. Se quiseres, volta atrás e dá o palpite.</p>`}
-      </div>`;})()}
-    <div class="g4-read">
-      <div class="g4-hl">
-        <div class="g4-hl-i"><span class="g4-hl-k">Onde te deste mais</span><b style="color:${DIMS[alta[0]].c}">${alta[0]} · ${DIMS[alta[0]].n}</b></div>
-        <div class="g4-hl-i"><span class="g4-hl-k">Onde te deste menos</span><b style="color:${DIMS[baixa[0]].c}">${baixa[0]} · ${DIMS[baixa[0]].n}</b></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:26px">
+      <div style="border-radius:18px;padding:15px 16px;background:rgba(46,158,123,.10);border:1px solid rgba(46,158,123,.3)">
+        <div style="font-size:24px">⭐</div>
+        <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;opacity:.8;margin:7px 0 2px;font-weight:800">Mais pontuação</div>
+        <b style="font-size:16px;line-height:1.15;display:block;color:${DIMS[alta[0]].c}">${DIMS[alta[0]].n}</b>
+        <div style="font-size:11px;opacity:.75;margin-top:5px;line-height:1.4">foi aqui que tiveste mais pontos nas tuas respostas.</div>
       </div>
-      <p class="g4-big">É pela <b>de baixo</b> — a dimensão onde te deste menos, ou seja, aquela em que à partida sentes mais dificuldade — que vale a pena começar. Não porque sejas mau nisso, mas porque é aí que um mês de trabalho mais se nota.</p>
-      <p style="margin-top:9px">E, seja para que lado for a diferença entre as colunas, ficam duas perguntas para levares à supervisão: <b>o que é que o Local vê que tu não estás a contar?</b> e <b>o que é que fazes bem e não te dás crédito?</b></p>
-
-      <h4>Porque é que o 10 está riscado</h4>
-      <p>Não é humildade forçada — é que <b>ninguém começa a ser um 10, nem é suposto ser!</b> Um 10 seria dizer que já não há nada a melhorar, que o trabalho está perfeito e não tens nada a aprender. Por isso aqui o 10 fica de fora, na tua coluna e no palpite do Local. O máximo possível é o <b>9</b>, e já isso é muito difícil de atingir, até para quem trabalha nesta área há muitos anos!</p>
-
-      <h4>Se as tuas autoavaliações estiverem com notas mais baixas agora do que no início…</h4>
-      <p>É normal! E <b>isto não significa que estejas a piorar</b>, pelo contrário: com o tempo percebes melhor tudo o que o trabalho exige e passas a avaliar-te de forma mais exigente e realista. Depois, à medida que fores mesmo crescendo e evoluindo, elas voltam a subir. 🙂</p>
+      <div style="border-radius:18px;padding:15px 16px;background:rgba(226,87,76,.10);border:1px solid rgba(226,87,76,.3)">
+        <div style="font-size:24px">🎯</div>
+        <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;opacity:.8;margin:7px 0 2px;font-weight:800">Por onde começar</div>
+        <b style="font-size:16px;line-height:1.15;display:block;color:${DIMS[baixa[0]].c}">${DIMS[baixa[0]].n}</b>
+        <div style="font-size:11px;opacity:.75;margin-top:5px;line-height:1.4">é aqui que vale mais a pena esforçares-te — onde um mês de trabalho mais se nota.</div>
+      </div>
     </div>
-    <div class="g4-rev">
-      <span class="eyebrow">As ${G4.qs.length} afirmações — e quanto valeu cada resposta</span>
-      <p class="hint" style="margin:8px 0 18px;max-width:66ch">Cada resposta vale um número de <b>1 a 9</b> — está à frente de cada opção. A média dos três números de cada dimensão é a nota que te saiu. As marcadas com <b>↺</b> estavam ao contrário: aí, concordar vale <b>menos</b>.</p>
-      ${Object.keys(DIMS).map(k=>{
-        const meus=G4.qs.map((A,i)=>({A,i})).filter(x=>x.A.k===k);
-        return `<div class="revdim">
-          <div class="revdim-h"><span class="g4-id" style="color:${DIMS[k].c}">${k}</span><b>${DIMS[k].n}</b><span class="revdim-m">média ${D[k].toFixed(1)} → ${g4Num(D[k])}</span></div>
-          ${meus.map(({A,i})=>{const labels=g4Labels(A); const meu=G4.ans[i];
-            return `<div class="revq">
-              <div class="revq-top"><span class="g4-id" style="opacity:.5">${A.rev?'↺':'·'}</span><b>${A.t}</b></div>
-              <p class="hint" style="margin:-4px 0 8px;opacity:.6">${G4_FACETS[A.k][A.f]}</p>
-              ${labels.map((lab,idx)=>`<div class="revl ${idx===meu?'meu':''}"><span class="revn">${g4Val(A,idx)}</span><span>${lab}</span>${idx===meu?'<em>a tua</em>':''}</div>`).join('')}
-              <p class="hint" style="margin-top:8px;opacity:.8;line-height:1.45"><b style="opacity:.9">Porquê:</b> ${G4_PORQUE[A.f]}</p>
-            </div>`;}).join('')}
-        </div>`;}).join('')}
-    </div>
+
+    <span class="eyebrow">Tu vs. o palpite do Local</span>
+    <p class="hint" style="margin:6px 0 14px;max-width:62ch">${temL?'Barra de cima: o resultado das tuas respostas. Barra de baixo: a nota que achas que o Local te daria.':'Barra: o resultado das tuas respostas. (Ainda não deste o palpite do Local.)'}</p>
+    ${Object.keys(DIMS).map(k=>{const lb=G4.loc[k];
+      return `<div style="margin-bottom:18px">
+        <div style="display:flex;align-items:center;gap:7px;font-size:14.5px;margin-bottom:7px"><span style="width:11px;height:11px;border-radius:50%;background:${DIMS[k].c};flex-shrink:0"></span><b>${DIMS[k].n}</b></div>
+        <div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="font-size:11px;width:42px;color:var(--chalk);flex-shrink:0">Tu</span>${barra(g4Num(D[k]),DIMS[k].c)}</div>
+        ${lb?`<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="font-size:11px;width:42px;color:var(--chalk);opacity:.6;flex-shrink:0">Local</span>${barra(locNum(lb),'#8a8298')}</div>`:''}
+        ${cmpTag(k)}
+      </div>`;}).join('')}
+
+    <span class="eyebrow" style="display:block;margin:26px 0 6px">Queres perceber melhor? (abre se quiseres)</span>
+
+    ${temL?`<details style="${DET}"><summary style="${SUM}">Como ler a diferença entre ti e o Local</summary>
+      <div style="padding-bottom:6px">
+        <p class="q-sub">${acima.length?`Em <b>${acima.length}</b> ${acima.length>1?'dimensões':'dimensão'} achas que o Local te dá <b>mais</b> do que o teu resultado. `:''}${abaixo.length?`Em <b>${abaixo.length}</b> achas que te dá <b>menos</b>. `:''}${igual.length?`Em <b>${igual.length}</b> ${igual.length>1?'batem':'bate'} certo.`:''}</p>
+        ${abaixo.length?`<p class="q-sub" style="margin-top:10px"><b style="color:var(--afasta)">Onde achas que te dão menos</b> (${abaixo.map(k=>DIMS[k].n).join(', ')}): ou fazes coisas boas que <b>eles ainda não te viram fazer</b> — e o que falta é dá-las a ver —, ou as tuas respostas <b>saíram um bocado acima</b> do que se nota por fora.</p>`:''}
+        ${acima.length?`<p class="q-sub" style="margin-top:10px"><b style="color:var(--aproxima)">Onde achas que te dão mais</b> (${acima.map(k=>DIMS[k].n).join(', ')}): ou és <b>mais duro contigo</b> do que eles seriam — dá-te o crédito que já mereces —, ou estás a <b>contar com um reconhecimento que ainda não ganhaste</b>. Confirma com quem te avalia.</p>`:''}
+        ${igual.length?`<p class="q-sub" style="margin-top:10px"><b style="color:var(--marker)">Onde bate certo</b> (${igual.map(k=>DIMS[k].n).join(', ')}): vês-te tal como achas que eles te veem. Boa base para a conversa.</p>`:''}
+        <p class="q-sub" style="margin-top:10px">Nenhuma é para levar a mal e qualquer uma dá conversa — é para isso que isto serve: chegares à avaliação a sério já a saber o que vais dizer.</p>
+      </div></details>`:''}
+
+    <details style="${DET}"><summary style="${SUM}">Por onde começar a trabalhar</summary>
+      <div style="padding-bottom:6px">
+        <p class="q-sub">É pela <b>de baixo</b> — a dimensão onde te deste menos (${DIMS[baixa[0]].n}), aquela em que à partida sentes mais dificuldade — que vale a pena começar. Não porque sejas mau nisso, mas porque é aí que um mês de trabalho mais se nota.</p>
+        <p class="q-sub" style="margin-top:9px">E ficam duas perguntas para levares à supervisão: <b>o que é que o Local vê que tu não estás a contar?</b> e <b>o que é que fazes bem e não te dás crédito?</b></p>
+      </div></details>
+
+    <details style="${DET}"><summary style="${SUM}">Porque é que o 10 está de fora</summary>
+      <p class="q-sub" style="padding-bottom:6px">Não é humildade forçada — é que <b>ninguém começa a ser um 10, nem é suposto ser!</b> Um 10 seria dizer que já não há nada a melhorar, que o trabalho está perfeito e não tens nada a aprender. Por isso aqui o 10 fica de fora, na tua leitura e no palpite do Local. O máximo possível é o <b>9</b>, e já isso é muito difícil de atingir, até para quem trabalha nesta área há muitos anos!</p></details>
+
+    <details style="${DET}"><summary style="${SUM}">E se me der notas mais baixas mais tarde?</summary>
+      <p class="q-sub" style="padding-bottom:6px">É normal! E <b>não significa que estejas a piorar</b>, pelo contrário: com o tempo percebes melhor tudo o que o trabalho exige e passas a avaliar-te de forma mais exigente e realista. Depois, à medida que fores mesmo crescendo e evoluindo, elas voltam a subir. 🙂</p></details>
+
+    <details style="${DET}"><summary style="${SUM}">Ver as ${G4.qs.length} afirmações e o que cada resposta valeu</summary>
+      <div class="g4-rev" style="padding-bottom:8px">
+        <p class="hint" style="margin:2px 0 18px;max-width:66ch">Cada resposta vale um número de <b>1 a 9</b>. A média das respostas de cada dimensão é a tua nota. As marcadas com <b>↺</b> estavam ao contrário: aí, concordar/fazer vale <b>menos</b>.</p>
+        ${Object.keys(DIMS).map(k=>{ const meus=G4.qs.map((A,i)=>({A,i})).filter(x=>x.A.k===k);
+          return `<div class="revdim">
+            <div class="revdim-h"><span class="g4-id" style="color:${DIMS[k].c}">${k}</span><b>${DIMS[k].n}</b><span class="revdim-m">média ${D[k].toFixed(1)} → ${g4Num(D[k])}</span></div>
+            ${meus.map(({A,i})=>{const labels=g4Labels(A); const meu=G4.ans[i];
+              return `<div class="revq">
+                <div class="revq-top"><span class="g4-id" style="opacity:.5">${A.rev?'↺':'·'}</span><b>${A.t}</b></div>
+                <p class="hint" style="margin:-4px 0 8px;opacity:.6">${G4_FACETS[A.k][A.f]}</p>
+                ${labels.map((lab,idx)=>`<div class="revl ${idx===meu?'meu':''}"><span class="revn">${g4Val(A,idx)}</span><span>${lab}</span>${idx===meu?'<em>a tua</em>':''}</div>`).join('')}
+                <p class="hint" style="margin-top:8px;opacity:.8;line-height:1.45"><b style="opacity:.9">Porquê:</b> ${G4_PORQUE[A.f]}</p>
+              </div>`;}).join('')}
+          </div>`;}).join('')}
+      </div></details>
+
     <div style="margin-top:26px;display:flex;gap:10px;flex-wrap:wrap">
       <button class="btn btn-solid" onclick="g4PDF()">Guardar PDF</button>
       <button class="btn btn-yellow" onclick="g4Reset();window.scrollTo(0,0)">Outra vez, com outras afirmações</button>
