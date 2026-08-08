@@ -14,10 +14,10 @@ const isAdmin = (u) => u?.username === "admin";
 // sozinho (?jogo=N) e liga-se individualmente no admin (config/arcade.jogos[N]);
 // a lista antiga config/arcade.users dá acesso aos quatro (retrocompatível).
 const ARCADE_JOGOS = [
+  { id:"__arcade4", n:4, cat:"jogo", icone:"🪞", titulo:"JOGO: Como te vês? Como achas que te vêem?", url:"/eu/jogos/como-te-ves.html", desc:"Dezoito afirmações sobre ti, para treinar a auto-avaliação. Funciona offline." },
   { id:"__arcade1", n:1, cat:"jogo", icone:"🎯", titulo:"Jogo 1 · Aproxima ou Afasta?", url:"/eu/jogos/arcade-educa.html?jogo=1", desc:"Decisões do dia a dia: em cada carta escolhes aproxima, afasta ou depende. Sem nota. Funciona offline." },
   { id:"__arcade2", n:2, cat:"jogo", icone:"🗣️", titulo:"Jogo 2 · Tabu EDUCA", url:"/eu/jogos/arcade-educa.html?jogo=2", desc:"Explica a palavra sem dizer as três proibidas. Duas equipas. Funciona offline." },
   { id:"__arcade3", n:3, cat:"jogo", icone:"🏗️", titulo:"Jogo 3 · Construtor de Projeto", url:"/eu/jogos/arcade-educa.html?jogo=3", desc:"Liga uma atividade às necessidades da ludoteca. No fim sai o rascunho do PIA. Funciona offline." },
-  { id:"__arcade4", n:4, cat:"jogo", icone:"🪞", titulo:"Jogo 4 · Como te vês", url:"/eu/jogos/como-te-ves.html", desc:"Dezoito afirmações sobre ti, para treinar a auto-avaliação. Funciona offline." },
 ];
 
 const RECURSOS_FIXOS = [
