@@ -2883,7 +2883,7 @@ function g4Reset(){
       if(it)qs.push({k,f:fac,t:it.t,rev:!!it.rev,freq:!!it.freq,cap:!!it.cap});
     });
   });
-  G4={step:0,qs:shuffle(qs),ans:{},loc:{}};
+  G4={step:0,page:0,qs:shuffle(qs),ans:{},loc:{}};
   g4Draw();
 }
 function g4Draw(){
@@ -2920,18 +2920,36 @@ function g4Draw(){
     return;
   }
   if(G4.step===1){
-    const f=Object.keys(G4.ans).length;
     const total=G4.qs.length;
-    b.innerHTML=`<div class="aviso"><b>Diz o que é verdade sobre ti</b> — não o que soa bem. Nem sempre concordar conta a favor. Para desmarcar, clica outra vez na mesma.</div>
-      ${G4.qs.map((A,i)=>{const labels=g4Labels(A);
+    const f=Object.keys(G4.ans).length;
+    const PER=3;
+    const pages=Math.ceil(total/PER);
+    if(G4.page===undefined)G4.page=0;
+    if(G4.page>pages-1)G4.page=pages-1;
+    if(G4.page<0)G4.page=0;
+    const start=G4.page*PER, end=Math.min(start+PER,total);
+    const idxs=[]; for(let i=start;i<end;i++)idxs.push(i);
+    const pageDone=idxs.every(i=>G4.ans[i]!==undefined);
+    const last=G4.page===pages-1;
+    const pct=Math.round(f/total*100);
+    b.innerHTML=`
+      <div style="position:sticky;top:0;background:var(--ink);padding:4px 0 12px;z-index:5">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;color:var(--chalk);margin-bottom:7px"><b style="color:var(--paper);font-size:13px">Página ${G4.page+1} de ${pages}</b><span>${f}/${total} respondidas</span></div>
+        <div style="height:7px;background:rgba(247,242,231,.09);border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--postit);border-radius:99px;transition:width .28s"></div></div>
+      </div>
+      ${G4.page===0?`<div class="aviso" style="margin-top:2px"><b>Diz o que é verdade sobre ti</b> — não o que soa bem. Nem sempre concordar conta a favor. Para desmarcar, clica outra vez na mesma.</div>`:''}
+      ${idxs.map(i=>{const A=G4.qs[i];const labels=g4Labels(A);
         return `<div class="autoq">
         <span class="autoq-dim" style="display:inline-block;opacity:1;font-size:11.5px;font-weight:800;padding:4px 11px;border-radius:999px;color:${g4KickCor(A)};background:${g4KickCor(A)}1f;border:1px solid ${g4KickCor(A)}66">${g4Kicker(A)}</span>
         <p class="autoq-q">${A.t}</p>
         <div class="autoq-opts">${labels.map((lab,idx)=>`<button class="autoq-opt ${G4.ans[i]===idx?'on':''}" onclick="if(G4.ans[${i}]===${idx}){delete G4.ans[${i}];}else{G4.ans[${i}]=${idx};}g4Draw()">${lab}</button>`).join('')}</div>
       </div>`;}).join('')}
-      <p class="counter">${f}/${total} respondidas</p>
-      <div class="nav"><button class="btn" onclick="G4.step=0;g4Draw();window.scrollTo(0,0)">← Voltar</button>
-      <button class="btn btn-yellow" ${f===total?'':'disabled'} onclick="${f===total?'G4.step=2;g4Draw();window.scrollTo(0,0)':''}">Continuar</button></div>`;
+      <div class="nav"><button class="btn" onclick="${G4.page===0?'G4.step=0':'G4.page--'};g4Draw();window.scrollTo(0,0)">← ${G4.page===0?'Voltar':'Anterior'}</button>
+      ${last
+        ?`<button class="btn btn-yellow" ${f===total?'':'disabled'} onclick="${f===total?'G4.step=2;g4Draw();window.scrollTo(0,0)':''}">Continuar →</button>`
+        :`<button class="btn btn-yellow" ${pageDone?'':'disabled'} onclick="${pageDone?'G4.page++;g4Draw();window.scrollTo(0,0)':''}">Seguinte →</button>`}</div>
+      ${!last&&!pageDone?`<p class="hint center" style="margin-top:9px">Responde às desta página para continuares.</p>`:''}
+      ${last&&f!==total?`<p class="hint center" style="margin-top:9px">Faltam ${total-f} — usa o «Anterior» para as encontrares.</p>`:''}`;
     return;
   }
   if(G4.step===2){ g4Local(); return; }
