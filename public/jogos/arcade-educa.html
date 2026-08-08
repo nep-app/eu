@@ -136,7 +136,7 @@ h1,h2,h3,.display{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Seg
 .opt.limite.sel{border-color:var(--afasta);box-shadow:0 0 0 3px rgba(226,87,76,.35),0 8px 20px rgba(0,0,0,.28)}
 .opt.postit.sel{border-color:var(--ink);box-shadow:0 0 0 3px rgba(24,20,40,.45),0 8px 20px rgba(0,0,0,.28)}
 .opt.postit.sel::after{background:var(--ink);color:var(--postit)}
-.aviso{background:var(--postit);color:var(--ink);padding:18px 20px;border-radius:2px;margin-bottom:22px;font-size:15px;line-height:1.5}
+.aviso{background:var(--postit);color:var(--ink);padding:15px 18px;border-radius:14px;margin-bottom:18px;font-size:14.5px;line-height:1.5}
 .aviso b{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:17px;display:block;margin-bottom:4px}
 .opt strong{display:block;font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:700;font-size:18px;margin-bottom:4px;color:var(--ink)}
 .opt span{font-size:13px;color:#5b5570;line-height:1.42;display:block}
@@ -199,13 +199,15 @@ h1,h2,h3,.display{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Seg
 .alerta{margin-top:18px;border:1px solid var(--afasta);border-left-width:4px;padding:16px 18px;border-radius:2px;background:rgba(226,87,76,.08)}
 .alerta .eyebrow{color:var(--afasta);opacity:1}
 .alerta ul{margin:10px 0 0;padding-left:18px;font-size:14.5px;color:var(--chalk)}
-.autoq{border:1px solid var(--line);border-radius:2px;padding:18px 20px;margin-bottom:12px;background:rgba(247,242,231,.04)}
+.autoq{border:1px solid var(--line);border-left-width:4px;border-radius:15px;padding:16px 17px;margin-bottom:11px;background:rgba(247,242,231,.045)}
 .autoq-dim{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;display:block}
-.autoq-q{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:700;font-size:19px;margin:8px 0 14px;line-height:1.25}
-.autoq-opts{display:grid;gap:7px}
-.autoq-opt{text-align:left;background:transparent;border:1px solid var(--line);color:var(--chalk);font:inherit;font-size:14.5px;padding:11px 14px;border-radius:2px;cursor:pointer;transition:.13s}
-.autoq-opt:hover{background:rgba(247,242,231,.08);color:var(--paper)}
-.autoq-opt.on{background:var(--paper);color:var(--ink);border-color:var(--paper);font-weight:600}
+.autoq-q{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:700;font-size:18px;margin:9px 0 13px;line-height:1.28}
+.autoq-opts{display:grid;gap:8px}
+.autoq-opt{text-align:left;background:rgba(247,242,231,.03);border:1px solid var(--line);color:var(--chalk);font:inherit;font-size:14.5px;padding:12px 15px;border-radius:12px;cursor:pointer;transition:.14s;display:flex;align-items:center;gap:11px}
+.autoq-opt::before{content:'';flex-shrink:0;width:17px;height:17px;border-radius:50%;border:2px solid rgba(247,242,231,.28);transition:.14s}
+.autoq-opt:hover{background:rgba(247,242,231,.09);color:var(--paper);border-color:rgba(247,242,231,.32)}
+.autoq-opt.on{background:var(--paper);color:var(--ink);border-color:var(--paper);font-weight:700}
+.autoq-opt.on::before{border-color:var(--ink);background:radial-gradient(circle,var(--ink) 0 42%,transparent 46%)}
 .dim-two{display:flex;flex-direction:column;gap:3px;margin-top:5px}
 .dim-two .lane{display:grid;grid-template-columns:52px 1fr 26px;gap:8px;align-items:center}
 .dim-two .lane span{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--chalk);opacity:.6}
@@ -2939,7 +2941,7 @@ function g4Draw(){
       </div>
       ${G4.page===0?`<div class="aviso" style="margin-top:2px"><b>Diz o que é verdade sobre ti</b> — não o que soa bem. Nem sempre concordar conta a favor. Para desmarcar, clica outra vez na mesma.</div>`:''}
       ${idxs.map(i=>{const A=G4.qs[i];const labels=g4Labels(A);
-        return `<div class="autoq">
+        return `<div class="autoq" style="border-left-color:${g4KickCor(A)}">
         <span class="autoq-dim" style="display:inline-block;opacity:1;font-size:11.5px;font-weight:800;padding:4px 11px;border-radius:999px;color:${g4KickCor(A)};background:${g4KickCor(A)}1f;border:1px solid ${g4KickCor(A)}66">${g4Kicker(A)}</span>
         <p class="autoq-q">${A.t}</p>
         <div class="autoq-opts">${labels.map((lab,idx)=>`<button class="autoq-opt ${G4.ans[i]===idx?'on':''}" onclick="if(G4.ans[${i}]===${idx}){delete G4.ans[${i}];}else{G4.ans[${i}]=${idx};}g4Draw()">${lab}</button>`).join('')}</div>
