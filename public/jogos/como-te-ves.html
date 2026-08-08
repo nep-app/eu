@@ -411,6 +411,10 @@ h1,h2,h3,.display{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Seg
 .g4-desc .lvl{display:block;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.85;margin-bottom:4px}
 .g4-desc p{font-size:14px;line-height:1.5}
 .g4-intro{padding-top:6px}
+.g4-step{display:flex;gap:13px;align-items:flex-start;border:1px solid;border-radius:16px;padding:14px 15px}
+.g4-step-n{flex-shrink:0;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff}
+.g4-step>div:last-child{font-size:13px;color:var(--chalk);line-height:1.5}
+.g4-step b{display:block;font-size:15px;margin-bottom:3px}
 .balanco{margin-top:30px;border:1px solid var(--line);border-radius:3px;padding:20px 22px}
 .bal-lead{font-size:16px;line-height:1.6;margin:8px 0 18px}
 .bal-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
@@ -528,7 +532,7 @@ body.solo [onclick*="g3Leave"]{display:none!important}
       <p>Aprender a ligar uma atividade às necessidades da ludoteca — as que ele vê, as que a equipa aponta e as que os próprios participantes pedem. Diagnóstico, atividade que responde a ele, meta, avaliação. No fim sai o rascunho do PIA e diz-se se bate certo.</p>
       <span class="meta">~12 min · JEEP</span></button>
     <button class="mode m4" onclick="go('g4')">
-      <span class="num">JOGO 04 · INDIVIDUAL</span><h3>Como te vês</h3>
+      <span class="num">JOGO 04 · INDIVIDUAL</span><h3>Como te vês? Como achas que te vêem?</h3>
       <p>Dezoito afirmações sobre ti — de concordância e de frequência, e algumas ao contrário de propósito, para não haver resposta óbvia a escolher. Para treinar a auto-avaliação antes da avaliação a sério.</p>
       <span class="meta">~3 min · antes da avaliação</span></button>
   </div>
@@ -614,7 +618,7 @@ body.solo [onclick*="g3Leave"]{display:none!important}
 
 <!-- JOGO 4 -->
 <section id="g4" class="screen">
-  <div class="topbar"><div><span class="eyebrow">Jogo 04</span><h2>Como te vês</h2></div>
+  <div class="topbar"><div><span class="eyebrow">Autoavaliação · EDUCA+</span><h2>Como te vês?</h2></div>
   <button class="btn btn-sm" onclick="go('home')">← Menu</button></div>
   <div id="g4-body"></div>
 </section>
@@ -2886,11 +2890,33 @@ function g4Draw(){
   const b=document.getElementById('g4-body');
   if(G4.step===0){
     b.innerHTML=`<div class="g4-intro">
-      <p style="max-width:60ch;font-size:17px;color:var(--chalk)">Isto <b>não é o PIA</b> e não é um teste. São <b>18 afirmações sobre o teu dia a dia</b> — nalgumas dizes se concordas, noutras com que frequência acontece, e noutras como lidas com aquilo. Para cada uma, diz o que é <b>mesmo verdade sobre ti</b>, não o que fica bem.</p>
-      <p style="max-width:60ch;font-size:17px;color:var(--chalk);margin-top:14px"><b>Atenção: nem sempre concordar é "melhor".</b> Algumas afirmações estão ao contrário de propósito, e não te digo quais. Por isso não há resposta óbvia para escolher — só há a tua.</p>
-      <p style="max-width:60ch;font-size:17px;color:var(--chalk);margin-top:14px">Depois pergunto-te uma segunda coisa: <b>que nota achas que o teu Local te daria</b>. No fim vês as duas leituras lado a lado, com os <b>descritores da grelha</b> do EDUCA+, em linguagem simples, para o degrau onde te puseste.</p>
-      <p class="hint" style="max-width:60ch;margin-top:14px">Não tem nota nem certo nem errado.</p>
-      <button class="btn btn-yellow" style="margin-top:26px" onclick="G4.step=1;g4Draw();window.scrollTo(0,0)">Começar</button></div>`;
+      <div style="text-align:center;padding:8px 0 2px">
+        <div style="font-size:54px;line-height:1;margin-bottom:8px">🪞</div>
+        <h1 style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;font-size:28px;line-height:1.12;margin:0 0 8px">Como te vês?<br><span style="color:var(--marker)">Como achas que te vêem?</span></h1>
+        <p style="color:var(--chalk);font-size:15px;line-height:1.5;max-width:36ch;margin:0 auto">Um jogo rápido para pensares na forma como te avalias — e em como achas que o teu <b>Local</b> te vê.</p>
+      </div>
+
+      <div style="display:grid;gap:11px;margin:26px 0 20px">
+        <div class="g4-step" style="border-color:rgba(74,108,240,.4);background:rgba(74,108,240,.1)">
+          <div class="g4-step-n" style="background:var(--marker)">1</div>
+          <div><b style="color:#a9beff">🪞 Como te vês</b>Respondes a <b>18 afirmações</b> sobre o teu dia a dia. Diz o que é <b>mesmo verdade</b> sobre ti, não o que fica bem.</div>
+        </div>
+        <div class="g4-step" style="border-color:rgba(255,216,77,.45);background:rgba(255,216,77,.1)">
+          <div class="g4-step-n" style="background:var(--postit);color:var(--ink)">2</div>
+          <div><b style="color:var(--postit)">🎯 O palpite do Local</b>Depois dizes <b>que nota achas que o teu Local te daria</b> em cada área.</div>
+        </div>
+        <div class="g4-step" style="border-color:rgba(46,158,123,.4);background:rgba(46,158,123,.1)">
+          <div class="g4-step-n" style="background:var(--aproxima)">3</div>
+          <div><b style="color:#7fd6b3">⚖️ Lado a lado</b>No fim vês as <b>duas leituras juntas</b>, com os descritores da grelha do EDUCA+ em linguagem simples.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:11px;align-items:flex-start;background:rgba(226,87,76,.1);border:1px solid rgba(226,87,76,.38);border-radius:14px;padding:13px 15px">
+        <div style="font-size:20px;line-height:1.2">⚠️</div>
+        <p style="margin:0;font-size:13.5px;color:var(--paper);line-height:1.5"><b>Não é teste, não tem nota certa.</b> E atenção: algumas afirmações estão <b>ao contrário de propósito</b> — nem sempre concordar é "melhor". Não há resposta óbvia, só a tua.</p>
+      </div>
+
+      <button class="btn btn-yellow" style="margin-top:24px;width:100%;font-size:16px;padding:15px" onclick="G4.step=1;g4Draw();window.scrollTo(0,0)">Começar →</button></div>`;
     return;
   }
   if(G4.step===1){
