@@ -2870,7 +2870,7 @@ const G4_SCALE={
    ou, por defeito, concordância. Estas duas ajudas dão a escala e o cabeçalho. */
 function g4Labels(A){return A.cap?G4_SCALE.cap:A.freq?G4_SCALE.freq:G4_SCALE.agree;}
 function g4Kicker(A){return A.cap?'Achas que fazes isto bem?':A.freq?'Com que frequência é assim?':'Concordas com isto?';}
-function g4KickCor(A){return A.cap?'#2E9E7B':A.freq?'#FFD84D':'#4A6CF0';}  /* cor da etiqueta por escala */
+function g4KickCor(A){return A.cap?'#3FBF97':A.freq?'#FFD84D':'#8FA6FF';}  /* cor da etiqueta por escala (claras p/ ler bem no escuro) */
 const G4_FWD=[1,3,5,7,9];                 /* 5 níveis → 1..9 (nunca chega a 10) */
 function g4Val(item,idx){return item.rev?G4_FWD[4-idx]:G4_FWD[idx];}
 function g4BandIdx(b){return G4_BANDAS.findIndex(x=>x[0]===b);}
