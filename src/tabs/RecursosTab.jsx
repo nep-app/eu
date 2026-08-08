@@ -230,9 +230,9 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
               <div style={{ fontSize:10, fontWeight:900, letterSpacing:2, color: isTeresa ? "#4a3f80" : "#6366f1", textTransform:"uppercase", marginBottom:12 }}>
                 🎲 Atividades
               </div>
+              {listaDa("jogo").map(renderCard)}
               {renderActivityButton("🌸", "Roda da Vida", "Avalia as diferentes áreas da tua vida e envia à Teresa.", () => setAtividade("roda"))}
               {renderActivityButton("💌", "Cápsulas do Tempo", "Deixa mensagens trancadas para o teu futuro.", () => setAtividade("capsula"))}
-              {listaDa("jogo").map(renderCard)}
             </>
           )}
         </div>
