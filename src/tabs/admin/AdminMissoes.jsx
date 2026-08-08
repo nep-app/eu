@@ -13,6 +13,24 @@ export default function AdminMissoes({ missions, allShared = {} }) {
   const [adminMissionPrazo, setAdminMissionPrazo] = useState("");
   const [pushMissao, setPushMissao] = useState(false);
 
+  // Edição inline de uma missão já existente
+  const [editId, setEditId]     = useState(null);
+  const [editTxt, setEditTxt]   = useState("");
+  const [editXp, setEditXp]     = useState(10);
+  const [editPrazo, setEditPrazo] = useState("");
+
+  function startEdit(m) {
+    setEditId(m.id); setEditTxt(m.text || ""); setEditXp(m.xp || 0); setEditPrazo(m.prazo || "");
+  }
+  function cancelEdit() { setEditId(null); }
+  async function saveEdit() {
+    if (!editTxt.trim()) { alert("A missão não pode ficar sem descrição."); return; }
+    await updateDoc(doc(db, "missions", editId), {
+      text: editTxt.trim(), xp: editXp, prazo: editPrazo || null,
+    });
+    setEditId(null);
+  }
+
   async function encerrarMissao(m) {
     await updateDoc(doc(db, "missions", m.id), { encerrada: !m.encerrada });
   }
@@ -79,8 +97,35 @@ export default function AdminMissoes({ missions, allShared = {} }) {
 
       {[...missions].sort((a, b) => (b.ts || 0) - (a.ts || 0)).map(m => {
         const feitas = JOVENS_MISSAO.filter(j => (allShared[j.username]?.completedMissions || []).includes(m.id));
+        const emEdicao = editId === m.id;
         return (
           <div key={m.id} style={CARD}>
+            {emEdicao ? (
+              <div>
+                <div style={SL}>Editar missão</div>
+                <input value={editTxt} onChange={e => setEditTxt(e.target.value)}
+                  placeholder="Descrição da missão..." style={INP} />
+                <div style={{ display:"flex", gap:8, marginBottom:12 }}>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:10, color:CYN, fontWeight:800, marginBottom:4 }}>XP</div>
+                    <input type="number" value={editXp} onChange={e => setEditXp(Number(e.target.value))}
+                      style={{ ...INP, marginBottom:0 }} />
+                  </div>
+                  <div style={{ flex:2 }}>
+                    <div style={{ fontSize:10, color:CYN, fontWeight:800, marginBottom:4 }}>Prazo (opcional)</div>
+                    <input type="date" value={editPrazo} onChange={e => setEditPrazo(e.target.value)}
+                      style={{ ...INP, marginBottom:0 }} />
+                  </div>
+                </div>
+                <div style={{ display:"flex", gap:8 }}>
+                  <Btn onClick={saveEdit}>Guardar</Btn>
+                  <button onClick={cancelEdit} style={{
+                    background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)",
+                    color:"#94a3b8", borderRadius:10, padding:"0 16px", fontSize:13, cursor:"pointer", fontWeight:700,
+                  }}>Cancelar</button>
+                </div>
+              </div>
+            ) : (
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10 }}>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontWeight:800 }}>
@@ -93,6 +138,10 @@ export default function AdminMissoes({ missions, allShared = {} }) {
                 </div>
               </div>
               <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+                <button onClick={() => startEdit(m)} title="Editar" style={{
+                  background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)",
+                  color:CYN, borderRadius:8, padding:"4px 8px", fontSize:13, cursor:"pointer", fontWeight:700,
+                }}>✏️</button>
                 <button onClick={() => encerrarMissao(m)} title={m.encerrada ? "Reabrir" : "Encerrar"} style={{
                   background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)",
                   color: m.encerrada ? GRN : "#94a3b8", borderRadius:8, padding:"4px 10px", fontSize:11, cursor:"pointer", fontWeight:700,
@@ -101,8 +150,10 @@ export default function AdminMissoes({ missions, allShared = {} }) {
                   style={{ background:"rgba(244,63,94,0.1)", border:"none", color:"#fb7185", cursor:"pointer", fontSize:14, borderRadius:8, padding:"4px 8px" }}>✕</button>
               </div>
             </div>
+            )}
 
             {/* Quem já fez */}
+            {!emEdicao && (
             <div style={{ marginTop:10, borderTop:"1px solid rgba(255,255,255,0.06)", paddingTop:10 }}>
               <div style={{ fontSize:11, fontWeight:800, color: feitas.length ? GRN : "#64748b", marginBottom: feitas.length ? 6 : 0 }}>
                 ✅ Fizeram: {feitas.length}/{JOVENS_MISSAO.length}
@@ -117,6 +168,7 @@ export default function AdminMissoes({ missions, allShared = {} }) {
                 );
               })}
             </div>
+            )}
           </div>
         );
       })}
