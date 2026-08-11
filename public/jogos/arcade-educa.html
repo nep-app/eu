@@ -2812,14 +2812,6 @@ const G4_ESCH=[60,82,102,122,146];                                 /* alturas cr
 /* Modo simplificado (linguagem fácil) — ligado por ?simples=1 no link. Por agora
    só a Teresa recebe esse link (ver RecursosTab), para testar antes de aplicar a todos. */
 const G4_SIMPLES=/[?&]simples=1/.test(location.search||'');
-const G4_NOME_SIMPLES={
- D1:"Falar e dar-te com os outros",
- D2:"Aguentar o stress e as mudanças",
- D3:"Fazer as coisas por ti",
- D4:"Conhecer-te e ter objetivos",
- D5:"Computador, serviços e papéis",
- D6:"O teu trabalho com o grupo"
-};
 /* Descritores oficiais de autoavaliação do EDUCA+ (documento «Descritores de
    Autoavaliação — JEEP», versão revista). Texto tal e qual. */
 const G4_DESC={
@@ -3069,46 +3061,84 @@ function g4Result(){
   const temL=Object.keys(DIMS).some(k=>G4.loc[k]);
   const barra=(v,c,lab)=>`<div style="flex:1;height:18px;background:rgba(247,242,231,.07);border-radius:9px;overflow:hidden"><div style="height:100%;width:${Math.round(Math.min(v,9)/9*100)}%;background:${c};border-radius:9px"></div></div><span style="font-size:13.5px;font-weight:800;min-width:30px;text-align:right;white-space:nowrap">${lab}</span>`;
   if(G4_SIMPLES){
+    const S=`<style>.g4det{background:rgba(247,242,231,.04);border:1px solid rgba(247,242,231,.1);border-radius:14px;padding:0 15px;margin-top:10px}.g4det>summary{cursor:pointer;font-weight:800;font-size:14.5px;padding:13px 0;color:var(--postit);list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}.g4det>summary::-webkit-details-marker{display:none}.g4det>summary::after{content:'▾';opacity:.55;font-size:13px}.g4det[open]>summary::after{content:'▴'}.g4det.hot{background:rgba(74,108,240,.14);border:1.5px solid rgba(74,108,240,.55);box-shadow:0 0 0 3px rgba(74,108,240,.07);margin-top:18px}.g4det.hot>summary{color:#a9beff;font-size:15.5px}</style>`;
     const cmpS=k=>{const dd=dl[k];if(dd===null)return '';
-      if(dd>0)return 'Achas que eles te veem <b>melhor</b> do que tu te vês.';
-      if(dd<0)return 'Achas que eles te veem <b>pior</b> do que tu te vês.';
-      return 'Vês-te <b>igual</b> ao que achas que eles veem.';};
-    b.innerHTML=`
-      <span class="eyebrow">O que este jogo te mostra</span>
-      <div style="margin:10px 0 20px;padding:13px 15px;border-radius:14px;background:rgba(255,216,77,.10);border:1px solid rgba(255,216,77,.38)">
-        <p style="margin:0;font-size:14px;line-height:1.5"><b style="color:var(--postit)">Isto não é uma nota. 🙂</b> É só para pensares em como te vês. Quem te avalia a sério é uma pessoa que te viu trabalhar, não este ecrã.</p>
+      if(dd>0)return `<div style="font-size:12.5px;margin-top:6px;padding:8px 11px;border-radius:10px;line-height:1.45;color:#bfe6d2;background:rgba(46,158,123,.14)">Achas que eles te veem <b>melhor</b> do que tu te vês.</div>`;
+      if(dd<0)return `<div style="font-size:12.5px;margin-top:6px;padding:8px 11px;border-radius:10px;line-height:1.45;color:#f3c0bb;background:rgba(226,87,76,.14)">Achas que eles te veem <b>pior</b> do que tu te vês.</div>`;
+      return `<div style="font-size:12.5px;margin-top:6px;padding:8px 11px;border-radius:10px;line-height:1.45;color:var(--chalk);background:rgba(207,199,222,.10)">Vês-te <b>igual</b> ao que achas que eles veem.</div>`;};
+    b.innerHTML=`${S}
+      <span class="eyebrow">O teu resultado</span>
+      <div style="margin:10px 0 16px;padding:13px 15px;border-radius:14px;background:rgba(255,216,77,.10);border:1px solid rgba(255,216,77,.38)">
+        <p style="margin:0;font-size:14px;line-height:1.5"><b style="color:var(--postit)">Isto não é uma nota da escola. 🙂</b> É um jogo para te ajudar a pensar em como <b>tu</b> te vês e em como achas que o teu <b>Local</b> (o sítio onde trabalhas) te vê. Quem te avalia a sério é uma pessoa que te viu a trabalhar — não este telemóvel.</p>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px">
+      <div style="margin:0 0 22px;padding:13px 15px;border-radius:14px;background:rgba(74,108,240,.12);border:1px solid rgba(74,108,240,.4)">
+        <p style="margin:0;font-size:13.5px;line-height:1.55"><b style="color:#a9beff">De onde vêm estes números?</b> Em cada área respondeste a <b>3 perguntas</b>. Cada resposta que deste vale um número de <b>1 a 9</b>. Juntámos as 3 e sai um número — é a tua «nota» nessa área. Por isso, se aparece <b>8</b>, é porque foi isso que saiu das <b>tuas respostas</b>, não uma nota que alguém te deu.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px">
         <div style="border-radius:16px;padding:14px;background:rgba(46,158,123,.10);border:1px solid rgba(46,158,123,.3)">
           <div style="font-size:22px">💪</div>
-          <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;opacity:.8;margin:6px 0 2px;font-weight:800">O que corre melhor</div>
-          <b style="font-size:14.5px;line-height:1.2;display:block;color:${DIMS[alta[0]].c}">${G4_NOME_SIMPLES[alta[0]]}</b>
+          <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;opacity:.8;margin:6px 0 2px;font-weight:800">Onde te deste mais</div>
+          <b style="font-size:14px;line-height:1.2;display:block;color:${DIMS[alta[0]].c}">${DIMS[alta[0]].n}</b>
+          <div style="font-size:11px;opacity:.75;margin-top:5px;line-height:1.4">foi aqui que as tuas respostas deram mais pontos.</div>
         </div>
         <div style="border-radius:16px;padding:14px;background:rgba(226,87,76,.10);border:1px solid rgba(226,87,76,.3)">
           <div style="font-size:22px">🎯</div>
-          <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;opacity:.8;margin:6px 0 2px;font-weight:800">O que podes treinar</div>
-          <b style="font-size:14.5px;line-height:1.2;display:block;color:${DIMS[baixa[0]].c}">${G4_NOME_SIMPLES[baixa[0]]}</b>
+          <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;opacity:.8;margin:6px 0 2px;font-weight:800">Onde dá para crescer</div>
+          <b style="font-size:14px;line-height:1.2;display:block;color:${DIMS[baixa[0]].c}">${DIMS[baixa[0]].n}</b>
+          <div style="font-size:11px;opacity:.75;margin-top:5px;line-height:1.4">é aqui que vale mais a pena treinar.</div>
         </div>
       </div>
 
-      <span class="eyebrow">Tu e o teu Local</span>
+      <span class="eyebrow">Tu e o teu Local, lado a lado</span>
       <p class="hint" style="margin:6px 0 14px;max-width:56ch">${temL?'Barra de cima: como <b>tu</b> te vês. Barra de baixo: como achas que o <b>Local</b> te vê.':'Barra: como <b>tu</b> te vês. (Ainda não deste o palpite do Local.)'}</p>
       ${Object.keys(DIMS).map(k=>{const lb=G4.loc[k];
         return `<div style="margin-bottom:16px">
-          <div style="display:flex;align-items:center;gap:7px;font-size:14px;margin-bottom:6px"><span style="width:11px;height:11px;border-radius:50%;background:${DIMS[k].c};flex-shrink:0"></span><b>${G4_NOME_SIMPLES[k]}</b></div>
+          <div style="display:flex;align-items:center;gap:7px;font-size:14px;margin-bottom:6px"><span style="width:11px;height:11px;border-radius:50%;background:${DIMS[k].c};flex-shrink:0"></span><b>${DIMS[k].n}</b></div>
           <div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="font-size:11px;width:44px;color:var(--chalk);flex-shrink:0">Tu</span>${barra(g4Num(D[k]),DIMS[k].c,g4Num(D[k]))}</div>
           ${lb?`<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="font-size:11px;width:44px;color:var(--chalk);opacity:.6;flex-shrink:0">Local</span>${barra(locMid(lb),'#8a8298',lb)}</div>`:''}
-          ${lb?`<p style="font-size:12.5px;margin:6px 0 0;color:var(--chalk);line-height:1.45">${cmpS(k)}</p>`:''}
+          ${lb?cmpS(k):''}
         </div>`;}).join('')}
 
-      <div style="margin-top:14px;padding:13px 15px;border-radius:14px;background:rgba(143,166,255,.1);border:1px solid rgba(143,166,255,.4)">
-        <p style="margin:0;font-size:13.5px;line-height:1.5"><b>E agora?</b> Não há aqui nada de mau. Guarda o que viste na cabeça e <b>fala disto na tua avaliação</b> — serve para te ajudar a pensar e a falar sobre o teu trabalho.</p>
-      </div>
+      <span class="eyebrow" style="display:block;margin:26px 0 6px">Queres perceber melhor? (carrega para abrir)</span>
 
-      <div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap">
+      ${temL?`<details class="g4det"><summary>O que quer dizer a diferença entre ti e o Local?</summary>
+        <div style="padding-bottom:6px">
+          <p class="q-sub">${acima.length?`Em <b>${acima.length}</b> ${acima.length>1?'áreas':'área'} achas que o Local te dá <b>mais</b> do que tu. `:''}${abaixo.length?`Em <b>${abaixo.length}</b> achas que te dá <b>menos</b>. `:''}${igual.length?`Em <b>${igual.length}</b> está <b>igual</b>.`:''}</p>
+          ${abaixo.length?`<p class="q-sub" style="margin-top:10px"><b style="color:var(--afasta)">Onde te deste mais do que o Local</b> (${abaixo.map(k=>DIMS[k].n).join(', ')}): achas que és <b>melhor</b> do que eles te veem. Pode ser que faças coisas boas que eles ainda não viram — então é mostrá-las! — ou que estejas a puxar um bocadinho por ti. Fala nisso na avaliação.</p>`:''}
+          ${acima.length?`<p class="q-sub" style="margin-top:10px"><b style="color:var(--aproxima)">Onde o Local te dá mais do que tu</b> (${acima.map(k=>DIMS[k].n).join(', ')}): achas que eles te veem <b>melhor</b> do que tu te vês. Se calhar estás a ser <b>duro de mais contigo</b> e devias dar-te crédito. Vê na conversa se eles concordam.</p>`:''}
+          ${igual.length?`<p class="q-sub" style="margin-top:10px"><b style="color:var(--marker)">Onde está igual</b> (${igual.map(k=>DIMS[k].n).join(', ')}): vês-te tal como achas que eles te veem. Boa base para conversar.</p>`:''}
+          <p class="q-sub" style="margin-top:10px">Nada disto é mau. Serve para chegares à avaliação já a saber o que queres dizer.</p>
+        </div></details>`:''}
+
+      <details class="g4det"><summary>Porque é que não há 10?</summary>
+        <p class="q-sub" style="padding-bottom:6px">Ninguém é 10 — nem é para ser! Um 10 quereria dizer que já está <b>tudo perfeito</b> e que não há mais nada para aprender. E há sempre algo para aprender. Por isso o máximo aqui é <b>9</b> — e já um 9 é muito difícil, mesmo para quem faz isto há muitos anos.</p></details>
+
+      <details class="g4det"><summary>E se agora te deste notas mais baixas do que no início?</summary>
+        <p class="q-sub" style="padding-bottom:6px">É normal e <b>não quer dizer que estás pior</b>! Muitas vezes é ao contrário: já percebes melhor o que o trabalho pede, por isso avalias-te com mais cuidado. Depois, à medida que fores crescendo, elas voltam a subir. 🙂</p></details>
+
+      <details class="g4det hot"><summary>📋 Ver todas as perguntas e quanto valeu cada resposta</summary>
+        <div class="g4-rev" style="padding-bottom:8px">
+          <p class="hint" style="margin:2px 0 18px;max-width:66ch">Aqui vês as perguntas que te fizeram, a resposta que deste e quanto valeu (de <b>1 a 9</b>). As que têm <b>↺</b> estavam ao contrário: nessas, concordar/fazer vale <b>menos</b>.</p>
+          ${Object.keys(DIMS).map(k=>{ const meus=G4.qs.map((A,i)=>({A,i})).filter(x=>x.A.k===k);
+            return `<div class="revdim">
+              <div class="revdim-h"><span class="g4-id" style="color:${DIMS[k].c}">${k}</span><b>${DIMS[k].n}</b><span class="revdim-m">média ${D[k].toFixed(1)} → ${g4Num(D[k])}</span></div>
+              ${meus.map(({A,i})=>{const labels=g4Labels(A); const meu=G4.ans[i];
+                return `<div class="revq">
+                  <div class="revq-top"><span class="g4-id" style="opacity:.5">${A.rev?'↺':'·'}</span><b>${A.t}</b></div>
+                  <p class="hint" style="margin:-4px 0 8px;opacity:.6">${G4_FACETS[A.k][A.f]}</p>
+                  ${labels.map((lab,idx)=>`<div class="revl ${idx===meu?'meu':''}"><span class="revn">${g4Val(A,idx)}</span><span>${lab}</span>${idx===meu?'<em>a tua</em>':''}</div>`).join('')}
+                  <p class="hint" style="margin-top:8px;opacity:.8;line-height:1.45"><b style="opacity:.9">Porquê:</b> ${G4_PORQUE[A.f]}</p>
+                </div>`;}).join('')}
+            </div>`;}).join('')}
+        </div></details>
+
+      <div style="margin-top:26px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-solid" onclick="g4PDF()">Guardar PDF</button>
         <button class="btn btn-yellow" onclick="g4Reset();window.scrollTo(0,0)">Jogar outra vez</button>
-        <button class="btn" onclick="go('home')">Menu</button></div>`;
+        <button class="btn" onclick="go('home')">Menu</button></div>
+      <p class="hint" style="margin-top:12px;max-width:60ch;opacity:.7">Se quiseres, depois de guardares o PDF podes mostrá-lo à Teresa — mas só se te apetecer. Isto é teu.</p>`;
     window.scrollTo(0,0);
     return;
   }
