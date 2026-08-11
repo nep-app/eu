@@ -2809,6 +2809,17 @@ const G4_PORQUE={
 const G4_BANDAS=[["1-2","Insuficiente"],["3-4","Abaixo do esperado"],["5","Suficiente"],["6-7","Bom"],["8-9","Muito Bom"],["10","Excelente"]];
 const G4_ESCC=["#E2574C","#E8894C","#E4BE45","#8FB964","#2E9E7B"]; /* escada: vermelho→verde (sobe = melhor) */
 const G4_ESCH=[60,82,102,122,146];                                 /* alturas crescentes dos degraus dáveis */
+/* Modo simplificado (linguagem fácil) — ligado por ?simples=1 no link. Por agora
+   só a Teresa recebe esse link (ver RecursosTab), para testar antes de aplicar a todos. */
+const G4_SIMPLES=/[?&]simples=1/.test(location.search||'');
+const G4_NOME_SIMPLES={
+ D1:"Falar e dar-te com os outros",
+ D2:"Aguentar o stress e as mudanças",
+ D3:"Fazer as coisas por ti",
+ D4:"Conhecer-te e ter objetivos",
+ D5:"Computador, serviços e papéis",
+ D6:"O teu trabalho com o grupo"
+};
 /* Descritores oficiais de autoavaliação do EDUCA+ (documento «Descritores de
    Autoavaliação — JEEP», versão revista). Texto tal e qual. */
 const G4_DESC={
@@ -2891,6 +2902,22 @@ function g4Reset(){
 function g4Draw(){
   const b=document.getElementById('g4-body');
   if(G4.step===0){
+    if(G4_SIMPLES){
+      b.innerHTML=`<div class="g4-intro">
+        <div style="text-align:center;padding:2px 0 0">
+          <div style="font-size:44px;line-height:1;margin-bottom:4px">🪞</div>
+          <h1 style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;font-size:24px;line-height:1.15;margin:0 0 6px">Como te vês?</h1>
+          <p style="color:var(--chalk);font-size:14.5px;line-height:1.5;max-width:30ch;margin:0 auto">Um jogo curto sobre ti. <b>Não é um teste.</b> Não há certo nem errado.</p>
+        </div>
+        <div style="display:grid;gap:9px;margin:18px 0 14px">
+          <div class="g4-step" style="border-color:rgba(74,108,240,.4);background:rgba(74,108,240,.1)"><div class="g4-step-n" style="background:var(--marker)">1</div><div><b style="color:#a9beff">Respondes sobre ti</b>Aparecem frases sobre o teu dia a dia. Escolhes o que é <b>verdade para ti</b>.</div></div>
+          <div class="g4-step" style="border-color:rgba(255,216,77,.45);background:rgba(255,216,77,.1)"><div class="g4-step-n" style="background:var(--postit);color:var(--ink)">2</div><div><b style="color:var(--postit)">O que achas que eles pensam</b>Dizes que nota achas que o teu <b>Local</b> (o sítio onde trabalhas) te daria.</div></div>
+          <div class="g4-step" style="border-color:rgba(46,158,123,.4);background:rgba(46,158,123,.1)"><div class="g4-step-n" style="background:var(--aproxima)">3</div><div><b style="color:#7fd6b3">Vês as duas juntas</b>No fim vês <b>como tu te vês</b> e <b>como achas que eles te veem</b>, lado a lado.</div></div>
+        </div>
+        <div style="background:rgba(143,166,255,.1);border:1px solid rgba(143,166,255,.4);border-radius:12px;padding:11px 14px;font-size:13px;line-height:1.5;color:var(--paper)">💡 <b>Para que serve?</b> Para te conheceres melhor e estares mais preparado para a tua avaliação. Responde só a <b>verdade</b> — às vezes concordar não é o melhor.</div>
+        <button class="btn btn-yellow" style="margin-top:16px;width:100%;font-size:16px;padding:14px" onclick="G4.step=1;g4Draw();window.scrollTo(0,0)">Começar →</button></div>`;
+      return;
+    }
     b.innerHTML=`<div class="g4-intro">
       <div style="text-align:center;padding:2px 0 0">
         <div style="font-size:38px;line-height:1;margin-bottom:2px">🪞</div>
@@ -3041,6 +3068,50 @@ function g4Result(){
   const locMid=b=>({'1-2':1.5,'3-4':3.5,'5':5,'6-7':6.5,'8-9':8.5,'10':9})[b]||5;
   const temL=Object.keys(DIMS).some(k=>G4.loc[k]);
   const barra=(v,c,lab)=>`<div style="flex:1;height:18px;background:rgba(247,242,231,.07);border-radius:9px;overflow:hidden"><div style="height:100%;width:${Math.round(Math.min(v,9)/9*100)}%;background:${c};border-radius:9px"></div></div><span style="font-size:13.5px;font-weight:800;min-width:30px;text-align:right;white-space:nowrap">${lab}</span>`;
+  if(G4_SIMPLES){
+    const cmpS=k=>{const dd=dl[k];if(dd===null)return '';
+      if(dd>0)return 'Achas que eles te veem <b>melhor</b> do que tu te vês.';
+      if(dd<0)return 'Achas que eles te veem <b>pior</b> do que tu te vês.';
+      return 'Vês-te <b>igual</b> ao que achas que eles veem.';};
+    b.innerHTML=`
+      <span class="eyebrow">O que este jogo te mostra</span>
+      <div style="margin:10px 0 20px;padding:13px 15px;border-radius:14px;background:rgba(255,216,77,.10);border:1px solid rgba(255,216,77,.38)">
+        <p style="margin:0;font-size:14px;line-height:1.5"><b style="color:var(--postit)">Isto não é uma nota. 🙂</b> É só para pensares em como te vês. Quem te avalia a sério é uma pessoa que te viu trabalhar, não este ecrã.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px">
+        <div style="border-radius:16px;padding:14px;background:rgba(46,158,123,.10);border:1px solid rgba(46,158,123,.3)">
+          <div style="font-size:22px">💪</div>
+          <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;opacity:.8;margin:6px 0 2px;font-weight:800">O que corre melhor</div>
+          <b style="font-size:14.5px;line-height:1.2;display:block;color:${DIMS[alta[0]].c}">${G4_NOME_SIMPLES[alta[0]]}</b>
+        </div>
+        <div style="border-radius:16px;padding:14px;background:rgba(226,87,76,.10);border:1px solid rgba(226,87,76,.3)">
+          <div style="font-size:22px">🎯</div>
+          <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;opacity:.8;margin:6px 0 2px;font-weight:800">O que podes treinar</div>
+          <b style="font-size:14.5px;line-height:1.2;display:block;color:${DIMS[baixa[0]].c}">${G4_NOME_SIMPLES[baixa[0]]}</b>
+        </div>
+      </div>
+
+      <span class="eyebrow">Tu e o teu Local</span>
+      <p class="hint" style="margin:6px 0 14px;max-width:56ch">${temL?'Barra de cima: como <b>tu</b> te vês. Barra de baixo: como achas que o <b>Local</b> te vê.':'Barra: como <b>tu</b> te vês. (Ainda não deste o palpite do Local.)'}</p>
+      ${Object.keys(DIMS).map(k=>{const lb=G4.loc[k];
+        return `<div style="margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:7px;font-size:14px;margin-bottom:6px"><span style="width:11px;height:11px;border-radius:50%;background:${DIMS[k].c};flex-shrink:0"></span><b>${G4_NOME_SIMPLES[k]}</b></div>
+          <div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="font-size:11px;width:44px;color:var(--chalk);flex-shrink:0">Tu</span>${barra(g4Num(D[k]),DIMS[k].c,g4Num(D[k]))}</div>
+          ${lb?`<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="font-size:11px;width:44px;color:var(--chalk);opacity:.6;flex-shrink:0">Local</span>${barra(locMid(lb),'#8a8298',lb)}</div>`:''}
+          ${lb?`<p style="font-size:12.5px;margin:6px 0 0;color:var(--chalk);line-height:1.45">${cmpS(k)}</p>`:''}
+        </div>`;}).join('')}
+
+      <div style="margin-top:14px;padding:13px 15px;border-radius:14px;background:rgba(143,166,255,.1);border:1px solid rgba(143,166,255,.4)">
+        <p style="margin:0;font-size:13.5px;line-height:1.5"><b>E agora?</b> Não há aqui nada de mau. Guarda o que viste na cabeça e <b>fala disto na tua avaliação</b> — serve para te ajudar a pensar e a falar sobre o teu trabalho.</p>
+      </div>
+
+      <div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-yellow" onclick="g4Reset();window.scrollTo(0,0)">Jogar outra vez</button>
+        <button class="btn" onclick="go('home')">Menu</button></div>`;
+    window.scrollTo(0,0);
+    return;
+  }
   const cmpTag=k=>{const dd=dl[k];if(dd===null)return '';
     if(dd>0)return `<div style="font-size:12.5px;margin-top:6px;padding:8px 11px;border-radius:10px;line-height:1.45;color:#bfe6d2;background:rgba(46,158,123,.14)">As tuas respostas sugerem que achas que o teu <b>Local te avalia de forma mais positiva</b> do que tu te vês a ti próprio/a.</div>`;
     if(dd<0)return `<div style="font-size:12.5px;margin-top:6px;padding:8px 11px;border-radius:10px;line-height:1.45;color:#f3c0bb;background:rgba(226,87,76,.14)">As tuas respostas sugerem que achas que o teu <b>Local te avalia de forma menos positiva</b> do que tu te vês a ti próprio/a.</div>`;
