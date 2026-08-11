@@ -55,6 +55,14 @@ export default function AdminTarefas() {
     setEditId(null);
   }
 
+  // Só o admin pode marcar/desmarcar como feita as tarefas que o próprio admin
+  // atribuiu (addedBy === "teresa"). Escreve no mesmo documento que o jovem lê,
+  // por isso o estado aparece logo no perfil dele.
+  async function toggleDoneAdmin(t) {
+    if (t.addedBy !== "teresa") return;
+    await updateDoc(doc(db, "todos", t.userId, "items", t.id), { done: !t.done });
+  }
+
   async function addAdminTodo() {
     if (!adminSuggTxt.trim()) return;
     const isForcar = modo === "forcar";
@@ -170,7 +178,14 @@ export default function AdminTarefas() {
                 ) : (
                   <>
                     <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                      <div style={{ width:16, height:16, borderRadius:4, border:`2px solid ${t.done ? "#4ade80" : "#64748b"}`, background:t.done ? "#4ade80" : "transparent", flexShrink:0 }} />
+                      {t.addedBy === "teresa" ? (
+                        <button onClick={() => toggleDoneAdmin(t)} title={t.done ? "Marcar como por fazer" : "Marcar como feita"}
+                          style={{ width:20, height:20, borderRadius:5, border:`2px solid ${t.done ? "#4ade80" : "#64748b"}`, background:t.done ? "#4ade80" : "transparent", flexShrink:0, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", padding:0, color:"#0b1220", fontSize:13, fontWeight:900, lineHeight:1 }}>
+                          {t.done ? "✓" : ""}
+                        </button>
+                      ) : (
+                        <div title="Só podes marcar as tarefas que foste tu a atribuir" style={{ width:16, height:16, borderRadius:4, border:`2px solid ${t.done ? "#4ade80" : "#64748b"}`, background:t.done ? "#4ade80" : "transparent", flexShrink:0 }} />
+                      )}
                       <div style={{ flex:1 }}>
                         <div style={{ fontSize:14, color:"#fff", textDecoration:t.done?"line-through":"none", opacity:t.done?0.5:1 }}>{t.text}</div>
                         <div style={{ fontSize:11, color:"#94a3b8", marginTop:4 }}>
