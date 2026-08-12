@@ -2671,7 +2671,7 @@ const G4_POOL={
   {f:"equipa",t:"Prefiro fazer eu as coisas, mesmo que me dê mais trabalho — assim sei que ficam bem feitas e à minha maneira.",rev:true},
   {f:"equipa",t:"Falo de maneira diferente com um miúdo, com um colega e com a coordenação, conforme a situação pede.",freq:true},
   {f:"equipa",t:"Tento entender os meus colegas quando têm ideias ou opiniões diferentes ou opostas às minhas.",freq:true},
-  {f:"equipa",t:"Quando tenho ideias que acho boas, guardo-as para mim por receio de que achem que não fazem sentido ou são estúpidas.",rev:true}
+  {f:"equipa",t:"Quando tenho ideias que acho boas, guardo-as para mim por receio de que achem que não fazem sentido ou são estúpidas.",rev:true,freq:true}
  ],
  D2:[
   {f:"stress",t:"Levo as chatices do trabalho para casa e fico a matutar nelas.",rev:true,freq:true},
@@ -2683,7 +2683,7 @@ const G4_POOL={
   {f:"frustra",t:"Preciso que as coisas corram como as tinha imaginado.",rev:true},
   {f:"frustra",t:"Preparei um jogo e ninguém quer jogar. Sinto uma frustração que me vai crescendo por dentro.",rev:true},
   {f:"frustra",t:"Quando falho uma coisa à frente dos outros, fico com aquilo atravessado o resto do dia.",rev:true,freq:true},
-  {f:"frustra",t:"Quando um miúdo me responde torto e não obedece, não deixo que isso me tire do sério.",freq:true},
+  {f:"frustra",t:"Quando um miúdo me responde torto e não obedece, não deixo que isso me tire do sério."},
   {f:"frustra",t:"Quando preparo muito uma atividade e um imprevisto a estraga, não desisto e dou a volta.",freq:true},
   {f:"frustra",t:"Perco facilmente a paciência quando não me entendem à primeira e tenho de repetir muitas vezes a mesma explicação.",rev:true,freq:true},
   {f:"adapta",t:"Quando um plano me falha à última hora, fico sem saber o que fazer.",rev:true},
@@ -2740,7 +2740,7 @@ const G4_POOL={
   {f:"digital",t:"Responder a um email, imprimir um documento ou procurar algo online (casa, trabalho, etc.).",cap:true},
   {f:"digital",t:"Quando tenho de aprender a mexer numa ferramenta digital nova, acabo por pedir ajuda a outra pessoa.",rev:true,freq:true},
   {f:"digital",t:"Organizar informação numa tabela ou folha de cálculo — presenças, listas, contactos.",cap:true},
-  {f:"cidada",t:"Reenvio uma notícia se me parecer verdade, sem ir ver de onde veio.",rev:true,freq:true},
+  {f:"cidada",t:"Antes de partilhar uma notícia ou informação com outros, confirmo se é mesmo verdade.",freq:true},
   {f:"cidada",t:"Sei explicar a um miúdo por que é que não deve pôr certas coisas online."},
   {f:"cidada",t:"Consigo travar uma piada preconceituosa sem alinhar nem explodir."},
   {f:"cidada",t:"Não sinto que tenha de ter muito cuidado com o que partilho nas minhas redes sociais, porque confio nas pessoas que lá tenho.",rev:true},
@@ -2758,7 +2758,7 @@ const G4_POOL={
   {f:"ativ",t:"Dar a mesma atividade a um grupo de 10 anos e a um de 16, mudando o que é preciso sem perder a qualidade.",cap:true},
   {f:"ativ",t:"Preparo as sessões antes, mesmo quando ninguém vai verificar."},
   {f:"ativ",t:"Depois de uma sessão que correu mal, mudo alguma coisa na seguinte.",freq:true},
-  {f:"ativ",t:"Quando preparo uma atividade, não penso no que fazer se correr mal — logo se vê na hora.",rev:true,freq:true},
+  {f:"ativ",t:"Quando preparo uma atividade, não penso no que fazer se correr mal — logo se vê na hora.",rev:true},
   {f:"ativ",t:"Tenho dificuldade em avaliar as atividades que faço: mesmo quando resultam, não sei mostrar porquê.",rev:true},
   {f:"postura",t:"Se um miúdo me conta um segredo e me pede para não contar a ninguém, cumpro — seja qual for o segredo.",rev:true},
   {f:"postura",t:"Trabalho pior com miúdos de quem não gosto.",rev:true},
@@ -3078,11 +3078,7 @@ function g4Result(){
         <p style="margin:0;font-size:14px;line-height:1.5"><b style="color:var(--postit)">Isto não é uma nota. 🙂</b> É um jogo para te ajudar a pensar em como <b>tu</b> te vês e em como achas que o teu <b>Local</b> (o sítio onde trabalhas) te vê. Serve para pensares se este resultado é parecido com o que costumas dar-te nas autoavaliações de cada mês — e se bate certo com a nota que achavas que o teu Local te ia dar. E caso não bata certo… para te fazer questionar qual o motivo.</p>
       </div>
 
-      <div style="margin:0 0 22px;padding:13px 15px;border-radius:14px;background:rgba(74,108,240,.12);border:1px solid rgba(74,108,240,.4)">
-        <p style="margin:0;font-size:13.5px;line-height:1.55"><b style="color:#a9beff">Como é que foi calculado o teu resultado?</b> Todos os meses fazes a tua autoavaliação sobre as mesmas <b>6 dimensões</b>. Aqui, para cada dimensão houve <b>3 perguntas</b>. Cada resposta que deste valia um número de <b>1 a 9</b>. Juntou-se as 3 respostas de cada dimensão e fez-se a <b>média</b> — e é esse o teu resultado nessa dimensão. 🙂</p>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
         <div style="border-radius:16px;padding:14px;background:rgba(46,158,123,.10);border:1px solid rgba(46,158,123,.3)">
           <div style="font-size:22px">💪</div>
           <div style="font-size:11px;opacity:.85;margin:6px 0 3px;font-weight:800;line-height:1.3">A dimensão em que tiveste melhor pontuação</div>
@@ -3094,6 +3090,10 @@ function g4Result(){
           <b style="font-size:14px;line-height:1.2;display:block;color:${DIMS[baixa[0]].c}">${DIMS[baixa[0]].n}</b>
           <div style="font-size:11px;opacity:.8;margin-top:5px;line-height:1.4">Se calhar é nesta que te deves focar mais por agora. 🙂</div>
         </div>
+      </div>
+
+      <div style="margin:0 0 22px;padding:13px 15px;border-radius:14px;background:rgba(74,108,240,.12);border:1px solid rgba(74,108,240,.4)">
+        <p style="margin:0;font-size:13.5px;line-height:1.55"><b style="color:#a9beff">Como é que foi calculado o teu resultado?</b> Todos os meses fazes a tua autoavaliação sobre as mesmas <b>6 dimensões</b>. Aqui, para cada dimensão houve <b>3 perguntas</b>. Cada resposta que deste valia um número de <b>1 a 9</b>. Juntou-se as 3 respostas de cada dimensão e fez-se a <b>média</b> — e é esse o teu resultado nessa dimensão. 🙂</p>
       </div>
 
       <span class="eyebrow">Tu e o teu Local, lado a lado</span>
