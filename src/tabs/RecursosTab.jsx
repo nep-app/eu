@@ -353,8 +353,9 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
                               <tr key={h.ts || i} style={{ borderTop:"1px solid rgba(99,102,241,0.12)" }}>
                                 <td style={{ padding:"8px 10px", color: light ? "#4a3f80" : "#e2e8f0", fontWeight:700 }}>{h.date}</td>
                                 {CTV_DIMS.map(([code,, cor]) => (
-                                  <td key={code} style={{ padding:"8px 8px", textAlign:"center", color:cor, fontWeight:800 }}>
-                                    {h.tu?.[code] ?? "—"}
+                                  <td key={code} style={{ padding:"7px 8px", textAlign:"center" }}>
+                                    <div style={{ color:cor, fontWeight:800 }}>{h.tu?.[code] ?? "—"}</div>
+                                    <div style={{ fontSize:9.5, color: light ? "#8b7fb8" : "#8a8298", marginTop:2, fontWeight:700 }}>{h.loc?.[code] ?? "—"}</div>
                                   </td>
                                 ))}
                               </tr>
@@ -366,10 +367,13 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
                   )}
 
                   {verHist && ctvHist.length > 0 && (
-                    <div style={{ display:"flex", flexWrap:"wrap", gap:"4px 12px", padding:"10px 4px 0", fontSize:10, color: light ? "#6b5fa8" : TXT_MUT }}>
-                      {CTV_DIMS.map(([code, nome, cor]) => (
-                        <span key={code}><b style={{ color:cor }}>{code}</b> {nome}</span>
-                      ))}
+                    <div style={{ padding:"10px 4px 0", fontSize:10, color: light ? "#6b5fa8" : TXT_MUT }}>
+                      <div style={{ marginBottom:6 }}>Em cada dimensão: <b>em cima</b> a tua nota, <b>em baixo</b> o palpite do Local.</div>
+                      <div style={{ display:"flex", flexWrap:"wrap", gap:"4px 12px" }}>
+                        {CTV_DIMS.map(([code, nome, cor]) => (
+                          <span key={code}><b style={{ color:cor }}>{code}</b> {nome}</span>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
