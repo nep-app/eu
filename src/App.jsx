@@ -3,7 +3,7 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, on
 import { doc, setDoc, onSnapshot, arrayUnion } from "firebase/firestore";
 import { auth, db } from "./firebase.js";
 import { AppIcon, BG, CYN } from "./theme.jsx";
-import { ALLOWED_USERNAMES, USERS, nowLabel, GDPR_TEXT } from "./data.js";
+import { ALLOWED_USERNAMES, BLOCKED_USERNAMES, USERS, nowLabel, GDPR_TEXT } from "./data.js";
 import TeresaAdmin from "./TeresaAdmin.jsx";
 import JovensApp from "./JovensApp.jsx";
 
@@ -65,6 +65,7 @@ export default function App() {
     const u = uIn.toLowerCase().trim();
     setLErr("");
     if (!u) { setLErr("Introduz o teu username."); return; }
+    if (BLOCKED_USERNAMES.includes(u)) { setLErr("Este acesso está desativado. Fala com a Teresa."); return; }
     if (u !== "admin" && u !== "demo" && !ALLOWED_USERNAMES.includes(u)) { setLErr("Username não autorizado."); return; }
     if (!pIn) { setLErr("Introduz a tua password."); return; }
     try {
@@ -108,6 +109,7 @@ export default function App() {
     const u = novoUser.toLowerCase().trim();
     setNovoErr("");
     if (!u) { setNovoErr("Escreve o teu nome de utilizador."); return; }
+    if (BLOCKED_USERNAMES.includes(u)) { setNovoErr("Este acesso está desativado. Fala com a Teresa."); return; }
     if (u === "admin" || !ALLOWED_USERNAMES.includes(u)) {
       setNovoErr("Esse nome não está autorizado. Pede à Teresa para te adicionar."); return;
     }

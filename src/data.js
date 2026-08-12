@@ -53,6 +53,8 @@ export function buildAutoavEntry(uData, ciclo) {
 }
 
 export const ALLOWED_USERNAMES = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","marisa","tamara","teresa","ricardo","demo"];
+// Contas com o acesso desativado (não entram nem se registam). Reversível: basta tirar daqui.
+export const BLOCKED_USERNAMES = ["salimo"];
 export const SPECIAL_USERS = ["teresa","ricardo","demo"];
 export const USERS = [
   { username:"nilton",   realName:"Nilton",   color:"#22d3ee" },
