@@ -35,6 +35,14 @@ export default function App() {
       if (!fbUser) { setLoading(false); setScreen("login"); return; }
       const email = fbUser.email || "";
       const uname = email.replace("@jeep.app", "");
+      // Conta bloqueada: fecha a sessão automaticamente (mesmo que já estivesse
+      // logado no aparelho dele) e não deixa voltar a entrar.
+      if (BLOCKED_USERNAMES.includes(uname)) {
+        signOut(auth);
+        setUser(null); setScreen("login"); setLoading(false);
+        setLErr("Este acesso está desativado. Fala com a Teresa.");
+        return;
+      }
       if (uname === "admin") {
         setUser({ username:"admin", realName:"Teresa (GO)", color:"#22d3ee", isAdmin:true });
         setScreen("app");

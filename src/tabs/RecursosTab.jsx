@@ -328,17 +328,17 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
                   <button onClick={() => setVerHist(v => !v)} style={{
                     width:"100%", textAlign:"left", cursor:"pointer",
                     padding:"14px 16px", borderRadius:18,
-                    background: "#14b8a626",
-                    border: "1px solid #14b8a666",
-                    borderLeft: "6px solid #14b8a6",
+                    background: "#7B5CFF26",
+                    border: "1px solid #7B5CFF66",
+                    borderLeft: "6px solid #7B5CFF",
                     display:"flex", alignItems:"center", gap:14,
                   }}>
-                    <span style={{ width:46, height:46, borderRadius:13, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, background:"#14b8a644", border:"1px solid #14b8a6" }}>📊</span>
+                    <span style={{ width:46, height:46, borderRadius:13, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, background:"#7B5CFF44", border:"1px solid #7B5CFF" }}>📊</span>
                     <div style={{ flex:1 }}>
-                      <div style={{ fontSize:13, fontWeight:800, color:"#2dd4bf" }}>Respostas guardadas do jogo «Como te vês?» ({ctvHist.length})</div>
+                      <div style={{ fontSize:13, fontWeight:800, color:"#7B5CFF" }}>Respostas guardadas do jogo «Como te vês?» ({ctvHist.length})</div>
                       <div style={{ fontSize:11, color:roxo2, marginTop:2 }}>As respostas que guardaste deste jogo, para veres como mudaram ao longo do tempo.</div>
                     </div>
-                    <span style={{ fontSize:16, color:"#14b8a6" }}>{verHist ? "▲" : "▼"}</span>
+                    <span style={{ fontSize:16, color:"#7B5CFF" }}>{verHist ? "▲" : "▼"}</span>
                   </button>
 
                   {verHist && (
