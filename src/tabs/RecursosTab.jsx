@@ -159,12 +159,12 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
     const cor = r.id === "__arcade4" ? "#7B5CFF" : "#2196F3";
     const cardStyle = {
       padding:"14px 16px", borderRadius:18, marginBottom:10,
-      background: `${cor}14`,
-      border: `1px solid ${cor}33`,
-      borderLeft: `5px solid ${cor}`,
+      background: `${cor}26`,
+      border: `1px solid ${cor}66`,
+      borderLeft: `6px solid ${cor}`,
     };
     const bolha = (icone) => (
-      <span style={{ width:46, height:46, borderRadius:13, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, background:`${cor}26`, border:`1px solid ${cor}44` }}>{icone || "📄"}</span>
+      <span style={{ width:46, height:46, borderRadius:13, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, background:`${cor}44`, border:`1px solid ${cor}` }}>{icone || "📄"}</span>
     );
     if (r.sublinks) {
       return (
@@ -172,7 +172,7 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
           <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:12 }}>
             {bolha(r.icone)}
             <div style={{ flex:1 }}>
-              <div style={{ fontSize:13, fontWeight:800, color:roxo }}>{r.titulo}</div>
+              <div style={{ fontSize:13, fontWeight:800, color:cor }}>{r.titulo}</div>
               {r.desc && <div style={{ fontSize:11, color:roxo2, marginTop:2 }}>{r.desc}</div>}
             </div>
           </div>
@@ -210,7 +210,7 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
         }}>
           {bolha(r.icone)}
           <div style={{ flex:1 }}>
-            <div style={{ fontSize:13, fontWeight:800, color:roxo }}>{r.titulo}</div>
+            <div style={{ fontSize:13, fontWeight:800, color:cor }}>{r.titulo}</div>
             {r.desc && <div style={{ fontSize:11, color:roxo2, marginTop:2 }}>{r.desc}</div>}
           </div>
           <span style={{ fontSize:16, color:cor }}>→</span>
@@ -223,7 +223,7 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
       }}>
         {bolha(r.icone)}
         <div style={{ flex:1 }}>
-          <div style={{ fontSize:13, fontWeight:800, color:roxo }}>{r.titulo}</div>
+          <div style={{ fontSize:13, fontWeight:800, color:cor }}>{r.titulo}</div>
           {r.desc && <div style={{ fontSize:11, color:roxo2, marginTop:2 }}>{r.desc}</div>}
         </div>
         <span style={{ fontSize:16, color:cor }}>→</span>
@@ -241,14 +241,14 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
     <button key={titulo} onClick={onClick} style={{
       width:"100%", textAlign:"left", cursor:"pointer",
       padding:"14px 16px", borderRadius:18, marginBottom:10,
-      background: `${cor}14`,
-      border: `1px solid ${cor}33`,
-      borderLeft: `5px solid ${cor}`,
+      background: `${cor}26`,
+      border: `1px solid ${cor}66`,
+      borderLeft: `6px solid ${cor}`,
       display:"flex", alignItems:"center", gap:14,
     }}>
-      <span style={{ width:46, height:46, borderRadius:13, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, background:`${cor}26`, border:`1px solid ${cor}44` }}>{icone}</span>
+      <span style={{ width:46, height:46, borderRadius:13, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, background:`${cor}44`, border:`1px solid ${cor}` }}>{icone}</span>
       <div style={{ flex:1 }}>
-        <div style={{ fontSize:13, fontWeight:800, color:roxo }}>{titulo}</div>
+        <div style={{ fontSize:13, fontWeight:800, color:cor }}>{titulo}</div>
         <div style={{ fontSize:11, color:roxo2, marginTop:2 }}>{desc}</div>
       </div>
       <span style={{ fontSize:16, color:cor }}>→</span>
@@ -328,14 +328,14 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
                   <button onClick={() => setVerHist(v => !v)} style={{
                     width:"100%", textAlign:"left", cursor:"pointer",
                     padding:"14px 16px", borderRadius:18,
-                    background: "#14b8a614",
-                    border: "1px solid #14b8a633",
-                    borderLeft: "5px solid #14b8a6",
+                    background: "#14b8a626",
+                    border: "1px solid #14b8a666",
+                    borderLeft: "6px solid #14b8a6",
                     display:"flex", alignItems:"center", gap:14,
                   }}>
-                    <span style={{ width:46, height:46, borderRadius:13, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, background:"#14b8a626", border:"1px solid #14b8a644" }}>📊</span>
+                    <span style={{ width:46, height:46, borderRadius:13, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, background:"#14b8a644", border:"1px solid #14b8a6" }}>📊</span>
                     <div style={{ flex:1 }}>
-                      <div style={{ fontSize:13, fontWeight:800, color:roxo }}>Respostas guardadas do jogo «Como te vês?» ({ctvHist.length})</div>
+                      <div style={{ fontSize:13, fontWeight:800, color:"#2dd4bf" }}>Respostas guardadas do jogo «Como te vês?» ({ctvHist.length})</div>
                       <div style={{ fontSize:11, color:roxo2, marginTop:2 }}>As respostas que guardaste deste jogo, para veres como mudaram ao longo do tempo.</div>
                     </div>
                     <span style={{ fontSize:16, color:"#14b8a6" }}>{verHist ? "▲" : "▼"}</span>
