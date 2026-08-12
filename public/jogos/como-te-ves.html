@@ -34,6 +34,7 @@ h1,h2,h3,.display{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Seg
 .m1 h3{color:var(--afasta)}.m2 h3{color:var(--marker)}.m3 h3{color:#1f7a5e}
 .screen{display:none}.screen.on{display:block}
 .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-bottom:18px;border-bottom:1px dashed var(--line);margin-bottom:32px;flex-wrap:wrap}
+#g4 .topbar{padding-bottom:11px;margin-bottom:16px}
 .topbar h2{font-size:26px}
 .btn{font:inherit;font-weight:600;cursor:pointer;border-radius:2px;padding:12px 20px;border:1px solid var(--line);background:transparent;color:var(--paper);transition:.15s}
 .btn:hover{background:rgba(247,242,231,.09)}
@@ -620,7 +621,7 @@ body.solo [onclick*="g3Leave"]{display:none!important}
 
 <!-- JOGO 4 -->
 <section id="g4" class="screen">
-  <div class="topbar"><div><span class="eyebrow">Autoavaliação · EDUCA+</span></div>
+  <div class="topbar"><div><span class="eyebrow" id="g4-eyebrow">Autoavaliação · EDUCA+</span></div>
   <button class="btn btn-sm" onclick="go('home')">← Menu</button></div>
   <div id="g4-body"></div>
 </section>
@@ -2906,6 +2907,8 @@ function g4Reset(){
 }
 function g4Draw(){
   const b=document.getElementById('g4-body');
+  const eb=document.getElementById('g4-eyebrow');
+  if(eb) eb.textContent='Autoavaliação · EDUCA+'+(G4.step>=3?' · O teu resultado':'');
   if(G4.step===0){
     if(G4_SIMPLES){
       b.innerHTML=`<div class="g4-intro">
@@ -3086,8 +3089,7 @@ function g4Result(){
       if(dd<0)return `<div style="font-size:12.5px;margin-top:6px;padding:8px 11px;border-radius:10px;line-height:1.45;color:#f3c0bb;background:rgba(226,87,76,.14)">Pelas tuas respostas, achas que o teu Local te daria uma nota <b>mais baixa</b> do que a que tiveste neste jogo.</div>`;
       return `<div style="font-size:12.5px;margin-top:6px;padding:8px 11px;border-radius:10px;line-height:1.45;color:var(--chalk);background:rgba(207,199,222,.10)">Pelas tuas respostas, achas que o teu Local te daria a <b>mesma</b> nota que tiveste neste jogo.</div>`;};
     b.innerHTML=`${S}
-      <span class="eyebrow">O teu resultado</span>
-      <div style="margin:10px 0 16px;padding:13px 15px;border-radius:14px;background:rgba(255,216,77,.10);border:1px solid rgba(255,216,77,.38)">
+      <div style="margin:0 0 16px;padding:13px 15px;border-radius:14px;background:rgba(255,216,77,.10);border:1px solid rgba(255,216,77,.38)">
         <p style="margin:0;font-size:14px;line-height:1.5"><b style="color:var(--postit)">Isto não é uma nota. 🙂</b> É um jogo para te ajudar a pensar em como <b>tu</b> te vês, em como achas que o teu <b>Local</b> (o sítio onde trabalhas) te vê, e se os resultados são parecidos com os das tuas <b>autoavaliações mensais</b>. E caso não sejam… para te fazer refletir sobre o motivo.</p>
       </div>
 
