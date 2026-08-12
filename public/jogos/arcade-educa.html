@@ -2324,6 +2324,16 @@ function g4HTML(){
   </div>`;
 }
 function g4PDF(){ paOpen('Como te vês', g4HTML()); }
+/* Envia o resultado para a app (que está a mostrar este jogo dentro de um iframe).
+   A app trata de gravar na conta do jovem. Só funciona quando G4_EMBED é verdade. */
+function g4Guardar(btn){
+  const byDim={}; Object.keys(DIMS).forEach(k=>byDim[k]=[]);
+  G4.qs.forEach((A,i)=>{ if(G4.ans[i]!==undefined) byDim[A.k].push(g4Val(A,G4.ans[i])); });
+  const tu={}, loc={};
+  Object.keys(DIMS).forEach(k=>{ const a=byDim[k]; const avg=a.length?a.reduce((x,y)=>x+y,0)/a.length:5; tu[k]=g4Num(avg); loc[k]=G4.loc[k]||null; });
+  try{ window.parent.postMessage({ type:'ctv-save', ts:Date.now(), tu, loc }, '*'); }catch(e){}
+  if(btn){ btn.textContent='Guardado ✓'; btn.disabled=true; btn.style.opacity=.75; }
+}
 function g3Copy(btn){navigator.clipboard.writeText(window.__pia).then(()=>{const o=btn.textContent;btn.textContent='Copiado';setTimeout(()=>btn.textContent=o,1600);});}
 function g3Download(){
   const b=new Blob([window.__pia],{type:'text/plain;charset=utf-8'});
@@ -2661,7 +2671,7 @@ const G4_POOL={
   {f:"assert",t:"Faço-me respeitar pelo grupo sem ter de me impor pelo medo nem deixar que façam tudo o que querem.",freq:true},
   {f:"assert",t:"Quando sinto que já tenho trabalho a mais para o tempo e a energia que tenho, paro de aceitar novas tarefas e pedidos de favores.",freq:true},
   {f:"apoio",t:"Quando alguém se oferece para me ajudar, aceito em vez de dizer que está tudo controlado.",freq:true},
-  {f:"apoio",t:"Quando estou a bloquear numa tarefa, prefiro continuar a tentar por mim do que pedir ajuda.",rev:true},
+  {f:"apoio",t:"Quando estou a bloquear numa tarefa, prefiro continuar a tentar por mim do que pedir ajuda.",rev:true,freq:true},
   {f:"apoio",t:"Peço ajuda aos meus colegas quando sinto que estou atrapalhado com algo.",freq:true},
   {f:"apoio",t:"Peço feedback sobre o meu trabalho sem esperar que mo venham dar.",freq:true},
   {f:"apoio",t:"Custa-me admitir aos colegas que estou com dificuldade e a precisar de ajuda.",rev:true},
@@ -2730,7 +2740,7 @@ const G4_POOL={
   {f:"metas",t:"Tenho um plano para depois do EDUCA+ com passos concretos, não só uma ideia vaga."},
   {f:"metas",t:"Mesmo quando sei o que quero, não faço ideia de que passos dar para lá chegar.",rev:true},
   {f:"metas",t:"Faço escolhas no dia a dia a pensar onde quero chegar, e não só no que dá jeito agora.",freq:true},
-  {f:"metas",t:"Já dei pelo menos um passo concreto — uma inscrição, um contacto, uma candidatura — para atingir o que quero fazer a seguir."},
+  {f:"metas",t:"Já dei pelo menos um passo concreto — uma inscrição, um contacto, uma candidatura — para chegar àquilo que quero fazer a seguir na minha vida."},
   {f:"metas",t:"Evito pensar no futuro — vivo um dia de cada vez e logo se vê.",rev:true}
  ],
  D5:[
@@ -2812,6 +2822,9 @@ const G4_ESCH=[60,82,102,122,146];                                 /* alturas cr
 /* Modo simplificado (linguagem fácil) — agora é a versão para TODOS, por isso é o
    predefinido. Saída de emergência: abrir com ?simples=0 mostra a versão antiga. */
 const G4_SIMPLES=!/[?&]simples=0/.test(location.search||'');
+/* Está a correr dentro da app (num iframe)? Só nesse caso mostramos o botão de
+   guardar — o jogo envia o resultado para a app, que grava na conta do jovem. */
+const G4_EMBED=(function(){try{return window.parent&&window.parent!==window;}catch(e){return false;}})();
 /* Descritores oficiais de autoavaliação do EDUCA+ (documento «Descritores de
    Autoavaliação — JEEP», versão revista). Texto tal e qual. */
 const G4_DESC={
@@ -3141,6 +3154,7 @@ function g4Result(){
         </div></details>
 
       <div style="margin-top:26px;display:flex;gap:10px;flex-wrap:wrap">
+        ${G4_EMBED?`<button class="btn btn-solid" onclick="g4Guardar(this)">💾 Guardar as minhas respostas</button>`:''}
         <button class="btn btn-solid" onclick="g4PDF()">Guardar PDF</button>
         <button class="btn btn-yellow" onclick="g4Reset();window.scrollTo(0,0)">Jogar outra vez</button>
         <button class="btn" onclick="go('home')">Menu</button></div>

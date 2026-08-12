@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { collection, onSnapshot, doc, setDoc } from "firebase/firestore";
+import { collection, onSnapshot, doc, setDoc, arrayUnion } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { TXT_MUT } from "../theme.jsx";
 import { getWeekKey, nowLabel } from "../data.js";
@@ -33,6 +33,16 @@ const RECURSOS_FIXOS = [
   },
 ];
 
+// Dimensões do jogo "Como te vês" — só para mostrar o histórico guardado (código + nome curto + cor).
+const CTV_DIMS = [
+  ["D1", "Comunicação",     "#E2574C"],
+  ["D2", "Resiliência",     "#F0932B"],
+  ["D3", "Autonomia",       "#FFD84D"],
+  ["D4", "Autoconhecim.",   "#B79CE8"],
+  ["D5", "Digital/Cidad.",  "#4A6CF0"],
+  ["D6", "Intervenção",     "#2E9E7B"],
+];
+
 // Secções da aba. A categoria de cada recurso (campo `categoria`, gerido no admin)
 // decide onde aparece. Recursos sem categoria caem em "guias".
 const SECOES = [
@@ -57,6 +67,10 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
   const [atividade, setAtividade] = useState(null); // dentro de "Atividades": null|"roda"|"capsula"
   const [recursosDb, setRecursosDb] = useState([]);
   const [arcadeCfg, setArcadeCfg] = useState({ users: [], jogos: {} });
+  const [jogoUrl, setJogoUrl] = useState(null);   // jogo "Como te vês" aberto dentro da app (iframe)
+  const [ctvHist, setCtvHist] = useState([]);      // respostas guardadas do jogo, ao longo do tempo
+  const [verHist, setVerHist] = useState(false);
+  const [guardadoAviso, setGuardadoAviso] = useState(false);
 
   // Recursos carregados no admin (coleção "recursos"), filtrados por destinatário.
   useEffect(() => {
@@ -75,6 +89,34 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
       setArcadeCfg({ users: d.users || [], jogos: d.jogos || {} });
     });
   }, []);
+
+  // Histórico das respostas guardadas do jogo "Como te vês".
+  useEffect(() => {
+    return onSnapshot(doc(db, "userData", user.username), s => {
+      setCtvHist(s.exists() ? (s.data().ctvHist || []) : []);
+    });
+  }, [user.username]);
+
+  // Ouve o jogo (dentro do iframe) a pedir para guardar as respostas.
+  useEffect(() => {
+    async function onMsg(e) {
+      if (e.origin !== window.location.origin) return;         // só o jogo, mesma origem
+      if (!e.data || e.data.type !== "ctv-save") return;
+      const entry = {
+        ts: e.data.ts || Date.now(),
+        date: nowLabel(),
+        tu: e.data.tu || {},
+        loc: e.data.loc || {},
+      };
+      try {
+        await setDoc(doc(db, "userData", user.username), { ctvHist: arrayUnion(entry) }, { merge: true });
+        setGuardadoAviso(true);
+        setTimeout(() => setGuardadoAviso(false), 3500);
+      } catch (_) {}
+    }
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, [user.username]);
 
   // XP por visitar os recursos (jogos/guias/sites/docs — não o PIA):
   // 20 na 1ª vez de sempre, depois 10 uma vez por semana.
@@ -152,6 +194,23 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
       );
     }
     const safeUrl = /^(https?:\/\/|\/)/.test(r.url) ? r.url : "#";
+    // O jogo "Como te vês" (n:4) abre DENTRO da app (iframe), para poder guardar
+    // as respostas na conta do jovem. Os outros continuam a abrir em separador novo.
+    if (r.n === 4) {
+      return (
+        <button key={r.id} onClick={() => setJogoUrl(r.url)} style={{
+          ...cardStyle, width:"100%", textAlign:"left", cursor:"pointer",
+          display:"flex", alignItems:"center", gap:14,
+        }}>
+          <span style={{ fontSize:26, flexShrink:0 }}>{r.icone || "📄"}</span>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:13, fontWeight:800, color:roxo }}>{r.titulo}</div>
+            {r.desc && <div style={{ fontSize:11, color:roxo2, marginTop:2 }}>{r.desc}</div>}
+          </div>
+          <span style={{ fontSize:14, color:roxo2 }}>→</span>
+        </button>
+      );
+    }
     return (
       <a key={r.id} href={safeUrl} target="_blank" rel="noreferrer" style={{
         ...cardStyle, display:"flex", alignItems:"center", gap:14, textDecoration:"none", transition:"all 0.15s",
@@ -191,6 +250,29 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
 
   return (
     <div style={{ paddingBottom:100 }}>
+      {/* ── JOGO "Como te vês" aberto dentro da app (para guardar as respostas) ── */}
+      {jogoUrl && (
+        <div style={{ position:"fixed", inset:0, zIndex:1000, background:"#181428", display:"flex", flexDirection:"column" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", background:"#0f0d1e", borderBottom:"1px solid rgba(255,255,255,0.08)" }}>
+            <span style={{ fontSize:12, fontWeight:800, color:"#a9beff", letterSpacing:0.4 }}>🪞 Como te vês?</span>
+            <button onClick={() => setJogoUrl(null)} style={{
+              background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)", color:"#fff",
+              borderRadius:10, padding:"6px 14px", fontSize:13, fontWeight:800, cursor:"pointer",
+            }}>✕ Fechar</button>
+          </div>
+          <iframe src={jogoUrl} title="Como te vês" style={{ flex:1, width:"100%", border:"none" }} />
+        </div>
+      )}
+
+      {/* Aviso de "guardado" */}
+      {guardadoAviso && (
+        <div style={{ position:"fixed", left:"50%", bottom:24, transform:"translateX(-50%)", zIndex:1100,
+          background:"#2E9E7B", color:"#fff", padding:"10px 18px", borderRadius:14, fontSize:13, fontWeight:800,
+          boxShadow:"0 8px 24px rgba(0,0,0,0.4)" }}>
+          ✓ Respostas guardadas!
+        </div>
+      )}
+
       {/* ── SUB-NAVEGAÇÃO (PIA · Jogos · Guias · Sites · Documentos) ── */}
       <div style={{ display:"flex", gap:6, padding:"16px 12px 0", justifyContent:"center" }}>
         {SECOES.map(s => {
@@ -231,6 +313,68 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
                 🎲 Atividades
               </div>
               {listaDa("jogo").map(renderCard)}
+
+              {/* Histórico das respostas guardadas do "Como te vês" (junto ao jogo) */}
+              {(jogosArcade.some(j => j.n === 4) || ctvHist.length > 0) && (
+                <div style={{ marginBottom:10 }}>
+                  <button onClick={() => setVerHist(v => !v)} style={{
+                    width:"100%", textAlign:"left", cursor:"pointer",
+                    padding:"14px 16px", borderRadius:18,
+                    background: isTeresa ? "rgba(99,102,241,0.10)" : "rgba(99,102,241,0.08)",
+                    border: isTeresa ? "1px solid rgba(99,102,241,0.40)" : "1px solid rgba(99,102,241,0.20)",
+                    display:"flex", alignItems:"center", gap:14,
+                  }}>
+                    <span style={{ fontSize:26, flexShrink:0 }}>📊</span>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:13, fontWeight:800, color:roxo }}>As tuas respostas guardadas ({ctvHist.length})</div>
+                      <div style={{ fontSize:11, color:roxo2, marginTop:2 }}>Vê como as tuas respostas ao jogo mudaram ao longo do tempo.</div>
+                    </div>
+                    <span style={{ fontSize:14, color:roxo2 }}>{verHist ? "▲" : "▼"}</span>
+                  </button>
+
+                  {verHist && (
+                    ctvHist.length === 0 ? (
+                      <div style={{ padding:"14px 16px", fontSize:12, color: light ? "#6b5fa8" : TXT_MUT, lineHeight:1.5 }}>
+                        Ainda não guardaste nenhuma. Joga o "Como te vês?" e, no fim, carrega em <b>💾 Guardar as minhas respostas</b>.
+                      </div>
+                    ) : (
+                      <div style={{ marginTop:8, overflowX:"auto", borderRadius:14, border:"1px solid rgba(99,102,241,0.20)" }}>
+                        <table style={{ borderCollapse:"collapse", width:"100%", fontSize:12, whiteSpace:"nowrap" }}>
+                          <thead>
+                            <tr>
+                              <th style={{ textAlign:"left", padding:"8px 10px", color: light ? "#6b5fa8" : TXT_MUT, fontSize:10, fontWeight:800 }}>Data</th>
+                              {CTV_DIMS.map(([code,, cor]) => (
+                                <th key={code} title="" style={{ padding:"8px 8px", color:cor, fontSize:11, fontWeight:900 }}>{code}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[...ctvHist].sort((a,b) => (b.ts||0)-(a.ts||0)).map((h, i) => (
+                              <tr key={h.ts || i} style={{ borderTop:"1px solid rgba(99,102,241,0.12)" }}>
+                                <td style={{ padding:"8px 10px", color: light ? "#4a3f80" : "#e2e8f0", fontWeight:700 }}>{h.date}</td>
+                                {CTV_DIMS.map(([code,, cor]) => (
+                                  <td key={code} style={{ padding:"8px 8px", textAlign:"center", color:cor, fontWeight:800 }}>
+                                    {h.tu?.[code] ?? "—"}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )
+                  )}
+
+                  {verHist && ctvHist.length > 0 && (
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:"4px 12px", padding:"10px 4px 0", fontSize:10, color: light ? "#6b5fa8" : TXT_MUT }}>
+                      {CTV_DIMS.map(([code, nome, cor]) => (
+                        <span key={code}><b style={{ color:cor }}>{code}</b> {nome}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {renderActivityButton("🌸", "Roda da Vida", "Avalia as diferentes áreas da tua vida e envia à Teresa.", () => setAtividade("roda"))}
               {renderActivityButton("💌", "Cápsulas do Tempo", "Deixa mensagens trancadas para o teu futuro.", () => setAtividade("capsula"))}
             </>
