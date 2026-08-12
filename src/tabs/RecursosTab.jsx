@@ -155,16 +155,22 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
   const roxo2 = isTeresa ? "#7c3aed" : "#818cf8";
 
   const renderCard = (r) => {
+    // Cor de acento por cartão: o jogo "Como te vês" destaca-se a roxo, o resto azul.
+    const cor = r.id === "__arcade4" ? "#7B5CFF" : "#2196F3";
     const cardStyle = {
       padding:"14px 16px", borderRadius:18, marginBottom:10,
-      background: isTeresa ? "rgba(99,102,241,0.10)" : "rgba(99,102,241,0.08)",
-      border: isTeresa ? "1px solid rgba(99,102,241,0.40)" : "1px solid rgba(99,102,241,0.20)",
+      background: `${cor}14`,
+      border: `1px solid ${cor}33`,
+      borderLeft: `5px solid ${cor}`,
     };
+    const bolha = (icone) => (
+      <span style={{ width:46, height:46, borderRadius:13, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, background:`${cor}26`, border:`1px solid ${cor}44` }}>{icone || "📄"}</span>
+    );
     if (r.sublinks) {
       return (
         <div key={r.id} style={cardStyle}>
           <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:12 }}>
-            <span style={{ fontSize:26, flexShrink:0 }}>{r.icone || "📄"}</span>
+            {bolha(r.icone)}
             <div style={{ flex:1 }}>
               <div style={{ fontSize:13, fontWeight:800, color:roxo }}>{r.titulo}</div>
               {r.desc && <div style={{ fontSize:11, color:roxo2, marginTop:2 }}>{r.desc}</div>}
@@ -202,12 +208,12 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
           ...cardStyle, width:"100%", textAlign:"left", cursor:"pointer",
           display:"flex", alignItems:"center", gap:14,
         }}>
-          <span style={{ fontSize:26, flexShrink:0 }}>{r.icone || "📄"}</span>
+          {bolha(r.icone)}
           <div style={{ flex:1 }}>
             <div style={{ fontSize:13, fontWeight:800, color:roxo }}>{r.titulo}</div>
             {r.desc && <div style={{ fontSize:11, color:roxo2, marginTop:2 }}>{r.desc}</div>}
           </div>
-          <span style={{ fontSize:14, color:roxo2 }}>→</span>
+          <span style={{ fontSize:16, color:cor }}>→</span>
         </button>
       );
     }
@@ -215,12 +221,12 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
       <a key={r.id} href={safeUrl} target="_blank" rel="noreferrer" style={{
         ...cardStyle, display:"flex", alignItems:"center", gap:14, textDecoration:"none", transition:"all 0.15s",
       }}>
-        <span style={{ fontSize:26, flexShrink:0 }}>{r.icone || "📄"}</span>
+        {bolha(r.icone)}
         <div style={{ flex:1 }}>
           <div style={{ fontSize:13, fontWeight:800, color:roxo }}>{r.titulo}</div>
           {r.desc && <div style={{ fontSize:11, color:roxo2, marginTop:2 }}>{r.desc}</div>}
         </div>
-        <span style={{ fontSize:14, color:roxo2 }}>→</span>
+        <span style={{ fontSize:16, color:cor }}>→</span>
       </a>
     );
   };
@@ -231,20 +237,21 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
     cursor:"pointer", marginBottom:14,
   };
 
-  const renderActivityButton = (icone, titulo, desc, onClick) => (
+  const renderActivityButton = (icone, titulo, desc, onClick, cor = "#2196F3") => (
     <button key={titulo} onClick={onClick} style={{
       width:"100%", textAlign:"left", cursor:"pointer",
       padding:"14px 16px", borderRadius:18, marginBottom:10,
-      background: isTeresa ? "rgba(99,102,241,0.10)" : "rgba(99,102,241,0.08)",
-      border: isTeresa ? "1px solid rgba(99,102,241,0.40)" : "1px solid rgba(99,102,241,0.20)",
+      background: `${cor}14`,
+      border: `1px solid ${cor}33`,
+      borderLeft: `5px solid ${cor}`,
       display:"flex", alignItems:"center", gap:14,
     }}>
-      <span style={{ fontSize:26, flexShrink:0 }}>{icone}</span>
+      <span style={{ width:46, height:46, borderRadius:13, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, background:`${cor}26`, border:`1px solid ${cor}44` }}>{icone}</span>
       <div style={{ flex:1 }}>
         <div style={{ fontSize:13, fontWeight:800, color:roxo }}>{titulo}</div>
         <div style={{ fontSize:11, color:roxo2, marginTop:2 }}>{desc}</div>
       </div>
-      <span style={{ fontSize:14, color:roxo2 }}>→</span>
+      <span style={{ fontSize:16, color:cor }}>→</span>
     </button>
   );
 
@@ -280,11 +287,12 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
           return (
             <button key={s.id} onClick={() => { setSecao(s.id); setAtividade(null); }} style={{
               display:"flex", flexDirection:"column", alignItems:"center", gap:3, flex:"1 1 0", minWidth:0,
-              padding:"10px 4px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
-              border: sel ? "1px solid rgba(139,92,246,0.60)" : "1px solid rgba(139,92,246,0.30)",
-              background: sel ? "rgba(139,92,246,0.18)" : "rgba(139,92,246,0.06)",
-              color: sel ? "#a78bfa" : "#a78bfacc",
-              boxShadow: sel ? "0 0 0 1px rgba(99,102,241,0.25)" : "none",
+              padding:"11px 4px", borderRadius:16, cursor:"pointer", transition:"all 0.18s",
+              border: sel ? "1px solid rgba(124,92,255,0.80)" : "1px solid rgba(124,92,255,0.22)",
+              background: sel ? "linear-gradient(135deg, #7B5CFF, #2196F3)" : "rgba(124,92,255,0.08)",
+              color: sel ? "#fff" : "#b9a8f5",
+              boxShadow: sel ? "0 5px 16px rgba(124,92,255,0.40)" : "none",
+              transform: sel ? "translateY(-1px)" : "none",
             }}>
               <span style={{ fontSize:19 }}>{s.icone}</span>
               <span style={{ fontSize:9, fontWeight:900, letterSpacing:0.3, textTransform:"uppercase" }}>{s.label}</span>
@@ -320,16 +328,17 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
                   <button onClick={() => setVerHist(v => !v)} style={{
                     width:"100%", textAlign:"left", cursor:"pointer",
                     padding:"14px 16px", borderRadius:18,
-                    background: isTeresa ? "rgba(99,102,241,0.10)" : "rgba(99,102,241,0.08)",
-                    border: isTeresa ? "1px solid rgba(99,102,241,0.40)" : "1px solid rgba(99,102,241,0.20)",
+                    background: "#14b8a614",
+                    border: "1px solid #14b8a633",
+                    borderLeft: "5px solid #14b8a6",
                     display:"flex", alignItems:"center", gap:14,
                   }}>
-                    <span style={{ fontSize:26, flexShrink:0 }}>🪞</span>
+                    <span style={{ width:46, height:46, borderRadius:13, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, background:"#14b8a626", border:"1px solid #14b8a644" }}>📊</span>
                     <div style={{ flex:1 }}>
                       <div style={{ fontSize:13, fontWeight:800, color:roxo }}>Respostas guardadas do jogo «Como te vês?» ({ctvHist.length})</div>
                       <div style={{ fontSize:11, color:roxo2, marginTop:2 }}>As respostas que guardaste deste jogo, para veres como mudaram ao longo do tempo.</div>
                     </div>
-                    <span style={{ fontSize:14, color:roxo2 }}>{verHist ? "▲" : "▼"}</span>
+                    <span style={{ fontSize:16, color:"#14b8a6" }}>{verHist ? "▲" : "▼"}</span>
                   </button>
 
                   {verHist && (
@@ -379,8 +388,8 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
                 </div>
               )}
 
-              {renderActivityButton("🌸", "Roda da Vida", "Avalia as diferentes áreas da tua vida e envia à Teresa.", () => setAtividade("roda"))}
-              {renderActivityButton("💌", "Cápsulas do Tempo", "Deixa mensagens trancadas para o teu futuro.", () => setAtividade("capsula"))}
+              {renderActivityButton("🌸", "Roda da Vida", "Avalia as diferentes áreas da tua vida e envia à Teresa.", () => setAtividade("roda"), "#FF4FA3")}
+              {renderActivityButton("💌", "Cápsulas do Tempo", "Deixa mensagens trancadas para o teu futuro.", () => setAtividade("capsula"), "#F0932B")}
             </>
           )}
         </div>
