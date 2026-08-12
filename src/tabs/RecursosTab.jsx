@@ -324,10 +324,10 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
                     border: isTeresa ? "1px solid rgba(99,102,241,0.40)" : "1px solid rgba(99,102,241,0.20)",
                     display:"flex", alignItems:"center", gap:14,
                   }}>
-                    <span style={{ fontSize:26, flexShrink:0 }}>📊</span>
+                    <span style={{ fontSize:26, flexShrink:0 }}>🪞</span>
                     <div style={{ flex:1 }}>
-                      <div style={{ fontSize:13, fontWeight:800, color:roxo }}>As tuas respostas guardadas ({ctvHist.length})</div>
-                      <div style={{ fontSize:11, color:roxo2, marginTop:2 }}>Vê como as tuas respostas ao jogo mudaram ao longo do tempo.</div>
+                      <div style={{ fontSize:13, fontWeight:800, color:roxo }}>Respostas guardadas do jogo «Como te vês?» ({ctvHist.length})</div>
+                      <div style={{ fontSize:11, color:roxo2, marginTop:2 }}>As respostas que guardaste deste jogo, para veres como mudaram ao longo do tempo.</div>
                     </div>
                     <span style={{ fontSize:14, color:roxo2 }}>{verHist ? "▲" : "▼"}</span>
                   </button>
