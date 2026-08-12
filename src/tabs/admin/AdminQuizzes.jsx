@@ -161,6 +161,38 @@ export default function AdminQuizzes({ allShared = {} }) {
           }}
           rotuloItem={p => `🧠 ${p.title}`}
           onAgendado={() => setNovo({ title: "", badge: "D1 — Comunicação", scenario: "", prazo: "", optA: "", revA: "", optB: "", revB: "", optC: "", revC: "" })}
+          editorConteudo={(d, up) => {
+            const opts = d.opts || [{ id:"A" }, { id:"B" }, { id:"C" }];
+            const setOpt = (i, campo, val) => up({ opts: opts.map((o, ix) => ix === i ? { ...o, [campo]: val } : o) });
+            return (
+              <>
+                <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>TÍTULO</label>
+                <input style={INP} value={d.title || ""} onChange={e => up({ title: e.target.value })} />
+                <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>CATEGORIA</label>
+                <select style={{ ...INP, background: "rgba(0,0,0,0.3)" }} value={d.badge || "D1 — Comunicação"} onChange={e => up({ badge: e.target.value })}>
+                  <option>D1 — Comunicação</option>
+                  <option>D2 — Resiliência</option>
+                  <option>D3 — Proatividade</option>
+                  <option>D4 — Autoconhecimento</option>
+                  <option>D5 — Digital e Cidadania</option>
+                  <option>D6 — Intervenção</option>
+                </select>
+                <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>CENÁRIO</label>
+                <textarea style={{ ...INP, height: 80 }} value={d.scenario || ""} onChange={e => up({ scenario: e.target.value })} />
+                {[0, 1, 2].map(i => (
+                  <div key={i} style={{ background: "rgba(255,255,255,0.03)", padding: 10, borderRadius: 12, marginBottom: 10, border: "1px solid rgba(255,255,255,0.05)" }}>
+                    <label style={{ fontSize: 10, color: "#94a3b8" }}>OPÇÃO {["A","B","C"][i]}</label>
+                    <input style={{ ...INP, marginBottom: 5 }} placeholder={`Texto da opção ${["A","B","C"][i]}`}
+                      value={opts[i]?.text || ""} onChange={e => setOpt(i, "text", e.target.value)} />
+                    <input style={{ ...INP, fontSize: 12, color: CYN }} placeholder="Explicação após responder (Reveal)"
+                      value={opts[i]?.reveal || ""} onChange={e => setOpt(i, "reveal", e.target.value)} />
+                  </div>
+                ))}
+                <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>PRAZO (opcional)</label>
+                <input type="date" style={{ ...INP, marginTop: 6 }} value={d.prazo || ""} onChange={e => up({ prazo: e.target.value || null })} />
+              </>
+            );
+          }}
         />
       </div>
 

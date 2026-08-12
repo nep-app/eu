@@ -21,7 +21,9 @@ export function publishAtDe(dataStr, slot) {
 //  - rotuloJa: string                        (texto do botão quando publica já)
 //  - rotuloItem: (payload) => string         (como mostrar cada agendado na lista)
 //  - onAgendado?: () => void                 (limpar o formulário após agendar)
-export default function Agendador({ tipo, construirPayload, publicarJa, rotuloJa, rotuloItem, onAgendado }) {
+//  - editorConteudo?: (draft, update) => JSX   (opcional; permite editar o CONTEÚDO
+//      de um agendado. `draft` é uma cópia do payload; `update(patch)` funde patch no draft)
+export default function Agendador({ tipo, construirPayload, publicarJa, rotuloJa, rotuloItem, onAgendado, editorConteudo }) {
   const [agendar, setAgendar] = useState(false);
   const [agData, setAgData]   = useState("");
   const [agSlot, setAgSlot]   = useState("09:00");
@@ -29,6 +31,8 @@ export default function Agendador({ tipo, construirPayload, publicarJa, rotuloJa
   const [editId, setEditId]     = useState(null);   // id do agendamento a reagendar
   const [editData, setEditData] = useState("");
   const [editSlot, setEditSlot] = useState("09:00");
+  const [editCId, setEditCId]   = useState(null);   // id do agendamento a editar conteúdo
+  const [cDraft,  setCDraft]    = useState(null);
 
   useEffect(() => {
     return onSnapshot(collection(db, "agendados"), snap => {
@@ -74,6 +78,16 @@ export default function Agendador({ tipo, construirPayload, publicarJa, rotuloJa
     setEditId(null);
   }
 
+  function abrirConteudo(a) {
+    setEditCId(a.id);
+    setCDraft({ ...(a.payload || {}) });
+    setEditId(null);
+  }
+  async function guardarConteudo(id) {
+    await updateDoc(doc(db, "agendados", id), { payload: cDraft });
+    setEditCId(null); setCDraft(null);
+  }
+
   return (
     <>
       <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom: agendar ? 10 : 12 }}>
@@ -110,6 +124,12 @@ export default function Agendador({ tipo, construirPayload, publicarJa, rotuloJa
                   <div style={{ fontSize:12, color:"#e2e8f0", fontWeight:700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{rotuloItem ? rotuloItem(a.payload) : ""}</div>
                   <div style={{ fontSize:11, color:PRP, fontWeight:800 }}>{a.dataLabel} às {a.slot}{a.payload?.push ? " · 🔔 push" : ""}</div>
                 </div>
+                {editorConteudo && (
+                  <button onClick={() => editCId === a.id ? (setEditCId(null), setCDraft(null)) : abrirConteudo(a)}
+                    style={{ background:"none", border:`1px solid ${CYN}`, color:CYN, borderRadius:8, padding:"4px 8px", fontSize:12, fontWeight:800, cursor:"pointer", flexShrink:0 }}>
+                    {editCId === a.id ? "Fechar" : "✏️"}
+                  </button>
+                )}
                 <button onClick={() => editId === a.id ? setEditId(null) : abrirEdicao(a)}
                   style={{ background:"none", border:`1px solid ${CYN}`, color:CYN, borderRadius:8, padding:"4px 10px", fontSize:11, fontWeight:800, cursor:"pointer", flexShrink:0 }}>
                   {editId === a.id ? "Fechar" : "Reagendar"}
@@ -119,6 +139,21 @@ export default function Agendador({ tipo, construirPayload, publicarJa, rotuloJa
                   Cancelar
                 </button>
               </div>
+              {editCId === a.id && cDraft && (
+                <div style={{ marginTop:10, borderTop:"1px solid rgba(255,255,255,0.1)", paddingTop:10 }}>
+                  {editorConteudo(cDraft, patch => setCDraft(d => ({ ...d, ...patch })))}
+                  <div style={{ display:"flex", gap:8, marginTop:8 }}>
+                    <button onClick={() => guardarConteudo(a.id)}
+                      style={{ flex:1, background:PRP, color:"#fff", border:"none", borderRadius:10, padding:"9px", fontSize:12, fontWeight:800, cursor:"pointer" }}>
+                      Guardar alterações
+                    </button>
+                    <button onClick={() => { setEditCId(null); setCDraft(null); }}
+                      style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", color:"#94a3b8", borderRadius:10, padding:"9px 14px", fontSize:12, cursor:"pointer" }}>
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
               {editId === a.id && (
                 <div style={{ display:"flex", gap:8, marginTop:8 }}>
                   <input type="date" value={editData} onChange={e => setEditData(e.target.value)}
