@@ -151,10 +151,7 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
         </div>
       );
     }
-    // Só a Teresa recebe a versão simplificada do jogo "Como te vês" (?simples=1),
-    // para testar antes de decidir aplicar a todos.
-    const rawUrl = (isTeresa && r.n === 4) ? `${r.url}?simples=1` : r.url;
-    const safeUrl = /^(https?:\/\/|\/)/.test(rawUrl) ? rawUrl : "#";
+    const safeUrl = /^(https?:\/\/|\/)/.test(r.url) ? r.url : "#";
     return (
       <a key={r.id} href={safeUrl} target="_blank" rel="noreferrer" style={{
         ...cardStyle, display:"flex", alignItems:"center", gap:14, textDecoration:"none", transition:"all 0.15s",

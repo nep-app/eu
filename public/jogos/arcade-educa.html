@@ -2809,9 +2809,9 @@ const G4_PORQUE={
 const G4_BANDAS=[["1-2","Insuficiente"],["3-4","Abaixo do esperado"],["5","Suficiente"],["6-7","Bom"],["8-9","Muito Bom"],["10","Excelente"]];
 const G4_ESCC=["#E2574C","#E8894C","#E4BE45","#8FB964","#2E9E7B"]; /* escada: vermelho→verde (sobe = melhor) */
 const G4_ESCH=[60,82,102,122,146];                                 /* alturas crescentes dos degraus dáveis */
-/* Modo simplificado (linguagem fácil) — ligado por ?simples=1 no link. Por agora
-   só a Teresa recebe esse link (ver RecursosTab), para testar antes de aplicar a todos. */
-const G4_SIMPLES=/[?&]simples=1/.test(location.search||'');
+/* Modo simplificado (linguagem fácil) — agora é a versão para TODOS, por isso é o
+   predefinido. Saída de emergência: abrir com ?simples=0 mostra a versão antiga. */
+const G4_SIMPLES=!/[?&]simples=0/.test(location.search||'');
 /* Descritores oficiais de autoavaliação do EDUCA+ (documento «Descritores de
    Autoavaliação — JEEP», versão revista). Texto tal e qual. */
 const G4_DESC={
