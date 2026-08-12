@@ -35,6 +35,7 @@ h1,h2,h3,.display{font-family:'Bricolage Grotesque',system-ui,-apple-system,'Seg
 .screen{display:none}.screen.on{display:block}
 .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-bottom:18px;border-bottom:1px dashed var(--line);margin-bottom:32px;flex-wrap:wrap}
 #g4 .topbar{padding-bottom:11px;margin-bottom:16px}
+#g4-eyebrow{letter-spacing:.1em;font-size:10px;white-space:nowrap}
 .topbar h2{font-size:26px}
 .btn{font:inherit;font-weight:600;cursor:pointer;border-radius:2px;padding:12px 20px;border:1px solid var(--line);background:transparent;color:var(--paper);transition:.15s}
 .btn:hover{background:rgba(247,242,231,.09)}
@@ -2665,7 +2666,7 @@ let G4={};
    freq:true → escala de frequência; senão, escala de concordância. */
 const G4_POOL={
  D1:[
-  {f:"assert",t:"Quando discordo de quem manda mais do que eu, acabo por não dizer nada.",rev:true},
+  {f:"assert",t:"Quando discordo de quem manda mais do que eu, acabo por não dizer nada.",rev:true,freq:true},
   {f:"assert",t:"Quando um colega faz algo que acho errado, não digo nada para não criar conflitos.",rev:true},
   {f:"assert",t:"Prefiro resolver um mal-entendido na hora, mesmo que seja desconfortável."},
   {f:"assert",t:"Se um miúdo goza comigo à frente do grupo, mando-o calar logo ali, para que o grupo me respeite.",rev:true},
@@ -2677,7 +2678,7 @@ const G4_POOL={
   {f:"apoio",t:"Peço feedback sobre o meu trabalho sem esperar que mo venham dar.",freq:true},
   {f:"apoio",t:"Custa-me admitir aos colegas que estou com dificuldade e a precisar de ajuda.",rev:true,freq:true},
   {f:"apoio",t:"Prefiro fingir que entendi uma coisa do que admitir que não percebi.",rev:true,freq:true},
-  {f:"equipa",t:"Numa reunião, dou a minha opinião mesmo quando é diferente da dos outros e apesar de eles terem mais experiência do que eu."},
+  {f:"equipa",t:"Numa reunião, dou a minha opinião mesmo quando é diferente da dos outros e apesar de eles terem mais experiência do que eu.",freq:true},
   {f:"equipa",t:"Quando alguém me responde torto, respondo na mesma moeda.",rev:true,freq:true},
   {f:"equipa",t:"Prefiro fazer eu as coisas, mesmo que me dê mais trabalho — assim sei que ficam bem feitas e à minha maneira.",rev:true},
   {f:"equipa",t:"Falo de maneira diferente com um miúdo, com um colega e com a coordenação, conforme a situação pede."},
@@ -2689,7 +2690,7 @@ const G4_POOL={
   {f:"stress",t:"Um dia mau estraga-me os dias seguintes.",rev:true,freq:true},
   {f:"stress",t:"Quando o ambiente fica pesado no espaço — uma discussão, miúdos alterados, mau clima entre colegas — sou dos primeiros a ficar em baixo.",rev:true},
   {f:"stress",t:"Quando está tudo a correr mal ao mesmo tempo, ainda consigo pensar com clareza."},
-  {f:"stress",t:"Quando dois miúdos começam à luta, mantenho a cabeça fria para gerir a situação."},
+  {f:"stress",t:"Quando dois miúdos começam à luta, mantenho a cabeça fria para gerir a situação.",freq:true},
   {f:"stress",t:"Quando me aparecem vários problemas ao mesmo tempo, opto por resolver primeiro o mais urgente."},
   {f:"frustra",t:"Preciso que as coisas corram como as tinha imaginado.",rev:true},
   {f:"frustra",t:"Preparei um jogo e ninguém quer jogar. Sinto uma frustração que me vai crescendo por dentro.",rev:true},
@@ -2709,7 +2710,7 @@ const G4_POOL={
   {f:"auto",t:"Sinto-me à vontade para fazer tarefas sozinho, sem que estejam sempre em cima de mim."},
   {f:"auto",t:"Mesmo em tarefas simples do dia a dia, confirmo com colegas ou superiores antes de avançar para o passo seguinte.",rev:true,freq:true},
   {f:"auto",t:"Se acontece uma situação urgente e imprevista e não está ninguém presente a quem possa pedir ajuda, o melhor é não fazer nada e esperar que alguém apareça.",rev:true},
-  {f:"auto",t:"Se por acaso sou o primeiro a chegar à ludoteca, aproveito para descansar antes de o resto da equipa chegar.",rev:true},
+  {f:"auto",t:"Se por acaso sou o primeiro a chegar à ludoteca, aproveito para descansar antes de o resto da equipa chegar.",rev:true,freq:true},
   {f:"auto",t:"Tenho dificuldade em dinamizar uma atividade sem mais ninguém da equipa presente.",rev:true},
   {f:"proati",t:"Se vejo uma coisa pequena por fazer que não é bem a minha função, resolvo-a em vez de esperar que alguém a faça.",freq:true},
   {f:"proati",t:"Quando chego ao espaço, a primeira coisa que faço é ver se há algo por fazer que eu possa adiantar.",freq:true},
