@@ -71,9 +71,9 @@ function seed() {
       }),
     ],
     coffee: [
-      P("bruno", "Ontem organizámos um serão de cinema no espaço e correu épico 🍿🎬", {
+      P("bruno", "Maratona de cinema no fim de semana 🍿🎬 aceito sugestões de filmes!", {
         time: "há 6 h", media: DEMO_IMG, reactions: { heart: 4, fire: 2 },
-        replies: [R("carina", "Que inveja, tinha de ter ido 😅", "cf1"), R("erick", "Bora repetir!! 🙌", "cf2")],
+        replies: [R("carina", "Vi um ótimo ontem, depois digo-te 😄", "cf1"), R("erick", "Conta comigo para a próxima 🙌", "cf2")],
       }),
     ],
   };
