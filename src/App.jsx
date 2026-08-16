@@ -6,6 +6,7 @@ import { AppIcon, BG, CYN } from "./theme.jsx";
 import { ALLOWED_USERNAMES, BLOCKED_USERNAMES, USERS, nowLabel, GDPR_TEXT } from "./data.js";
 import TeresaAdmin from "./TeresaAdmin.jsx";
 import JovensApp from "./JovensApp.jsx";
+import { reseedDemo } from "./demoForum.js";
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -62,12 +63,10 @@ export default function App() {
             (async () => {
               try {
                 await deleteDoc(doc(db, "userData", "demo"));
-                for (const sub of ["items"]) {
-                  const its = await getDocs(collection(db, "todos", "demo", sub));
-                  await Promise.all(its.docs.map(d => deleteDoc(d.ref)));
-                }
-                const nots = await getDocs(collection(db, "notifications", "demo", "items"));
-                await Promise.all(nots.docs.map(d => deleteDoc(d.ref)));
+                const its = await getDocs(collection(db, "todos", "demo", "items"));
+                await Promise.all(its.docs.map(d => deleteDoc(d.ref)));
+                // Fórum + notificações a fingir (limpa e volta a semear).
+                await reseedDemo();
               } catch (_) {}
             })();
           }

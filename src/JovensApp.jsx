@@ -169,6 +169,14 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
         `}</style>
       )}
 
+      {/* Aviso global da conta de demonstração — deixa claro que é tudo a fingir. */}
+      {user.isDemo && (
+        <div style={{ background:"linear-gradient(90deg,#7c3aed,#db2777)", color:"#fff", textAlign:"center",
+          padding:"8px 14px", fontSize:12, fontWeight:800, lineHeight:1.4 }}>
+          🎭 Conta de DEMONSTRAÇÃO — os posts, notificações e dados aqui são <u>a fingir</u>, só para veres como funciona. Nada fica guardado.
+        </div>
+      )}
+
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       {isTeresa ? (
         /* Teresa — dark violet header */

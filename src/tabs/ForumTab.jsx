@@ -78,8 +78,19 @@ export default function ForumTab({ user, data = {}, forumCollection = "forum", i
   const canalInfo = CHANNELS.find(c => c.id === canalAtivo);
   const adminOnlyLocked = canalInfo?.adminOnly && !isAdmin(user);
 
+  const isDemo = forumCollection === "forum_demo";
+
   return (
     <div style={{ paddingBottom:100 }}>
+
+      {/* Aviso: fórum de demonstração (posts e respostas a fingir). */}
+      {isDemo && (
+        <div style={{ margin:"14px 16px 0", padding:"11px 14px", borderRadius:14,
+          background:"rgba(219,39,119,0.14)", border:"1px solid rgba(219,39,119,0.45)",
+          color:"#f9a8d4", fontSize:12.5, fontWeight:700, lineHeight:1.45 }}>
+          🎭 Este é o fórum de <b>demonstração</b>. Os posts e as respostas abaixo são <b>a fingir</b>, só para veres como funciona. Podes experimentar à vontade — nada fica guardado.
+        </div>
+      )}
 
       {/* ── CANAIS ─────────────────────────────────────────────────────── */}
       <div style={{ padding:"16px 16px 0", display:"flex", flexWrap:"wrap", justifyContent:"center", gap:8 }}>
