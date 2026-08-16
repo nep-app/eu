@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, fetchSignInMethodsForEmail } from "firebase/auth";
-import { doc, setDoc, onSnapshot, arrayUnion } from "firebase/firestore";
+import { doc, setDoc, onSnapshot, arrayUnion, deleteDoc, getDocs, collection } from "firebase/firestore";
 import { auth, db } from "./firebase.js";
 import { AppIcon, BG, CYN } from "./theme.jsx";
 import { ALLOWED_USERNAMES, BLOCKED_USERNAMES, USERS, nowLabel, GDPR_TEXT } from "./data.js";
@@ -56,6 +56,17 @@ export default function App() {
           // Não dá XP — é só registo. Escreve no próprio doc users (permitido).
           const registarEntrada = !sessionStorage.getItem("jeep_entrada_registada");
           if (registarEntrada) sessionStorage.setItem("jeep_entrada_registada", "1");
+          // Conta de demonstração: cada nova sessão começa do zero, para quem testa
+          // a seguir não herdar o que o anterior fez (é suposto ser uma demo limpa).
+          if (uname === "demo" && registarEntrada) {
+            (async () => {
+              try {
+                await deleteDoc(doc(db, "userData", "demo"));
+                const its = await getDocs(collection(db, "todos", "demo", "items"));
+                await Promise.all(its.docs.map(d => deleteDoc(d.ref)));
+              } catch (_) {}
+            })();
+          }
           setDoc(doc(db, "users", uname), {
             lastLogin: nowIso,
             ...(registarEntrada ? { logins: arrayUnion({ ts: Date.now(), iso: nowIso }) } : {}),
