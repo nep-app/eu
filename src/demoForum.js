@@ -138,39 +138,47 @@ export function demoEvents() {
   ];
 }
 
-// Apaga o que lá estiver e volta a semear os posts + notificações a fingir.
-export async function reseedDemo() {
+// Apaga um por um (cada delete no seu try — se um falhar, os outros continuam).
+async function limpar(ref) {
   try {
-    // Fórum
+    const snap = await getDocs(ref);
+    for (const d of snap.docs) { try { await deleteDoc(d.ref); } catch (_) {} }
+  } catch (_) {}
+}
+
+// Apaga o que lá estiver e volta a semear os posts + notificações + tarefas a
+// fingir. Cada parte é independente: se uma falhar, as outras semeiam na mesma.
+export async function reseedDemo() {
+  const now = Date.now();
+
+  // Fórum (posts + imagem + aviso da Teresa a fingir)
+  try {
     const dados = seed();
     const canais = Object.keys(dados);
-    for (const c of canais) {
-      const snap = await getDocs(collection(db, "forum_demo", c, "posts"));
-      await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
-    }
-    const now = Date.now();
+    for (const c of canais) await limpar(collection(db, "forum_demo", c, "posts"));
     let i = 0;
     for (const c of canais) {
       for (const post of dados[c]) {
-        // ts decrescente para ficarem por ordem (mais recente primeiro)
         await addDoc(collection(db, "forum_demo", c, "posts"), { ...post, ts: now - (i++) * 3600000 });
       }
     }
-    // Notificações
-    const nots = await getDocs(collection(db, "notifications", "demo", "items"));
-    await Promise.all(nots.docs.map(d => deleteDoc(d.ref)));
+  } catch (_) {}
+
+  // Notificações a fingir
+  try {
+    await limpar(collection(db, "notifications", "demo", "items"));
     let j = 0;
     for (const n of seedNotifs()) {
-      await addDoc(collection(db, "notifications", "demo", "items"), {
-        ...n, read: false, date: nowFull(), ts: now - (j++) * 1800000,
-      });
+      await addDoc(collection(db, "notifications", "demo", "items"), { ...n, read: false, date: nowFull(), ts: now - (j++) * 1800000 });
     }
-    // Tarefas ("A minha lista")
-    const tds = await getDocs(collection(db, "todos", "demo", "items"));
-    await Promise.all(tds.docs.map(d => deleteDoc(d.ref)));
+  } catch (_) {}
+
+  // Tarefas ("A minha lista" + proposta da Teresa)
+  try {
+    await limpar(collection(db, "todos", "demo", "items"));
     let k = 0;
     for (const t of seedTodos()) {
       await addDoc(collection(db, "todos", "demo", "items"), { ...t, ts: now - (k++) * 3600000 });
     }
-  } catch (_) { /* demo: falha silenciosa */ }
+  } catch (_) {}
 }

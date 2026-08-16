@@ -94,6 +94,6 @@ jobs:
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
-      - name: Deploy Firebase Functions
+      - name: Deploy Firebase Functions + Firestore Rules
         if: steps.check.outputs.ok == 'true'
-        run: firebase deploy --only functions --project ${{ secrets.VITE_FIREBASE_PROJECT_ID }} --non-interactive --force
+        run: firebase deploy --only functions,firestore:rules --project ${{ secrets.VITE_FIREBASE_PROJECT_ID }} --non-interactive --force

@@ -136,9 +136,9 @@ service cloud.firestore {
 
     // Fórum demo (isolado do fórum real) — mesmas restrições de delete
     match /forum_demo/{channel}/posts/{postId} {
-      allow read, create, update: if request.auth != null;
-      allow delete: if isAdmin()
-        || (request.auth != null && resource.data.username == callerUsername());
+      // Fórum de DEMONSTRAÇÃO isolado — qualquer autenticado pode apagar, para o
+      // reset da demo limpar os posts a fingir (que são de vários "autores").
+      allow read, create, update, delete: if request.auth != null;
     }
 
   }
