@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, fetchSignInMethodsForEmail } from "firebase/auth";
-import { doc, setDoc, onSnapshot, arrayUnion, deleteDoc, getDocs, collection } from "firebase/firestore";
+import { doc, setDoc, onSnapshot, arrayUnion, deleteDoc } from "firebase/firestore";
 import { auth, db } from "./firebase.js";
 import { AppIcon, BG, CYN } from "./theme.jsx";
 import { ALLOWED_USERNAMES, BLOCKED_USERNAMES, USERS, nowLabel, GDPR_TEXT } from "./data.js";
@@ -63,9 +63,7 @@ export default function App() {
             (async () => {
               try {
                 await deleteDoc(doc(db, "userData", "demo"));
-                const its = await getDocs(collection(db, "todos", "demo", "items"));
-                await Promise.all(its.docs.map(d => deleteDoc(d.ref)));
-                // Fórum + notificações a fingir (limpa e volta a semear).
+                // Fórum + notificações + tarefas a fingir (limpa e volta a semear).
                 await reseedDemo();
               } catch (_) {}
             })();

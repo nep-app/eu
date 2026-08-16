@@ -4,6 +4,7 @@ import { db, registarPushNotifications } from "./firebase.js";
 import { BG, CYN, BLUE, PRP, TXT_MUT } from "./theme.jsx";
 import { SPECIAL_USERS } from "./data.js";
 import { processarLoginStreak } from "./streak.js";
+import { demoEvents, demoMissions } from "./demoForum.js";
 import logoImg from "./logo.png";
 
 export const ThemeCtx = React.createContext(false);
@@ -305,7 +306,7 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
       {/* ── CONTEÚDO ───────────────────────────────────────────────────── */}
       <div style={{ flex:1, overflowY:"auto", paddingBottom:90, ...(previewMode ? { pointerEvents:"none", userSelect:"none" } : {}) }}>
         <ErrorBoundary resetKey={tab}>
-          {tab === "home"     && <HomeTab     user={user} data={{...allData, features: effectiveFeatures}} setTab={setTab} setDesafiosSubTab={setDesafiosSubTab} setForumCanal={setForumCanal} previewMode={previewMode} />}
+          {tab === "home"     && <HomeTab     user={user} data={{...allData, features: effectiveFeatures, ...(user.isDemo ? { events: demoEvents(), missions: demoMissions() } : {})}} setTab={setTab} setDesafiosSubTab={setDesafiosSubTab} setForumCanal={setForumCanal} previewMode={previewMode} />}
           {tab === "desafios" && <DesafiosTab user={user} data={allData} subTab={desafiosSubTab} setSubTab={setDesafiosSubTab} features={effectiveFeatures} />}
           {tab === "forum"    && <ForumTab    user={user} data={allData} forumCollection={user.isDemo ? "forum_demo" : "forum"} initialCanal={forumCanal} />}
           {tab === "pia"      && <RecursosTab user={user} data={allData} features={effectiveFeatures} />}

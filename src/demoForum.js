@@ -14,12 +14,27 @@ const quem = (u) => {
 // resposta (reply) a fingir
 const R = (u, text, tag) => ({ id: "R_seed_" + u + "_" + tag, ...quem(u), text, time: "há pouco" });
 
+// Imagem a fingir (SVG embutido — não precisa de internet nem de Storage).
+const DEMO_IMG = "data:image/svg+xml;utf8," + encodeURIComponent(
+  `<svg xmlns='http://www.w3.org/2000/svg' width='400' height='230'>
+    <defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='1'>
+      <stop offset='0' stop-color='#7c3aed'/><stop offset='1' stop-color='#db2777'/></linearGradient></defs>
+    <rect width='400' height='230' rx='16' fill='url(#g)'/>
+    <circle cx='200' cy='95' r='40' fill='rgba(255,255,255,0.92)'/>
+    <polygon points='188,73 188,117 226,95' fill='#7c3aed'/>
+    <text x='200' y='170' font-family='Arial,sans-serif' font-size='23' font-weight='bold' fill='#fff' text-anchor='middle'>Serao de cinema</text>
+    <text x='200' y='200' font-family='Arial,sans-serif' font-size='13' fill='rgba(255,255,255,0.85)' text-anchor='middle'>(foto de exemplo)</text>
+  </svg>`
+);
+
 // post a fingir
-const P = (u, text, { time = "há 2 h", reactions = {}, replies = [] } = {}) => ({
+const P = (u, text, { time = "há 2 h", reactions = {}, replies = [], destaque = false, media = null } = {}) => ({
   ...quem(u),
   text,
-  media: null, medias: [],
+  media,
+  medias: media ? [{ tipo: "image", url: media }] : [],
   time,
+  destaque, // só o anúncio da Teresa é destaque (aparece como "Aviso da Teresa")
   reactions: { heart: 0, fire: 0, clap: 0, think: 0, ...reactions },
   reactedBy: { heart: [], fire: [], clap: [], think: [] },
   replies,
@@ -30,7 +45,7 @@ function seed() {
   return {
     anuncios: [
       P("teresa", "📣 Bem-vindos ao EDUCA+! Esta semana há formação de primeiros socorros na quinta, às 14h. Contamos com todos 💪", {
-        time: "ontem", reactions: { heart: 3, fire: 2 },
+        time: "ontem", destaque: true, reactions: { heart: 3, fire: 2 },
         replies: [R("nilton", "Lá estarei! 🙌", "a1")],
       }),
     ],
@@ -56,9 +71,9 @@ function seed() {
       }),
     ],
     coffee: [
-      P("bruno", "Alguém já viu a nova série que toda a gente anda a falar? Sem spoilers 👀🍿", {
-        time: "há 6 h", reactions: { heart: 2 },
-        replies: [R("carina", "Vi tudo num fim de semana 😅", "cf1")],
+      P("bruno", "Ontem organizámos um serão de cinema no espaço e correu épico 🍿🎬", {
+        time: "há 6 h", media: DEMO_IMG, reactions: { heart: 4, fire: 2 },
+        replies: [R("carina", "Que inveja, tinha de ter ido 😅", "cf1"), R("erick", "Bora repetir!! 🙌", "cf2")],
       }),
     ],
   };
@@ -69,7 +84,30 @@ function seedNotifs() {
   return [
     { from: "teresa", tipo: "recurso", text: "📚 A Teresa partilhou um novo recurso: Khan Academy" },
     { from: "teresa", tipo: "auto", text: "💬 Nova Pergunta da Semana! Vai aos Desafios responder." },
-    { from: "sistema", text: "🏅 Ganhaste a medalha «Primeiros Passos»! Parabéns 🎉" },
+    { from: "teresa", text: "🎯 A Teresa atribuiu-te a medalha «Proatividade»! 🎉" },
+  ];
+}
+
+// Tarefas a fingir (todos/demo/items) — a lista "A minha lista" do Início.
+function seedTodos() {
+  return [
+    { text: "Preparar a atividade de sexta-feira 🎨", due: "", done: false, shared: false },
+    { text: "Tirar fotos da sessão para partilhar no fórum 📷", due: "", done: false, shared: false },
+    { text: "Ler o Guia de Bem-estar Digital", due: "", done: true, shared: false, addedBy: "teresa", accepted: true },
+  ];
+}
+
+// Missão a fingir (client-side — a coleção "missions" é global, não se escreve).
+export function demoMissions() {
+  return [{ id: "demo_missao", text: "Esta semana, experimenta uma dinâmica nova com o teu grupo e conta como correu 🚀", xp: 20, encerrada: false, ts: Date.now() }];
+}
+
+// Eventos a fingir para a agenda (client-side — a coleção "events" é global).
+export function demoEvents() {
+  const dia = (n) => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10);
+  return [
+    { id: "demo_ev1", title: "Reunião de equipa EDUCA+", date: dia(2), time: "14:00", userId: "demo", type: "personal", shared: false },
+    { id: "demo_ev2", title: "Formação: Primeiros Socorros", date: dia(5), time: "10:00", userId: "demo", type: "personal", shared: false },
   ];
 }
 
@@ -99,6 +137,13 @@ export async function reseedDemo() {
       await addDoc(collection(db, "notifications", "demo", "items"), {
         ...n, read: false, date: nowFull(), ts: now - (j++) * 1800000,
       });
+    }
+    // Tarefas ("A minha lista")
+    const tds = await getDocs(collection(db, "todos", "demo", "items"));
+    await Promise.all(tds.docs.map(d => deleteDoc(d.ref)));
+    let k = 0;
+    for (const t of seedTodos()) {
+      await addDoc(collection(db, "todos", "demo", "items"), { ...t, ts: now - (k++) * 3600000 });
     }
   } catch (_) { /* demo: falha silenciosa */ }
 }

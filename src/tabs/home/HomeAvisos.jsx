@@ -14,10 +14,12 @@ export default function HomeAvisos({ user, setTab, setForumCanal, previewMode })
   });
 
   useEffect(() => {
-    return onSnapshot(collection(db, "forum", "anuncios", "posts"), snap => {
+    // Na conta demo, o "Aviso da Teresa" vem do fórum de demonstração (a fingir).
+    const col = user?.isDemo ? "forum_demo" : "forum";
+    return onSnapshot(collection(db, col, "anuncios", "posts"), snap => {
       setAvisos(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.ts || 0) - (a.ts || 0)));
     });
-  }, []);
+  }, [user?.isDemo]);
 
   function dispensar(id) {
     const novo = [...dispensados, id];
