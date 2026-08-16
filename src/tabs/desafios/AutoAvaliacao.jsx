@@ -10,6 +10,7 @@ export default function AutoAvaliacao({ user, data }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localSaved, setLocalSaved] = useState(false);
   const uData = data.userData || {};
+  const isDemo = user?.username === "demo";
 
   // autoSaved=true means user submitted. autoNewRound=true means admin launched a new round.
   // If both are true simultaneously it's stale data from old launch code — treat as done.
@@ -26,29 +27,33 @@ export default function AutoAvaliacao({ user, data }) {
         date, action: `Concluiu a Autoavaliação com a Teresa`, ts: Date.now(), xp: 30
       }];
 
-      await setDoc(doc(db, "userData", user.username), {
-        autoSaved: true, autoDate: date, autoNewRound: false, history: newHistory, weekXp: increment(30)
-      }, { merge: true });
       const cicloSnap = await getDoc(doc(db, "config", "autoCiclo"));
       const ciclo = cicloSnap.exists() ? cicloSnap.data() : null;
-      await updateDoc(doc(db, "userData", user.username), {
+      // Um só setDoc com merge (cria o doc se não existir — evita "no document to update").
+      await setDoc(doc(db, "userData", user.username), {
+        autoSaved: true, autoDate: date, autoNewRound: false, history: newHistory, weekXp: increment(30),
         autoAvaliacaoHistorico: arrayUnion({
           week: getWeekKey(), scores: uData.dScores || {},
           notas: uData.dNotas || {}, date, ts: Date.now(),
           ...(ciclo && ciclo.id != null ? { ciclo: ciclo.id, cicloLabel: ciclo.label } : {}),
-        })
-      });
+        }),
+      }, { merge: true });
 
-      await addDoc(collection(db, "adminNotificacoes"), {
-        tipo: "AUTOAVALIACAO", jovem: user.username, data: date, ts: Date.now(), lida: false
-      });
+      // A conta demo não notifica a Teresa a sério (é uma demonstração).
+      if (!isDemo) {
+        await addDoc(collection(db, "adminNotificacoes"), {
+          tipo: "AUTOAVALIACAO", jovem: user.username, data: date, ts: Date.now(), lida: false
+        });
+      }
 
       alert("Excelente reflexão! Ganhaste um belo boost de XP. 🏆");
     } catch (e) {
-      alert("Erro: " + e.message);
-      setLocalSaved(false);
+      // Na demo fingimos sucesso; nas contas reais mostramos o erro.
+      if (isDemo) { alert("Excelente reflexão! Ganhaste um belo boost de XP. 🏆"); }
+      else { alert("Erro: " + e.message); setLocalSaved(false); }
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   }
 
   async function limparTeste() {

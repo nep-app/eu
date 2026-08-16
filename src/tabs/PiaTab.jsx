@@ -295,23 +295,31 @@ export default function PiaTab({ user, data }) {
     const newHistory = xpGanho > 0
       ? [...(data.history || []), { date: ts, action: jaEnviou ? "Atualizou o PIA 🔄" : "Enviou o Plano Individual de Ação (PIA) à Teresa 🚀", ts: Date.now(), xp: xpGanho }]
       : (data.history || []);
-    await setDoc(doc(db, "userData", user.username), {
-      piaSaved: true, piaSavedAt: ts,
-      piaSentFilled: filledFields,
-      piaSentTotal: totalFields,
-      piaSubmittedSections: todasSeccoes,
-      history: newHistory,
-      weekXp: (uData.weekXp || 0) + xpGanho,
-    }, { merge: true });
-    await updateDoc(doc(db, "userData", user.username), {
-      piaHistorico: arrayUnion({ week: getWeekKey(), sentAt: ts, piaData, ts: Date.now() })
-    });
-    const seccoesNomes = novasSeccoes.map(s => s.title).join(", ") || PIA_SECTIONS.filter(s => piaUnlocked[s.id]).map(s => s.title).join(", ");
-    await addDoc(collection(db, "adminNotificacoes"), {
-      tipo: "PIA", jovem: user.username, ts: Date.now(), lida: false, atualizado: jaEnviou, texto: seccoesNomes
-    });
-    setSending(false);
-    alert(jaEnviou ? "PIA atualizado! 🔄" : "PIA enviado à Teresa! 🚀");
+    try {
+      await setDoc(doc(db, "userData", user.username), {
+        piaSaved: true, piaSavedAt: ts,
+        piaSentFilled: filledFields,
+        piaSentTotal: totalFields,
+        piaSubmittedSections: todasSeccoes,
+        history: newHistory,
+        weekXp: (uData.weekXp || 0) + xpGanho,
+        piaHistorico: arrayUnion({ week: getWeekKey(), sentAt: ts, piaData, ts: Date.now() }),
+      }, { merge: true });
+      // A conta demo não notifica a Teresa a sério (é uma demonstração).
+      if (!isDemo) {
+        const seccoesNomes = novasSeccoes.map(s => s.title).join(", ") || PIA_SECTIONS.filter(s => piaUnlocked[s.id]).map(s => s.title).join(", ");
+        await addDoc(collection(db, "adminNotificacoes"), {
+          tipo: "PIA", jovem: user.username, ts: Date.now(), lida: false, atualizado: jaEnviou, texto: seccoesNomes
+        });
+      }
+      alert(jaEnviou ? "PIA atualizado! 🔄" : "PIA enviado à Teresa! 🚀");
+    } catch (e) {
+      // Na demo fingimos que correu bem; nas contas reais avisamos do erro.
+      if (isDemo) alert(jaEnviou ? "PIA atualizado! 🔄" : "PIA enviado à Teresa! 🚀");
+      else alert("Não foi possível enviar agora. Verifica a ligação e tenta de novo.");
+    } finally {
+      setSending(false);
+    }
   }
 
   const unlockedCount = PIA_SECTIONS.filter(s => piaUnlocked[s.id]).length;
