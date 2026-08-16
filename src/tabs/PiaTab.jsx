@@ -339,7 +339,7 @@ export default function PiaTab({ user, data }) {
     return PIA_SECTIONS.filter(s => s.sub === tabId).every(sec => {
       if (!piaUnlocked[sec.id]) return true;
       const sd = piaData[sec.id] || {};
-      return sec.fields.every(f => fieldFilled(f, sd));
+      return sec.fields.filter(f => !f.semConclusao).every(f => fieldFilled(f, sd));
     });
   }
 

@@ -289,7 +289,10 @@ export const PIA_SECTIONS = [
       { key: "onde",       label: "ONDE — Localização",                       ph: 'Ex: "Na sala polivalente da ludoteca."',                                  rows: 1 },
       { key: "atividadesList", label: "COMO E QUANDO — Atividades e Calendário", type: "activities" },
       { key: "recursos",   label: "COM O QUÊ — Recursos",                     ph: 'Ex: "Projetor, computador, filmes, cadeiras, cartazes."',                 rows: 2 },
-      { key: "avaliacao",  label: "COMO AVALIAR — Critérios",                 ph: 'Ex: "Contar quantos participaram e pedir opiniões."',                    rows: 2 },
+      // "avaliacao" é perguntado no separador Monitorização (guardado aqui via sid:s4).
+      // Fica no PDF, mas com semConclusao:true NÃO conta para o ✓ do Projeto — senão
+      // o certinho do Projeto dependia de uma resposta dada noutro separador.
+      { key: "avaliacao",  label: "COMO AVALIAR — Critérios", semConclusao: true, ph: 'Ex: "Contar quantos participaram e pedir opiniões."', rows: 2 },
     ]
   },
   {

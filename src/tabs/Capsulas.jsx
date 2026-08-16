@@ -11,7 +11,9 @@ const DEF_CAP2 = { text:"", locked:false, revealed:false, lockedDate:"" };
 // em userData, por isso os dados mantêm-se todos.
 export default function Capsulas({ user, data }) {
   const uData = data.userData || {};
-  const cap  = uData.cap  || DEF_CAP;
+  const isDemo = user.username === "demo";
+  // Na demo, a 1ª cápsula está desbloqueada (a 2ª fica bloqueada, como exemplo).
+  const cap  = isDemo ? { ...(uData.cap || DEF_CAP), unlocked: true } : (uData.cap || DEF_CAP);
   const cap2 = uData.cap2 || DEF_CAP2;
   const history = data.history || [];
   const light = user.username === "teresa";
