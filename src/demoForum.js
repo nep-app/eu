@@ -8,7 +8,9 @@ import { JEEP_LIST, nowFull } from "./data.js";
 
 const quem = (u) => {
   const j = JEEP_LIST.find(x => x.username === u) || {};
-  return { username: u, user: j.name || u, color: j.color || "#32C7FF" };
+  // NOME e COR reais (para parecer verdadeiro), mas o dono é sempre "demo":
+  // assim ninguém real é autor destes posts — ninguém recebe nada nem os reclama.
+  return { username: "demo", user: j.name || u, color: j.color || "#32C7FF" };
 };
 
 // resposta (reply) a fingir
