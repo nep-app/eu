@@ -236,7 +236,8 @@ export default function AdminQuizzes({ allShared = {} }) {
         const extras = [...docResps, ...notifRespostas.filter(r => r.quizId === quiz.id || r.quizTitle === quiz.title)]
           .filter(r => !sharedResps.find(s => s.jovem === r.jovem));
 
-        const todasRespostas = [...sharedResps, ...extras];
+        // A conta demo nunca conta aqui (respostas a fingir não devem poluir o painel).
+        const todasRespostas = [...sharedResps, ...extras].filter(r => r.jovem !== "demo");
         const totalVotos = todasRespostas.length;
 
         // Contagem por opção
