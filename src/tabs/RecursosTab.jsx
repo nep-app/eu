@@ -135,11 +135,11 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
   }, [secao]);
 
   // Cada jogo do Arcade aparece a admin/teresa, a quem tem acesso total antigo,
-  // e a quem estiver ligado nesse jogo. A conta "demo" tem TUDO aberto (demonstração).
+  // e a quem estiver ligado nesse jogo. A conta "demo" vê só o jogo 4 ("Como te vês").
   const isDemo = user.username === "demo";
-  const podeArcadeTudo = isAdmin(user) || isDemo || (arcadeCfg.users || []).includes(user.username);
+  const podeArcadeTudo = isAdmin(user) || (arcadeCfg.users || []).includes(user.username);
   const jogosArcade = ARCADE_JOGOS.filter(j =>
-    podeArcadeTudo || (arcadeCfg.jogos?.[j.n] || []).includes(user.username)
+    podeArcadeTudo || (isDemo && j.n === 4) || (arcadeCfg.jogos?.[j.n] || []).includes(user.username)
   );
 
   // Categoria de um recurso da BD (por defeito "guia" se ainda não foi categorizado).
@@ -321,7 +321,8 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
               <div style={{ fontSize:10, fontWeight:900, letterSpacing:2, color: isTeresa ? "#4a3f80" : "#6366f1", textTransform:"uppercase", marginBottom:12 }}>
                 🎲 Atividades
               </div>
-              {listaDa("jogo").map(renderCard)}
+              {/* Jogo "Como te vês" primeiro, e logo a seguir as suas respostas guardadas */}
+              {listaDa("jogo").filter(r => r.n === 4).map(renderCard)}
 
               {/* Histórico das respostas guardadas do "Como te vês" (junto ao jogo) */}
               {(jogosArcade.some(j => j.n === 4) || ctvHist.length > 0) && (
@@ -388,6 +389,9 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
                   )}
                 </div>
               )}
+
+              {/* Restantes jogos (1, 2, 3) e recursos-jogo da BD, depois das respostas */}
+              {listaDa("jogo").filter(r => r.n !== 4).map(renderCard)}
 
               {renderActivityButton("🌸", "Roda da Vida", "Avalia as diferentes áreas da tua vida e envia à Teresa.", () => setAtividade("roda"), "#FF4FA3")}
               {renderActivityButton("💌", "Cápsulas do Tempo", "Deixa mensagens trancadas para o teu futuro.", () => setAtividade("capsula"), "#F0932B")}
