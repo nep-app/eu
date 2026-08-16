@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, doc, setDoc, increment, arrayUnion, addDoc, query, orderBy } from "firebase/firestore";
-import { db } from "../../firebase.js";
+import { db, notifyAdmin } from "../../firebase.js";
 import { CARD, SL, CYN, INP, Btn } from "../../theme.jsx";
 import { fmtDate, isOverdue, nowLabel } from "../../data.js";
 
@@ -54,7 +54,7 @@ export default function QuizCenarios({ user, data }) {
 
     // 2. Notificação ao admin — try/catch independente, não reverte o submit
     try {
-      await addDoc(collection(db, "adminNotificacoes"), {
+      await notifyAdmin({
         tipo: "QUIZ", jovem: user.username, quizTitle: quiz.title,
         quizId: quiz.id, opcaoId: selectedOpt, nota: nota.trim(), ts: Date.now(), lida: false
       });

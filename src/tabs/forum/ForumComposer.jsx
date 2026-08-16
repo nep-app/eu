@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { collection, addDoc, doc, updateDoc, increment, arrayUnion } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "../../firebase.js";
+import { db, storage, notifyAdmin } from "../../firebase.js";
 import { CARD, SL, CYN, INP, TXT_MUT } from "../../theme.jsx";
 import { nowFull, ALLOWED_USERNAMES, CHANNELS, JEEP_LIST } from "../../data.js";
 
@@ -119,7 +119,7 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
               from: user.username, text: notifText, date: nowFull(), read: false, canal: canalAtivo, ts: Date.now()
             }))
         );
-        await addDoc(collection(db, "adminNotificacoes"), {
+        await notifyAdmin({
           tipo: "FORUM_POST", jovem: user.username, canal: canalAtivo,
           texto: textoPost.substring(0, 60), ts: Date.now(), lida: false
         });

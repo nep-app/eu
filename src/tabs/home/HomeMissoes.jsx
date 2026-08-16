@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { doc, setDoc, addDoc, collection } from "firebase/firestore";
-import { db } from "../../firebase.js";
+import { db, notifyAdmin } from "../../firebase.js";
 import { CARD, SL, CYN, INP, GRN, Linkify } from "../../theme.jsx";
 import { nowFull, getWeekKey, fmtDate, isOverdue } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
@@ -39,7 +39,7 @@ export default function HomeMissoes({ user, data }) {
       ...getDayStreakUpdate()
     }, { merge: true });
     // Avisar a Teresa de que a missão foi cumprida (com nota, se houver).
-    await addDoc(collection(db, "adminNotificacoes"), {
+    await notifyAdmin({
       tipo: "MISSAO", jovem: user.username,
       texto: (missao.text || "").substring(0, 80),
       nota: nota ? nota.substring(0, 200) : null,

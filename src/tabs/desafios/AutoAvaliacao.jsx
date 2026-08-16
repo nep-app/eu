@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { doc, getDoc, setDoc, updateDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";
-import { db } from "../../firebase.js";
+import { db, notifyAdmin } from "../../firebase.js";
 import { CARD, CYN, INP, Btn } from "../../theme.jsx";
 import { scoreLabel, getDimDesc, DIMS, nowLabel, getWeekKey } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
@@ -41,7 +41,7 @@ export default function AutoAvaliacao({ user, data }) {
 
       // A conta demo não notifica a Teresa a sério (é uma demonstração).
       if (!isDemo) {
-        await addDoc(collection(db, "adminNotificacoes"), {
+        await notifyAdmin({
           tipo: "AUTOAVALIACAO", jovem: user.username, data: date, ts: Date.now(), lida: false
         });
       }

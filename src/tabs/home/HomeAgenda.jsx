@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { addDoc, collection, deleteDoc, doc, updateDoc, setDoc } from "firebase/firestore";
-import { db } from "../../firebase.js";
+import { db, notifyAdmin } from "../../firebase.js";
 import { CARD, SL, CYN, BLUE, INP, TXT_MUT } from "../../theme.jsx";
 import { EVT_COLORS, EVT_ICONS, nowLabel } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
@@ -68,7 +68,7 @@ export default function HomeAgenda({ user, data = {} }) {
       shared: partilhar, ts: Date.now()
     });
     if (partilhar) {
-      await addDoc(collection(db, "adminNotificacoes"), {
+      await notifyAdmin({
         tipo: "EVENTO_PARTILHADO", jovem: user.username,
         texto: novoTitulo.substring(0, 60), ts: Date.now(), lida: false,
       });

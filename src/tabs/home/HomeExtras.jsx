@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { doc, setDoc, addDoc, collection } from "firebase/firestore";
-import { db } from "../../firebase.js";
+import { db, notifyAdmin, sendAdminMessage } from "../../firebase.js";
 import { CARD, SL, CYN, BLUE, PNK, YLW, INP, Btn, TXT_MUT, GRN, Linkify } from "../../theme.jsx";
 import { nowFull, getWeekKey, fmtDate, isOverdue, SPECIAL_USERS } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
@@ -42,12 +42,12 @@ export default function HomeExtras({ user, data, setTab }) {
     const ts = Date.now();
 
     if (destinatarios.includes("admin")) {
-      await addDoc(collection(db, "messages"), {
+      await sendAdminMessage({
         text: mensagemTexto, anon: mensagemAnonima,
         from: mensagemAnonima ? "Anónimo" : user.username,
         hiddenUser: user.username, date: nowFull(), ts, adminReply: ""
       });
-      await addDoc(collection(db, "adminNotificacoes"), {
+      await notifyAdmin({
         tipo: "MENSAGEM", anon: mensagemAnonima,
         jovem: user.username,
         texto: mensagemTexto.substring(0, 60),

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { doc, setDoc, updateDoc, addDoc, collection, arrayUnion } from "firebase/firestore";
-import { db } from "../firebase.js";
+import { db, notifyAdmin } from "../firebase.js";
 import { CARD, SL, INP, CYN, GRN, TXT_MUT, PNK } from "../theme.jsx";
 import { PIA_SECTIONS, nowFull, nowLabel, getWeekKey } from "../data.js";
 import { ThemeCtx } from "../JovensApp.jsx";
@@ -141,7 +141,7 @@ function PanicBar({ question, user }) {
   const [sent, setSent] = useState(false);
   async function pedirAjuda() {
     if (sent) return;
-    await addDoc(collection(db, "adminNotificacoes"), {
+    await notifyAdmin({
       tipo: "AJUDA_PIA", jovem: user.username,
       pergunta: question, ts: Date.now(), lida: false,
     });
@@ -308,7 +308,7 @@ export default function PiaTab({ user, data }) {
       // A conta demo não notifica a Teresa a sério (é uma demonstração).
       if (!isDemo) {
         const seccoesNomes = novasSeccoes.map(s => s.title).join(", ") || PIA_SECTIONS.filter(s => piaUnlocked[s.id]).map(s => s.title).join(", ");
-        await addDoc(collection(db, "adminNotificacoes"), {
+        await notifyAdmin({
           tipo: "PIA", jovem: user.username, ts: Date.now(), lida: false, atualizado: jaEnviou, texto: seccoesNomes
         });
       }

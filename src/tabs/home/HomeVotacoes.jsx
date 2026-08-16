@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, doc, updateDoc, addDoc, increment, arrayUnion } from "firebase/firestore";
-import { db } from "../../firebase.js";
+import { db, notifyAdmin } from "../../firebase.js";
 import { CARD, SL, CYN } from "../../theme.jsx";
 import { nowFull } from "../../data.js";
 
@@ -53,7 +53,7 @@ export default function HomeVotacoes({ user }) {
         weekXp: increment(5),
         history: arrayUnion({ date: nowFull(), action: `Votou em "${poll.title}"`, ts: Date.now(), xp: 5 }),
       });
-      await addDoc(collection(db, "adminNotificacoes"), {
+      await notifyAdmin({
         tipo: "VOTO", jovem: user.username,
         texto: `${user.realName} votou em "${poll.title}" → ${opcao}`,
         ts: Date.now(), lida: false,

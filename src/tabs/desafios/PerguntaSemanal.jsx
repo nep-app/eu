@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { doc, setDoc, getDoc, updateDoc, increment, arrayUnion, addDoc, collection } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "../../firebase.js";
+import { db, storage, notifyAdmin } from "../../firebase.js";
 import { CARD, SL, CYN, INP, Btn, PNK, Linkify } from "../../theme.jsx";
 import { nowFull, fmtDate, isOverdue } from "../../data.js";
 
@@ -107,7 +107,7 @@ export default function PerguntaSemanal({ user, data }) {
         history: arrayUnion({ date: ts, action: "Respondeu ao desafio semanal", ts: Date.now(), xp: 20 }),
         ...(ud.lastActiveDay !== today && { dayStreak: newStreak, lastActiveDay: today })
       });
-      await addDoc(collection(db, "adminNotificacoes"), {
+      await notifyAdmin({
         tipo: "PERGUNTA", jovem: user.username, ts: Date.now(), lida: false,
         texto: (respostaFinal || "").substring(0, 60)
       });

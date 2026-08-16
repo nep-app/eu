@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, browserLocalPersistence, setPersistence } from 'firebase/auth';
-import { getFirestore, doc, setDoc, deleteField } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, deleteField, addDoc, collection } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -16,6 +16,18 @@ export const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+
+// A conta demo NUNCA notifica o admin nem lhe envia mensagens de verdade — é uma
+// demonstração. Todos os envios para o admin passam por estas funções (ponto único).
+const ehDemo = () => auth.currentUser?.email === "demo@jeep.app";
+export async function notifyAdmin(payload) {
+  if (ehDemo()) return null;
+  return addDoc(collection(db, "adminNotificacoes"), payload);
+}
+export async function sendAdminMessage(payload) {
+  if (ehDemo()) return null;
+  return addDoc(collection(db, "messages"), payload);
+}
 
 // Dynamic import — só carrega firebase/messaging quando chamado, nunca ao iniciar a app
 export async function getMessagingInstance() {

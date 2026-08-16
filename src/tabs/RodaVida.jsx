@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { doc, setDoc, addDoc, collection } from "firebase/firestore";
-import { db } from "../firebase.js";
+import { db, notifyAdmin } from "../firebase.js";
 import { CARD, SL, CYN, PNK, Btn, RadarChart } from "../theme.jsx";
 import { nowLabel, nowFull, RODA_DIMS, DEF_RODA } from "../data.js";
 
@@ -29,7 +29,7 @@ export default function RodaVida({ user, data, features = {} }) {
         history: newH, weekXp: (uData.weekXp || 0) + 20, ...streakUpdate
       }, { merge: true });
       if (share) {
-        await addDoc(collection(db, "adminNotificacoes"), {
+        await notifyAdmin({
           tipo: "RODA", jovem: user.username, ts: Date.now(), lida: false
         });
       }

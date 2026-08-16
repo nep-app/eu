@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { doc, updateDoc, deleteDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";
-import { db } from "../../firebase.js";
+import { db, notifyAdmin } from "../../firebase.js";
 import { CARD, CYN, INP, TXT_MUT, PRP, Linkify } from "../../theme.jsx";
 import { nowFull, FORUM_REACTIONS, ALL_MEDALS, JEEP_LIST } from "../../data.js";
 
@@ -26,7 +26,7 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
       ? `❤️ ${user.realName} reagiu à tua partilha!`
       : `💬 ${user.realName} comentou a tua partilha!`;
     if (post.username === "admin") {
-      await addDoc(collection(db, "adminNotificacoes"), {
+      await notifyAdmin({
         tipo: tipo === "like" ? "FORUM_REACAO" : "FORUM_COMENTARIO",
         jovem: user.username,
         texto: tipo === "like"
