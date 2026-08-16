@@ -124,34 +124,37 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
           texto: textoPost.substring(0, 60), ts: Date.now(), lida: false
         });
       }
-      // @menções — suporta múltiplas + @todos
-      const textoLower = textoPost.toLowerCase();
-      const mencionouTodos = textoLower.includes("@todos");
-      const mencoes = [...textoPost.matchAll(/@(\w+)/g)]
-        .map(m => m[1].toLowerCase())
-        .filter((u, i, arr) => arr.indexOf(u) === i)
-        .filter(u => u !== user.username && u !== "todos" && ALLOWED_USERNAMES.includes(u));
-      const destinatariosTodos = mencionouTodos
-        ? ALLOWED_USERNAMES.filter(u => u !== user.username && u !== "demo" && !mencoes.includes(u))
-        : [];
-      await Promise.all([
-        ...mencoes.map(mencionado =>
-          addDoc(collection(db, "notifications", mencionado, "items"), {
-            from: user.username,
-            text: `🔔 ${user.realName} mencionou-te em ${infoCanal?.label || canalAtivo}!`,
-            date: nowFull(), read: false, ts: Date.now(),
-            mencao: true, postId: docRef.id, canal: canalAtivo, push: true
-          })
-        ),
-        ...destinatariosTodos.map(u =>
-          addDoc(collection(db, "notifications", u, "items"), {
-            from: user.username,
-            text: `🔔 ${user.realName} mencionou a equipa toda em ${infoCanal?.label || canalAtivo}!`,
-            date: nowFull(), read: false, ts: Date.now(),
-            mencao: true, postId: docRef.id, canal: canalAtivo, push: true
-          })
-        ),
-      ]);
+      // @menções — suporta múltiplas + @todos. Só no fórum real (na demo não se
+      // notifica ninguém, mesmo que se mencione @teresa etc.).
+      if (forumCollection === "forum") {
+        const textoLower = textoPost.toLowerCase();
+        const mencionouTodos = textoLower.includes("@todos");
+        const mencoes = [...textoPost.matchAll(/@(\w+)/g)]
+          .map(m => m[1].toLowerCase())
+          .filter((u, i, arr) => arr.indexOf(u) === i)
+          .filter(u => u !== user.username && u !== "todos" && ALLOWED_USERNAMES.includes(u));
+        const destinatariosTodos = mencionouTodos
+          ? ALLOWED_USERNAMES.filter(u => u !== user.username && u !== "demo" && !mencoes.includes(u))
+          : [];
+        await Promise.all([
+          ...mencoes.map(mencionado =>
+            addDoc(collection(db, "notifications", mencionado, "items"), {
+              from: user.username,
+              text: `🔔 ${user.realName} mencionou-te em ${infoCanal?.label || canalAtivo}!`,
+              date: nowFull(), read: false, ts: Date.now(),
+              mencao: true, postId: docRef.id, canal: canalAtivo, push: true
+            })
+          ),
+          ...destinatariosTodos.map(u =>
+            addDoc(collection(db, "notifications", u, "items"), {
+              from: user.username,
+              text: `🔔 ${user.realName} mencionou a equipa toda em ${infoCanal?.label || canalAtivo}!`,
+              date: nowFull(), read: false, ts: Date.now(),
+              mencao: true, postId: docRef.id, canal: canalAtivo, push: true
+            })
+          ),
+        ]);
+      }
       darXPComStreak("Publicou uma partilha no Fórum");
       setTextoPost(""); setFicheirosMedia([]); setMencaoDropdown(false);
     } catch (e) { alert("Erro ao publicar: " + e.message); }

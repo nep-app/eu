@@ -21,6 +21,9 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
   }
 
   async function enviarNotificacao(tipo) {
+    // Fórum de demonstração não notifica ninguém (os "autores" dos posts a fingir
+    // são contas reais — teresa, nilton… — e não devem receber nada da demo).
+    if (forumCollection === "forum_demo") return;
     if (!post.username || user.username === post.username) return;
     const msg = tipo === "like"
       ? `❤️ ${user.realName} reagiu à tua partilha!`
