@@ -62,8 +62,12 @@ export default function App() {
             (async () => {
               try {
                 await deleteDoc(doc(db, "userData", "demo"));
-                const its = await getDocs(collection(db, "todos", "demo", "items"));
-                await Promise.all(its.docs.map(d => deleteDoc(d.ref)));
+                for (const sub of ["items"]) {
+                  const its = await getDocs(collection(db, "todos", "demo", sub));
+                  await Promise.all(its.docs.map(d => deleteDoc(d.ref)));
+                }
+                const nots = await getDocs(collection(db, "notifications", "demo", "items"));
+                await Promise.all(nots.docs.map(d => deleteDoc(d.ref)));
               } catch (_) {}
             })();
           }

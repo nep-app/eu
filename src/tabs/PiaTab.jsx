@@ -261,8 +261,12 @@ function fieldFilled(f, secData) {
 export default function PiaTab({ user, data }) {
   const light = useContext(ThemeCtx);
   const isTeresa = user?.username === "teresa";
+  const isDemo   = user?.username === "demo";
   const uData       = data.userData || {};
-  const piaUnlocked = uData.piaUnlocked || {};
+  // A conta demo tem o PIA todo desbloqueado (é uma demonstração).
+  const piaUnlocked = isDemo
+    ? Object.fromEntries(PIA_SECTIONS.map(s => [s.id, true]))
+    : (uData.piaUnlocked || {});
   const piaData     = uData.piaData     || {};
   const [subTab, setSubTab] = useState("diag");
   const [sending, setSending] = useState(false);

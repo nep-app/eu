@@ -135,12 +135,11 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
   }, [secao]);
 
   // Cada jogo do Arcade aparece a admin/teresa, a quem tem acesso total antigo,
-  // e a quem estiver ligado nesse jogo. A conta "demo" vê sempre o jogo 4
-  // ("Como te vês"), para demonstração.
+  // e a quem estiver ligado nesse jogo. A conta "demo" tem TUDO aberto (demonstração).
   const isDemo = user.username === "demo";
-  const podeArcadeTudo = isAdmin(user) || (arcadeCfg.users || []).includes(user.username);
+  const podeArcadeTudo = isAdmin(user) || isDemo || (arcadeCfg.users || []).includes(user.username);
   const jogosArcade = ARCADE_JOGOS.filter(j =>
-    podeArcadeTudo || (isDemo && j.n === 4) || (arcadeCfg.jogos?.[j.n] || []).includes(user.username)
+    podeArcadeTudo || (arcadeCfg.jogos?.[j.n] || []).includes(user.username)
   );
 
   // Categoria de um recurso da BD (por defeito "guia" se ainda não foi categorizado).

@@ -144,7 +144,8 @@ export default function JovensApp({ user, onLogout, previewMode = false, onExitP
   const featureOverrides = ud.featureOverrides || {};
   const effectiveFeatures = Object.fromEntries(
     ["perguntaSemanal","autoAvaliacao","satisfacao","rodaVida"].map(k => [
-      k, featureOverrides[k] !== undefined ? featureOverrides[k] : (globalFeatures[k] || false)
+      // A conta demo tem TUDO aberto (é uma demonstração — a pessoa experimenta tudo).
+      k, user.isDemo ? true : (featureOverrides[k] !== undefined ? featureOverrides[k] : (globalFeatures[k] || false))
     ])
   );
 

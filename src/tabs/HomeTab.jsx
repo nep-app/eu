@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase.js";
-import { MTHS } from "../data.js";
+import { MTHS, CHANNELS } from "../data.js";
 import HomeTodo from './home/HomeTodo.jsx';
 import HomeAgenda from './home/HomeAgenda.jsx';
 import HomeExtras from './home/HomeExtras.jsx';
@@ -38,7 +38,13 @@ function parseDateStr(str) {
 
 export default function HomeTab({ user, data, setTab, setDesafiosSubTab, setForumCanal, previewMode }) {
   const agendaRef = useRef(null);
-  const allRelev = (data.myNotifs || []).filter(isRelevant);
+  // Na conta demo escondemos as notificações do fórum (são mais privadas).
+  const isDemo = user?.isDemo || user?.username === "demo";
+  const isForumN = (n) => !!n.canal || n.mencao || CHANNELS.some(ch => n.text?.startsWith(ch.icon))
+    || n.text?.startsWith("🌐") || n.text?.startsWith("📢")
+    || n.text?.includes("reagiu à tua partilha") || n.text?.includes("comentou a tua partilha")
+    || n.text?.includes("publicação no Fórum");
+  const allRelev = (data.myNotifs || []).filter(isRelevant).filter(n => !(isDemo && isForumN(n)));
   const notifs = allRelev
     .filter(n => !n.read)
     .sort((a, b) => {
@@ -46,7 +52,7 @@ export default function HomeTab({ user, data, setTab, setDesafiosSubTab, setForu
       const tb = b.ts || parseDateStr(b.date);
       return tb - ta;
     });
-  const mencaoNotifs = (data.myNotifs || []).filter(n => n.mencao && !n.read);
+  const mencaoNotifs = isDemo ? [] : (data.myNotifs || []).filter(n => n.mencao && !n.read);
 
   function dismissNotif(id) {
     updateDoc(doc(db, "notifications", user.username, "items", id), { read: true });
