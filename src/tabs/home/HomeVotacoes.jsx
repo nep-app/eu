@@ -7,10 +7,13 @@ import { nowFull } from "../../data.js";
 export default function HomeVotacoes({ user }) {
   const [polls, setPolls] = useState([]);
   const [expandedPolls, setExpandedPolls] = useState(new Set());
+  const isDemo = user.isDemo || false;
+  // Votação a fingir para a conta demo (voto local, não vai à base de dados).
+  const [demoVotes, setDemoVotes] = useState({ "Praia 🏖️": ["Nilton", "Carina"], "Parque 🌳": ["Erick"], "Café no centro ☕": ["Marisa", "Bruno"] });
+  const demoPoll = { id: "demo_poll", title: "Onde fazemos o próximo convívio da equipa?", type: "opcao", options: ["Praia 🏖️", "Parque 🌳", "Café no centro ☕"], votes: demoVotes, active: true, ts: 9e15, demo: true };
 
   useEffect(() => {
     return onSnapshot(collection(db, "polls"), snap => {
-      const isDemo = user.isDemo || false;
       const ativas = snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
         .filter(p => {
@@ -24,6 +27,16 @@ export default function HomeVotacoes({ user }) {
   }, []);
 
   async function votar(pollId, opcao) {
+    // Votação a fingir (demo): muda só o estado local, não escreve nada.
+    if (pollId === "demo_poll") {
+      setDemoVotes(prev => {
+        const nv = { ...prev };
+        const arr = nv[opcao] || [];
+        nv[opcao] = arr.includes(user.realName) ? arr.filter(n => n !== user.realName) : [...arr, user.realName];
+        return nv;
+      });
+      return;
+    }
     const poll = polls.find(p => p.id === pollId);
     if (!poll) return;
     let novosVotos = { ...poll.votes };
@@ -48,11 +61,12 @@ export default function HomeVotacoes({ user }) {
     }
   }
 
-  if (polls.length === 0) return null;
+  const pollsToShow = isDemo ? [demoPoll, ...polls] : polls;
+  if (pollsToShow.length === 0) return null;
 
   return (
     <>
-      {polls.map(poll => {
+      {pollsToShow.map(poll => {
         const votasMinhas = poll.options.filter(op => (poll.votes[op] || []).includes(user.realName));
         const hasVoted = votasMinhas.length > 0;
         const isExpanded = expandedPolls.has(poll.id);
