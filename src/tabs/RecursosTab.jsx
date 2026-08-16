@@ -7,6 +7,7 @@ import { ThemeCtx } from "../JovensApp.jsx";
 import PiaTab from "./PiaTab.jsx";
 import RodaVida from "./RodaVida.jsx";
 import Capsulas from "./Capsulas.jsx";
+import { demoDocs } from "../demoForum.js";
 
 const isAdmin = (u) => u?.username === "admin";
 
@@ -149,6 +150,8 @@ export default function RecursosTab({ user, data = {}, features = {} }) {
   const listaDa = (cat) => {
     if (cat === "jogo")  return [...jogosArcade, ...recursosDb.filter(r => catOf(r) === "jogo")];
     if (cat === "guia")  return [...recursosDb.filter(r => catOf(r) === "guia"), ...RECURSOS_FIXOS];
+    // Na demo, um certificado a fingir aparece nos Docs.
+    if (cat === "doc" && isDemo) return [...demoDocs(), ...recursosDb.filter(r => catOf(r) === "doc")];
     return recursosDb.filter(r => catOf(r) === cat);
   };
 

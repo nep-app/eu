@@ -104,6 +104,31 @@ export function demoMissions() {
   return [{ id: "demo_missao", text: "Esta semana, experimenta uma dinâmica nova com o teu grupo e conta como correu 🚀", xp: 20, encerrada: false, ts: Date.now() }];
 }
 
+// Certificado a fingir (SVG embutido) — aparece nos Docs da demo.
+const DEMO_CERT = "data:image/svg+xml;utf8," + encodeURIComponent(
+  `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='560'>
+    <rect width='800' height='560' fill='#0f0d1e'/>
+    <rect x='24' y='24' width='752' height='512' rx='14' fill='#141230' stroke='#7c3aed' stroke-width='3'/>
+    <rect x='40' y='40' width='720' height='480' rx='8' fill='none' stroke='#db2777' stroke-width='1'/>
+    <text x='400' y='120' font-family='Georgia,serif' font-size='34' font-weight='bold' fill='#fff' text-anchor='middle'>CERTIFICADO</text>
+    <text x='400' y='158' font-family='Arial,sans-serif' font-size='14' fill='#a9beff' text-anchor='middle' letter-spacing='3'>DE PARTICIPACAO</text>
+    <text x='400' y='230' font-family='Arial,sans-serif' font-size='15' fill='#cbd5e1' text-anchor='middle'>Este certificado e atribuido a</text>
+    <text x='400' y='280' font-family='Georgia,serif' font-size='30' font-weight='bold' fill='#f9a8d4' text-anchor='middle'>Utilizador de Demonstracao</text>
+    <text x='400' y='330' font-family='Arial,sans-serif' font-size='15' fill='#cbd5e1' text-anchor='middle'>pela conclusao da formacao</text>
+    <text x='400' y='362' font-family='Arial,sans-serif' font-size='18' font-weight='bold' fill='#fff' text-anchor='middle'>"Introducao ao Trabalho em Ludotecas"</text>
+    <text x='400' y='396' font-family='Arial,sans-serif' font-size='13' fill='#94a3b8' text-anchor='middle'>Duracao: 12 horas</text>
+    <line x1='250' y1='456' x2='550' y2='456' stroke='#475569' stroke-width='1'/>
+    <text x='400' y='476' font-family='Georgia,serif' font-size='16' fill='#e2e8f0' text-anchor='middle'>Teresa Castro</text>
+    <text x='400' y='496' font-family='Arial,sans-serif' font-size='11' fill='#64748b' text-anchor='middle'>Gestora do Programa EDUCA+</text>
+    <text x='400' y='524' font-family='Arial,sans-serif' font-size='11' fill='#7c3aed' text-anchor='middle'>(certificado de exemplo — a fingir)</text>
+  </svg>`
+);
+
+// Documento a fingir (client-side) — aparece na secção Docs da demo.
+export function demoDocs() {
+  return [{ id: "demo_cert", categoria: "doc", icone: "🎓", titulo: "Certificado — Introdução ao Trabalho em Ludotecas", desc: "Certificado de participação na formação (exemplo).", url: DEMO_CERT }];
+}
+
 // Eventos a fingir para a agenda (client-side — a coleção "events" é global).
 export function demoEvents() {
   const dia = (n) => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10);

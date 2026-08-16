@@ -68,7 +68,9 @@ export default function App() {
             demoResetFeito = true;
             (async () => {
               try {
-                await deleteDoc(doc(db, "userData", "demo"));
+                // Esvazia (não apaga) o doc — assim continua a existir e os
+                // updateDoc dos envios não falham com "no document to update".
+                await setDoc(doc(db, "userData", "demo"), {}, { merge: false });
                 // Fórum + notificações + tarefas a fingir (limpa e volta a semear).
                 await reseedDemo();
               } catch (_) {}
