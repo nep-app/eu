@@ -868,7 +868,37 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
     );
   }
 
+  const demoEntradas = [...((usersMeta.demo || {}).logins || [])].sort((a, b) => (b.ts || 0) - (a.ts || 0));
   return (
+    <>
+      {/* Entradas na conta de demonstração (partilhada) */}
+      <div style={{ ...CARD, marginBottom:15 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: demoEntradas.length ? 12 : 0 }}>
+          <div style={SL}>🎭 Entradas na conta Demo</div>
+          <div style={{ fontSize:10, color:CYN, fontWeight:800 }}>{demoEntradas.length} entrada{demoEntradas.length !== 1 ? "s" : ""}</div>
+        </div>
+        {demoEntradas.length === 0 ? (
+          <div style={{ textAlign:"center", color:"#475569", padding:12, fontSize:12 }}>
+            Ainda ninguém entrou na demo (fica registado a partir de agora).
+          </div>
+        ) : (
+          <div style={{ maxHeight:220, overflowY:"auto", paddingRight:4, display:"flex", flexDirection:"column", gap:5 }}>
+            {demoEntradas.map((e, i) => {
+              const d = new Date(e.ts || e.iso);
+              const label = d.toLocaleDateString("pt-PT", { weekday:"short", day:"2-digit", month:"2-digit", year:"2-digit" });
+              const hora  = d.toLocaleTimeString("pt-PT", { hour:"2-digit", minute:"2-digit" });
+              return (
+                <div key={e.ts ?? i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
+                  padding:"7px 10px", borderRadius:8, background:"rgba(0,0,0,0.2)", fontSize:12 }}>
+                  <span style={{ color:"#e2e8f0", fontWeight:600, textTransform:"capitalize" }}>{label}</span>
+                  <span style={{ color:"#5a7a9a", fontWeight:700 }}>{hora}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:15 }}>
       {JEEP_LIST.map(j => {
         const medalDoc    = amMedals[j.username] || {};
@@ -945,5 +975,6 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
         </div>
       )}
     </div>
+    </>
   );
 }
