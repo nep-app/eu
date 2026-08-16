@@ -34,14 +34,17 @@ export default function QuizCenarios({ user, data }) {
     const quiz = quizzes.find(q => q.id === currentQuizId);
     if (!quiz) return;
     setSubmitted(true);
+    // XP escondido do jovem: se o dilema tem uma opção "certa" definida pela Teresa,
+    // quem lhe acerta ganha mais (15) do que quem não (5). Sem opção certa → 10 (neutro).
+    const xp = quiz.correct ? (selectedOpt === quiz.correct ? 15 : 5) : 10;
     // 1. Guardar em userData (user tem sempre permissão sobre os seus próprios dados)
     try {
       await setDoc(doc(db, "userData", user.username), {
-        weekXp: increment(10),
+        weekXp: increment(xp),
         completedQuizzes: arrayUnion(quiz.id),
         quizResponses: { [quiz.id]: selectedOpt },
         ...(nota.trim() ? { quizNotes: { [quiz.id]: nota.trim() } } : {}),
-        history: arrayUnion({ date: nowLabel(), action: `Respondeu ao dilema: ${quiz.title}`, ts: Date.now(), xp: 10 })
+        history: arrayUnion({ date: nowLabel(), action: `Respondeu ao dilema: ${quiz.title}`, ts: Date.now(), xp })
       }, { merge: true });
     } catch (e) {
       console.error("Erro ao guardar resposta:", e);
@@ -195,7 +198,7 @@ export default function QuizCenarios({ user, data }) {
       {jaRespondeu && (
         <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.05)", textAlign: "center" }}>
           <div style={{ fontSize: 11, color: "#94a3b8" }}>
-            XP ganho: <span style={{ color: CYN, fontWeight: 900 }}>+10 XP</span>
+            ✓ Resposta enviada. Obrigado por partilhares!
           </div>
           {temProximo && (
             <Btn variant="dark" style={{ marginTop: 10, fontSize: 11 }} onClick={proximoDilema}>

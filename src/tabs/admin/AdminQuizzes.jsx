@@ -15,7 +15,7 @@ export default function AdminQuizzes({ allShared = {} }) {
   const [expandido, setExpandido] = useState({});
   const [novo, setNovo] = useState({
     title: "", badge: "D1 — Comunicação", scenario: "", prazo: "",
-    optA: "", revA: "", optB: "", revB: "", optC: "", revC: ""
+    optA: "", revA: "", optB: "", revB: "", optC: "", revC: "", correct: ""
   });
   const [editando, setEditando] = useState({});
   const [editDraft, setEditDraft] = useState({});
@@ -44,6 +44,7 @@ export default function AdminQuizzes({ allShared = {} }) {
       await addDoc(collection(db, "quizzes"), {
         title: novo.title, badge: novo.badge, scenario: novo.scenario,
         prazo: novo.prazo || null, active: true, ts: Date.now(),
+        correct: novo.correct || null,
         opts: [
           { id: "A", text: novo.optA, reveal: novo.revA },
           { id: "B", text: novo.optB, reveal: novo.revB },
@@ -52,7 +53,7 @@ export default function AdminQuizzes({ allShared = {} }) {
         mock: { A: 0, B: 0, C: 0 },
         responses: {}
       });
-      setNovo({ title: "", badge: "D1 — Comunicação", scenario: "", prazo: "", optA: "", revA: "", optB: "", revB: "", optC: "", revC: "" });
+      setNovo({ title: "", badge: "D1 — Comunicação", scenario: "", prazo: "", optA: "", revA: "", optB: "", revB: "", optC: "", revC: "", correct: "" });
       alert("Novo Dilema publicado! 🚀");
     } catch (e) { alert("Erro: " + e.message); }
   }
@@ -61,6 +62,7 @@ export default function AdminQuizzes({ allShared = {} }) {
     setEditDraft(p => ({
       ...p, [quiz.id]: {
         title: quiz.title, badge: quiz.badge, scenario: quiz.scenario, prazo: quiz.prazo || "",
+        correct: quiz.correct || "",
         optA: quiz.opts?.[0]?.text || "", revA: quiz.opts?.[0]?.reveal || "",
         optB: quiz.opts?.[1]?.text || "", revB: quiz.opts?.[1]?.reveal || "",
         optC: quiz.opts?.[2]?.text || "", revC: quiz.opts?.[2]?.reveal || "",
@@ -75,6 +77,7 @@ export default function AdminQuizzes({ allShared = {} }) {
     try {
       await updateDoc(doc(db, "quizzes", quizId), {
         title: d.title, badge: d.badge, scenario: d.scenario, prazo: d.prazo || null,
+        correct: d.correct || null,
         opts: [
           { id: "A", text: d.optA, reveal: d.revA },
           { id: "B", text: d.optB, reveal: d.revB },
@@ -137,8 +140,18 @@ export default function AdminQuizzes({ allShared = {} }) {
               value={novo[`opt${letter}`]} onChange={e => setNovo({...novo, [`opt${letter}`]: e.target.value})} />
             <input style={{ ...INP, fontSize: 12, color: CYN }} placeholder="Explicação após responder (Reveal)"
               value={novo[`rev${letter}`]} onChange={e => setNovo({...novo, [`rev${letter}`]: e.target.value})} />
+            <button type="button" onClick={() => setNovo({...novo, correct: novo.correct === letter ? "" : letter})}
+              style={{ marginTop: 4, fontSize: 11, fontWeight: 800, cursor: "pointer", borderRadius: 8, padding: "5px 10px",
+                background: novo.correct === letter ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
+                border: novo.correct === letter ? "1px solid #4ade80" : "1px solid rgba(255,255,255,0.1)",
+                color: novo.correct === letter ? "#4ade80" : "#94a3b8" }}>
+              {novo.correct === letter ? "✓ Resposta certa" : "Marcar como certa"}
+            </button>
           </div>
         ))}
+        <div style={{ fontSize: 10, color: "#64748b", marginBottom: 12, lineHeight: 1.4 }}>
+          A "resposta certa" é opcional e <b>não é mostrada</b> ao jovem — só faz com que quem lhe acerta ganhe mais XP (nos bastidores).
+        </div>
 
         <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>PRAZO (opcional)</label>
         <input type="date" style={{ ...INP, marginTop: 6 }}
@@ -152,6 +165,7 @@ export default function AdminQuizzes({ allShared = {} }) {
             if (!novo.title || !novo.scenario || !novo.optA) { alert("Preenche os campos básicos!"); return null; }
             return {
               title: novo.title, badge: novo.badge, scenario: novo.scenario, prazo: novo.prazo || null,
+              correct: novo.correct || null,
               opts: [
                 { id: "A", text: novo.optA, reveal: novo.revA },
                 { id: "B", text: novo.optB, reveal: novo.revB },
@@ -281,6 +295,13 @@ export default function AdminQuizzes({ allShared = {} }) {
                       <label style={{ fontSize: 10, color: "#94a3b8" }}>OPÇÃO {letter}</label>
                       <input style={{ ...INP, marginBottom: 5 }} value={d[`opt${letter}`]} onChange={e => setD({ [`opt${letter}`]: e.target.value })} />
                       <input style={{ ...INP, fontSize: 12, color: CYN }} placeholder="Reveal…" value={d[`rev${letter}`]} onChange={e => setD({ [`rev${letter}`]: e.target.value })} />
+                      <button type="button" onClick={() => setD({ correct: d.correct === letter ? "" : letter })}
+                        style={{ marginTop: 4, fontSize: 11, fontWeight: 800, cursor: "pointer", borderRadius: 8, padding: "5px 10px",
+                          background: d.correct === letter ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
+                          border: d.correct === letter ? "1px solid #4ade80" : "1px solid rgba(255,255,255,0.1)",
+                          color: d.correct === letter ? "#4ade80" : "#94a3b8" }}>
+                        {d.correct === letter ? "✓ Resposta certa" : "Marcar como certa"}
+                      </button>
                     </div>
                   ))}
 

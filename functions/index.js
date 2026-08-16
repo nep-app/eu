@@ -253,10 +253,10 @@ async function publicarForum(payload) {
 
 // tipo "dilema" — cria um Dilema/Quiz (como AdminQuizzes.salvarQuiz)
 async function publicarDilema(payload) {
-  const { title, badge = "", scenario, opts = [], prazo = null } = payload || {};
+  const { title, badge = "", scenario, opts = [], prazo = null, correct = null } = payload || {};
   if (!title || !scenario) return;
   await db.collection("quizzes").add({
-    title, badge, scenario, prazo, active: true, ts: Date.now(),
+    title, badge, scenario, prazo, correct, active: true, ts: Date.now(),
     opts, mock: { A: 0, B: 0, C: 0 }, responses: {},
   });
 }
