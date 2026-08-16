@@ -36,7 +36,8 @@ export default function AdminTarefas() {
   useEffect(() => {
     let unsubs = [];
     let todasTarefas = [];
-    ALLOWED_USERNAMES.forEach(uname => {
+    // A conta demo não entra aqui (as tarefas a fingir não poluem o painel).
+    ALLOWED_USERNAMES.filter(u => u !== "demo").forEach(uname => {
       const q = query(collection(db, "todos", uname, "items"));
       const unsub = onSnapshot(q, (snap) => {
         const tarefasDoUser = snap.docs
