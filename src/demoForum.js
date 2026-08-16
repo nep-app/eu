@@ -91,9 +91,11 @@ function seedNotifs() {
 // Tarefas a fingir (todos/demo/items) — a lista "A minha lista" do Início.
 function seedTodos() {
   return [
+    // Proposta da Teresa — aparece em "Sugestões da Teresa" com ACEITAR / RECUSAR.
+    { text: "Sugestão: lê o Guia de Bem-estar Digital e diz-me o que achaste 📘", due: "", done: false, shared: true, addedBy: "teresa", accepted: false, type: "geral" },
+    // Tarefas do próprio (a fingir), em "A minha lista".
     { text: "Preparar a atividade de sexta-feira 🎨", due: "", done: false, shared: false },
-    { text: "Tirar fotos da sessão para partilhar no fórum 📷", due: "", done: false, shared: false },
-    { text: "Ler o Guia de Bem-estar Digital", due: "", done: true, shared: false, addedBy: "teresa", accepted: true },
+    { text: "Tirar fotos da última sessão para partilhar no fórum 📷", due: "", done: true, shared: false },
   ];
 }
 

@@ -8,6 +8,9 @@ import TeresaAdmin from "./TeresaAdmin.jsx";
 import JovensApp from "./JovensApp.jsx";
 import { reseedDemo } from "./demoForum.js";
 
+// Corre o reset da demo uma vez por carregamento de página (um reload volta a limpar).
+let demoResetFeito = false;
+
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [screen, setScreen] = useState("login");
@@ -57,9 +60,12 @@ export default function App() {
           // Não dá XP — é só registo. Escreve no próprio doc users (permitido).
           const registarEntrada = !sessionStorage.getItem("jeep_entrada_registada");
           if (registarEntrada) sessionStorage.setItem("jeep_entrada_registada", "1");
-          // Conta de demonstração: cada nova sessão começa do zero, para quem testa
-          // a seguir não herdar o que o anterior fez (é suposto ser uma demo limpa).
-          if (uname === "demo" && registarEntrada) {
+          // Conta de demonstração: começa do zero a CADA abertura da app, para
+          // quem testa a seguir não herdar o que o anterior fez. Usa um flag de
+          // módulo (demoResetFeito) para não repetir em refreshes de token na
+          // mesma sessão de página — mas um reload da página volta a limpar.
+          if (uname === "demo" && !demoResetFeito) {
+            demoResetFeito = true;
             (async () => {
               try {
                 await deleteDoc(doc(db, "userData", "demo"));
