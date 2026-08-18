@@ -45,6 +45,8 @@ export default function AdminVotacoes() {
   const [targetUsers, setTargetUsers] = useState(JEEP_8.map(j => j.username));
   const [saving, setSaving] = useState(false);
   const [pushVotacao, setPushVotacao] = useState(false);
+  const [multipla, setMultipla] = useState(false);       // deixar escolher várias opções
+  const [permiteOutros, setPermiteOutros] = useState(false); // opção «Outros» (escrita livre)
   const [editId, setEditId] = useState(null);
   const [editTitulo, setEditTitulo] = useState("");
   const [editOpcoes, setEditOpcoes] = useState([]);
@@ -80,6 +82,8 @@ export default function AdminVotacoes() {
         options: opcoesFinais, votes: votosIniciais,
         active: true, ts: Date.now(),
         demo: false,
+        multipla: tipo === "data" ? true : multipla,          // Doodle é sempre múltiplo
+        permiteOutros: tipo === "texto" ? permiteOutros : false,
         targetUsers: targetUsers.length === JEEP_8.length ? [] : targetUsers,
       });
       // Avisar os jovens da nova votação (com push opcional).
@@ -93,7 +97,7 @@ export default function AdminVotacoes() {
       setOpcoes(["", ""]);
       setOpcoesDatas([{date:"",time:""},{date:"",time:""}]);
       setTargetUsers(JEEP_8.map(j => j.username));
-      setPushVotacao(false);
+      setPushVotacao(false); setMultipla(false); setPermiteOutros(false);
     } catch(e) {
       alert("Erro ao criar votação: " + e.message);
     } finally {
@@ -319,6 +323,21 @@ export default function AdminVotacoes() {
           )}
         </div>
 
+        {tipo === "texto" && (
+          <>
+            <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom:10 }}>
+              <input type="checkbox" checked={multipla} onChange={() => setMultipla(v => !v)}
+                style={{ accentColor:CYN, width:14, height:14 }} />
+              ✅ Deixar escolher <b style={{ color:"#cbd5e1" }}>&nbsp;várias opções</b>&nbsp; (senão, só uma)
+            </label>
+            <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom:10 }}>
+              <input type="checkbox" checked={permiteOutros} onChange={() => setPermiteOutros(v => !v)}
+                style={{ accentColor:CYN, width:14, height:14 }} />
+              ✍️ Incluir opção <b style={{ color:"#cbd5e1" }}>&nbsp;«Outros»</b>&nbsp; (eles escrevem à vontade)
+            </label>
+          </>
+        )}
+
         <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom:12 }}>
           <input type="checkbox" checked={pushVotacao} onChange={() => setPushVotacao(v => !v)}
             style={{ accentColor:CYN, width:14, height:14 }} />
@@ -337,6 +356,8 @@ export default function AdminVotacoes() {
             if (opcoesFinais.length < 2) { alert("Precisas de pelo menos 2 opções!"); return null; }
             return {
               title: titulo, type: tipo, options: opcoesFinais,
+              multipla: tipo === "data" ? true : multipla,
+              permiteOutros: tipo === "texto" ? permiteOutros : false,
               targetUsers: targetUsers.length === JEEP_8.length ? [] : targetUsers,
               push: pushVotacao,
             };
@@ -345,7 +366,7 @@ export default function AdminVotacoes() {
           onAgendado={() => {
             setTitulo(""); setOpcoes(["", ""]);
             setOpcoesDatas([{date:"",time:""},{date:"",time:""}]);
-            setTargetUsers(JEEP_8.map(j => j.username)); setPushVotacao(false);
+            setTargetUsers(JEEP_8.map(j => j.username)); setPushVotacao(false); setMultipla(false); setPermiteOutros(false);
           }}
         />
       </div>
@@ -360,7 +381,7 @@ export default function AdminVotacoes() {
                 <div>
                   <div style={{ fontSize:15, fontWeight:900 }}>{poll.title}</div>
                   <div style={{ fontSize:11, color: poll.active ? CYN : "#64748b", fontWeight:800, marginTop:3 }}>
-                    {poll.active ? "🟢 A DECORRER" : "🔴 ENCERRADA"} · {poll.type === "data" ? "Doodle" : "Escolha múltipla"}
+                    {poll.active ? "🟢 A DECORRER" : "🔴 ENCERRADA"} · {poll.type === "data" ? "Doodle" : (poll.multipla ? "Várias opções" : "Uma opção")}{poll.permiteOutros ? " · com «Outros»" : ""}
                   </div>
                   {poll.targetUsers && poll.targetUsers.length > 0 && (
                     <div style={{ fontSize:10, color:"#64748b", marginTop:3 }}>

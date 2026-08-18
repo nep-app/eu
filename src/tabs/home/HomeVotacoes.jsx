@@ -7,6 +7,7 @@ import { nowFull } from "../../data.js";
 export default function HomeVotacoes({ user }) {
   const [polls, setPolls] = useState([]);
   const [expandedPolls, setExpandedPolls] = useState(new Set());
+  const [outroTexto, setOutroTexto] = useState({});
   const isDemo = user.isDemo || false;
   // Votação a fingir para a conta demo (voto local, não vai à base de dados).
   const [demoVotes, setDemoVotes] = useState({ "Praia 🏖️": ["Nilton", "Carina"], "Parque 🌳": ["Erick"], "Café no centro ☕": ["Marisa", "Bruno"] });
@@ -39,14 +40,20 @@ export default function HomeVotacoes({ user }) {
     }
     const poll = polls.find(p => p.id === pollId);
     if (!poll) return;
+    const nome = user.realName;
+    const multi = poll.multipla || poll.type === "data";   // Doodle é sempre múltiplo
+    const jaTem = (poll.votes[opcao] || []).includes(nome);
     let novosVotos = { ...poll.votes };
-    let quemVotouNesta = novosVotos[opcao] || [];
-    if (quemVotouNesta.includes(user.realName)) {
-      novosVotos[opcao] = quemVotouNesta.filter(nome => nome !== user.realName);
-    } else {
-      novosVotos[opcao] = [...quemVotouNesta, user.realName];
+    if (!multi) {
+      // Só uma opção: tira o voto do utilizador de todas antes de marcar a nova.
+      Object.keys(novosVotos).forEach(k => { novosVotos[k] = (novosVotos[k] || []).filter(n => n !== nome); });
     }
-    const aVotar = !quemVotouNesta.includes(user.realName);
+    if (jaTem) {
+      novosVotos[opcao] = (novosVotos[opcao] || []).filter(n => n !== nome);
+    } else {
+      novosVotos[opcao] = [...(novosVotos[opcao] || []), nome];
+    }
+    const aVotar = !jaTem;
     await updateDoc(doc(db, "polls", pollId), { votes: novosVotos });
     if (aVotar) {
       await updateDoc(doc(db, "userData", user.username), {
@@ -59,6 +66,26 @@ export default function HomeVotacoes({ user }) {
         ts: Date.now(), lida: false,
       });
     }
+  }
+
+  // Opção «Outros»: o jovem escreve uma opção nova e vota nela.
+  async function submeterOutro(pollId) {
+    const poll = polls.find(p => p.id === pollId);
+    const t = (outroTexto[pollId] || "").trim();
+    if (!poll || !t) return;
+    const nome = user.realName;
+    const multi = poll.multipla || poll.type === "data";
+    const novasOptions = poll.options.includes(t) ? poll.options : [...poll.options, t];
+    let novosVotos = { ...poll.votes };
+    if (!multi) Object.keys(novosVotos).forEach(k => { novosVotos[k] = (novosVotos[k] || []).filter(n => n !== nome); });
+    if (!(novosVotos[t] || []).includes(nome)) novosVotos[t] = [...(novosVotos[t] || []), nome];
+    await updateDoc(doc(db, "polls", pollId), { options: novasOptions, votes: novosVotos });
+    setOutroTexto(prev => ({ ...prev, [pollId]: "" }));
+    await updateDoc(doc(db, "userData", user.username), {
+      weekXp: increment(5),
+      history: arrayUnion({ date: nowFull(), action: `Votou em "${poll.title}"`, ts: Date.now(), xp: 5 }),
+    });
+    await notifyAdmin({ tipo: "VOTO", jovem: user.username, texto: `${nome} escreveu "${t}" em "${poll.title}"`, ts: Date.now(), lida: false });
   }
 
   const pollsToShow = isDemo ? [demoPoll, ...polls] : polls;
@@ -111,7 +138,9 @@ export default function HomeVotacoes({ user }) {
               /* ── VISTA COMPLETA ───────────────────────────────────── */
               <>
                 <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 15 }}>
-                  {poll.type === "data" ? "✅ Seleciona as datas/horas em que tens disponibilidade (podes escolher várias):" : "Seleciona a tua opção favorita:"}
+                  {poll.type === "data"
+                    ? "✅ Seleciona as datas/horas em que tens disponibilidade (podes escolher várias):"
+                    : (poll.multipla ? "✅ Podes escolher várias opções:" : "Escolhe a tua opção:")}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {(poll.options || []).map(op => {
@@ -144,6 +173,19 @@ export default function HomeVotacoes({ user }) {
                     );
                   })}
                 </div>
+                {poll.permiteOutros && poll.id !== "demo_poll" && (
+                  <div style={{ display:"flex", gap:8, marginTop:10 }}>
+                    <input value={outroTexto[poll.id] || ""} onChange={e => setOutroTexto(prev => ({ ...prev, [poll.id]: e.target.value }))}
+                      onKeyDown={e => { if (e.key === "Enter") submeterOutro(poll.id); }}
+                      placeholder="✍️ Outros — escreve a tua opção…"
+                      style={{ flex:1, background:"rgba(255,255,255,0.05)", border:"1.5px solid rgba(255,255,255,0.12)", borderRadius:12, padding:"11px 14px", color:"#e2e8f0", fontSize:13, outline:"none" }} />
+                    <button onClick={() => submeterOutro(poll.id)} style={{
+                      background:`${CYN}20`, border:`1.5px solid ${CYN}55`, color:CYN, borderRadius:12,
+                      padding:"0 16px", fontSize:13, fontWeight:900, cursor:"pointer", whiteSpace:"nowrap" }}>
+                      Adicionar
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </div>
