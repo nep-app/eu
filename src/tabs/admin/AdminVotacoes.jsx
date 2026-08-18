@@ -152,6 +152,16 @@ export default function AdminVotacoes() {
     setEditId(null);
   }
 
+  // Apaga uma opção da votação (e os votos dessa opção). Útil p/ tirar opções
+  // de teste que a conta teresa-user tenha deixado, ou opções indesejadas.
+  async function apagarOpcao(poll, op) {
+    if (!window.confirm(`Apagar a opção "${op}" desta votação?`)) return;
+    const novasOptions = (poll.options || []).filter(o => o !== op);
+    const novosVotos = { ...(poll.votes || {}) };
+    delete novosVotos[op];
+    await updateDoc(doc(db, "polls", poll.id), { options: novasOptions, votes: novosVotos });
+  }
+
   async function apagarVotacao(id) {
     if (window.confirm("Apagar esta votação definitivamente?"))
       await deleteDoc(doc(db, "polls", id));
@@ -557,9 +567,11 @@ export default function AdminVotacoes() {
                   const barW = pct > 0 ? Math.round((votos.length/pct)*100) : 0;
                   return (
                     <div key={op} style={{ background:"rgba(0,0,0,0.25)", padding:"10px 14px", borderRadius:12 }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", fontWeight:800, fontSize:13, marginBottom:6 }}>
-                        <span style={{ color:"#e2e8f0" }}>{op}</span>
-                        <span style={{ color:CYN }}>{votos.length} {votos.length === 1 ? "voto" : "votos"}</span>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", fontWeight:800, fontSize:13, marginBottom:6, gap:8 }}>
+                        <span style={{ color:"#e2e8f0", flex:1, minWidth:0 }}>{op}</span>
+                        <span style={{ color:CYN, flexShrink:0 }}>{votos.length} {votos.length === 1 ? "voto" : "votos"}</span>
+                        <button onClick={() => apagarOpcao(poll, op)} title="Apagar esta opção"
+                          style={{ background:"none", border:"none", color:"#fb7185", cursor:"pointer", fontSize:13, flexShrink:0, padding:"0 2px" }}>✕</button>
                       </div>
                       {pct > 0 && (
                         <div style={{ height:4, background:"rgba(255,255,255,0.07)", borderRadius:4, marginBottom:6 }}>

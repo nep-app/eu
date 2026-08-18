@@ -42,6 +42,18 @@ export default function HomeVotacoes({ user }) {
     if (!poll) return;
     const nome = user.realName;
     const multi = poll.multipla || poll.type === "data";   // Doodle é sempre múltiplo
+
+    // A conta "teresa" (user) vota em MODO DE TESTE: escreve em votesTeste, que
+    // só ela vê — não conta na votação real nem aparece aos jovens.
+    if (user.username === "teresa") {
+      const vt = { ...(poll.votesTeste || {}) };
+      const jaTem = (vt[opcao] || []).includes(nome);
+      if (!multi) Object.keys(vt).forEach(k => { vt[k] = (vt[k] || []).filter(n => n !== nome); });
+      vt[opcao] = jaTem ? (vt[opcao] || []).filter(n => n !== nome) : [...(vt[opcao] || []), nome];
+      await updateDoc(doc(db, "polls", pollId), { votesTeste: vt });
+      return;
+    }
+
     const jaTem = (poll.votes[opcao] || []).includes(nome);
     let novosVotos = { ...poll.votes };
     if (!multi) {
@@ -75,6 +87,20 @@ export default function HomeVotacoes({ user }) {
     if (!poll || !t) return;
     const nome = user.realName;
     const multi = poll.multipla || poll.type === "data";
+
+    // Conta "teresa" (user): a opção «Outros» também é só de teste (outrosTeste),
+    // não vai para a votação real nem aparece aos jovens.
+    if (user.username === "teresa") {
+      const ot = poll.outrosTeste || [];
+      const novasOutros = ot.includes(t) ? ot : [...ot, t];
+      const vt = { ...(poll.votesTeste || {}) };
+      if (!multi) Object.keys(vt).forEach(k => { vt[k] = (vt[k] || []).filter(n => n !== nome); });
+      if (!(vt[t] || []).includes(nome)) vt[t] = [...(vt[t] || []), nome];
+      await updateDoc(doc(db, "polls", pollId), { outrosTeste: novasOutros, votesTeste: vt });
+      setOutroTexto(prev => ({ ...prev, [pollId]: "" }));
+      return;
+    }
+
     const novasOptions = poll.options.includes(t) ? poll.options : [...poll.options, t];
     let novosVotos = { ...poll.votes };
     if (!multi) Object.keys(novosVotos).forEach(k => { novosVotos[k] = (novosVotos[k] || []).filter(n => n !== nome); });
@@ -94,7 +120,16 @@ export default function HomeVotacoes({ user }) {
   return (
     <>
       {pollsToShow.map(poll => {
-        const votasMinhas = poll.options.filter(op => (poll.votes[op] || []).includes(user.realName));
+        // A conta "teresa" (user) vê as opções reais + as suas de teste; a seleção
+        // dela vem de votesTeste. Os jovens só veem as opções e votos reais.
+        const testeUser = user.username === "teresa";
+        const opcoesRender = testeUser
+          ? [...(poll.options || []), ...((poll.outrosTeste || []).filter(o => !(poll.options || []).includes(o)))]
+          : (poll.options || []);
+        const escolhi = (op) => testeUser
+          ? ((poll.votesTeste || {})[op] || []).includes(user.realName)
+          : ((poll.votes[op] || []).includes(user.realName));
+        const votasMinhas = opcoesRender.filter(op => escolhi(op));
         const hasVoted = votasMinhas.length > 0;
         const isExpanded = expandedPolls.has(poll.id);
         const multiPoll = poll.multipla || poll.type === "data";
@@ -146,9 +181,9 @@ export default function HomeVotacoes({ user }) {
                     : (poll.multipla ? "✅ Podes escolher várias opções:" : "Escolhe a tua opção:")}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {(poll.options || []).map(op => {
+                  {opcoesRender.map(op => {
                     const votos = (poll.votes || {})[op] || [];
-                    const voteiNesta = votos.includes(user.realName);
+                    const voteiNesta = escolhi(op);
                     return (
                       <div key={op}>
                         <div onClick={() => votar(poll.id, op)} style={{
