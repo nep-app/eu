@@ -368,6 +368,58 @@ export default function AdminVotacoes() {
             setOpcoesDatas([{date:"",time:""},{date:"",time:""}]);
             setTargetUsers(JEEP_8.map(j => j.username)); setPushVotacao(false); setMultipla(false); setPermiteOutros(false);
           }}
+          editorConteudo={(d, up) => {
+            const opts = d.options || [];
+            const setOpt = (i, val) => up({ options: opts.map((o, ix) => ix === i ? val : o) });
+            const alvosSel = (d.targetUsers && d.targetUsers.length) ? d.targetUsers : JEEP_8.map(j => j.username);
+            const toggleAlvo = (u) => {
+              const nv = alvosSel.includes(u) ? alvosSel.filter(x => x !== u) : [...alvosSel, u];
+              up({ targetUsers: nv.length === JEEP_8.length ? [] : nv });
+            };
+            return (
+              <>
+                <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>TÍTULO</label>
+                <input style={INP} value={d.title || ""} onChange={e => up({ title: e.target.value })} />
+                <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 800, marginBottom: 8 }}>OPÇÕES:</div>
+                {opts.map((op, i) => (
+                  <div key={i} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                    <input style={{ ...INP, marginBottom: 0, flex: 1 }} value={op} onChange={e => setOpt(i, e.target.value)} placeholder={`Opção ${i + 1}`} />
+                    {opts.length > 2 && (
+                      <button type="button" onClick={() => up({ options: opts.filter((_, ix) => ix !== i) })}
+                        style={{ background: "none", border: "none", color: "#fb7185", cursor: "pointer", fontSize: 16 }}>✕</button>
+                    )}
+                  </div>
+                ))}
+                <button type="button" onClick={() => up({ options: [...opts, ""] })} style={{
+                  background: "transparent", border: `1px dashed ${CYN}`, color: CYN, padding: "6px 12px",
+                  borderRadius: 10, fontSize: 11, fontWeight: 800, cursor: "pointer", width: "100%", marginBottom: 12 }}>+ Opção</button>
+                {d.type !== "data" && (
+                  <>
+                    <label style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "#94a3b8", cursor: "pointer", marginBottom: 8 }}>
+                      <input type="checkbox" checked={!!d.multipla} onChange={() => up({ multipla: !d.multipla })} style={{ accentColor: CYN, width: 14, height: 14 }} />
+                      ✅ Deixar escolher várias opções
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "#94a3b8", cursor: "pointer", marginBottom: 10 }}>
+                      <input type="checkbox" checked={!!d.permiteOutros} onChange={() => up({ permiteOutros: !d.permiteOutros })} style={{ accentColor: CYN, width: 14, height: 14 }} />
+                      ✍️ Incluir opção «Outros»
+                    </label>
+                  </>
+                )}
+                <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 800, marginBottom: 8 }}>VISÍVEL PARA:</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {JEEP_8.map(j => {
+                    const sel = alvosSel.includes(j.username);
+                    return (
+                      <button key={j.username} type="button" onClick={() => toggleAlvo(j.username)} style={{
+                        padding: "5px 12px", borderRadius: 20, fontSize: 11, fontWeight: 800, cursor: "pointer",
+                        border: sel ? `1.5px solid ${CYN}` : "1.5px solid rgba(255,255,255,0.1)",
+                        background: sel ? `${CYN}20` : "rgba(255,255,255,0.03)", color: sel ? CYN : "#64748b" }}>{j.name}</button>
+                    );
+                  })}
+                </div>
+              </>
+            );
+          }}
         />
       </div>
 
