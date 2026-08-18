@@ -41,6 +41,7 @@ export default function AdminVotacoes() {
   const [titulo, setTitulo] = useState("");
   const [tipo, setTipo] = useState("texto");
   const [opcoes, setOpcoes] = useState(["", ""]);
+  const [opcoesDesc, setOpcoesDesc] = useState(["", ""]);   // descrição de cada opção (opcional)
   const [opcoesDatas, setOpcoesDatas] = useState([{date:"",time:""},{date:"",time:""}]);
   const [targetUsers, setTargetUsers] = useState(JEEP_8.map(j => j.username));
   const [saving, setSaving] = useState(false);
@@ -50,6 +51,7 @@ export default function AdminVotacoes() {
   const [editId, setEditId] = useState(null);
   const [editTitulo, setEditTitulo] = useState("");
   const [editOpcoes, setEditOpcoes] = useState([]);
+  const [editOpcoesDesc, setEditOpcoesDesc] = useState([]);
   const [editTargetUsers, setEditTargetUsers] = useState([]);
   const [editMultipla, setEditMultipla] = useState(false);
   const [editPermiteOutros, setEditPermiteOutros] = useState(false);
@@ -64,12 +66,20 @@ export default function AdminVotacoes() {
     if (!titulo.trim()) return alert("Dá um título à votação!");
 
     let opcoesFinais;
+    const descricoes = {};
     if (tipo === "data") {
       opcoesFinais = opcoesDatas
         .filter(o => o.date.trim())
         .map(o => fmtOpcaoData(o.date, o.time));
     } else {
-      opcoesFinais = opcoes.filter(o => o.trim() !== "");
+      opcoesFinais = [];
+      opcoes.forEach((t, i) => {
+        const tt = t.trim();
+        if (!tt) return;
+        opcoesFinais.push(tt);
+        const dd = (opcoesDesc[i] || "").trim();
+        if (dd) descricoes[tt] = dd;
+      });
     }
 
     if (opcoesFinais.length < 2) return alert("Precisas de pelo menos 2 opções!");
@@ -81,7 +91,7 @@ export default function AdminVotacoes() {
     try {
       await addDoc(collection(db, "polls"), {
         title: titulo, type: tipo,
-        options: opcoesFinais, votes: votosIniciais,
+        options: opcoesFinais, votes: votosIniciais, descricoes,
         active: true, ts: Date.now(),
         demo: false,
         multipla: tipo === "data" ? true : multipla,          // Doodle é sempre múltiplo
@@ -96,7 +106,7 @@ export default function AdminVotacoes() {
         })
       ));
       setTitulo("");
-      setOpcoes(["", ""]);
+      setOpcoes(["", ""]); setOpcoesDesc(["", ""]);
       setOpcoesDatas([{date:"",time:""},{date:"",time:""}]);
       setTargetUsers(JEEP_8.map(j => j.username));
       setPushVotacao(false); setMultipla(false); setPermiteOutros(false);
@@ -113,7 +123,7 @@ export default function AdminVotacoes() {
     (p.options || []).forEach(op => { votes[op] = []; });
     await addDoc(collection(db, "polls"), {
       title: p.title, type: p.type || "texto",
-      options: p.options || [], votes,
+      options: p.options || [], votes, descricoes: p.descricoes || {},
       active: true, ts: Date.now(), demo: false,
       multipla: p.type === "data" ? true : !!p.multipla,
       permiteOutros: p.type === "data" ? false : !!p.permiteOutros,
@@ -131,20 +141,33 @@ export default function AdminVotacoes() {
     setEditId(poll.id);
     setEditTitulo(poll.title);
     setEditOpcoes([...poll.options]);
+    setEditOpcoesDesc((poll.options || []).map(op => (poll.descricoes || {})[op] || ""));
     setEditTargetUsers(poll.targetUsers?.length > 0 ? poll.targetUsers : JEEP_8.map(j => j.username));
     setEditMultipla(!!poll.multipla);
     setEditPermiteOutros(!!poll.permiteOutros);
   }
 
   async function guardarEdicao(poll) {
-    const opcoesFinais = editOpcoes.filter(o => o.trim());
-    if (!editTitulo.trim() || opcoesFinais.length < 2) return alert("Título e pelo menos 2 opções são obrigatórios.");
-    const votosIniciais = {};
-    opcoesFinais.forEach(op => { votosIniciais[op] = []; });
+    // Mantém a posição de cada opção: assim, mudar o título/descrição (ex.: dividir
+    // um texto em título + descrição) NÃO perde os votos atuais (remapeados por índice).
+    const finais = []; const descricoes = {}; const novosVotos = {}; const novosVotosTeste = {};
+    editOpcoes.forEach((t, i) => {
+      const tt = t.trim();
+      if (!tt) return;
+      finais.push(tt);
+      const dd = (editOpcoesDesc[i] || "").trim();
+      if (dd) descricoes[tt] = dd;
+      const antigo = poll.options?.[i];               // opção que estava nesta posição
+      novosVotos[tt] = (poll.votes || {})[antigo] || [];
+      if ((poll.votesTeste || {})[antigo]) novosVotosTeste[tt] = poll.votesTeste[antigo];
+    });
+    if (!editTitulo.trim() || finais.length < 2) return alert("Título e pelo menos 2 opções são obrigatórios.");
     await updateDoc(doc(db, "polls", poll.id), {
       title: editTitulo,
-      options: opcoesFinais,
-      votes: votosIniciais,
+      options: finais,
+      votes: novosVotos,
+      votesTeste: novosVotosTeste,
+      descricoes,
       multipla: poll.type === "data" ? true : editMultipla,
       permiteOutros: poll.type === "data" ? false : editPermiteOutros,
       targetUsers: editTargetUsers.length === JEEP_8.length ? [] : editTargetUsers,
@@ -282,19 +305,24 @@ export default function AdminVotacoes() {
         {/* Opções texto */}
         {tipo === "texto" && (
           <>
-            <div style={{ fontSize:11, color:"#94a3b8", marginBottom:8, fontWeight:800 }}>OPÇÕES:</div>
+            <div style={{ fontSize:11, color:"#94a3b8", marginBottom:8, fontWeight:800 }}>OPÇÕES: <span style={{ color:"#64748b", fontWeight:600 }}>(a descrição é opcional)</span></div>
             {opcoes.map((op, idx) => (
-              <div key={idx} style={{ display:"flex", gap:8, marginBottom:8 }}>
-                <input value={op} onChange={e => {
-                  const n = [...opcoes]; n[idx] = e.target.value; setOpcoes(n);
-                }} placeholder={`Opção ${idx+1}`} style={{ ...INP, marginBottom:0, flex:1 }} />
+              <div key={idx} style={{ display:"flex", gap:8, marginBottom:8, alignItems:"flex-start" }}>
+                <div style={{ flex:1 }}>
+                  <input value={op} onChange={e => {
+                    const n = [...opcoes]; n[idx] = e.target.value; setOpcoes(n);
+                  }} placeholder={`Título da opção ${idx+1}`} style={{ ...INP, marginBottom:6 }} />
+                  <input value={opcoesDesc[idx] || ""} onChange={e => {
+                    const n = [...opcoesDesc]; n[idx] = e.target.value; setOpcoesDesc(n);
+                  }} placeholder="Descrição (opcional)" style={{ ...INP, marginBottom:0, fontSize:12, color:"#cbd5e1" }} />
+                </div>
                 {idx >= 2 && (
-                  <button onClick={() => setOpcoes(opcoes.filter((_,i) => i !== idx))}
-                    style={{ background:"none", border:"none", color:"#fb7185", cursor:"pointer", fontWeight:900, fontSize:16 }}>✕</button>
+                  <button onClick={() => { setOpcoes(opcoes.filter((_,i) => i !== idx)); setOpcoesDesc(opcoesDesc.filter((_,i) => i !== idx)); }}
+                    style={{ background:"none", border:"none", color:"#fb7185", cursor:"pointer", fontWeight:900, fontSize:16, marginTop:8 }}>✕</button>
                 )}
               </div>
             ))}
-            <button onClick={() => setOpcoes([...opcoes, ""])} style={{
+            <button onClick={() => { setOpcoes([...opcoes, ""]); setOpcoesDesc([...opcoesDesc, ""]); }} style={{
               background:"transparent", border:`1px dashed ${CYN}`, color:CYN,
               padding:"8px 12px", borderRadius:12, fontSize:12, fontWeight:800,
               cursor:"pointer", width:"100%", marginBottom:15
@@ -386,12 +414,13 @@ export default function AdminVotacoes() {
           publicarJa={criarVotacao}
           construirPayload={() => {
             if (!titulo.trim()) { alert("Dá um título à votação!"); return null; }
+            const descricoes = {};
             const opcoesFinais = tipo === "data"
               ? opcoesDatas.filter(o => o.date.trim()).map(o => fmtOpcaoData(o.date, o.time))
-              : opcoes.filter(o => o.trim() !== "");
+              : (() => { const f = []; opcoes.forEach((t, i) => { const tt = t.trim(); if (tt) { f.push(tt); const dd = (opcoesDesc[i]||"").trim(); if (dd) descricoes[tt] = dd; } }); return f; })();
             if (opcoesFinais.length < 2) { alert("Precisas de pelo menos 2 opções!"); return null; }
             return {
-              title: titulo, type: tipo, options: opcoesFinais,
+              title: titulo, type: tipo, options: opcoesFinais, descricoes,
               multipla: tipo === "data" ? true : multipla,
               permiteOutros: tipo === "texto" ? permiteOutros : false,
               targetUsers: targetUsers.length === JEEP_8.length ? [] : targetUsers,
@@ -401,7 +430,7 @@ export default function AdminVotacoes() {
           rotuloItem={p => `🗳️ ${p.title}`}
           publicarPayload={publicarVotacaoPayload}
           onAgendado={() => {
-            setTitulo(""); setOpcoes(["", ""]);
+            setTitulo(""); setOpcoes(["", ""]); setOpcoesDesc(["", ""]);
             setOpcoesDatas([{date:"",time:""},{date:"",time:""}]);
             setTargetUsers(JEEP_8.map(j => j.username)); setPushVotacao(false); setMultipla(false); setPermiteOutros(false);
           }}
@@ -479,7 +508,7 @@ export default function AdminVotacoes() {
                   )}
                 </div>
                 <div style={{ display:"flex", gap:8 }}>
-                  {!hasVotes(poll) && editId !== poll.id && (
+                  {editId !== poll.id && (
                     <button onClick={() => abrirEdicao(poll)} style={{
                       background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)",
                       color:"#94a3b8", borderRadius:8, padding:"4px 10px", fontSize:11, cursor:"pointer", fontWeight:700,
@@ -503,18 +532,27 @@ export default function AdminVotacoes() {
                 <div style={{ background:"rgba(0,0,0,0.25)", borderRadius:14, padding:14, marginBottom:14 }}>
                   <input value={editTitulo} onChange={e => setEditTitulo(e.target.value)}
                     style={{ ...INP, marginBottom:10 }} placeholder="Título" />
-                  <div style={{ fontSize:11, color:"#94a3b8", fontWeight:800, marginBottom:8 }}>OPÇÕES:</div>
+                  <div style={{ fontSize:11, color:"#94a3b8", fontWeight:800, marginBottom:8 }}>OPÇÕES: <span style={{ color:"#64748b", fontWeight:600 }}>(título + descrição opcional)</span></div>
+                  {hasVotes(poll) && (
+                    <div style={{ fontSize:10, color:"#f59e0b", marginBottom:8, lineHeight:1.4 }}>
+                      ⚠️ Esta votação já tem votos. Editar títulos/descrições <b>mantém os votos</b>. Evita reordenar ou remover opções já votadas.
+                    </div>
+                  )}
                   {editOpcoes.map((op, idx) => (
-                    <div key={idx} style={{ display:"flex", gap:8, marginBottom:8 }}>
-                      <input value={op} onChange={e => { const n=[...editOpcoes]; n[idx]=e.target.value; setEditOpcoes(n); }}
-                        placeholder={`Opção ${idx+1}`} style={{ ...INP, marginBottom:0, flex:1 }} />
+                    <div key={idx} style={{ display:"flex", gap:8, marginBottom:8, alignItems:"flex-start" }}>
+                      <div style={{ flex:1 }}>
+                        <input value={op} onChange={e => { const n=[...editOpcoes]; n[idx]=e.target.value; setEditOpcoes(n); }}
+                          placeholder={`Título da opção ${idx+1}`} style={{ ...INP, marginBottom:6 }} />
+                        <input value={editOpcoesDesc[idx] || ""} onChange={e => { const n=[...editOpcoesDesc]; n[idx]=e.target.value; setEditOpcoesDesc(n); }}
+                          placeholder="Descrição (opcional)" style={{ ...INP, marginBottom:0, fontSize:12, color:"#cbd5e1" }} />
+                      </div>
                       {idx >= 2 && (
-                        <button onClick={() => setEditOpcoes(editOpcoes.filter((_,i) => i!==idx))}
-                          style={{ background:"none", border:"none", color:"#fb7185", cursor:"pointer", fontSize:16 }}>✕</button>
+                        <button onClick={() => { setEditOpcoes(editOpcoes.filter((_,i) => i!==idx)); setEditOpcoesDesc(editOpcoesDesc.filter((_,i) => i!==idx)); }}
+                          style={{ background:"none", border:"none", color:"#fb7185", cursor:"pointer", fontSize:16, marginTop:8 }}>✕</button>
                       )}
                     </div>
                   ))}
-                  <button onClick={() => setEditOpcoes([...editOpcoes,""])} style={{
+                  <button onClick={() => { setEditOpcoes([...editOpcoes,""]); setEditOpcoesDesc([...editOpcoesDesc,""]); }} style={{
                     background:"transparent", border:`1px dashed ${CYN}`, color:CYN,
                     padding:"6px 12px", borderRadius:10, fontSize:11, fontWeight:800,
                     cursor:"pointer", width:"100%", marginBottom:12,
@@ -567,8 +605,11 @@ export default function AdminVotacoes() {
                   const barW = pct > 0 ? Math.round((votos.length/pct)*100) : 0;
                   return (
                     <div key={op} style={{ background:"rgba(0,0,0,0.25)", padding:"10px 14px", borderRadius:12 }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", fontWeight:800, fontSize:13, marginBottom:6, gap:8 }}>
-                        <span style={{ color:"#e2e8f0", flex:1, minWidth:0 }}>{op}</span>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", fontWeight:800, fontSize:13, marginBottom:6, gap:8 }}>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <span style={{ color:"#e2e8f0" }}>{op}</span>
+                          {(poll.descricoes || {})[op] && <div style={{ fontSize:11, color:"#94a3b8", fontWeight:600, marginTop:2, lineHeight:1.4 }}>{poll.descricoes[op]}</div>}
+                        </div>
                         <span style={{ color:CYN, flexShrink:0 }}>{votos.length} {votos.length === 1 ? "voto" : "votos"}</span>
                         <button onClick={() => apagarOpcao(poll, op)} title="Apagar esta opção"
                           style={{ background:"none", border:"none", color:"#fb7185", cursor:"pointer", fontSize:13, flexShrink:0, padding:"0 2px" }}>✕</button>

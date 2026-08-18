@@ -168,11 +168,16 @@ export default function HomeVotacoes({ user }) {
                       display: "flex", justifyContent: "space-between", alignItems: "center", gap:10,
                       cursor: aEditar ? "pointer" : "default", transition: "0.2s"
                     }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:12, minWidth:0 }}>
-                        <div style={{ width:20, height:20, minWidth:20, flexShrink:0, borderRadius:"50%", border:`2px solid ${voteiNesta ? CYN : "#64748b"}`, display:"flex", alignItems:"center", justifyContent:"center", background: voteiNesta ? CYN : "transparent" }}>
+                      <div style={{ display:"flex", alignItems: (aEditar && poll.descricoes && poll.descricoes[op]) ? "flex-start" : "center", gap:12, minWidth:0 }}>
+                        <div style={{ width:20, height:20, minWidth:20, flexShrink:0, marginTop: (aEditar && poll.descricoes && poll.descricoes[op]) ? 1 : 0, borderRadius:"50%", border:`2px solid ${voteiNesta ? CYN : "#64748b"}`, display:"flex", alignItems:"center", justifyContent:"center", background: voteiNesta ? CYN : "transparent" }}>
                           {voteiNesta && <span style={{ color:"#000", fontSize:12, fontWeight:900 }}>✓</span>}
                         </div>
-                        <span style={{ fontSize:14, fontWeight: voteiNesta ? 800 : 600, color: voteiNesta ? "#fff" : "#cbd5e1" }}>{op}</span>
+                        <div style={{ display:"flex", flexDirection:"column", minWidth:0 }}>
+                          <span style={{ fontSize:14, fontWeight: voteiNesta ? 800 : 600, color: voteiNesta ? "#fff" : "#cbd5e1" }}>{op}</span>
+                          {aEditar && poll.descricoes && poll.descricoes[op] && (
+                            <span style={{ fontSize:12, color:"#94a3b8", marginTop:3, lineHeight:1.4 }}>{poll.descricoes[op]}</span>
+                          )}
+                        </div>
                       </div>
                       {votos.length > 0 && <span style={{ fontSize:12, fontWeight:800, color:CYN, flexShrink:0 }}>{votos.length} 🙋</span>}
                     </div>

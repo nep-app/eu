@@ -263,12 +263,12 @@ async function publicarDilema(payload) {
 
 // tipo "votacao" — cria uma votação/poll (como AdminVotacoes.criarVotacao)
 async function publicarVotacao(payload) {
-  const { title, type = "opcao", options = [], targetUsers = [], push = false, multipla = false, permiteOutros = false } = payload || {};
+  const { title, type = "opcao", options = [], targetUsers = [], push = false, multipla = false, permiteOutros = false, descricoes = {} } = payload || {};
   if (!title || options.length < 2) return;
   const votes = {};
   options.forEach(op => { votes[op] = []; });
   await db.collection("polls").add({
-    title, type, options, votes, active: true, ts: Date.now(), demo: false, targetUsers,
+    title, type, options, votes, descricoes, active: true, ts: Date.now(), demo: false, targetUsers,
     multipla: type === "data" ? true : multipla,
     permiteOutros: type === "data" ? false : permiteOutros,
   });
