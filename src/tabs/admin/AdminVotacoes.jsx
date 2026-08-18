@@ -51,6 +51,8 @@ export default function AdminVotacoes() {
   const [editTitulo, setEditTitulo] = useState("");
   const [editOpcoes, setEditOpcoes] = useState([]);
   const [editTargetUsers, setEditTargetUsers] = useState([]);
+  const [editMultipla, setEditMultipla] = useState(false);
+  const [editPermiteOutros, setEditPermiteOutros] = useState(false);
 
   useEffect(() => {
     return onSnapshot(collection(db, "polls"), snap => {
@@ -130,6 +132,8 @@ export default function AdminVotacoes() {
     setEditTitulo(poll.title);
     setEditOpcoes([...poll.options]);
     setEditTargetUsers(poll.targetUsers?.length > 0 ? poll.targetUsers : JEEP_8.map(j => j.username));
+    setEditMultipla(!!poll.multipla);
+    setEditPermiteOutros(!!poll.permiteOutros);
   }
 
   async function guardarEdicao(poll) {
@@ -141,6 +145,8 @@ export default function AdminVotacoes() {
       title: editTitulo,
       options: opcoesFinais,
       votes: votosIniciais,
+      multipla: poll.type === "data" ? true : editMultipla,
+      permiteOutros: poll.type === "data" ? false : editPermiteOutros,
       targetUsers: editTargetUsers.length === JEEP_8.length ? [] : editTargetUsers,
     });
     setEditId(null);
@@ -503,6 +509,18 @@ export default function AdminVotacoes() {
                     padding:"6px 12px", borderRadius:10, fontSize:11, fontWeight:800,
                     cursor:"pointer", width:"100%", marginBottom:12,
                   }}>+ Opção</button>
+                  {poll.type !== "data" && (
+                    <>
+                      <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom:8 }}>
+                        <input type="checkbox" checked={editMultipla} onChange={() => setEditMultipla(v => !v)} style={{ accentColor:CYN, width:14, height:14 }} />
+                        ✅ Deixar escolher várias opções
+                      </label>
+                      <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom:10 }}>
+                        <input type="checkbox" checked={editPermiteOutros} onChange={() => setEditPermiteOutros(v => !v)} style={{ accentColor:CYN, width:14, height:14 }} />
+                        ✍️ Incluir opção «Outros»
+                      </label>
+                    </>
+                  )}
                   <div style={{ fontSize:11, color:"#94a3b8", fontWeight:800, marginBottom:8 }}>VISÍVEL PARA:</div>
                   <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:12 }}>
                     {JEEP_8.map(j => {
