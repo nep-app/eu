@@ -105,6 +105,26 @@ export default function AdminVotacoes() {
     }
   }
 
+  // Publica uma votação a partir de um payload (usado no "Publicar já" dos agendados).
+  async function publicarVotacaoPayload(p) {
+    const votes = {};
+    (p.options || []).forEach(op => { votes[op] = []; });
+    await addDoc(collection(db, "polls"), {
+      title: p.title, type: p.type || "texto",
+      options: p.options || [], votes,
+      active: true, ts: Date.now(), demo: false,
+      multipla: p.type === "data" ? true : !!p.multipla,
+      permiteOutros: p.type === "data" ? false : !!p.permiteOutros,
+      targetUsers: p.targetUsers || [],
+    });
+    const notifTargets = (p.targetUsers && p.targetUsers.length) ? p.targetUsers : JEEP_8.map(j => j.username);
+    await Promise.all(notifTargets.map(u =>
+      addDoc(collection(db, "notifications", u, "items"), {
+        from: "teresa", text: `🗳️ Nova votação: ${p.title}`, date: nowFull(), read: false, ts: Date.now(), push: !!p.push,
+      })
+    ));
+  }
+
   function abrirEdicao(poll) {
     setEditId(poll.id);
     setEditTitulo(poll.title);
@@ -363,6 +383,7 @@ export default function AdminVotacoes() {
             };
           }}
           rotuloItem={p => `🗳️ ${p.title}`}
+          publicarPayload={publicarVotacaoPayload}
           onAgendado={() => {
             setTitulo(""); setOpcoes(["", ""]);
             setOpcoesDatas([{date:"",time:""},{date:"",time:""}]);

@@ -23,7 +23,7 @@ export function publishAtDe(dataStr, slot) {
 //  - onAgendado?: () => void                 (limpar o formulário após agendar)
 //  - editorConteudo?: (draft, update) => JSX   (opcional; permite editar o CONTEÚDO
 //      de um agendado. `draft` é uma cópia do payload; `update(patch)` funde patch no draft)
-export default function Agendador({ tipo, construirPayload, publicarJa, rotuloJa, rotuloItem, onAgendado, editorConteudo }) {
+export default function Agendador({ tipo, construirPayload, publicarJa, rotuloJa, rotuloItem, onAgendado, editorConteudo, publicarPayload }) {
   const [agendar, setAgendar] = useState(false);
   const [agData, setAgData]   = useState("");
   const [agSlot, setAgSlot]   = useState("09:00");
@@ -88,6 +88,18 @@ export default function Agendador({ tipo, construirPayload, publicarJa, rotuloJa
     setEditCId(null); setCDraft(null);
   }
 
+  // Publica JÁ um agendado (com a info que lá está) e tira-o dos agendados.
+  async function publicarJaAgendado(a) {
+    if (!publicarPayload) return;
+    if (!window.confirm("Publicar já esta agora, com a informação atual?")) return;
+    try {
+      await publicarPayload(a.payload);
+      await deleteDoc(doc(db, "agendados", a.id));
+    } catch (e) {
+      alert("Não foi possível publicar: " + (e?.message || e));
+    }
+  }
+
   return (
     <>
       <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom: agendar ? 10 : 12 }}>
@@ -119,11 +131,17 @@ export default function Agendador({ tipo, construirPayload, publicarJa, rotuloJa
           <div style={{ fontSize:11, color:PRP, fontWeight:800, marginBottom:8 }}>⏰ AGENDADOS</div>
           {pend.map(a => (
             <div key={a.id} style={{ background:"rgba(123,92,255,0.08)", border:"1px solid rgba(123,92,255,0.2)", borderRadius:10, padding:"8px 12px", marginBottom:6 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+                <div style={{ flex:1, minWidth:120 }}>
                   <div style={{ fontSize:12, color:"#e2e8f0", fontWeight:700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{rotuloItem ? rotuloItem(a.payload) : ""}</div>
                   <div style={{ fontSize:11, color:PRP, fontWeight:800 }}>{a.dataLabel} às {a.slot}{a.payload?.push ? " · 🔔 push" : ""}</div>
                 </div>
+                {publicarPayload && (
+                  <button onClick={() => publicarJaAgendado(a)} title="Publicar já (com a info atual)"
+                    style={{ background:"rgba(74,222,128,0.12)", border:"1px solid rgba(74,222,128,0.45)", color:"#4ade80", borderRadius:8, padding:"4px 10px", fontSize:11, fontWeight:800, cursor:"pointer", flexShrink:0 }}>
+                    ▶ Publicar já
+                  </button>
+                )}
                 {editorConteudo && (
                   <button onClick={() => editCId === a.id ? (setEditCId(null), setCDraft(null)) : abrirConteudo(a)}
                     style={{ background:"none", border:`1px solid ${CYN}`, color:CYN, borderRadius:8, padding:"4px 8px", fontSize:12, fontWeight:800, cursor:"pointer", flexShrink:0 }}>

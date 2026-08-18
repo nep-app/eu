@@ -58,6 +58,16 @@ export default function AdminQuizzes({ allShared = {} }) {
     } catch (e) { alert("Erro: " + e.message); }
   }
 
+  // Publica um dilema a partir de um payload (usado no "Publicar já" dos agendados).
+  async function publicarDilemaPayload(p) {
+    await addDoc(collection(db, "quizzes"), {
+      title: p.title, badge: p.badge || "", scenario: p.scenario,
+      prazo: p.prazo || null, correct: p.correct || null,
+      active: true, ts: Date.now(),
+      opts: p.opts || [], mock: { A: 0, B: 0, C: 0 }, responses: {},
+    });
+  }
+
   function abrirEdicao(quiz) {
     setEditDraft(p => ({
       ...p, [quiz.id]: {
@@ -174,6 +184,7 @@ export default function AdminQuizzes({ allShared = {} }) {
             };
           }}
           rotuloItem={p => `🧠 ${p.title}`}
+          publicarPayload={publicarDilemaPayload}
           onAgendado={() => setNovo({ title: "", badge: "D1 — Comunicação", scenario: "", prazo: "", optA: "", revA: "", optB: "", revB: "", optC: "", revC: "" })}
           editorConteudo={(d, up) => {
             const opts = d.opts || [{ id:"A" }, { id:"B" }, { id:"C" }];
