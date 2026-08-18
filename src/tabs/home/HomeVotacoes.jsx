@@ -6,7 +6,7 @@ import { nowFull } from "../../data.js";
 
 export default function HomeVotacoes({ user }) {
   const [polls, setPolls] = useState([]);
-  const [expandedPolls, setExpandedPolls] = useState(new Set());
+  const [fechados, setFechados] = useState(new Set());   // votações "fechadas" com OK (só vista-resumo)
   const [outroTexto, setOutroTexto] = useState({});
   const isDemo = user.isDemo || false;
   // Votação a fingir para a conta demo (voto local, não vai à base de dados).
@@ -131,100 +131,82 @@ export default function HomeVotacoes({ user }) {
           : ((poll.votes[op] || []).includes(user.realName));
         const votasMinhas = opcoesRender.filter(op => escolhi(op));
         const hasVoted = votasMinhas.length > 0;
-        const isExpanded = expandedPolls.has(poll.id);
-        const multiPoll = poll.multipla || poll.type === "data";
-        // Nas de várias opções (e nos Doodle) fica sempre aberta, para dar para
-        // escolher mais do que uma desde o início (não encolhe ao primeiro voto).
-        const showFull = !hasVoted || isExpanded || multiPoll;
+        const aEditar = !fechados.has(poll.id);   // aberto (a escolher) vs fechado (resumo)
+        const abrir  = () => setFechados(prev => { const n = new Set(prev); n.delete(poll.id); return n; });
+        const fechar = () => setFechados(prev => { const n = new Set(prev); n.add(poll.id); return n; });
 
         return (
           <div key={poll.id} style={{ ...CARD, border: `1.5px solid ${CYN}`, marginBottom:16 }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
               <div style={SL}>🗳️ {poll.title}</div>
-              {hasVoted && !multiPoll && (
-                <button onClick={() => setExpandedPolls(prev => {
-                  const next = new Set(prev);
-                  if (next.has(poll.id)) next.delete(poll.id); else next.add(poll.id);
-                  return next;
-                })} style={{
-                  background:"none", border:"none", cursor:"pointer", fontSize:12,
-                  color:CYN, fontWeight:800, padding:"0 0 14px 8px", flexShrink:0,
-                }}>
-                  {isExpanded ? "▲ Fechar" : "✏️ Alterar"}
+              {!aEditar && (
+                <button onClick={abrir} style={{ background:"none", border:"none", cursor:"pointer", fontSize:12, color:CYN, fontWeight:800, flexShrink:0 }}>
+                  ✏️ Alterar
                 </button>
               )}
             </div>
 
-            {!showFull ? (
-              /* ── VISTA COMPACTA (já votou) ───────────────────────── */
-              <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                {votasMinhas.map(op => (
-                  <div key={op} style={{
-                    display:"inline-flex", alignItems:"center", gap:8,
-                    padding:"8px 14px", borderRadius:12,
-                    background:`${CYN}18`, border:`1.5px solid ${CYN}50`,
-                  }}>
-                    <span style={{ color:CYN, fontWeight:900, fontSize:13 }}>✓</span>
-                    <span style={{ fontSize:13, fontWeight:800, color:"#e2e8f0" }}>{op}</span>
-                  </div>
-                ))}
-                <div style={{ fontSize:11, color:"#64748b", alignSelf:"center", paddingLeft:4 }}>
-                  {votasMinhas.length === 1 && poll.type !== "data" ? "votaste aqui" : `${votasMinhas.length} opções selecionadas`}
-                </div>
-              </div>
-            ) : (
-              /* ── VISTA COMPLETA ───────────────────────────────────── */
-              <>
-                <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 15 }}>
-                  {poll.type === "data"
-                    ? "✅ Seleciona as datas/horas em que tens disponibilidade (podes escolher várias):"
-                    : (poll.multipla ? "✅ Podes escolher várias opções:" : "Escolhe a tua opção:")}
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {opcoesRender.map(op => {
-                    const votos = (poll.votes || {})[op] || [];
-                    const voteiNesta = escolhi(op);
-                    return (
-                      <div key={op}>
-                        <div onClick={() => votar(poll.id, op)} style={{
-                          background: voteiNesta ? `${CYN}20` : "rgba(255,255,255,0.05)",
-                          border: voteiNesta ? `1.5px solid ${CYN}` : "1.5px solid rgba(255,255,255,0.1)",
-                          padding: "12px 16px",
-                          borderRadius: votos.length > 0 ? "14px 14px 0 0" : 14,
-                          display: "flex", justifyContent: "space-between", alignItems: "center",
-                          cursor: "pointer", transition: "0.2s"
-                        }}>
-                          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                            <div style={{ width:20, height:20, borderRadius:"50%", border:`2px solid ${voteiNesta ? CYN : "#64748b"}`, display:"flex", alignItems:"center", justifyContent:"center", background: voteiNesta ? CYN : "transparent" }}>
-                              {voteiNesta && <span style={{ color:"#000", fontSize:12, fontWeight:900 }}>✓</span>}
-                            </div>
-                            <span style={{ fontSize:14, fontWeight: voteiNesta ? 800 : 600, color: voteiNesta ? "#fff" : "#cbd5e1" }}>{op}</span>
-                          </div>
-                          {votos.length > 0 && <span style={{ fontSize:12, fontWeight:800, color:CYN }}>{votos.length} 🙋</span>}
+            <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 12 }}>
+              {aEditar
+                ? (poll.type === "data" ? "✅ Escolhe as datas/horas em que podes (podes marcar várias):"
+                   : poll.multipla ? "✅ Escolhe as opções que quiseres e carrega em OK:"
+                   : "Escolhe a tua opção e carrega em OK:")
+                : "Resumo — vês todas as opções e quem votou. Carrega em «Alterar» para mudar."}
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {opcoesRender.map(op => {
+                const votos = (poll.votes || {})[op] || [];
+                const voteiNesta = escolhi(op);
+                return (
+                  <div key={op}>
+                    <div onClick={aEditar ? () => votar(poll.id, op) : undefined} style={{
+                      background: voteiNesta ? `${CYN}20` : "rgba(255,255,255,0.05)",
+                      border: voteiNesta ? `1.5px solid ${CYN}` : "1.5px solid rgba(255,255,255,0.1)",
+                      padding: "12px 16px",
+                      borderRadius: votos.length > 0 ? "14px 14px 0 0" : 14,
+                      display: "flex", justifyContent: "space-between", alignItems: "center", gap:10,
+                      cursor: aEditar ? "pointer" : "default", transition: "0.2s"
+                    }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:12, minWidth:0 }}>
+                        <div style={{ width:20, height:20, minWidth:20, flexShrink:0, borderRadius:"50%", border:`2px solid ${voteiNesta ? CYN : "#64748b"}`, display:"flex", alignItems:"center", justifyContent:"center", background: voteiNesta ? CYN : "transparent" }}>
+                          {voteiNesta && <span style={{ color:"#000", fontSize:12, fontWeight:900 }}>✓</span>}
                         </div>
-                        {votos.length > 0 && (
-                          <div style={{ background: voteiNesta ? `${CYN}10` : "rgba(255,255,255,0.03)", border: voteiNesta ? `1.5px solid ${CYN}` : "1.5px solid rgba(255,255,255,0.1)", borderTop:"none", padding:"6px 16px", borderRadius:"0 0 14px 14px", fontSize:12, color:"#94a3b8" }}>
-                            🙋 {votos.join(", ")}
-                          </div>
-                        )}
+                        <span style={{ fontSize:14, fontWeight: voteiNesta ? 800 : 600, color: voteiNesta ? "#fff" : "#cbd5e1" }}>{op}</span>
                       </div>
-                    );
-                  })}
-                </div>
-                {poll.permiteOutros && poll.id !== "demo_poll" && (
-                  <div style={{ display:"flex", gap:8, marginTop:10 }}>
-                    <input value={outroTexto[poll.id] || ""} onChange={e => setOutroTexto(prev => ({ ...prev, [poll.id]: e.target.value }))}
-                      onKeyDown={e => { if (e.key === "Enter") submeterOutro(poll.id); }}
-                      placeholder="✍️ Outros — escreve a tua opção…"
-                      style={{ flex:1, background:"rgba(255,255,255,0.05)", border:"1.5px solid rgba(255,255,255,0.12)", borderRadius:12, padding:"11px 14px", color:"#e2e8f0", fontSize:13, outline:"none" }} />
-                    <button onClick={() => submeterOutro(poll.id)} style={{
-                      background:`${CYN}20`, border:`1.5px solid ${CYN}55`, color:CYN, borderRadius:12,
-                      padding:"0 16px", fontSize:13, fontWeight:900, cursor:"pointer", whiteSpace:"nowrap" }}>
-                      Adicionar
-                    </button>
+                      {votos.length > 0 && <span style={{ fontSize:12, fontWeight:800, color:CYN, flexShrink:0 }}>{votos.length} 🙋</span>}
+                    </div>
+                    {votos.length > 0 && (
+                      <div style={{ background: voteiNesta ? `${CYN}10` : "rgba(255,255,255,0.03)", border: voteiNesta ? `1.5px solid ${CYN}` : "1.5px solid rgba(255,255,255,0.1)", borderTop:"none", padding:"6px 16px", borderRadius:"0 0 14px 14px", fontSize:12, color:"#94a3b8" }}>
+                        🙋 {votos.join(", ")}
+                      </div>
+                    )}
                   </div>
-                )}
-              </>
+                );
+              })}
+            </div>
+
+            {aEditar && poll.permiteOutros && poll.id !== "demo_poll" && (
+              <div style={{ display:"flex", gap:8, marginTop:10 }}>
+                <input value={outroTexto[poll.id] || ""} onChange={e => setOutroTexto(prev => ({ ...prev, [poll.id]: e.target.value }))}
+                  onKeyDown={e => { if (e.key === "Enter") submeterOutro(poll.id); }}
+                  placeholder="✍️ Outros — escreve a tua opção…"
+                  style={{ flex:1, background:"rgba(255,255,255,0.05)", border:"1.5px solid rgba(255,255,255,0.12)", borderRadius:12, padding:"11px 14px", color:"#e2e8f0", fontSize:13, outline:"none" }} />
+                <button onClick={() => submeterOutro(poll.id)} style={{
+                  background:`${CYN}20`, border:`1.5px solid ${CYN}55`, color:CYN, borderRadius:12,
+                  padding:"0 16px", fontSize:13, fontWeight:900, cursor:"pointer", whiteSpace:"nowrap" }}>
+                  Adicionar
+                </button>
+              </div>
+            )}
+
+            {aEditar && (
+              <button onClick={fechar} disabled={!hasVoted} style={{
+                width:"100%", marginTop:14, padding:"12px", borderRadius:12, fontSize:14, fontWeight:900,
+                border:"none", cursor: hasVoted ? "pointer" : "not-allowed",
+                background: hasVoted ? CYN : "rgba(255,255,255,0.06)", color: hasVoted ? "#071529" : "#64748b" }}>
+                {hasVoted ? "OK ✓" : "Escolhe pelo menos uma opção"}
+              </button>
             )}
           </div>
         );
