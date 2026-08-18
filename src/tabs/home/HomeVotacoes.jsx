@@ -97,13 +97,16 @@ export default function HomeVotacoes({ user }) {
         const votasMinhas = poll.options.filter(op => (poll.votes[op] || []).includes(user.realName));
         const hasVoted = votasMinhas.length > 0;
         const isExpanded = expandedPolls.has(poll.id);
-        const showFull = !hasVoted || isExpanded;
+        const multiPoll = poll.multipla || poll.type === "data";
+        // Nas de várias opções (e nos Doodle) fica sempre aberta, para dar para
+        // escolher mais do que uma desde o início (não encolhe ao primeiro voto).
+        const showFull = !hasVoted || isExpanded || multiPoll;
 
         return (
           <div key={poll.id} style={{ ...CARD, border: `1.5px solid ${CYN}`, marginBottom:16 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
               <div style={SL}>🗳️ {poll.title}</div>
-              {hasVoted && (
+              {hasVoted && !multiPoll && (
                 <button onClick={() => setExpandedPolls(prev => {
                   const next = new Set(prev);
                   if (next.has(poll.id)) next.delete(poll.id); else next.add(poll.id);
