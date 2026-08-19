@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { doc, updateDoc, deleteDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";
 import { db, notifyAdmin } from "../../firebase.js";
 import { CARD, CYN, INP, TXT_MUT, PRP, Linkify } from "../../theme.jsx";
-import { nowFull, FORUM_REACTIONS, ALL_MEDALS, JEEP_LIST } from "../../data.js";
+import { nowFull, FORUM_REACTIONS, ALL_MEDALS, JEEP_LIST, CHANNELS } from "../../data.js";
+import { notificarMencoes } from "../../forumMencoes.js";
 
 export default function ForumPost({ post, user, canalAtivo, forumCollection = "forum", authorMedals = [], mencaoNotif = null }) {
   const [responderA,        setResponderA]        = useState(false);
@@ -99,6 +100,18 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
     setResponderA(false); setTextoResposta("");
     darXP("Respondeu no Fórum");
     enviarNotificacao("reply");
+    // @menções dentro do comentário (o autor do post já é avisado acima).
+    await notificarMencoes({
+      texto: textoResposta,
+      autorUsername: user.username,
+      autorNome: user.realName,
+      canal: canalAtivo,
+      canalLabel: (CHANNELS.find(c => c.id === canalAtivo) || {}).label || canalAtivo,
+      postId: post.id,
+      emComentario: true,
+      excluir: [post.username],
+      forumCollection,
+    });
     dismissMencao();
   }
 
@@ -119,7 +132,7 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
     const nome = JEEP_LIST.find(j => j.username === replyUsername)?.name || replyUsername;
     setTextoResposta(`@${nome} `);
     setResponderA(true);
-    setTimeout(() => document.querySelector("input[placeholder='Responde aqui...']")?.focus(), 50);
+    setTimeout(() => document.querySelector("input[placeholder^='Responde aqui']")?.focus(), 50);
   }
 
   async function apagarReply(rid) {
@@ -325,7 +338,7 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
             <div style={{ display:"flex", gap:8, marginTop:8 }}>
               <input value={textoResposta} onChange={e => setTextoResposta(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && handleResponder()}
-                placeholder="Responde aqui..." style={{ ...INP, flex:1, marginBottom:0, padding:"10px 14px", fontSize:13 }} />
+                placeholder="Responde aqui... (usa @nome para mencionar)" style={{ ...INP, flex:1, marginBottom:0, padding:"10px 14px", fontSize:13 }} />
               <button onClick={handleResponder} style={{
                 background:CYN, border:"none", borderRadius:12, padding:"0 16px",
                 fontWeight:900, cursor:"pointer", fontSize:16, color:"#0f172a", flexShrink:0 }}>↑</button>

@@ -4,6 +4,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
 import { nowLabel, nowFull, CHANNELS, JEEP_LIST, FORUM_REACTIONS, ALLOWED_USERNAMES } from "../../data.js";
+import { notificarMencoes } from "../../forumMencoes.js";
 import Agendador from "./Agendador.jsx";
 
 export default function AdminMural({ only = null }) {
@@ -222,20 +223,18 @@ export default function AdminMural({ only = null }) {
           await notificarTodos(texto, channel, pushForumPost);
         }
       }
-      // @menções → ação pendente
-      const mencoes = [...fPost.matchAll(/@(\w+)/g)]
-        .map(m => m[1].toLowerCase())
-        .filter((u, i, arr) => arr.indexOf(u) === i)
-        .filter(u => ALLOWED_USERNAMES.includes(u));
+      // @menções → ação pendente (com push)
       const chInfo = CHANNELS.find(c => c.id === channel);
-      await Promise.all(mencoes.map(u =>
-        addDoc(collection(db, "notifications", u, "items"), {
-          from: "admin",
-          text: `🔔 Teresa mencionou-te em ${chInfo?.label || channel}!`,
-          date: nowFull(), read: false, ts: Date.now(),
-          mencao: true, postId: docRef.id, canal: channel, push: true
-        })
-      ));
+      await notificarMencoes({
+        texto: fPost,
+        autorUsername: "admin",
+        autorNome: "Teresa",
+        canal: channel,
+        canalLabel: chInfo?.label || channel,
+        postId: docRef.id,
+        // "avisar todos" já é a checkbox aqui em cima — não duplicar com @todos.
+        permitirTodos: false,
+      });
       setFPost(""); setMediaFiles([]); setMencaoDropdown(false); setPushForumPost(false); setFTarget("all"); setFDestaque(false);
     } catch(e) { alert("Erro: " + e.message); }
     setIsUploading(false);
@@ -286,6 +285,17 @@ export default function AdminMural({ only = null }) {
         date: nowFull(), read: false, ts: Date.now(), canal: channel, push: true,
       });
     }
+    // @menções dentro da resposta da Teresa (o autor do post já foi avisado).
+    await notificarMencoes({
+      texto: replyTxt,
+      autorUsername: "admin",
+      autorNome: "Teresa",
+      canal: channel,
+      canalLabel: (CHANNELS.find(c => c.id === channel) || {}).label || channel,
+      postId: pid,
+      emComentario: true,
+      excluir: [cur.username],
+    });
     setReplyTxt(""); setReplyTo(null);
   }
 
@@ -692,7 +702,7 @@ export default function AdminMural({ only = null }) {
                 <div style={{ marginTop:10, marginLeft:46, display:"flex", gap:8 }}>
                   <input value={replyTxt} onChange={e => setReplyTxt(e.target.value)}
                     onKeyDown={e => e.key==="Enter" && sendReply(p.id)}
-                    placeholder="Escreve uma resposta..." autoFocus
+                    placeholder="Escreve uma resposta... (@nome menciona)" autoFocus
                     style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
                   <button onClick={() => sendReply(p.id)}
                     style={{ background:CYN, color:"#0f172a", border:"none", borderRadius:20, padding:"9px 16px", fontSize:12, cursor:"pointer", fontWeight:800 }}>↑</button>

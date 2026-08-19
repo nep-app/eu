@@ -4,6 +4,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage, notifyAdmin } from "../../firebase.js";
 import { CARD, SL, CYN, INP, TXT_MUT } from "../../theme.jsx";
 import { nowFull, ALLOWED_USERNAMES, CHANNELS, JEEP_LIST } from "../../data.js";
+import { notificarMencoes } from "../../forumMencoes.js";
 
 export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollection = "forum" }) {
   const [textoPost,      setTextoPost]      = useState("");
@@ -126,35 +127,15 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
       }
       // @menções — suporta múltiplas + @todos. Só no fórum real (na demo não se
       // notifica ninguém, mesmo que se mencione @teresa etc.).
-      if (forumCollection === "forum") {
-        const textoLower = textoPost.toLowerCase();
-        const mencionouTodos = textoLower.includes("@todos");
-        const mencoes = [...textoPost.matchAll(/@(\w+)/g)]
-          .map(m => m[1].toLowerCase())
-          .filter((u, i, arr) => arr.indexOf(u) === i)
-          .filter(u => u !== user.username && u !== "todos" && ALLOWED_USERNAMES.includes(u));
-        const destinatariosTodos = mencionouTodos
-          ? ALLOWED_USERNAMES.filter(u => u !== user.username && u !== "demo" && !mencoes.includes(u))
-          : [];
-        await Promise.all([
-          ...mencoes.map(mencionado =>
-            addDoc(collection(db, "notifications", mencionado, "items"), {
-              from: user.username,
-              text: `🔔 ${user.realName} mencionou-te em ${infoCanal?.label || canalAtivo}!`,
-              date: nowFull(), read: false, ts: Date.now(),
-              mencao: true, postId: docRef.id, canal: canalAtivo, push: true
-            })
-          ),
-          ...destinatariosTodos.map(u =>
-            addDoc(collection(db, "notifications", u, "items"), {
-              from: user.username,
-              text: `🔔 ${user.realName} mencionou a equipa toda em ${infoCanal?.label || canalAtivo}!`,
-              date: nowFull(), read: false, ts: Date.now(),
-              mencao: true, postId: docRef.id, canal: canalAtivo, push: true
-            })
-          ),
-        ]);
-      }
+      await notificarMencoes({
+        texto: textoPost,
+        autorUsername: user.username,
+        autorNome: user.realName,
+        canal: canalAtivo,
+        canalLabel: infoCanal?.label || canalAtivo,
+        postId: docRef.id,
+        forumCollection,
+      });
       darXPComStreak("Publicou uma partilha no Fórum");
       setTextoPost(""); setFicheirosMedia([]); setMencaoDropdown(false);
     } catch (e) { alert("Erro ao publicar: " + e.message); }
