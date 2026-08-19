@@ -4,7 +4,8 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
 import { nowLabel, nowFull, CHANNELS, JEEP_LIST, FORUM_REACTIONS, ALLOWED_USERNAMES } from "../../data.js";
-import { notificarMencoes } from "../../forumMencoes.js";
+import { notificarMencoes, detetarMencao, inserirMencao, candidatosMencao } from "../../forumMencoes.js";
+import MencaoLista from "../forum/MencaoLista.jsx";
 import Agendador from "./Agendador.jsx";
 
 export default function AdminMural({ only = null }) {
@@ -29,6 +30,11 @@ export default function AdminMural({ only = null }) {
   const [mencaoDropdown, setMencaoDropdown] = useState(false);
   const [mencaoFiltro,   setMencaoFiltro]   = useState("");
   const [mencaoStart,    setMencaoStart]    = useState(0);
+  // Dropdown de @menções na caixa de RESPOSTA (o de cima é o da publicação)
+  const [rMencaoAberta, setRMencaoAberta] = useState(false);
+  const [rMencaoFiltro, setRMencaoFiltro] = useState("");
+  const [rMencaoStart,  setRMencaoStart]  = useState(0);
+  const replyRef = useRef(null);
   const fPostRef = useRef(null);
 
   // ── RECURSOS ──
@@ -297,6 +303,24 @@ export default function AdminMural({ only = null }) {
       excluir: [cur.username],
     });
     setReplyTxt(""); setReplyTo(null);
+  }
+
+  const rCandidatos = rMencaoAberta ? candidatosMencao(rMencaoFiltro, "admin") : [];
+
+  function handleReplyTxt(e) {
+    setReplyTxt(e.target.value);
+    const m = detetarMencao(e.target.value, e.target.selectionStart);
+    setRMencaoAberta(m.ativa); setRMencaoFiltro(m.filtro); setRMencaoStart(m.start);
+  }
+
+  function escolherMencaoReply(username) {
+    const { texto, pos } = inserirMencao(replyTxt, rMencaoStart, username);
+    setReplyTxt(texto);
+    setRMencaoAberta(false);
+    setTimeout(() => {
+      replyRef.current?.focus();
+      replyRef.current?.setSelectionRange(pos, pos);
+    }, 0);
   }
 
   async function reagirReply(pid, replyId) {
@@ -700,10 +724,22 @@ export default function AdminMural({ only = null }) {
 
               {replyTo===p.id && (
                 <div style={{ marginTop:10, marginLeft:46, display:"flex", gap:8 }}>
-                  <input value={replyTxt} onChange={e => setReplyTxt(e.target.value)}
-                    onKeyDown={e => e.key==="Enter" && sendReply(p.id)}
-                    placeholder="Escreve uma resposta... (@nome menciona)" autoFocus
-                    style={{ ...INP, flex:1, marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                  <div style={{ position:"relative", flex:1 }}>
+                    <input ref={replyRef} value={replyTxt} onChange={handleReplyTxt}
+                      onBlur={() => setTimeout(() => setRMencaoAberta(false), 150)}
+                      onKeyDown={e => {
+                        if (e.key === "Escape") return setRMencaoAberta(false);
+                        if (e.key !== "Enter") return;
+                        e.preventDefault();
+                        if (rMencaoAberta && rCandidatos.length) escolherMencaoReply(rCandidatos[0].username);
+                        else sendReply(p.id);
+                      }}
+                      placeholder="Escreve uma resposta... (@ menciona)" autoFocus
+                      style={{ ...INP, width:"100%", marginBottom:0, fontSize:12, padding:"8px 12px" }} />
+                    {rMencaoAberta && (
+                      <MencaoLista candidatos={rCandidatos} onEscolher={escolherMencaoReply} acima />
+                    )}
+                  </div>
                   <button onClick={() => sendReply(p.id)}
                     style={{ background:CYN, color:"#0f172a", border:"none", borderRadius:20, padding:"9px 16px", fontSize:12, cursor:"pointer", fontWeight:800 }}>↑</button>
                 </div>

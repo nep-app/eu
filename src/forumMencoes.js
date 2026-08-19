@@ -61,3 +61,35 @@ export async function notificarMencoes({
   ]);
   return [...alvos, ...todos];
 }
+
+// ── Ajudas para o dropdown de @menções (usado nas caixas de comentário) ──
+
+// Lê o que está antes do cursor e diz se se está a escrever uma @menção.
+export function detetarMencao(valor, cursor) {
+  const antes = String(valor || "").substring(0, cursor);
+  const match = antes.match(/@(\w*)$/);
+  if (!match) return { ativa: false, filtro: "", start: 0 };
+  return { ativa: true, filtro: match[1].toLowerCase(), start: cursor - match[0].length };
+}
+
+// Substitui a @menção meio-escrita pelo username escolhido.
+// Devolve o texto novo e onde deve ficar o cursor.
+export function inserirMencao(texto, start, username) {
+  const antes = String(texto || "").substring(0, start);
+  const depois = String(texto || "").substring(start).replace(/^@\w*/, "");
+  return { texto: antes + "@" + username + " " + depois, pos: start + username.length + 2 };
+}
+
+// Lista de sugestões para o filtro escrito (pessoas + "toda a equipa").
+export function candidatosMencao(filtro = "", excluirUsername = "", { incluirTodos = true, corTodos = "#32C7FF" } = {}) {
+  const f = String(filtro || "").toLowerCase();
+  const mostrarTodos = incluirTodos && (!f || "todos".includes(f) || "equipa".includes(f) || "toda".includes(f));
+  const pessoas = JEEP_LIST
+    .filter(j => j.username !== excluirUsername && j.username !== "demo" && j.username !== "ricardo")
+    .filter(j => !f || j.username.toLowerCase().includes(f) || j.name.toLowerCase().includes(f))
+    .slice(0, mostrarTodos ? 4 : 5);
+  return [
+    ...(mostrarTodos ? [{ username: "todos", name: "Toda a equipa", color: corTodos }] : []),
+    ...pessoas,
+  ];
+}

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { doc, updateDoc, deleteDoc, addDoc, collection, increment, arrayUnion } from "firebase/firestore";
 import { db, notifyAdmin } from "../../firebase.js";
 import { CARD, CYN, INP, TXT_MUT, PRP, Linkify } from "../../theme.jsx";
 import { nowFull, FORUM_REACTIONS, ALL_MEDALS, JEEP_LIST, CHANNELS } from "../../data.js";
-import { notificarMencoes } from "../../forumMencoes.js";
+import { notificarMencoes, detetarMencao, inserirMencao, candidatosMencao } from "../../forumMencoes.js";
+import MencaoLista from "./MencaoLista.jsx";
 
 export default function ForumPost({ post, user, canalAtivo, forumCollection = "forum", authorMedals = [], mencaoNotif = null }) {
   const [responderA,        setResponderA]        = useState(false);
@@ -13,6 +14,28 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
   const [editandoReplyId,   setEditandoReplyId]    = useState(null);
   const [textoEditadoReply, setTextoEditadoReply]  = useState("");
   const [whoOpen,           setWhoOpen]            = useState(null);
+  // Dropdown de @menções na caixa de resposta
+  const [mencaoAberta, setMencaoAberta] = useState(false);
+  const [mencaoFiltro, setMencaoFiltro] = useState("");
+  const [mencaoStart,  setMencaoStart]  = useState(0);
+  const respostaRef = useRef(null);
+  const candidatosMenc = mencaoAberta ? candidatosMencao(mencaoFiltro, user.username) : [];
+
+  function handleTextoResposta(e) {
+    setTextoResposta(e.target.value);
+    const m = detetarMencao(e.target.value, e.target.selectionStart);
+    setMencaoAberta(m.ativa); setMencaoFiltro(m.filtro); setMencaoStart(m.start);
+  }
+
+  function escolherMencao(username) {
+    const { texto, pos } = inserirMencao(textoResposta, mencaoStart, username);
+    setTextoResposta(texto);
+    setMencaoAberta(false);
+    setTimeout(() => {
+      respostaRef.current?.focus();
+      respostaRef.current?.setSelectionRange(pos, pos);
+    }, 0);
+  }
 
   async function darXP(acao) {
     await updateDoc(doc(db, "userData", user.username), {
@@ -336,9 +359,24 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
           {/* Campo de resposta */}
           {responderA && (
             <div style={{ display:"flex", gap:8, marginTop:8 }}>
-              <input value={textoResposta} onChange={e => setTextoResposta(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleResponder()}
-                placeholder="Responde aqui... (usa @nome para mencionar)" style={{ ...INP, flex:1, marginBottom:0, padding:"10px 14px", fontSize:13 }} />
+              <div style={{ position:"relative", flex:1 }}>
+                <input ref={respostaRef} value={textoResposta} onChange={handleTextoResposta}
+                  onBlur={() => setTimeout(() => setMencaoAberta(false), 150)}
+                  onKeyDown={e => {
+                    if (e.key === "Escape") return setMencaoAberta(false);
+                    if (e.key !== "Enter") return;
+                    e.preventDefault();
+                    // Com a lista aberta, o Enter escolhe o primeiro nome;
+                    // caso contrário envia a resposta.
+                    if (mencaoAberta && candidatosMenc.length) escolherMencao(candidatosMenc[0].username);
+                    else handleResponder();
+                  }}
+                  placeholder="Responde aqui... (usa @ para mencionar)"
+                  style={{ ...INP, width:"100%", marginBottom:0, padding:"10px 14px", fontSize:13 }} />
+                {mencaoAberta && (
+                  <MencaoLista candidatos={candidatosMenc} onEscolher={escolherMencao} acima />
+                )}
+              </div>
               <button onClick={handleResponder} style={{
                 background:CYN, border:"none", borderRadius:12, padding:"0 16px",
                 fontWeight:900, cursor:"pointer", fontSize:16, color:"#0f172a", flexShrink:0 }}>↑</button>
