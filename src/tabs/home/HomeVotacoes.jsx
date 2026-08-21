@@ -6,7 +6,10 @@ import { nowFull } from "../../data.js";
 
 export default function HomeVotacoes({ user }) {
   const [polls, setPolls] = useState([]);
-  const [fechados, setFechados] = useState(new Set());   // votações "fechadas" com OK (só vista-resumo)
+  // Votações que o jovem reabriu com "✏️ Alterar" nesta sessão. Quem já votou
+  // vê a vista-resumo por omissão — mesmo depois de fechar e voltar a abrir a
+  // app (antes isto era um "fechados" só na memória do ecrã e reabria sempre).
+  const [abertos, setAbertos] = useState(new Set());
   const [outroTexto, setOutroTexto] = useState({});
   const isDemo = user.isDemo || false;
   // Votação a fingir para a conta demo (voto local, não vai à base de dados).
@@ -131,9 +134,10 @@ export default function HomeVotacoes({ user }) {
           : ((poll.votes[op] || []).includes(user.realName));
         const votasMinhas = opcoesRender.filter(op => escolhi(op));
         const hasVoted = votasMinhas.length > 0;
-        const aEditar = !fechados.has(poll.id);   // aberto (a escolher) vs fechado (resumo)
-        const abrir  = () => setFechados(prev => { const n = new Set(prev); n.delete(poll.id); return n; });
-        const fechar = () => setFechados(prev => { const n = new Set(prev); n.add(poll.id); return n; });
+        // Aberto (a escolher) enquanto ainda não votou, ou se carregou em "Alterar".
+        const aEditar = !hasVoted || abertos.has(poll.id);
+        const abrir  = () => setAbertos(prev => new Set(prev).add(poll.id));
+        const fechar = () => setAbertos(prev => { const n = new Set(prev); n.delete(poll.id); return n; });
 
         return (
           <div key={poll.id} style={{ ...CARD, border: `1.5px solid ${CYN}`, marginBottom:16 }}>
