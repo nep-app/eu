@@ -316,10 +316,13 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                     {isAutoNotif && <span style={{ fontSize:10, fontWeight:800, color:"#34d399" }}>→ ver Desafios</span>}
                   </div>
                 </div>
-                <button onClick={e => { e.stopPropagation(); onDeleteNotif && onDeleteNotif(n.id); }}
-                  style={{ background:"rgba(244,63,94,0.12)", border:"1px solid rgba(244,63,94,0.3)", color:"#f87171", fontSize:14, fontWeight:900, cursor:"pointer", flexShrink:0, lineHeight:1,
+                {/* Na Pré-visualização o ✕ fica inerte (não se mexe nas notificações reais do jovem). */}
+                <button onClick={e => { e.stopPropagation(); if (!previewMode) onDeleteNotif && onDeleteNotif(n.id); }}
+                  disabled={previewMode}
+                  title={previewMode ? "Pré-visualização — não mexe nas notificações do jovem" : "Dispensar"}
+                  style={{ background:"rgba(244,63,94,0.12)", border:"1px solid rgba(244,63,94,0.3)", color:"#f87171", fontSize:14, fontWeight:900, cursor: previewMode ? "not-allowed" : "pointer", flexShrink:0, lineHeight:1,
                     width:32, height:32, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center",
-                    ...(previewMode ? { pointerEvents:"auto" } : {}) }}>✕</button>
+                    ...(previewMode ? { pointerEvents:"auto", opacity:0.4 } : {}) }}>✕</button>
               </div>
             );
           })}

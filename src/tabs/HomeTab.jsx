@@ -55,6 +55,9 @@ export default function HomeTab({ user, data, setTab, setDesafiosSubTab, setForu
   const mencaoNotifs = isDemo ? [] : (data.myNotifs || []).filter(n => n.mencao && !n.read);
 
   function dismissNotif(id) {
+    // Na Pré-visualização (admin a ver a app de um jovem) NUNCA se escreve:
+    // senão a Teresa marcava como lidas as notificações reais do jovem.
+    if (previewMode) return;
     updateDoc(doc(db, "notifications", user.username, "items", id), { read: true });
   }
 
