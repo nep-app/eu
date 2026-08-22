@@ -143,6 +143,12 @@ export default function AdminMsgs() {
                 style={{ background:"none", border:"none", color:"#475569", fontSize:12, cursor:"pointer", padding:"0 2px" }}>🗑</button>
             </div>
           </div>
+          {m.sobre && (
+            <div style={{ fontSize:11, color:"#94a3b8", fontStyle:"italic", paddingLeft:8,
+              borderLeft:"2px solid rgba(255,255,255,0.15)", marginBottom:8, lineHeight:1.4 }}>
+              em resposta à tua mensagem: "{m.sobre}"
+            </div>
+          )}
           <div style={{ fontSize:14, lineHeight:1.5, color:"#fff", marginBottom:12 }}><Linkify>{m.text}</Linkify></div>
           {m.adminReply ? (
             <div style={{ background:"rgba(34,211,238,0.1)", padding:12, borderRadius:12, borderLeft:`2px solid ${CYN}` }}>

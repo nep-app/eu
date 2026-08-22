@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { doc, setDoc, addDoc, collection, deleteDoc, updateDoc, getDocs } from "firebase/firestore";
-import { db, notifyAdmin } from "../../firebase.js";
+import { db, notifyAdmin, sendAdminMessage } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP, PS, TXT_MUT, Linkify } from "../../theme.jsx";
-import { nowLabel, fmtDate, isOverdue, TASK_TYPES, CHANNELS } from "../../data.js";
+import { nowLabel, nowFull, fmtDate, isOverdue, TASK_TYPES, CHANNELS } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
 import HomeVotacoes from "./HomeVotacoes.jsx";
 
@@ -24,6 +24,37 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
   const [editTarefaId,    setEditTarefaId]    = useState(null);
   const [editTarefaTexto, setEditTarefaTexto] = useState("");
   const [editTarefaData,  setEditTarefaData]  = useState("");
+  // Responder a uma mensagem da Teresa, a partir da própria notificação
+  const [responderNotif,  setResponderNotif]  = useState(null);   // id da notificação
+  const [respostaTexto,   setRespostaTexto]   = useState("");
+  const [respostaEnviada, setRespostaEnviada] = useState(null);   // id já respondido
+  const [aEnviarResposta, setAEnviarResposta] = useState(false);
+
+  // Envia a resposta como mensagem para a Teresa, com a mensagem dela em citação
+  // (fica ligada no painel 💬 Msgs, em vez de chegar solta e sem contexto).
+  async function enviarResposta(n) {
+    const txt = respostaTexto.trim();
+    if (!txt || previewMode) return;
+    setAEnviarResposta(true);
+    const ts = Date.now();
+    const sobre = (n.text || "").replace(/^💬 Teresa: /, "").substring(0, 200);
+    try {
+      await sendAdminMessage({
+        text: txt, anon: false, from: user.username, hiddenUser: user.username,
+        date: nowFull(), ts, adminReply: "", sobre,
+      });
+      await notifyAdmin({
+        tipo: "MENSAGEM", anon: false, jovem: user.username,
+        texto: txt.substring(0, 60), ts, lida: false,
+      });
+      onDeleteNotif && onDeleteNotif(n.id);   // marca a notificação como lida
+      setRespostaEnviada(n.id);
+      setResponderNotif(null); setRespostaTexto("");
+    } catch (e) {
+      alert("Não foi possível enviar: " + e.message);
+    }
+    setAEnviarResposta(false);
+  }
 
   const uData        = data.userData || {};
   const listaTarefas = data.todos    || [];
@@ -315,6 +346,44 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
                     {isPiaNotif && <span style={{ fontSize:10, fontWeight:800, color:"#f59e0b" }}>→ ver PIA</span>}
                     {isAutoNotif && <span style={{ fontSize:10, fontWeight:800, color:"#34d399" }}>→ ver Desafios</span>}
                   </div>
+
+                  {/* Responder a uma mensagem da Teresa sem sair daqui */}
+                  {/* Só nas mensagens/avisos diretos da Teresa. Nas do fórum
+                      responde-se lá, e nos recursos não faz sentido. */}
+                  {(n.from === "teresa" || n.from === "admin") && !previewMode
+                    && !isForumNotif && !isRecursoNotif && !n.mencao && (
+                    respostaEnviada === n.id ? (
+                      <div style={{ marginTop:8, fontSize:11, fontWeight:800, color:"#4ade80" }}>
+                        ✓ Resposta enviada à Teresa
+                      </div>
+                    ) : responderNotif === n.id ? (
+                      <div onClick={e => e.stopPropagation()} style={{ marginTop:10 }}>
+                        <textarea value={respostaTexto} onChange={e => setRespostaTexto(e.target.value)}
+                          placeholder="Escreve a tua resposta à Teresa..." autoFocus
+                          style={{ ...INP, width:"100%", minHeight:64, resize:"none", marginBottom:8, fontSize:13 }} />
+                        <div style={{ display:"flex", gap:8 }}>
+                          <button onClick={() => enviarResposta(n)} disabled={!respostaTexto.trim() || aEnviarResposta}
+                            style={{ flex:1, padding:"10px", borderRadius:12, border:"none", fontSize:13, fontWeight:900,
+                              cursor: respostaTexto.trim() ? "pointer" : "not-allowed",
+                              background: respostaTexto.trim() ? CYN : "rgba(255,255,255,0.06)",
+                              color: respostaTexto.trim() ? "#071529" : "#64748b" }}>
+                            {aEnviarResposta ? "A enviar..." : "Enviar ↑"}
+                          </button>
+                          <button onClick={() => { setResponderNotif(null); setRespostaTexto(""); }}
+                            style={{ padding:"10px 14px", borderRadius:12, border:"1px solid rgba(255,255,255,0.15)",
+                              background:"transparent", color:TXT_MUT, fontSize:12, fontWeight:800, cursor:"pointer" }}>
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={e => { e.stopPropagation(); setResponderNotif(n.id); setRespostaTexto(""); }}
+                        style={{ marginTop:8, background:`${CYN}12`, border:`1px solid ${CYN}40`, color:CYN,
+                          borderRadius:10, padding:"6px 12px", fontSize:11, fontWeight:800, cursor:"pointer" }}>
+                        ↩️ Responder à Teresa
+                      </button>
+                    )
+                  )}
                 </div>
                 {/* Na Pré-visualização o ✕ fica inerte (não se mexe nas notificações reais do jovem). */}
                 <button onClick={e => { e.stopPropagation(); if (!previewMode) onDeleteNotif && onDeleteNotif(n.id); }}
