@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot, getDocs } from "firebase/firestore";
-import { db } from "../../firebase.js";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, GRN, INP, Btn } from "../../theme.jsx";
 import { JEEP_LIST, nowFull } from "../../data.js";
 import Agendador from "./Agendador.jsx";
@@ -55,12 +56,39 @@ export default function AdminVotacoes() {
   const [editTargetUsers, setEditTargetUsers] = useState([]);
   const [editMultipla, setEditMultipla] = useState(false);
   const [editPermiteOutros, setEditPermiteOutros] = useState(false);
+  // Imagem/flyer opcional da votação (fica logo no Storage ao escolher, para o
+  // agendamento também poder levar o link).
+  const [imagemUrl,    setImagemUrl]    = useState("");
+  const [aCarregarImg, setACarregarImg] = useState(false);
+  const [editImagem,   setEditImagem]   = useState("");
 
   useEffect(() => {
     return onSnapshot(collection(db, "polls"), snap => {
       setPolls(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.ts - a.ts));
     });
   }, []);
+
+  // Carrega a imagem para o Storage e devolve o link. Usada na criação e na edição.
+  async function carregarImagem(file) {
+    const fileRef = ref(storage, `votacoes/${Date.now()}_${file.name}`);
+    await uploadBytes(fileRef, file);
+    return await getDownloadURL(fileRef);
+  }
+
+  async function escolherImagem(e, destino = "nova") {
+    const f = (e.target.files || [])[0];
+    e.target.value = "";
+    if (!f) return;
+    if (!f.type.startsWith("image/")) return alert("Escolhe uma imagem (jpg, png...).");
+    setACarregarImg(true);
+    try {
+      const url = await carregarImagem(f);
+      if (destino === "edit") setEditImagem(url); else setImagemUrl(url);
+    } catch (err) {
+      alert("Não foi possível carregar a imagem: " + err.message);
+    }
+    setACarregarImg(false);
+  }
 
   async function criarVotacao() {
     if (!titulo.trim()) return alert("Dá um título à votação!");
@@ -97,6 +125,7 @@ export default function AdminVotacoes() {
         multipla: tipo === "data" ? true : multipla,          // Doodle é sempre múltiplo
         permiteOutros: tipo === "texto" ? permiteOutros : false,
         targetUsers: targetUsers.length === JEEP_8.length ? [] : targetUsers,
+        ...(imagemUrl ? { imagem: imagemUrl } : {}),
       });
       // Avisar os jovens da nova votação (com push opcional).
       const notifTargets = targetUsers.length ? targetUsers : JEEP_8.map(j => j.username);
@@ -110,6 +139,7 @@ export default function AdminVotacoes() {
       setOpcoesDatas([{date:"",time:""},{date:"",time:""}]);
       setTargetUsers(JEEP_8.map(j => j.username));
       setPushVotacao(false); setMultipla(false); setPermiteOutros(false);
+      setImagemUrl("");
     } catch(e) {
       alert("Erro ao criar votação: " + e.message);
     } finally {
@@ -128,6 +158,7 @@ export default function AdminVotacoes() {
       multipla: p.type === "data" ? true : !!p.multipla,
       permiteOutros: p.type === "data" ? false : !!p.permiteOutros,
       targetUsers: p.targetUsers || [],
+      ...(p.imagem ? { imagem: p.imagem } : {}),
     });
     const notifTargets = (p.targetUsers && p.targetUsers.length) ? p.targetUsers : JEEP_8.map(j => j.username);
     await Promise.all(notifTargets.map(u =>
@@ -145,6 +176,7 @@ export default function AdminVotacoes() {
     setEditTargetUsers(poll.targetUsers?.length > 0 ? poll.targetUsers : JEEP_8.map(j => j.username));
     setEditMultipla(!!poll.multipla);
     setEditPermiteOutros(!!poll.permiteOutros);
+    setEditImagem(poll.imagem || "");
   }
 
   async function guardarEdicao(poll) {
@@ -171,6 +203,7 @@ export default function AdminVotacoes() {
       multipla: poll.type === "data" ? true : editMultipla,
       permiteOutros: poll.type === "data" ? false : editPermiteOutros,
       targetUsers: editTargetUsers.length === JEEP_8.length ? [] : editTargetUsers,
+      imagem: editImagem || "",
     });
     setEditId(null);
   }
@@ -402,6 +435,25 @@ export default function AdminVotacoes() {
           </>
         )}
 
+        {/* Imagem/flyer opcional */}
+        <div style={{ marginBottom:12 }}>
+          <input type="file" id="votacao-img" accept="image/*" onChange={e => escolherImagem(e, "nova")} style={{ display:"none" }} />
+          {imagemUrl ? (
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <img src={imagemUrl} alt="" style={{ width:64, height:64, objectFit:"cover", borderRadius:10, border:`1px solid ${CYN}40` }} />
+              <label htmlFor="votacao-img" style={{ fontSize:12, fontWeight:800, color:CYN, cursor:"pointer" }}>Trocar</label>
+              <button onClick={() => setImagemUrl("")}
+                style={{ background:"none", border:"none", color:"#f87171", fontSize:12, fontWeight:800, cursor:"pointer" }}>✕ Tirar</button>
+            </div>
+          ) : (
+            <label htmlFor="votacao-img" style={{ display:"inline-flex", alignItems:"center", gap:6, cursor: aCarregarImg ? "wait" : "pointer",
+              fontSize:12, fontWeight:800, color:"#94a3b8", padding:"8px 12px", borderRadius:10,
+              border:"1px dashed rgba(255,255,255,0.18)" }}>
+              {aCarregarImg ? "A carregar..." : "🖼️ Anexar imagem / flyer (opcional)"}
+            </label>
+          )}
+        </div>
+
         <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom:12 }}>
           <input type="checkbox" checked={pushVotacao} onChange={() => setPushVotacao(v => !v)}
             style={{ accentColor:CYN, width:14, height:14 }} />
@@ -425,6 +477,7 @@ export default function AdminVotacoes() {
               permiteOutros: tipo === "texto" ? permiteOutros : false,
               targetUsers: targetUsers.length === JEEP_8.length ? [] : targetUsers,
               push: pushVotacao,
+              ...(imagemUrl ? { imagem: imagemUrl } : {}),
             };
           }}
           rotuloItem={p => `🗳️ ${p.title}`}
@@ -433,6 +486,7 @@ export default function AdminVotacoes() {
             setTitulo(""); setOpcoes(["", ""]); setOpcoesDesc(["", ""]);
             setOpcoesDatas([{date:"",time:""},{date:"",time:""}]);
             setTargetUsers(JEEP_8.map(j => j.username)); setPushVotacao(false); setMultipla(false); setPermiteOutros(false);
+            setImagemUrl("");
           }}
           editorConteudo={(d, up) => {
             const opts = d.options || [];
@@ -569,6 +623,27 @@ export default function AdminVotacoes() {
                       </label>
                     </>
                   )}
+                  {/* Imagem/flyer da votação */}
+                  <div style={{ fontSize:11, color:"#94a3b8", fontWeight:800, marginBottom:8 }}>IMAGEM / FLYER:</div>
+                  <div style={{ marginBottom:12 }}>
+                    <input type="file" id={`votacao-img-edit-${poll.id}`} accept="image/*"
+                      onChange={e => escolherImagem(e, "edit")} style={{ display:"none" }} />
+                    {editImagem ? (
+                      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                        <img src={editImagem} alt="" style={{ width:64, height:64, objectFit:"cover", borderRadius:10, border:`1px solid ${CYN}40` }} />
+                        <label htmlFor={`votacao-img-edit-${poll.id}`} style={{ fontSize:12, fontWeight:800, color:CYN, cursor:"pointer" }}>Trocar</label>
+                        <button onClick={() => setEditImagem("")}
+                          style={{ background:"none", border:"none", color:"#f87171", fontSize:12, fontWeight:800, cursor:"pointer" }}>✕ Tirar</button>
+                      </div>
+                    ) : (
+                      <label htmlFor={`votacao-img-edit-${poll.id}`} style={{ display:"inline-flex", alignItems:"center", gap:6,
+                        cursor: aCarregarImg ? "wait" : "pointer", fontSize:12, fontWeight:800, color:"#94a3b8",
+                        padding:"8px 12px", borderRadius:10, border:"1px dashed rgba(255,255,255,0.18)" }}>
+                        {aCarregarImg ? "A carregar..." : "🖼️ Anexar imagem / flyer"}
+                      </label>
+                    )}
+                  </div>
+
                   <div style={{ fontSize:11, color:"#94a3b8", fontWeight:800, marginBottom:8 }}>VISÍVEL PARA:</div>
                   <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:12 }}>
                     {JEEP_8.map(j => {

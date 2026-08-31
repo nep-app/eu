@@ -263,7 +263,7 @@ async function publicarDilema(payload) {
 
 // tipo "votacao" — cria uma votação/poll (como AdminVotacoes.criarVotacao)
 async function publicarVotacao(payload) {
-  const { title, type = "opcao", options = [], targetUsers = [], push = false, multipla = false, permiteOutros = false, descricoes = {} } = payload || {};
+  const { title, type = "opcao", options = [], targetUsers = [], push = false, multipla = false, permiteOutros = false, descricoes = {}, imagem = "" } = payload || {};
   if (!title || options.length < 2) return;
   const votes = {};
   options.forEach(op => { votes[op] = []; });
@@ -271,6 +271,7 @@ async function publicarVotacao(payload) {
     title, type, options, votes, descricoes, active: true, ts: Date.now(), demo: false, targetUsers,
     multipla: type === "data" ? true : multipla,
     permiteOutros: type === "data" ? false : permiteOutros,
+    ...(imagem ? { imagem } : {}),
   });
   // Avisar os jovens (com push opcional).
   const alvos = targetUsers.length ? targetUsers : JOVENS;

@@ -150,6 +150,14 @@ export default function HomeVotacoes({ user }) {
               )}
             </div>
 
+            {/* Imagem/flyer da votação — só na vista aberta, como as descrições */}
+            {poll.imagem && aEditar && (
+              <a href={poll.imagem} target="_blank" rel="noreferrer" style={{ display:"block", marginBottom:12 }}>
+                <img src={poll.imagem} alt="Imagem da votação"
+                  style={{ width:"100%", maxHeight:260, objectFit:"cover", borderRadius:14, border:`1px solid ${CYN}33`, display:"block" }} />
+              </a>
+            )}
+
             <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 12 }}>
               {aEditar
                 ? (poll.type === "data" ? "✅ Escolhe as datas/horas em que podes (podes marcar várias):"
