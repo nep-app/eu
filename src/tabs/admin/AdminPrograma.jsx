@@ -61,9 +61,10 @@ function RespostaMedia({ media, type }) {
 
 function PerguntaManager({ allShared, activeQ }) {
   const [activeQEdit, setActiveQEdit] = useState("");
-  const [opt1, setOpt1] = useState("");
-  const [opt2, setOpt2] = useState("");
-  const [opt3, setOpt3] = useState("");
+  // Botões de opção da pergunta — número livre (até 8). Abre com 3 vazios.
+  const MAX_OPCOES_BTN = 8;
+  const [opcoesBtn, setOpcoesBtn] = useState(["", "", ""]);
+  const opcoesPreenchidas = () => opcoesBtn.map(o => o.trim()).filter(Boolean);
   const [selectedModes, setSelectedModes] = useState(["texto"]);
   const [arquivo, setArquivo] = useState([]);
   const [arquivoOpen, setArquivoOpen] = useState(null);
@@ -162,8 +163,8 @@ function PerguntaManager({ allShared, activeQ }) {
 
   async function publicar() {
     if (!activeQEdit.trim()) return alert("Escreve a pergunta!");
-    if (selectedModes.length === 0 && !opt1.trim()) return alert("Seleciona pelo menos um modo de resposta!");
-    const opcoes = [opt1, opt2, opt3].filter(o => o.trim());
+    const opcoes = opcoesPreenchidas();
+    if (selectedModes.length === 0 && opcoes.length === 0) return alert("Seleciona pelo menos um modo de resposta!");
 
     // Archive current question + all answers before overwriting
     if (activeQ) {
@@ -194,7 +195,7 @@ function PerguntaManager({ allShared, activeQ }) {
       });
     }
     alert("Pergunta publicada!");
-    setActiveQEdit(""); setOpt1(""); setOpt2(""); setOpt3(""); setPushNovaPergunta(false);
+    setActiveQEdit(""); setOpcoesBtn(["", "", ""]); setPushNovaPergunta(false);
   }
 
   // Repõe uma pergunta arquivada (texto + respostas de todos) como a ATUAL.
@@ -358,11 +359,26 @@ function PerguntaManager({ allShared, activeQ }) {
 
         <div style={{ borderTop:"1px solid rgba(255,255,255,0.1)", paddingTop:15, marginBottom:15 }}>
           <div style={{ fontSize:11, color:PNK, fontWeight:800, marginBottom:8 }}>BOTÕES DE OPÇÃO (podes combinar com os modos acima):</div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
-            <input value={opt1} onChange={e => setOpt1(e.target.value)} placeholder="Opção 1" style={{ ...INP, marginBottom:0, fontSize:11 }} />
-            <input value={opt2} onChange={e => setOpt2(e.target.value)} placeholder="Opção 2" style={{ ...INP, marginBottom:0, fontSize:11 }} />
-            <input value={opt3} onChange={e => setOpt3(e.target.value)} placeholder="Opção 3" style={{ ...INP, marginBottom:0, fontSize:11 }} />
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(150px, 1fr))", gap:10 }}>
+            {opcoesBtn.map((o, i) => (
+              <div key={i} style={{ display:"flex", alignItems:"center", gap:4 }}>
+                <input value={o} placeholder={`Opção ${i + 1}`}
+                  onChange={e => setOpcoesBtn(opcoesBtn.map((x, ix) => ix === i ? e.target.value : x))}
+                  style={{ ...INP, marginBottom:0, fontSize:11 }} />
+                {opcoesBtn.length > 1 && (
+                  <button type="button" onClick={() => setOpcoesBtn(opcoesBtn.filter((_, ix) => ix !== i))}
+                    title="Apagar esta opção"
+                    style={{ background:"none", border:"none", color:"#fb7185", fontSize:14, cursor:"pointer", flexShrink:0 }}>✕</button>
+                )}
+              </div>
+            ))}
           </div>
+          {opcoesBtn.length < MAX_OPCOES_BTN && (
+            <button type="button" onClick={() => setOpcoesBtn([...opcoesBtn, ""])} style={{
+              background:"transparent", border:`1px dashed ${PNK}`, color:PNK,
+              padding:"6px 12px", borderRadius:10, fontSize:11, fontWeight:800,
+              cursor:"pointer", width:"100%", marginTop:10 }}>+ Opção</button>
+          )}
         </div>
 
         <label style={{ display:"flex", alignItems:"center", gap:7, fontSize:12, color:"#94a3b8", cursor:"pointer", marginBottom:12 }}>
@@ -377,12 +393,12 @@ function PerguntaManager({ allShared, activeQ }) {
           publicarJa={publicar}
           construirPayload={() => {
             if (!activeQEdit.trim()) { alert("Escreve a pergunta!"); return null; }
-            if (selectedModes.length === 0 && !opt1.trim()) { alert("Seleciona pelo menos um modo de resposta!"); return null; }
-            const opcoes = [opt1, opt2, opt3].filter(o => o.trim());
+            const opcoes = opcoesPreenchidas();
+            if (selectedModes.length === 0 && opcoes.length === 0) { alert("Seleciona pelo menos um modo de resposta!"); return null; }
             return { text: activeQEdit.trim(), options: opcoes, modes: selectedModes, push: pushNovaPergunta };
           }}
           rotuloItem={p => `💬 ${p.text}`}
-          onAgendado={() => { setActiveQEdit(""); setOpt1(""); setOpt2(""); setOpt3(""); setPushNovaPergunta(false); }}
+          onAgendado={() => { setActiveQEdit(""); setOpcoesBtn(["", "", ""]); setPushNovaPergunta(false); }}
         />
       </div>
 
