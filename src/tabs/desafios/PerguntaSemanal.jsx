@@ -59,15 +59,19 @@ export default function PerguntaSemanal({ user, data }) {
   }
 
   async function submitAnswer(valorBotao = null) {
-    // Calcula já a resposta para validar ANTES de gravar seja o que for.
-    let respostaFinal = valorBotao || aTxt;
-    if (!valorBotao) {
-      if (activeTab === "3palavras") respostaFinal = palavras.filter(p => p.trim()).join(", ");
-      if (activeTab === "semana" || activeTab === "rating") respostaFinal = ratingSemana ? `${ratingSemana} ⭐` : "";
-    }
+    // Resposta dada pelo modo ativo (texto livre, 3 palavras, avaliação, mood...).
+    let respostaModo = aTxt;
+    if (activeTab === "3palavras") respostaModo = palavras.filter(p => p.trim()).join(", ");
+    if (activeTab === "semana" || activeTab === "rating") respostaModo = ratingSemana ? `${ratingSemana} ⭐` : "";
+    respostaModo = (respostaModo || "").trim();
+
+    // As duas formas de responder ACUMULAM: a opção escolhida E o que escreveu.
+    // (Antes a opção substituía o resto e a Teresa só recebia a opção.)
+    const respostaFinal = [valorBotao, respostaModo].filter(Boolean).join(" — ");
+
     // Salvaguarda: não gravar uma resposta vazia (senão fica "respondido"
     // sem conteúdo e a resposta real perde-se). Exige opção, texto OU media.
-    if (!valorBotao && !mediaFile && !(respostaFinal && respostaFinal.trim())) {
+    if (!mediaFile && !respostaFinal) {
       alert("Escolhe uma opção, escreve algo ou grava/anexa antes de submeter. 🙂");
       return;
     }
@@ -99,8 +103,11 @@ export default function PerguntaSemanal({ user, data }) {
       }
       await updateDoc(doc(db, "userData", user.username), {
         answered: true,
-        answerType: valorBotao ? "botao" : activeTab,
+        // Só é "botao" quando a opção foi a ÚNICA coisa respondida — senão fica
+        // o modo (para a foto/áudio/avaliação continuarem a aparecer bem).
+        answerType: (valorBotao && !respostaModo && !mediaFile) ? "botao" : activeTab,
         answerText: respostaFinal,
+        answerOpcao: valorBotao || null,
         answerMedia: downloadURL,
         answerDate: ts,
         weekXp: increment(20),
