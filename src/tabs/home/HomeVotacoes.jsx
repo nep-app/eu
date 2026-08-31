@@ -153,8 +153,9 @@ export default function HomeVotacoes({ user }) {
             {/* Imagem/flyer da votação — só na vista aberta, como as descrições */}
             {poll.imagem && aEditar && (
               <a href={poll.imagem} target="_blank" rel="noreferrer" style={{ display:"block", marginBottom:12 }}>
+                {/* Flyer inteiro: largura toda e altura livre (nada de cortes). */}
                 <img src={poll.imagem} alt="Imagem da votação"
-                  style={{ width:"100%", maxHeight:260, objectFit:"cover", borderRadius:14, border:`1px solid ${CYN}33`, display:"block" }} />
+                  style={{ width:"100%", height:"auto", borderRadius:14, border:`1px solid ${CYN}33`, display:"block" }} />
               </a>
             )}
 
