@@ -257,7 +257,8 @@ async function publicarDilema(payload) {
   if (!title || !scenario) return;
   await db.collection("quizzes").add({
     title, badge, scenario, prazo, correct, active: true, ts: Date.now(),
-    opts, mock: { A: 0, B: 0, C: 0 }, responses: {},
+    // Contadores por opção conforme as opções que o dilema tem (podem ser mais de 3).
+    opts, mock: Object.fromEntries((opts || []).map(o => [o.id, 0])), responses: {},
   });
 }
 

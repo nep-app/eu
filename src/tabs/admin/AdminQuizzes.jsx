@@ -7,16 +7,85 @@ import Agendador from "./Agendador.jsx";
 
 const JEEP_8 = JEEP_LIST.filter(j => !["teresa","ricardo","demo"].includes(j.username));
 
+// Letras das opções (A, B, C, ...). O número de opções é livre, até 8.
+const LETRAS = ["A","B","C","D","E","F","G","H"];
+const MAX_OPCOES = LETRAS.length;
+const OPCOES_VAZIAS = () => [{ text:"", reveal:"" }, { text:"", reveal:"" }, { text:"", reveal:"" }];
+
+// Prepara as opções para gravar: deita fora as vazias e volta a numerar as
+// letras. Devolve também a letra da resposta certa já remapeada.
+function prepararOpcoes(opts = [], correctIdx = -1) {
+  const validas = opts.filter(o => (o?.text || "").trim());
+  const escolhida = correctIdx >= 0 ? opts[correctIdx] : null;
+  const iCerta = escolhida ? validas.indexOf(escolhida) : -1;
+  return {
+    opts: validas.map((o, i) => ({ id: LETRAS[i], text: o.text.trim(), reveal: (o.reveal || "").trim() })),
+    correct: iCerta >= 0 ? LETRAS[iCerta] : null,
+  };
+}
+
+// mock = contadores por opção (A:0, B:0, ...), agora conforme as opções que existem.
+function mockDeOpcoes(opts = []) {
+  const m = {};
+  opts.forEach(o => { m[o.id] = 0; });
+  return m;
+}
+
+// Lista de opções editável (usada em criar, agendar e editar).
+function EditorOpcoes({ opts, correctIdx, onOpts, onCorrect }) {
+  const setOpt = (i, campo, val) => onOpts(opts.map((o, ix) => ix === i ? { ...o, [campo]: val } : o));
+  const juntar  = () => onOpts([...opts, { text:"", reveal:"" }]);
+  const remover = (i) => {
+    onOpts(opts.filter((_, ix) => ix !== i));
+    if (onCorrect) {
+      if (correctIdx === i) onCorrect(-1);
+      else if (correctIdx > i) onCorrect(correctIdx - 1);
+    }
+  };
+  return (
+    <>
+      {opts.map((o, i) => (
+        <div key={i} style={{ background: "rgba(255,255,255,0.03)", padding: 10, borderRadius: 12, marginBottom: 10, border: "1px solid rgba(255,255,255,0.05)" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:2 }}>
+            <label style={{ fontSize: 10, color: "#94a3b8" }}>OPÇÃO {LETRAS[i]}</label>
+            {opts.length > 2 && (
+              <button type="button" onClick={() => remover(i)} title="Apagar esta opção"
+                style={{ background:"none", border:"none", color:"#fb7185", fontSize:14, cursor:"pointer" }}>✕</button>
+            )}
+          </div>
+          <input style={{ ...INP, marginBottom: 5 }} placeholder={`Texto da opção ${LETRAS[i]}`}
+            value={o.text || ""} onChange={e => setOpt(i, "text", e.target.value)} />
+          <input style={{ ...INP, fontSize: 12, color: CYN }} placeholder="Explicação após responder (Reveal)"
+            value={o.reveal || ""} onChange={e => setOpt(i, "reveal", e.target.value)} />
+          {onCorrect && (
+            <button type="button" onClick={() => onCorrect(correctIdx === i ? -1 : i)}
+              style={{ marginTop: 4, fontSize: 11, fontWeight: 800, cursor: "pointer", borderRadius: 8, padding: "5px 10px",
+                background: correctIdx === i ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
+                border: correctIdx === i ? "1px solid #4ade80" : "1px solid rgba(255,255,255,0.1)",
+                color: correctIdx === i ? "#4ade80" : "#94a3b8" }}>
+              {correctIdx === i ? "✓ Resposta certa" : "Marcar como certa"}
+            </button>
+          )}
+        </div>
+      ))}
+      {opts.length < MAX_OPCOES && (
+        <button type="button" onClick={juntar} style={{
+          background:"transparent", border:`1px dashed ${CYN}`, color:CYN,
+          padding:"7px 12px", borderRadius:10, fontSize:11, fontWeight:800,
+          cursor:"pointer", width:"100%", marginBottom:12 }}>+ Opção</button>
+      )}
+    </>
+  );
+}
+
 export default function AdminQuizzes({ allShared = {} }) {
   const [quizzes, setQuizzes] = useState([]);
   const [notifRespostas, setNotifRespostas] = useState([]); // fallback para opcaoId/nota quando allShared não tem
   const [erro, setErro] = useState(null);
   const [resetInputs, setResetInputs] = useState({});
   const [expandido, setExpandido] = useState({});
-  const [novo, setNovo] = useState({
-    title: "", badge: "D1 — Comunicação", scenario: "", prazo: "",
-    optA: "", revA: "", optB: "", revB: "", optC: "", revC: "", correct: ""
-  });
+  const NOVO_VAZIO = { title: "", badge: "D1 — Comunicação", scenario: "", prazo: "", opts: OPCOES_VAZIAS(), correctIdx: -1 };
+  const [novo, setNovo] = useState(NOVO_VAZIO);
   const [editando, setEditando] = useState({});
   const [editDraft, setEditDraft] = useState({});
 
@@ -39,21 +108,16 @@ export default function AdminQuizzes({ allShared = {} }) {
   }, []);
 
   async function salvarQuiz() {
-    if (!novo.title || !novo.scenario || !novo.optA) return alert("Preenche os campos básicos!");
+    const { opts, correct } = prepararOpcoes(novo.opts, novo.correctIdx);
+    if (!novo.title || !novo.scenario) return alert("Preenche o título e o cenário!");
+    if (opts.length < 2) return alert("Precisas de pelo menos 2 opções!");
     try {
       await addDoc(collection(db, "quizzes"), {
         title: novo.title, badge: novo.badge, scenario: novo.scenario,
         prazo: novo.prazo || null, active: true, ts: Date.now(),
-        correct: novo.correct || null,
-        opts: [
-          { id: "A", text: novo.optA, reveal: novo.revA },
-          { id: "B", text: novo.optB, reveal: novo.revB },
-          { id: "C", text: novo.optC, reveal: novo.revC }
-        ],
-        mock: { A: 0, B: 0, C: 0 },
-        responses: {}
+        correct, opts, mock: mockDeOpcoes(opts), responses: {}
       });
-      setNovo({ title: "", badge: "D1 — Comunicação", scenario: "", prazo: "", optA: "", revA: "", optB: "", revB: "", optC: "", revC: "", correct: "" });
+      setNovo(NOVO_VAZIO);
       alert("Novo Dilema publicado! 🚀");
     } catch (e) { alert("Erro: " + e.message); }
   }
@@ -64,18 +128,17 @@ export default function AdminQuizzes({ allShared = {} }) {
       title: p.title, badge: p.badge || "", scenario: p.scenario,
       prazo: p.prazo || null, correct: p.correct || null,
       active: true, ts: Date.now(),
-      opts: p.opts || [], mock: { A: 0, B: 0, C: 0 }, responses: {},
+      opts: p.opts || [], mock: mockDeOpcoes(p.opts || []), responses: {},
     });
   }
 
   function abrirEdicao(quiz) {
+    const opts = (quiz.opts || []).map(o => ({ text: o.text || "", reveal: o.reveal || "" }));
     setEditDraft(p => ({
       ...p, [quiz.id]: {
         title: quiz.title, badge: quiz.badge, scenario: quiz.scenario, prazo: quiz.prazo || "",
-        correct: quiz.correct || "",
-        optA: quiz.opts?.[0]?.text || "", revA: quiz.opts?.[0]?.reveal || "",
-        optB: quiz.opts?.[1]?.text || "", revB: quiz.opts?.[1]?.reveal || "",
-        optC: quiz.opts?.[2]?.text || "", revC: quiz.opts?.[2]?.reveal || "",
+        opts: opts.length ? opts : OPCOES_VAZIAS(),
+        correctIdx: quiz.correct ? (quiz.opts || []).findIndex(o => o.id === quiz.correct) : -1,
       }
     }));
     setEditando(p => ({ ...p, [quiz.id]: true }));
@@ -84,15 +147,12 @@ export default function AdminQuizzes({ allShared = {} }) {
   async function guardarEdicao(quizId) {
     const d = editDraft[quizId];
     if (!d?.title || !d?.scenario) return alert("Título e cenário são obrigatórios.");
+    const { opts, correct } = prepararOpcoes(d.opts, d.correctIdx);
+    if (opts.length < 2) return alert("Precisas de pelo menos 2 opções!");
     try {
       await updateDoc(doc(db, "quizzes", quizId), {
         title: d.title, badge: d.badge, scenario: d.scenario, prazo: d.prazo || null,
-        correct: d.correct || null,
-        opts: [
-          { id: "A", text: d.optA, reveal: d.revA },
-          { id: "B", text: d.optB, reveal: d.revB },
-          { id: "C", text: d.optC, reveal: d.revC },
-        ]
+        correct, opts,
       });
       setEditando(p => ({ ...p, [quizId]: false }));
     } catch (e) { alert("Erro: " + e.message); }
@@ -143,22 +203,10 @@ export default function AdminQuizzes({ allShared = {} }) {
         <textarea style={{ ...INP, height: 80 }} placeholder="Descreve a situação desafiante..."
           value={novo.scenario} onChange={e => setNovo({...novo, scenario: e.target.value})} />
 
-        {['A', 'B', 'C'].map(letter => (
-          <div key={letter} style={{ background: "rgba(255,255,255,0.03)", padding: 10, borderRadius: 12, marginBottom: 10, border: "1px solid rgba(255,255,255,0.05)" }}>
-            <label style={{ fontSize: 10, color: "#94a3b8" }}>OPÇÃO {letter}</label>
-            <input style={{ ...INP, marginBottom: 5 }} placeholder={`Texto da opção ${letter}`}
-              value={novo[`opt${letter}`]} onChange={e => setNovo({...novo, [`opt${letter}`]: e.target.value})} />
-            <input style={{ ...INP, fontSize: 12, color: CYN }} placeholder="Explicação após responder (Reveal)"
-              value={novo[`rev${letter}`]} onChange={e => setNovo({...novo, [`rev${letter}`]: e.target.value})} />
-            <button type="button" onClick={() => setNovo({...novo, correct: novo.correct === letter ? "" : letter})}
-              style={{ marginTop: 4, fontSize: 11, fontWeight: 800, cursor: "pointer", borderRadius: 8, padding: "5px 10px",
-                background: novo.correct === letter ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
-                border: novo.correct === letter ? "1px solid #4ade80" : "1px solid rgba(255,255,255,0.1)",
-                color: novo.correct === letter ? "#4ade80" : "#94a3b8" }}>
-              {novo.correct === letter ? "✓ Resposta certa" : "Marcar como certa"}
-            </button>
-          </div>
-        ))}
+        <EditorOpcoes opts={novo.opts} correctIdx={novo.correctIdx}
+          onOpts={opts => setNovo({ ...novo, opts })}
+          onCorrect={correctIdx => setNovo({ ...novo, correctIdx })} />
+
         <div style={{ fontSize: 10, color: "#64748b", marginBottom: 12, lineHeight: 1.4 }}>
           A "resposta certa" é opcional e <b>não é mostrada</b> ao jovem — só faz com que quem lhe acerta ganhe mais XP (nos bastidores).
         </div>
@@ -172,23 +220,28 @@ export default function AdminQuizzes({ allShared = {} }) {
           rotuloJa="Publicar Dilema 🚩"
           publicarJa={salvarQuiz}
           construirPayload={() => {
-            if (!novo.title || !novo.scenario || !novo.optA) { alert("Preenche os campos básicos!"); return null; }
+            const { opts, correct } = prepararOpcoes(novo.opts, novo.correctIdx);
+            if (!novo.title || !novo.scenario) { alert("Preenche o título e o cenário!"); return null; }
+            if (opts.length < 2) { alert("Precisas de pelo menos 2 opções!"); return null; }
             return {
               title: novo.title, badge: novo.badge, scenario: novo.scenario, prazo: novo.prazo || null,
-              correct: novo.correct || null,
-              opts: [
-                { id: "A", text: novo.optA, reveal: novo.revA },
-                { id: "B", text: novo.optB, reveal: novo.revB },
-                { id: "C", text: novo.optC, reveal: novo.revC },
-              ],
+              correct, opts,
             };
           }}
           rotuloItem={p => `🧠 ${p.title}`}
           publicarPayload={publicarDilemaPayload}
-          onAgendado={() => setNovo({ title: "", badge: "D1 — Comunicação", scenario: "", prazo: "", optA: "", revA: "", optB: "", revB: "", optC: "", revC: "" })}
+          onAgendado={() => setNovo(NOVO_VAZIO)}
           editorConteudo={(d, up) => {
-            const opts = d.opts || [{ id:"A" }, { id:"B" }, { id:"C" }];
-            const setOpt = (i, campo, val) => up({ opts: opts.map((o, ix) => ix === i ? { ...o, [campo]: val } : o) });
+            const opts = d.opts && d.opts.length ? d.opts : OPCOES_VAZIAS();
+            // Ao mexer nas opções de um agendado, volta-se a numerar as letras
+            // (e a "resposta certa" acompanha, se estiver marcada).
+            const guardarOpts = (lista) => {
+              const iCerta = d.correct ? opts.findIndex(o => o.id === d.correct) : -1;
+              const escolhida = iCerta >= 0 ? opts[iCerta] : null;
+              const renumeradas = lista.map((o, i) => ({ ...o, id: LETRAS[i] }));
+              const novaCerta = escolhida ? renumeradas[lista.indexOf(escolhida)]?.id || null : null;
+              up({ opts: renumeradas, correct: novaCerta });
+            };
             return (
               <>
                 <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>TÍTULO</label>
@@ -204,15 +257,7 @@ export default function AdminQuizzes({ allShared = {} }) {
                 </select>
                 <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>CENÁRIO</label>
                 <textarea style={{ ...INP, height: 80 }} value={d.scenario || ""} onChange={e => up({ scenario: e.target.value })} />
-                {[0, 1, 2].map(i => (
-                  <div key={i} style={{ background: "rgba(255,255,255,0.03)", padding: 10, borderRadius: 12, marginBottom: 10, border: "1px solid rgba(255,255,255,0.05)" }}>
-                    <label style={{ fontSize: 10, color: "#94a3b8" }}>OPÇÃO {["A","B","C"][i]}</label>
-                    <input style={{ ...INP, marginBottom: 5 }} placeholder={`Texto da opção ${["A","B","C"][i]}`}
-                      value={opts[i]?.text || ""} onChange={e => setOpt(i, "text", e.target.value)} />
-                    <input style={{ ...INP, fontSize: 12, color: CYN }} placeholder="Explicação após responder (Reveal)"
-                      value={opts[i]?.reveal || ""} onChange={e => setOpt(i, "reveal", e.target.value)} />
-                  </div>
-                ))}
+                <EditorOpcoes opts={opts} correctIdx={-1} onOpts={guardarOpts} />
                 <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>PRAZO (opcional)</label>
                 <input type="date" style={{ ...INP, marginTop: 6 }} value={d.prazo || ""} onChange={e => up({ prazo: e.target.value || null })} />
               </>
@@ -302,20 +347,9 @@ export default function AdminQuizzes({ allShared = {} }) {
                   <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>CENÁRIO</label>
                   <textarea style={{ ...INP, height: 80 }} value={d.scenario} onChange={e => setD({ scenario: e.target.value })} />
 
-                  {['A', 'B', 'C'].map(letter => (
-                    <div key={letter} style={{ background: "rgba(255,255,255,0.03)", padding: 10, borderRadius: 12, marginBottom: 10, border: "1px solid rgba(255,255,255,0.05)" }}>
-                      <label style={{ fontSize: 10, color: "#94a3b8" }}>OPÇÃO {letter}</label>
-                      <input style={{ ...INP, marginBottom: 5 }} value={d[`opt${letter}`]} onChange={e => setD({ [`opt${letter}`]: e.target.value })} />
-                      <input style={{ ...INP, fontSize: 12, color: CYN }} placeholder="Reveal…" value={d[`rev${letter}`]} onChange={e => setD({ [`rev${letter}`]: e.target.value })} />
-                      <button type="button" onClick={() => setD({ correct: d.correct === letter ? "" : letter })}
-                        style={{ marginTop: 4, fontSize: 11, fontWeight: 800, cursor: "pointer", borderRadius: 8, padding: "5px 10px",
-                          background: d.correct === letter ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
-                          border: d.correct === letter ? "1px solid #4ade80" : "1px solid rgba(255,255,255,0.1)",
-                          color: d.correct === letter ? "#4ade80" : "#94a3b8" }}>
-                        {d.correct === letter ? "✓ Resposta certa" : "Marcar como certa"}
-                      </button>
-                    </div>
-                  ))}
+                  <EditorOpcoes opts={d.opts || OPCOES_VAZIAS()} correctIdx={d.correctIdx ?? -1}
+                    onOpts={opts => setD({ opts })}
+                    onCorrect={correctIdx => setD({ correctIdx })} />
 
                   <label style={{ fontSize: 11, color: CYN, fontWeight: 800 }}>PRAZO (opcional)</label>
                   <input type="date" style={{ ...INP, marginTop: 6 }} value={d.prazo} onChange={e => setD({ prazo: e.target.value })} />
