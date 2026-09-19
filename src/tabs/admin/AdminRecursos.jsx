@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, INP, PNK } from "../../theme.jsx";
-import { nowFull, ALLOWED_USERNAMES } from "../../data.js";
+import { nowFull, ALLOWED_ATIVOS } from "../../data.js";
 
 export default function AdminRecursos() {
   const [recursos, setRecursos] = useState([]);
@@ -32,7 +32,7 @@ export default function AdminRecursos() {
       });
       if (notificar) {
         const preview = titulo.trim().substring(0, 60);
-        await Promise.all(ALLOWED_USERNAMES.map(u =>
+        await Promise.all(ALLOWED_ATIVOS.map(u =>
           addDoc(collection(db, "notifications", u, "items"), {
             from:"teresa", text:`📚 Novo recurso disponível: ${preview}`, date:nowFull(), read:false, tipo:"recurso", ts:Date.now(), push: pushRecurso
           })

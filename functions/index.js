@@ -10,7 +10,11 @@ const db = getFirestore();
 
 // Lista de utilizadores que recebem publicações (mesma de ALLOWED_USERNAMES
 // no cliente). JOVENS = só os 8 participantes.
-const JOVENS  = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","marisa","tamara"];
+// Quem saiu do programa (igual a BLOCKED_USERNAMES no cliente): já não recebe
+// nada do que é publicado a partir de agora.
+const BLOQUEADOS = ["salimo", "erick"];
+const JOVENS  = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","marisa","tamara"]
+  .filter(u => !BLOQUEADOS.includes(u));
 const ALLOWED = [...JOVENS, "teresa", "ricardo", "demo"];
 const MTHS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 function fmtLabel(d) { return MTHS[d.getMonth()] + " " + d.getFullYear(); }

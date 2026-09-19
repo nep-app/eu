@@ -3,7 +3,7 @@ import { collection, addDoc, doc, updateDoc, increment, arrayUnion } from "fireb
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage, notifyAdmin } from "../../firebase.js";
 import { CARD, SL, CYN, INP, TXT_MUT } from "../../theme.jsx";
-import { nowFull, ALLOWED_USERNAMES, CHANNELS, JEEP_LIST } from "../../data.js";
+import { nowFull, ALLOWED_ATIVOS, CHANNELS, JEEP_ATIVOS } from "../../data.js";
 import { notificarMencoes } from "../../forumMencoes.js";
 
 export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollection = "forum" }) {
@@ -35,7 +35,7 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
   const textareaRef = useRef(null);
 
   const mostrarTodos = !mencaoFiltro || "todos".includes(mencaoFiltro) || "equipa".includes(mencaoFiltro) || "toda".includes(mencaoFiltro);
-  const candidatosPessoas = JEEP_LIST
+  const candidatosPessoas = JEEP_ATIVOS
     .filter(j => j.username !== user.username && j.username !== "demo" && j.username !== "ricardo")
     .filter(j => !mencaoFiltro || j.username.toLowerCase().includes(mencaoFiltro) || j.name.toLowerCase().includes(mencaoFiltro))
     .slice(0, mostrarTodos ? 4 : 5);
@@ -114,7 +114,7 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
         const preview = textoPost.trim().substring(0, 60);
         const notifText = `${canalIcon} ${user.realName} publicou em ${canalLabel}${preview ? `: "${preview}${textoPost.length > 60 ? "…" : ""}"` : ""}`;
         await Promise.all(
-          ALLOWED_USERNAMES
+          ALLOWED_ATIVOS
             .filter(u => u !== (user.username || "__none__") && u !== "demo")
             .map(u => addDoc(collection(db, "notifications", u, "items"), {
               from: user.username, text: notifText, date: nowFull(), read: false, canal: canalAtivo, ts: Date.now()

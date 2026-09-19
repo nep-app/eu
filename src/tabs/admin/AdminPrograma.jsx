@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { doc, getDoc, setDoc, addDoc, collection, onSnapshot, query, orderBy, updateDoc, arrayUnion, deleteDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP, PRP } from "../../theme.jsx";
-import { ALLOWED_USERNAMES, JEEP_LIST, DIMS, nowLabel, nowFull, getWeekKey, buildAutoavEntry } from "../../data.js";
+import { ALLOWED_ATIVOS, JEEP_LIST, DIMS, nowLabel, nowFull, getWeekKey, buildAutoavEntry } from "../../data.js";
 import AdminQuizzes from './AdminQuizzes.jsx';
 import Agendador from './Agendador.jsx';
 import AdminVotacoes from './AdminVotacoes.jsx';
@@ -188,7 +188,7 @@ function PerguntaManager({ allShared, activeQ }) {
     await setDoc(doc(db, "config", "activeQuestion"), {
       text: activeQEdit.trim(), options: opcoes, modes: selectedModes, date: Date.now()
     });
-    for (const u of ALLOWED_USERNAMES) {
+    for (const u of ALLOWED_ATIVOS) {
       await setDoc(doc(db, "userData", u), { answered: false, answeredAskedAt: Date.now() }, { merge: true });
       await addDoc(collection(db, "notifications", u, "items"), {
         from:"teresa", text:"💬 Nova pergunta da semana!", date:nowLabel(), read:false, tipo:"proposta", push: pushNovaPergunta

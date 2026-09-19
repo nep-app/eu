@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, addDoc, onSnapshot, query, updateDoc, doc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, INP, Btn, CYN, GRN, PNK } from "../../theme.jsx";
-import { JEEP_LIST, ALLOWED_USERNAMES, fmtDate, nowFull, TASK_TYPES } from "../../data.js";
+import { JEEP_LIST, JEEP_ATIVOS, ALLOWED_USERNAMES, fmtDate, nowFull, TASK_TYPES } from "../../data.js";
 
 export default function AdminTarefas() {
   const [adminTodoUsr, setAdminTodoUsr] = useState("nilton");
@@ -110,7 +110,7 @@ export default function AdminTarefas() {
 
         {/* Selecionar jovem */}
         <div style={{ display:"flex", gap:8, marginBottom:14, flexWrap:"wrap" }}>
-          {JEEP_LIST.map(j => (
+          {JEEP_ATIVOS.map(j => (
             <button key={j.name} onClick={() => setAdminTodoUsr(j.username)} style={{
               padding:"8px 16px", borderRadius:20,
               border: adminTodoUsr === j.username ? `1px solid ${j.color}` : "1px solid rgba(255,255,255,0.1)",

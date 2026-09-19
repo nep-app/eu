@@ -9,10 +9,10 @@
 //    quando `push === true`).
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "./firebase.js";
-import { ALLOWED_USERNAMES, JEEP_LIST, nowFull } from "./data.js";
+import { ALLOWED_ATIVOS, JEEP_ATIVOS, nowFull } from "./data.js";
 
 // Todos os nomes possíveis → username (para aceitar @Carina além de @carina).
-const NOME_PARA_USERNAME = JEEP_LIST.reduce((acc, j) => {
+const NOME_PARA_USERNAME = JEEP_ATIVOS.reduce((acc, j) => {
   acc[j.username.toLowerCase()] = j.username;
   if (j.name) acc[j.name.toLowerCase()] = j.username;
   return acc;
@@ -24,7 +24,7 @@ export function extrairMencoes(texto, autorUsername = "") {
   return [...String(texto || "").matchAll(/@([\wÀ-ÿ]+)/g)]
     .map(m => NOME_PARA_USERNAME[m[1].toLowerCase()] || m[1].toLowerCase())
     .filter((u, i, arr) => arr.indexOf(u) === i)
-    .filter(u => u !== autorUsername && u !== "demo" && ALLOWED_USERNAMES.includes(u));
+    .filter(u => u !== autorUsername && u !== "demo" && ALLOWED_ATIVOS.includes(u));
 }
 
 export function mencionouTodos(texto) {
@@ -48,7 +48,7 @@ export async function notificarMencoes({
     : `em ${canalLabel || canal}`;
   const alvos = extrairMencoes(texto, autorUsername).filter(u => !excluir.includes(u));
   const todos = permitirTodos && mencionouTodos(texto)
-    ? ALLOWED_USERNAMES.filter(u =>
+    ? ALLOWED_ATIVOS.filter(u =>
         u !== autorUsername && u !== "demo" && !alvos.includes(u) && !excluir.includes(u))
     : [];
   const criar = (u, txt) => addDoc(collection(db, "notifications", u, "items"), {
@@ -84,7 +84,7 @@ export function inserirMencao(texto, start, username) {
 export function candidatosMencao(filtro = "", excluirUsername = "", { incluirTodos = true, corTodos = "#32C7FF" } = {}) {
   const f = String(filtro || "").toLowerCase();
   const mostrarTodos = incluirTodos && (!f || "todos".includes(f) || "equipa".includes(f) || "toda".includes(f));
-  const pessoas = JEEP_LIST
+  const pessoas = JEEP_ATIVOS
     .filter(j => j.username !== excluirUsername && j.username !== "demo" && j.username !== "ricardo")
     .filter(j => !f || j.username.toLowerCase().includes(f) || j.name.toLowerCase().includes(f))
     .slice(0, mostrarTodos ? 4 : 5);

@@ -53,8 +53,11 @@ export function buildAutoavEntry(uData, ciclo) {
 }
 
 export const ALLOWED_USERNAMES = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","marisa","tamara","teresa","ricardo","demo"];
-// Contas com o acesso desativado (não entram nem se registam). Reversível: basta tirar daqui.
-export const BLOCKED_USERNAMES = ["salimo"];
+// Contas com o acesso desativado (saíram do programa): não entram, não se
+// registam e deixam de aparecer como opção em coisas novas (votações, menções,
+// mensagens, tarefas...). O que já existe fica guardado. Reversível: basta
+// tirar daqui.
+export const BLOCKED_USERNAMES = ["salimo", "erick"];
 export const SPECIAL_USERS = ["teresa","ricardo","demo"];
 export const USERS = [
   { username:"nilton",   realName:"Nilton",   color:"#22d3ee" },
@@ -84,6 +87,13 @@ export const JEEP_LIST = [
   { name:"Teresa",   username:"teresa",   color:"#e2e8f0", entidade:"(teste)", estado:"verde" },
   { name:"Ricardo",  username:"ricardo",  color:"#2dd4bf", entidade:"(teste)", estado:"verde" },
 ];
+
+// Jovens ATIVOS — usar em tudo o que seja escolher destinatários ou mostrar
+// opções de pessoas. As listas completas (JEEP_LIST/ALLOWED_USERNAMES) ficam
+// para ler dados antigos de quem já saiu.
+export const JEEP_ATIVOS = JEEP_LIST.filter(j => !BLOCKED_USERNAMES.includes(j.username));
+export const ALLOWED_ATIVOS = ALLOWED_USERNAMES.filter(u => !BLOCKED_USERNAMES.includes(u));
+export const estaBloqueado = (u) => BLOCKED_USERNAMES.includes(u);
 
 export const DIMS = [
   {

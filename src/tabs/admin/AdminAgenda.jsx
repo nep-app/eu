@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { addDoc, collection, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, INP, CYN, GRN, TXT_MUT } from "../../theme.jsx";
-import { JEEP_LIST, ALLOWED_USERNAMES, EVT_COLORS, EVT_ICONS, nowFull } from "../../data.js";
+import { JEEP_LIST, JEEP_ATIVOS, ALLOWED_ATIVOS, EVT_COLORS, EVT_ICONS, nowFull } from "../../data.js";
 
 function toDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -78,7 +78,7 @@ export default function AdminAgenda({ events = [] }) {
     const notifText = isForcar
       ? `📅 Novo evento agendado: "${titulo}" — ${dataFmt}${hora ? ` às ${hora}` : ""}`
       : `📅 A Teresa propôs um evento: "${titulo}" — ${dataFmt}. Vai ao Início para aceitar ou recusar!`;
-    const targets = dest === "all" ? ALLOWED_USERNAMES : [dest];
+    const targets = dest === "all" ? ALLOWED_ATIVOS : [dest];
     for (const u of targets) {
       await addDoc(collection(db, "notifications", u, "items"), {
         from:"teresa", text:notifText, date:nowFull(), read:false, ts:Date.now(), tipo: "proposta", push: pushEvento
@@ -257,7 +257,7 @@ export default function AdminAgenda({ events = [] }) {
             <div>
               <div style={{ fontSize:10, color:TXT_MUT, fontWeight:800, marginBottom:6, textTransform:"uppercase", letterSpacing:0.8 }}>Para quem</div>
               <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                {[{ name:"Todos", username:"all", color:CYN }, ...JEEP_LIST].map(j => (
+                {[{ name:"Todos", username:"all", color:CYN }, ...JEEP_ATIVOS].map(j => (
                   <button key={j.username} onClick={() => setDest(j.username)} style={{
                     padding:"6px 14px", borderRadius:20, fontSize:11, fontWeight:700, cursor:"pointer",
                     border: dest === j.username ? `1px solid ${j.color}` : "1px solid rgba(255,255,255,0.1)",

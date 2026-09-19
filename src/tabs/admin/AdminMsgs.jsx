@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { doc, updateDoc, deleteDoc, deleteField, collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP, Linkify } from "../../theme.jsx";
-import { nowFull, JEEP_LIST, ALLOWED_USERNAMES, MTHS } from "../../data.js";
+import { nowFull, JEEP_LIST, ALLOWED_USERNAMES, ALLOWED_ATIVOS, MTHS } from "../../data.js";
 import Agendador from "./Agendador.jsx";
 
 // Timestamp de uma mensagem: usa ts se existir; senão faz parse da `date`
@@ -71,7 +71,7 @@ export default function AdminMsgs() {
     if (!novaMsgTexto.trim()) return alert("Escreve uma mensagem.");
     setEnviando(true);
     try {
-      const targets = novaMsgDest === "all" ? ALLOWED_USERNAMES : [novaMsgDest];
+      const targets = novaMsgDest === "all" ? ALLOWED_ATIVOS : [novaMsgDest];
       for (const u of targets) {
         await addDoc(collection(db, "notifications", u, "items"), {
           from:"teresa", text: `💬 Teresa: ${novaMsgTexto.trim()}`, date: nowFull(), read: false, ts: Date.now(),
@@ -93,7 +93,7 @@ export default function AdminMsgs() {
         <select value={novaMsgDest} onChange={e => setNovaMsgDest(e.target.value)}
           style={{ width:"100%", padding:"10px 12px", borderRadius:12, background:"rgba(0,0,0,0.3)", color:"white", border:"1px solid rgba(255,255,255,0.1)", fontSize:13, marginBottom:10 }}>
           <option value="all">👥 Todos os jovens</option>
-          {JEEP_LIST.filter(j => ALLOWED_USERNAMES.includes(j.username)).map(j =>
+          {JEEP_LIST.filter(j => ALLOWED_ATIVOS.includes(j.username)).map(j =>
             <option key={j.username} value={j.username}>{j.name}</option>
           )}
         </select>

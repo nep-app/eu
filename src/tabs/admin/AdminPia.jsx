@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { doc, setDoc, addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, INP } from "../../theme.jsx";
-import { ALLOWED_USERNAMES, JEEP_LIST, PIA_SECTIONS, nowFull } from "../../data.js";
+import { ALLOWED_ATIVOS, JEEP_LIST, PIA_SECTIONS, nowFull } from "../../data.js";
 import { openPiaPrint } from "../../piaPrint.js";
 
 const JEEP_8 = JEEP_LIST.filter(j => !["teresa","ricardo","demo"].includes(j.username));
@@ -55,7 +55,7 @@ export default function AdminPia({ allShared }) {
             <div style={{ fontSize:13, fontWeight:800 }}>{sec.icon} {sec.title}</div>
             <div style={{ display:"flex", gap:6 }}>
               <button onClick={async () => {
-                for (const u of ALLOWED_USERNAMES)
+                for (const u of ALLOWED_ATIVOS)
                   await setDoc(doc(db,"userData",u), { piaUnlocked:{ [sec.id]:true }, ...(prazo ? { piaSavedPrazo: prazo } : {}) }, { merge:true });
                 alert(`"${sec.title}" aberta para todos!${prazo ? ` Prazo: ${prazo}` : ""}`);
               }} style={{ background:`${GRN}18`, border:`1px solid ${GRN}40`, color:GRN, borderRadius:8, padding:"5px 12px", fontWeight:900, fontSize:11, cursor:"pointer" }}>
@@ -63,7 +63,7 @@ export default function AdminPia({ allShared }) {
               </button>
               <button onClick={async () => {
                 if (!window.confirm(`Fechar "${sec.title}" para todos?`)) return;
-                for (const u of ALLOWED_USERNAMES)
+                for (const u of ALLOWED_ATIVOS)
                   await setDoc(doc(db,"userData",u), { piaUnlocked:{ [sec.id]:false } }, { merge:true });
               }} style={{ background:"rgba(244,63,94,0.1)", border:"1px solid rgba(244,63,94,0.25)", color:"#f43f5e", borderRadius:8, padding:"5px 12px", fontWeight:900, fontSize:11, cursor:"pointer" }}>
                 🔒 Fechar a todos

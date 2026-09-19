@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { collection, addDoc, deleteDoc, updateDoc, doc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, INP, Btn } from "../../theme.jsx";
-import { getWeekKey, fmtDate, nowFull, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
+import { getWeekKey, fmtDate, nowFull, ALLOWED_ATIVOS, JEEP_ATIVOS } from "../../data.js";
 import Agendador from "./Agendador.jsx";
 
-const JOVENS_MISSAO = JEEP_LIST.filter(j => !["ricardo","demo"].includes(j.username));
+const JOVENS_MISSAO = JEEP_ATIVOS.filter(j => !["ricardo","demo"].includes(j.username));
 
 export default function AdminMissoes({ missions, allShared = {} }) {
   const [adminMissionTxt, setAdminMissionTxt] = useState("");
@@ -45,7 +45,7 @@ export default function AdminMissoes({ missions, allShared = {} }) {
       ts: Date.now(),
     });
     // Avisar os jovens (com push opcional).
-    await Promise.all(ALLOWED_USERNAMES.map(u =>
+    await Promise.all(ALLOWED_ATIVOS.map(u =>
       addDoc(collection(db, "notifications", u, "items"), {
         from: "teresa", text: `🎯 Nova missão: ${adminMissionTxt.trim()} (+${adminMissionXp} XP)`,
         date: nowFull(), read: false, ts: Date.now(), push: pushMissao,

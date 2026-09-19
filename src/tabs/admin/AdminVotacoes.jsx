@@ -3,10 +3,10 @@ import { collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot, getDocs } fr
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, GRN, INP, Btn } from "../../theme.jsx";
-import { JEEP_LIST, nowFull } from "../../data.js";
+import { JEEP_ATIVOS, nowFull } from "../../data.js";
 import Agendador from "./Agendador.jsx";
 
-const JEEP_8 = JEEP_LIST.filter(j => !["ricardo","demo"].includes(j.username));
+const JEEP_8 = JEEP_ATIVOS.filter(j => !["ricardo","demo"].includes(j.username));
 
 function parseFmtData(str) {
   const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];

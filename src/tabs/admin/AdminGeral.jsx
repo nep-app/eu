@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc, addDoc, collection, updateDoc, onSnapshot, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, Btn, INP, PNK } from "../../theme.jsx";
-import { nowLabel, nowFull, fmtDate, getWeekKey, buildAutoavEntry, ALLOWED_USERNAMES, JEEP_LIST } from "../../data.js";
+import { nowLabel, nowFull, fmtDate, getWeekKey, buildAutoavEntry, ALLOWED_USERNAMES, ALLOWED_ATIVOS, JEEP_LIST, JEEP_ATIVOS } from "../../data.js";
 import Agendador from "./Agendador.jsx";
 
 export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdminTab }) {
@@ -63,7 +63,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdm
     if (launchType === "lembreteGeral"){ msg = "📢 A Teresa tem um aviso para ti. Vai ver as novidades!"; }
     if (launchPrazo) msg += ` ⏰ Prazo: ${fmtDate(launchPrazo)}`;
 
-    const targets = launchTarget === "all" ? ALLOWED_USERNAMES : [launchTarget];
+    const targets = launchTarget === "all" ? ALLOWED_ATIVOS : [launchTarget];
     const isReminder = launchType === "lembreteGeral";
     const notifData = { from:"teresa", text:msg, date:nowFull(), read:false, ts:Date.now(), push:pushLaunch, ...(!isReminder ? { tipo:"proposta" } : {}), ...(launchPrazo ? { prazo:launchPrazo } : {}) };
 
@@ -338,7 +338,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdm
           </select>
           <select value={launchTarget} onChange={e=>setLaunchTarget(e.target.value)} style={{ flex:1, padding:12, borderRadius:12, background:"rgba(0,0,0,0.3)", color:"white", border:"1px solid rgba(255,255,255,0.1)" }}>
             <option value="all">Todos</option>
-            {JEEP_LIST.map(j=><option key={j.username} value={j.username}>{j.name}</option>)}
+            {JEEP_ATIVOS.map(j=><option key={j.username} value={j.username}>{j.name}</option>)}
           </select>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>

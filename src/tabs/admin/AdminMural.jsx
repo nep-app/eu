@@ -3,7 +3,7 @@ import { collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc, getDocs, set
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
-import { nowLabel, nowFull, CHANNELS, JEEP_LIST, FORUM_REACTIONS, ALLOWED_USERNAMES } from "../../data.js";
+import { nowLabel, nowFull, CHANNELS, JEEP_LIST, JEEP_ATIVOS, FORUM_REACTIONS, ALLOWED_USERNAMES, ALLOWED_ATIVOS } from "../../data.js";
 import { notificarMencoes, detetarMencao, inserirMencao, candidatosMencao } from "../../forumMencoes.js";
 import MencaoLista from "../forum/MencaoLista.jsx";
 import Agendador from "./Agendador.jsx";
@@ -84,7 +84,7 @@ export default function AdminMural({ only = null }) {
   // notificações do Início (usado quando o aviso já está em destaque no topo).
   async function notificarTodos(texto, canal = null, push = false, soPush = false) {
     await Promise.all(
-      ALLOWED_USERNAMES
+      ALLOWED_ATIVOS
         .filter(u => u !== "ricardo")
         .map(u => addDoc(collection(db, "notifications", u, "items"), {
           from:"teresa", text:texto, date:nowFull(), read:false, ts:Date.now(), push,
@@ -94,7 +94,7 @@ export default function AdminMural({ only = null }) {
     );
   }
 
-  const mencaoCandidatos = JEEP_LIST
+  const mencaoCandidatos = JEEP_ATIVOS
     .filter(j => j.username !== "demo" && j.username !== "ricardo")
     .filter(j => !mencaoFiltro || j.username.toLowerCase().includes(mencaoFiltro) || j.name.toLowerCase().includes(mencaoFiltro))
     .slice(0, 5);
@@ -773,7 +773,7 @@ export default function AdminMural({ only = null }) {
                     </span>
                   </div>
                   <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-                    {JEEP_LIST.filter(j => !["ricardo","demo"].includes(j.username)).map(j => {
+                    {JEEP_ATIVOS.filter(j => !["ricardo","demo"].includes(j.username)).map(j => {
                       const on = lista.includes(j.username);
                       return (
                         <button key={j.username} onClick={() => toggleArcadeJogo(jogo.n, j.username)} style={{
@@ -838,7 +838,7 @@ export default function AdminMural({ only = null }) {
               <select value={rTarget} onChange={e => setRTarget(e.target.value)}
                 style={{ width:"100%", padding:12, borderRadius:12, background:"rgba(0,0,0,0.3)", color:"white", border:"1px solid rgba(255,255,255,0.1)", fontSize:13 }}>
                 <option value="all">👥 Todos os jovens</option>
-                {JEEP_LIST.filter(j => ALLOWED_USERNAMES.includes(j.username) && j.username !== "demo").map(j =>
+                {JEEP_LIST.filter(j => ALLOWED_ATIVOS.includes(j.username) && j.username !== "demo").map(j =>
                   <option key={j.username} value={j.username}>Só {j.name}</option>
                 )}
               </select>
