@@ -1,0 +1,40 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuth()  { return request.auth != null; }
+    function isAdmin() { return isAuth() && request.auth.token.email == 'admin@jeep.app'; }
+    function me()      { return request.auth.token.email.split('@')[0]; }
+
+    // Respostas (fotos/áudio das autoavaliações e da pergunta da semana)
+    // — só o próprio jovem envia; o próprio e o admin leem.
+    match /respostas/{username}/{allPaths=**} {
+      allow read, write: if isAdmin() || (isAuth() && username == me());
+    }
+
+    // Cápsulas do tempo — o ficheiro começa com o nome do jovem
+    // (ex.: "nilton_slot1_...") — só o dono (e o admin).
+    match /capsulas/{fileName} {
+      allow read, write: if isAdmin() || (isAuth() && fileName.matches('^' + me() + '_slot.*'));
+    }
+
+    // Fórum — qualquer pessoa com login envia e vê imagens.
+    match /forum/{allPaths=**} {
+      allow read, write: if isAuth();
+    }
+
+    // Votações — só o admin envia; todos com login veem.
+    match /votacoes/{allPaths=**} {
+      allow read:  if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // Recursos — só o admin envia; todos com login veem.
+    match /recursos/{allPaths=**} {
+      allow read:  if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // Tudo o resto fica bloqueado (sem regra = sem acesso).
+  }
+}
