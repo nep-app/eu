@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { doc, getDoc, setDoc, addDoc, collection, onSnapshot, query, orderBy, updateDoc, arrayUnion, deleteDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP, PRP } from "../../theme.jsx";
-import { ALLOWED_ATIVOS, JEEP_LIST, DIMS, nowLabel, nowFull, getWeekKey, buildAutoavEntry } from "../../data.js";
+import { ALLOWED_ATIVOS, JEEP_LIST, DIMS, MTHS, nowLabel, nowFull, getWeekKey, buildAutoavEntry } from "../../data.js";
 import AdminQuizzes from './AdminQuizzes.jsx';
 import Agendador from './Agendador.jsx';
 import AdminVotacoes from './AdminVotacoes.jsx';
@@ -526,16 +526,30 @@ function AutoavAdmin({ allShared }) {
   }
 
   const rondasAntigas = useMemo(() => {
+    // Uma ronda por MÊS (a autoavaliação é mensal). Entradas com ciclo usam o
+    // mês do lançamento; as antigas (sem ciclo) usam o mês em que foram feitas.
+    // Só muda a forma de mostrar — os dados guardados não são tocados.
+    const mesDe = entry => {
+      if (entry.cicloLabel) return entry.cicloLabel;
+      if (entry.ts) { const d = new Date(entry.ts); return MTHS[d.getMonth()] + " " + d.getFullYear(); }
+      if (/^[A-Z][a-z]{2} \d{4}$/.test(entry.date || "")) return entry.date;
+      return entry.week || "Sem data";
+    };
+    const assinatura = e => JSON.stringify([e.scores || {}, e.notas || {}]);
     const map = {};
     JEEP_8.forEach(j => {
-      (allShared[j.username]?.autoAvaliacaoHistorico || []).forEach(entry => {
-        // Agrupar por ciclo (do lançamento ao fecho). Entradas antigas sem
-        // ciclo caem no agrupamento por semana, como dantes.
-        const chave = entry.ciclo != null ? "c" + entry.ciclo : "w:" + entry.week;
-        if (!map[chave]) map[chave] = { chave, label: entry.cicloLabel || entry.date || entry.week, users: {}, maxTs: 0 };
-        map[chave].users[j.username] = entry;
-        const ts = entry.ts || 0;
-        if (ts > map[chave].maxTs) { map[chave].maxTs = ts; map[chave].date = entry.date; }
+      const hist = [...(allShared[j.username]?.autoAvaliacaoHistorico || [])].sort((a, b) => (a.ts || 0) - (b.ts || 0));
+      let ultima = null;
+      hist.forEach(entry => {
+        // Cada lançamento guarda uma cópia das respostas anteriores: se for
+        // igual à entrada anterior deste jovem, é cópia — não se repete.
+        const sig = assinatura(entry);
+        if (sig === ultima) return;
+        ultima = sig;
+        const chave = mesDe(entry);
+        if (!map[chave]) map[chave] = { chave, label: chave, users: {}, maxTs: 0 };
+        (map[chave].users[j.username] ||= []).unshift(entry); // mais recente primeiro
+        map[chave].maxTs = Math.max(map[chave].maxTs, entry.ts || 0);
       });
     });
     return Object.values(map).sort((a, b) => b.maxTs - a.maxTs);
@@ -616,7 +630,7 @@ function AutoavAdmin({ allShared }) {
         <div style={{ ...CARD, marginTop:10 }}>
           <div style={SL}>📚 Rondas Anteriores ({rondasAntigas.length})</div>
           {rondasAntigas.map(ronda => {
-            const entregaram = Object.keys(ronda.users).length;
+            const entregaram = Object.values(ronda.users).filter(es => es.some(e => e.saved !== false)).length;
             return (
               <div key={ronda.chave} style={{ marginBottom:8, borderRadius:12, overflow:"hidden", border:"1px solid rgba(255,255,255,0.07)" }}>
                 <button onClick={() => setHistOpen(histOpen === ronda.chave ? null : ronda.chave)} style={{
@@ -625,24 +639,29 @@ function AutoavAdmin({ allShared }) {
                   display:"flex", justifyContent:"space-between", alignItems:"center",
                 }}>
                   <span style={{ fontSize:13, fontWeight:700 }}>Ronda · {ronda.label}</span>
-                  <span style={{ fontSize:10, color:"#475569" }}>{ronda.date} · {entregaram}/{JEEP_8.length} entregaram {histOpen === ronda.chave ? "▲" : "▼"}</span>
+                  <span style={{ fontSize:10, color:"#475569" }}>{entregaram}/{JEEP_8.length} entregaram {histOpen === ronda.chave ? "▲" : "▼"}</span>
                 </button>
                 {histOpen === ronda.chave && (
                   <div style={{ background:"rgba(0,0,0,0.15)", padding:"10px 14px" }}>
                     {JEEP_8.map(j => {
-                      const entry = ronda.users[j.username];
+                      const entradas = ronda.users[j.username] || [];
                       return (
                         <div key={j.username} style={{ marginBottom:12 }}>
                           <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
                             <div style={{ width:8, height:8, borderRadius:"50%", background:j.color }} />
                             <span style={{ fontSize:13, fontWeight:800, color:j.color }}>{j.name}</span>
-                            {entry ? (
-                              <span style={{ fontSize:10, color:"#475569" }}>{entry.date}</span>
-                            ) : (
-                              <span style={{ fontSize:10, color:"#475569" }}>Não entregou</span>
-                            )}
+                            {entradas.length === 0 && <span style={{ fontSize:10, color:"#475569" }}>Não entregou</span>}
+                            {entradas.length > 1 && <span style={{ fontSize:10, color:"#fbbf24" }}>respondeu {entradas.length} vezes este mês</span>}
                           </div>
-                          {entry && <ScoresGrid scores={entry.scores || {}} notas={entry.notas} />}
+                          {entradas.map((entry, i) => (
+                            <div key={i} style={{ marginBottom: i < entradas.length - 1 ? 8 : 0 }}>
+                              <div style={{ fontSize:10, color:"#475569", marginBottom:4 }}>
+                                {entry.ts ? new Date(entry.ts).toLocaleString("pt-PT", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" }) : (entry.date || "")}
+                                {entry.saved === false ? " · rascunho (não entregue)" : ""}
+                              </div>
+                              <ScoresGrid scores={entry.scores || {}} notas={entry.notas} />
+                            </div>
+                          ))}
                         </div>
                       );
                     })}

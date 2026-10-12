@@ -639,7 +639,17 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
           {(() => {
             const hP = [...(uData.perguntasHistorico || [])].reverse();
             const hS = [...(uData.satisfacaoHistorico || [])].reverse();
-            const hA = [...(uData.autoAvaliacaoHistorico || [])].reverse();
+            // Cada lançamento/arquivo/reposição guarda uma cópia das respostas:
+            // cópias iguais seguidas mostram-se uma só vez (os dados não mudam).
+            const hA = (() => {
+              const ord = [...(uData.autoAvaliacaoHistorico || [])].sort((a, b) => (a.ts || 0) - (b.ts || 0));
+              let ultima = null;
+              return ord.filter(e => {
+                const sig = JSON.stringify([e.scores || {}, e.notas || {}]);
+                if (sig === ultima) return false;
+                ultima = sig; return true;
+              }).reverse();
+            })();
             const hPIA = [...(uData.piaHistorico || [])].reverse();
             if (hP.length === 0 && hS.length === 0 && hA.length === 0 && hPIA.length === 0) return null;
             return (
@@ -688,11 +698,11 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
                     {hA.map((e, i) => (
                       <div key={i} style={{ padding:"10px 12px", borderRadius:10, background:"rgba(0,0,0,0.2)", marginBottom:6 }}>
                         <div style={{ fontSize:10, color:"#475569", marginBottom:4 }}>
-                          {e.week}{e.date ? ` · Entregue ${e.date}` : ""} · {formatarDataHora(e.ts, "")}
+                          {formatarDataHora(e.ts, e.date || "")}{e.saved === false ? " · rascunho (não entregue)" : ""}
                         </div>
                         {Object.keys(e.scores || {}).length > 0 && (
                           <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                            {Object.entries(e.scores).map(([k, v]) => (
+                            {Object.entries(e.scores).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => (
                               <span key={k} style={{ fontSize:11, background:"rgba(167,139,250,0.1)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:6, padding:"2px 8px", color:"#a78bfa" }}>
                                 {k}: <strong>{v}</strong>
                               </span>
@@ -701,7 +711,7 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
                         )}
                         {Object.keys(e.notas || {}).length > 0 && (
                           <div style={{ marginTop:6, display:"flex", flexDirection:"column", gap:3 }}>
-                            {Object.entries(e.notas).filter(([,v]) => v).map(([k, v]) => (
+                            {Object.entries(e.notas).filter(([,v]) => v).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => (
                               <div key={k} style={{ fontSize:11, color:"#94a3b8", fontStyle:"italic" }}>
                                 <span style={{ color:"#a78bfa", fontStyle:"normal", fontWeight:800 }}>{k}:</span> "{v}"
                               </div>
