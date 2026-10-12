@@ -314,6 +314,62 @@ export const PIA_SECTIONS = [
   },
 ];
 
+// Opções do PIA: são COMEÇOS DE FRASE — o jovem carrega e completa com as
+// palavras dele (o "…" final sai e o cursor fica lá). Não são respostas prontas.
+export const PIA_CHIPS = {
+  swotF:      ["Sou bom/boa a…", "Os jovens daqui já confiam em mim porque…", "Já fiz uma coisa parecida quando…", "Conheço bem o bairro / a instituição porque…", "A equipa da instituição ajuda-me com…"],
+  swotFraq:   ["Ainda tenho dificuldade em…", "Fico inseguro/a quando…", "Tenho pouco tempo para preparar porque…", "Ainda não conheço bem…", "Falta-me material para…"],
+  swotOp:     ["A instituição já tem… que posso usar", "Os jovens já mostraram interesse em…", "Há um parceiro aqui perto que pode ajudar:…", "Há uma data especial que dá jeito aproveitar:…", "Há um espaço livre às… (dia e hora)"],
+  swotR:      ["Os jovens podem faltar porque…", "Pode coincidir com… (escola, treinos, férias)", "Pode faltar material como…", "Pode haver confusão entre… e…", "Se o espaço estiver ocupado, faço…"],
+  oQue:       ["Sessões de… com conversa no fim", "Ateliers de… (ex.: culinária, música, desenho)", "Um torneio de…", "Um clube de… que se junta à…-feira", "Um espaço para os jovens falarem sobre…"],
+  fundamento: ["Reparei que os jovens daqui…", "Os jovens disseram-me que gostavam de…", "Na instituição ainda não há…", "A equipa da instituição contou-me que…", "Quando eu tinha a idade deles, faltou-me…"],
+  objetivos:  ["Quero que, no fim, os jovens consigam…", "Quero que os jovens se conheçam melhor e…", "Quero que ganhem confiança para…", "Quero que aprendam a…", "Quero que participem mais em…"],
+  metas:      ["Fazer … sessões por mês, de … a …", "Ter pelo menos … jovens em cada sessão", "Cada sessão dura … minutos", "No fim, ter feito… (ex.: uma exposição, um vídeo, um torneio)"],
+  avaliacao:  ["Conto quantos jovens vêm a cada sessão e…", "No fim de cada sessão pergunto-lhes…", "Vou reparar se os jovens começam a…", "Peço à equipa da instituição que me diga se…", "Sei que correu bem se, no fim,…"],
+  periodicidade: ["Depois de cada sessão, aponto…", "Todas as semanas, à…-feira, revejo…", "Uma vez por mês, revejo com a Teresa…"],
+};
+
+// O texto que o começo de frase escreve na resposta (sem o "…" final colado).
+export function inicioDeFrase(chip) {
+  return /[^\s]…$/.test(chip) ? chip.slice(0, -1) + " " : chip;
+}
+
+// Opções antigas (antes eram respostas prontas, coladas tal e qual). Servem só
+// para a Teresa ver, no admin, que respostas foram apenas cliques.
+const PIA_CHIPS_ANTIGOS = new Set([
+  "Criatividade","Comunicação","Empatia","Conhecimento local","Boa equipa","Motivação","Rede de contactos",
+  "Pouca experiência","Recursos limitados","Tempo curto","Equipa pequena","Pouca visibilidade",
+  "Apoio da câmara","Parceiros locais","Interesse dos jovens","Espaços disponíveis","Financiamento disponível",
+  "Falta de participação","Orçamento incerto","Conflitos de agenda","Resistência inicial","Falta de espaço",
+  "Sessões de cinema + debate","Ateliers criativos","Workshops de competências","Atividades desportivas","Espaço de conversa aberto",
+  "Vi uma necessidade nos jovens","Os jovens pediram","Faz parte do projeto de estágio","A instituição precisa de dinamismo","Não há espaço seguro para isso na comunidade",
+  "Desenvolver competências sociais","Aumentar a autoestima","Criar laços entre jovens","Promover participação ativa","Reduzir comportamentos de risco","Capacitar para a vida adulta",
+  "1 sessão por semana","2 sessões por mês","4 sessões por mês","6 sessões ao longo do ano","8+ participantes por sessão","10+ participantes",
+  "Aumento da participação","Feedback positivo dos jovens","Objetivos cumpridos","Jovens voltam às sessões","Menos conflitos no espaço",
+]);
+const PIA_INICIOS = Object.values(PIA_CHIPS).flat();
+// Uma linha ficou por acabar se é o começo de frase tal e qual, ou se começa
+// como uma opção e ainda tem o "…" por preencher.
+function linhaPorAcabar(l) {
+  const t = l.trim();
+  return PIA_INICIOS.some(c => t === inicioDeFrase(c).trim()
+    || (c.includes("…") && t.startsWith(c.split("…")[0].trim()) && t.includes("…")));
+}
+
+// Para o admin: diz se uma resposta do PIA foi só cliques / tem frases por acabar.
+// Devolve null se a resposta parece escrita pelo jovem.
+export function avisoPia(texto) {
+  if (typeof texto !== "string" || !texto.trim()) return null;
+  const pedacos = texto.split(/,|\n/).map(s => s.trim()).filter(Boolean);
+  const clicadas = pedacos.filter(p => PIA_CHIPS_ANTIGOS.has(p));
+  const porAcabar = texto.split("\n").some(linhaPorAcabar);
+  if (clicadas.length && clicadas.length === pedacos.length)
+    return `Só carregou em opções (${clicadas.join(", ")}) — pede-lhe uma frase dele.`;
+  if (porAcabar) return "Começou uma frase mas não a completou.";
+  if (clicadas.length) return `Inclui opções clicadas: ${clicadas.join(", ")}.`;
+  return null;
+}
+
 export const PIA_FIELDS = [
   { key:"oQue",     title:"O QUÊ",    icon:"🎯", hint:"Título e natureza do projeto",   ph:"Que projeto ou atividade quero desenvolver?" },
   { key:"paraQue",  title:"PARA QUÊ", icon:"🏁", hint:"Objetivo global",                ph:"Qual é o propósito? O que vai mudar?" },

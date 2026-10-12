@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import { doc, setDoc, updateDoc, addDoc, collection, arrayUnion } from "firebase/firestore";
 import { db, notifyAdmin } from "../firebase.js";
 import { CARD, SL, INP, CYN, GRN, TXT_MUT, PNK } from "../theme.jsx";
-import { PIA_SECTIONS, nowFull, nowLabel, getWeekKey } from "../data.js";
+import { PIA_SECTIONS, PIA_CHIPS, inicioDeFrase, nowFull, nowLabel, getWeekKey } from "../data.js";
 import { ThemeCtx } from "../JovensApp.jsx";
 import { openPiaPrint } from "../piaPrint.js";
 
@@ -18,39 +18,39 @@ const SUB_TABS = [
 const WIZARD_QUESTIONS = {
   s3b: [
     { key:"swotF",    emoji:"💪", q:"O que faço bem e quais os pontos fortes do projeto?", ph:'Ex: "Sou boa a comunicar com os jovens e a equipa apoia sempre as minhas ideias."', rows:4,
-      chips:["Criatividade","Comunicação","Empatia","Conhecimento local","Boa equipa","Motivação","Rede de contactos"] },
+      chips:PIA_CHIPS.swotF },
     { key:"swotFraq", emoji:"⚠️", q:"Onde posso melhorar? Quais os pontos fracos?", ph:'Ex: "Ainda não tenho muita experiência e tenho pouco tempo para preparar as sessões."', rows:4,
-      chips:["Pouca experiência","Recursos limitados","Tempo curto","Equipa pequena","Pouca visibilidade"] },
+      chips:PIA_CHIPS.swotFraq },
     { key:"swotOp",   emoji:"🌟", q:"Que oportunidades externas posso aproveitar?", ph:'Ex: "A câmara tem verba disponível este ano e há jovens interessados em participar."', rows:4,
-      chips:["Apoio da câmara","Parceiros locais","Interesse dos jovens","Espaços disponíveis","Financiamento disponível"] },
+      chips:PIA_CHIPS.swotOp },
     { key:"swotR",    emoji:"🚨", q:"Que riscos ou obstáculos posso encontrar?", ph:'Ex: "Pode ser difícil manter os jovens motivados se houver conflitos de horário com a escola."', rows:4,
-      chips:["Falta de participação","Orçamento incerto","Conflitos de agenda","Resistência inicial","Falta de espaço"] },
+      chips:PIA_CHIPS.swotR },
   ],
   s4: [
     { key:"oQue",       emoji:"🎯", q:"O meu projeto é...", ph:'Ex: "Um clube de leitura com discussão em grupo todas as sextas-feiras."', rows:3,
-      chips:["Sessões de cinema + debate","Ateliers criativos","Workshops de competências","Atividades desportivas","Espaço de conversa aberto"] },
+      chips:PIA_CHIPS.oQue },
     { key:"fundamento", emoji:"💡", q:"Faço isto porque...", ph:'Ex: "Muitos jovens não têm espaço para falar entre si."', rows:3,
-      chips:["Vi uma necessidade nos jovens","Os jovens pediram","Faz parte do projeto de estágio","A instituição precisa de dinamismo","Não há espaço seguro para isso na comunidade"],
+      chips:PIA_CHIPS.fundamento,
       persona:{ name:"Rita (ludoteca Parede)", text:"Nos últimos 3 meses reparei que os 15 jovens que frequentam a ludoteca quase não interagem entre si — cada um no seu telemóvel, mesmo sentados lado a lado. Foi isso que me fez querer criar um espaço estruturado para conversarem." } },
     { key:"objetivos",  emoji:"🏁", q:"O objetivo é...", ph:'Ex: "Promover reflexão crítica, diálogo e consciência social."', rows:3,
-      chips:["Desenvolver competências sociais","Aumentar a autoestima","Criar laços entre jovens","Promover participação ativa","Reduzir comportamentos de risco","Capacitar para a vida adulta"],
+      chips:PIA_CHIPS.objetivos,
       persona:{ name:"Tiago (polo Alcabideche)", text:"Trabalho com um grupo de 12 jovens entre os 14 e os 17 anos que têm dificuldade em resolver conflitos sem gritar ou desistir da conversa. Quero que, até ao final do ano, consigam usar pelo menos uma técnica de mediação que aprenderam nas sessões." } },
     { key:"metas",      emoji:"📊", q:"A minha meta concreta é...", ph:'Ex: "4 sessões por mês, de outubro a junho, com 8+ participantes."', rows:3,
-      chips:["1 sessão por semana","2 sessões por mês","4 sessões por mês","6 sessões ao longo do ano","8+ participantes por sessão","10+ participantes"],
+      chips:PIA_CHIPS.metas,
       persona:{ name:"Rita (ludoteca Parede)", text:"Defini 4 sessões por mês porque é o ritmo que consigo preparar bem sem sobrecarregar a equipa — testei em outubro, correu bem, e por isso mantive esse número o resto do ano." } },
     { key:"onde",          emoji:"📍", q:"Vai acontecer em...", ph:"Sala polivalente da ludoteca", rows:1, chips:[] },
     { key:"atividadesList", emoji:"📅", q:"As atividades planeadas:", type:"activities" },
     { key:"recursos",      emoji:"🧰", q:"Vou precisar de...", ph:'Ex: "Um espaço fechado, ligação à internet e alguns snacks para os intervalos."', rows:3,
-      chips:["Projetor","Computador","Material impresso","Sala","Microfone","Câmara fotográfica"] },
+      chips:["Projetor","Computador","Material impresso","Sala","Microfone","Câmara fotográfica"], chipsItens:true },
     // avaliacao moved to mon tab (s5 wizard, sid:"s4")
   ],
   s5: [
     // Cross-section fusion: avaliacao belongs to s4 but flows naturally here
     { key:"avaliacao", sid:"s4", emoji:"📏", q:"Como vou saber que correu bem?", ph:'Ex: "Registo o número de participantes em cada sessão e peço um feedback rápido no final."', rows:3,
-      chips:["Aumento da participação","Feedback positivo dos jovens","Objetivos cumpridos","Jovens voltam às sessões","Menos conflitos no espaço"],
+      chips:PIA_CHIPS.avaliacao,
       persona:{ name:"Tiago (polo Alcabideche)", text:"Uso uma folha de presenças em cada sessão e, no fim de cada mês, peço aos jovens para responderem a 3 perguntas rápidas sobre o que gostaram e o que mudavam. Se a taxa de participação subir e as respostas forem positivas, sei que está a resultar." } },
     { key:"periodicidade", emoji:"🔄", q:"Vou fazer revisões...", ph:'Ex: "Reservo a última sexta-feira de cada mês para rever como está a correr o projeto."', rows:2,
-      chips:["Semanalmente","De 2 em 2 semanas","Mensalmente","Bimensalmente","Depois de cada sessão"] },
+      chips:PIA_CHIPS.periodicidade },
     { key:"revisoesList",  emoji:"📝", q:"Registo de revisões:", type:"revisoes" },
   ],
 };
@@ -271,6 +271,7 @@ export default function PiaTab({ user, data }) {
   const [subTab, setSubTab] = useState("diag");
   const [sending, setSending] = useState(false);
   const [wizStep, setWizStep] = useState(0);
+  const campoRef = useRef(null); // caixa de resposta do passo atual (para pôr o cursor)
 
   useEffect(() => { setWizStep(0); }, [subTab]);
 
@@ -362,7 +363,18 @@ export default function PiaTab({ user, data }) {
 
   function appendChip(q, chip) {
     const cur = piaData[q.sectionId]?.[q.key] || "";
-    saveField(q.sectionId, q.key, cur ? cur + ", " + chip : chip);
+    // Recursos: lista de coisas → junta com vírgulas, como antes.
+    if (q.chipsItens) { saveField(q.sectionId, q.key, cur ? cur + ", " + chip : chip); return; }
+    // Restantes: é um começo de frase → nova linha e o cursor fica lá para completar.
+    const novo = (cur.trim() ? cur.replace(/\s+$/, "") + "\n" : "") + inicioDeFrase(chip);
+    saveField(q.sectionId, q.key, novo);
+    setTimeout(() => {
+      const el = campoRef.current; if (!el) return;
+      el.focus();
+      // Se a frase tem espaços por preencher ("…"), seleciona o primeiro; senão, cursor no fim.
+      const i = novo.indexOf("…", novo.length - inicioDeFrase(chip).length);
+      if (i >= 0) el.setSelectionRange(i, i + 1); else el.setSelectionRange(novo.length, novo.length);
+    }, 60);
   }
 
   return (
@@ -473,6 +485,11 @@ export default function PiaTab({ user, data }) {
                     ) : (
                       <>
                         {currentQ.chips?.length > 0 && (
+                          <div style={{ fontSize:11, fontWeight:700, color:"#64748b", marginBottom:6 }}>
+                            {currentQ.chipsItens ? "💡 Carrega para juntar à lista:" : "💡 Carrega num começo de frase e completa com as tuas palavras:"}
+                          </div>
+                        )}
+                        {currentQ.chips?.length > 0 && (
                           <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:12 }}>
                             {currentQ.chips.map(chip => (
                               <button key={chip} onClick={() => appendChip(currentQ, chip)} style={{
@@ -495,6 +512,7 @@ export default function PiaTab({ user, data }) {
                             />
                           ) : (
                             <textarea
+                              ref={campoRef}
                               value={piaData[currentQ.sectionId]?.[currentQ.key] || ""}
                               onChange={e => saveField(currentQ.sectionId, currentQ.key, e.target.value)}
                               placeholder={currentQ.ph}

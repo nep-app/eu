@@ -2,7 +2,14 @@ import React, { useState } from 'react';
 import { doc, setDoc, addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, INP } from "../../theme.jsx";
-import { ALLOWED_ATIVOS, JEEP_LIST, PIA_SECTIONS, nowFull } from "../../data.js";
+import { ALLOWED_ATIVOS, JEEP_LIST, PIA_SECTIONS, nowFull, avisoPia } from "../../data.js";
+
+// Aviso por baixo de uma resposta: foi só cliques nas opções / ficou por acabar.
+function AvisoPia({ texto }) {
+  const aviso = avisoPia(texto);
+  if (!aviso) return null;
+  return <div style={{ fontSize:10, fontWeight:700, color:"#fbbf24", marginTop:2 }}>⚠️ {aviso}</div>;
+}
 import { openPiaPrint } from "../../piaPrint.js";
 
 const JEEP_8 = JEEP_LIST.filter(j => !["teresa","ricardo","demo"].includes(j.username));
@@ -153,6 +160,7 @@ export default function AdminPia({ allShared }) {
                               <div key={k} style={{ fontSize:11, color:"#94a3b8", background:"rgba(0,0,0,0.2)", borderRadius:6, padding:"5px 8px" }}>
                                 <strong style={{ color:"#e2e8f0" }}>{l}:</strong>{" "}
                                 {isExpanded ? sd[k] : (sd[k].substring(0,60) + (sd[k].length > 60 ? "…" : ""))}
+                                <AvisoPia texto={sd[k]} />
                               </div>
                             ))}
                           </div>
@@ -167,6 +175,7 @@ export default function AdminPia({ allShared }) {
                           return (
                             <div key={f.key} style={{ fontSize:11, color:"#94a3b8", marginBottom:2, whiteSpace: isExpanded ? "pre-wrap" : "normal" }}>
                               <strong style={{ color:"#e2e8f0" }}>{f.label}:</strong> {preview}
+                              {!Array.isArray(v) && <AvisoPia texto={String(v)} />}
                             </div>
                           );
                         })}
