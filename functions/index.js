@@ -198,12 +198,47 @@ async function lancarPedido(payload) {
   const targets = launchTarget === "all" ? ALLOWED : [launchTarget];
   const isReminder = launchType === "lembreteGeral";
   const agora = new Date();
+
+  // Lembrete de autoavaliação: só avisa quem ainda não entregou — não limpa nada.
+  if (launchType === "lembreteAuto") {
+    let txt = "📊 Lembrete: ainda tens a Autoavaliação por fazer! Está nos Desafios.";
+    if (prazo) txt += ` ⏰ Prazo: ${fmtPrazo(prazo)}`;
+    await Promise.all(targets.map(async u => {
+      const snap = await db.collection("userData").doc(u).get();
+      if (snap.exists && snap.data().autoSaved) return;
+      await db.collection("notifications").doc(u).collection("items").add({
+        from: "teresa", text: txt, date: fmtFull(agora), read: false, ts: Date.now(), push: !!push,
+        tipo: "auto", ...(prazo ? { prazo } : {}),
+      });
+    }));
+    return;
+  }
+
   // Autoavaliação agendada: abre um novo ciclo (para agrupar por ronda).
+  let cicloAntigo = null;
   if (launchType === "auto") {
+    const cSnap = await db.collection("config").doc("autoCiclo").get();
+    cicloAntigo = cSnap.exists ? cSnap.data() : null;
     await db.collection("config").doc("autoCiclo").set({ id: Date.now(), label: fmtLabel(agora) });
+    await db.collection("config").doc("autoLancamentos").set({
+      lista: FieldValue.arrayUnion({ ts: Date.now(), origem: "agendado", alvo: launchTarget }),
+    }, { merge: true });
   }
   await Promise.all(targets.map(async u => {
     if (launchType === "auto") {
+      // Antes de limpar, guarda no arquivo o que lá estiver (como o lançamento à mão).
+      const uSnap = await db.collection("userData").doc(u).get();
+      const ud = uSnap.exists ? uSnap.data() : {};
+      if (ud.autoSaved || Object.keys(ud.dScores || {}).length > 0) {
+        await db.collection("userData").doc(u).set({
+          autoAvaliacaoHistorico: FieldValue.arrayUnion({
+            week: getWeekKey(agora), date: fmtLabel(agora), ts: Date.now(),
+            scores: ud.dScores || {}, notas: ud.dNotas || {},
+            ...(ud.autoSaved ? {} : { saved: false }),
+            ...(cicloAntigo && cicloAntigo.id != null ? { ciclo: cicloAntigo.id, cicloLabel: cicloAntigo.label } : {}),
+          }),
+        }, { merge: true });
+      }
       await db.collection("userData").doc(u).set({
         autoSaved: false, autoNewRound: false, dScores: {}, dNotas: {}, autoAskedAt: Date.now(),
         ...(prazo ? { autoNewRoundPrazo: prazo } : {}),

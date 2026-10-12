@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { doc, getDoc, setDoc, addDoc, collection, updateDoc, onSnapshot, arrayUnion } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, Btn, INP, PNK } from "../../theme.jsx";
@@ -43,7 +43,10 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdm
     { key:"rodaVida",        label:"🌸 Roda da Vida",            desc:"Secção Roda no Perfil" },
   ];
   const emManutencao = !!features.emManutencao;
-  const [launchType, setLaunchType] = useState("auto");
+  // Começa vazio de propósito: antes vinha em "Autoavaliação" e um envio
+  // distraído abria uma ronda nova para todos (limpando as respostas atuais).
+  const [launchType, setLaunchType] = useState("");
+  const aLancar = useRef(false); // trava duplo toque no botão de enviar
   const [launchTarget, setLaunchTarget] = useState("all");
   const [launchPrazo, setLaunchPrazo] = useState("");
   const [feedbackOpen, setFeedbackOpen] = useState({});
@@ -52,6 +55,44 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdm
   const [pushLaunch, setPushLaunch] = useState(false);
 
   async function launchRequest() {
+    if (!launchType) { alert("Escolhe primeiro o que queres lançar."); return; }
+    if (aLancar.current) return; // já está a enviar (duplo toque)
+    aLancar.current = true;
+    try { await lancarPedidoAgora(); } finally { aLancar.current = false; }
+  }
+
+  async function lancarPedidoAgora() {
+    const targets = launchTarget === "all" ? ALLOWED_ATIVOS : [launchTarget];
+    const nomeDe = u => JEEP_LIST.find(j => j.username === u)?.name || u;
+
+    // Abrir uma ronda nova limpa as respostas atuais — pedir confirmação,
+    // dizendo quem já entregou e vai ter de responder outra vez.
+    if (launchType === "auto") {
+      const jaEntregaram = targets.filter(u => allShared[u]?.autoSaved).map(nomeDe);
+      const aviso = "Isto ABRE UMA RONDA NOVA de autoavaliação"
+        + (launchTarget === "all" ? " para todos" : ` para ${nomeDe(launchTarget)}`) + ".\n\n"
+        + (jaEntregaram.length
+            ? `Já entregaram a ronda atual: ${jaEntregaram.join(", ")}.\nVão ter de responder outra vez (as respostas atuais ficam guardadas no arquivo).\n\n`
+            : "")
+        + "Se só queres lembrar quem ainda não fez, usa \"Lembrete: Autoavaliação\".\n\nContinuar?";
+      if (!window.confirm(aviso)) return;
+    }
+
+    // Lembrete de autoavaliação: só avisa quem ainda não entregou — não limpa nada.
+    if (launchType === "lembreteAuto") {
+      const porFazer = targets.filter(u => !allShared[u]?.autoSaved);
+      if (porFazer.length === 0) { alert("Já todos entregaram a autoavaliação desta ronda. 🎉"); return; }
+      let txt = "📊 Lembrete: ainda tens a Autoavaliação por fazer! Está nos Desafios.";
+      if (launchPrazo) txt += ` ⏰ Prazo: ${fmtDate(launchPrazo)}`;
+      await Promise.all(porFazer.map(u => addDoc(collection(db, "notifications", u, "items"), {
+        from:"teresa", text:txt, date:nowFull(), read:false, ts:Date.now(), push:pushLaunch, tipo:"auto",
+        ...(launchPrazo ? { prazo:launchPrazo } : {}),
+      })));
+      setLaunchPrazo(""); setPushLaunch(false);
+      alert(`Lembrete enviado a: ${porFazer.map(nomeDe).join(", ")}`);
+      return;
+    }
+
     let msg = ""; let field = null;
     if (launchType === "auto")         { msg = "📊 Nova Autoavaliação pedida!"; }
     if (launchType === "satisf")       { msg = "😊 Nova Avaliação de Satisfação pedida!"; field = "sSaved"; }
@@ -63,7 +104,6 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdm
     if (launchType === "lembreteGeral"){ msg = "📢 A Teresa tem um aviso para ti. Vai ver as novidades!"; }
     if (launchPrazo) msg += ` ⏰ Prazo: ${fmtDate(launchPrazo)}`;
 
-    const targets = launchTarget === "all" ? ALLOWED_ATIVOS : [launchTarget];
     const isReminder = launchType === "lembreteGeral";
     const notifData = { from:"teresa", text:msg, date:nowFull(), read:false, ts:Date.now(), push:pushLaunch, ...(!isReminder ? { tipo:"proposta" } : {}), ...(launchPrazo ? { prazo:launchPrazo } : {}) };
 
@@ -74,6 +114,10 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdm
       const snap = await getDoc(doc(db, "config", "autoCiclo"));
       cicloAntigo = snap.exists() ? snap.data() : null;
       await setDoc(doc(db, "config", "autoCiclo"), { id: Date.now(), label: nowLabel() });
+      // Registo de lançamentos (para se saber sempre quando e como abriu cada ronda).
+      await setDoc(doc(db, "config", "autoLancamentos"), {
+        lista: arrayUnion({ ts: Date.now(), origem: "à mão", alvo: launchTarget }),
+      }, { merge: true });
     }
 
     await Promise.all(targets.map(async u => {
@@ -323,8 +367,9 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdm
         <div style={SL}>Lançar Pedidos aos Jovens</div>
         <div style={{ display:"flex", gap:8, marginBottom:8 }}>
           <select value={launchType} onChange={e=>setLaunchType(e.target.value)} style={{ flex:1, padding:12, borderRadius:12, background:"rgba(0,0,0,0.3)", color:"white", border:"1px solid rgba(255,255,255,0.1)" }}>
+            <option value="" disabled>Escolhe o que lançar…</option>
             <optgroup label="Ações Obrigatórias">
-              <option value="auto">📊 Autoavaliação</option>
+              <option value="auto">📊 Autoavaliação (abre ronda nova)</option>
               <option value="satisf">😊 Satisfação</option>
               <option value="pia">📋 Atualizar PIA</option>
               <option value="roda">🌸 Roda da Vida</option>
@@ -332,6 +377,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdm
               <option value="pergunta">💬 Pergunta da Semana</option>
             </optgroup>
             <optgroup label="Lembretes">
+              <option value="lembreteAuto">📊 Lembrete: Autoavaliação (só avisa quem falta)</option>
               <option value="lembreteQuiz">🧠 Lembrete: Novo Dilema (Quiz)</option>
               <option value="lembreteGeral">📢 Lembrete: Aviso Geral</option>
             </optgroup>
@@ -356,11 +402,13 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdm
           tipo="pedido"
           rotuloJa="Enviar Pedido / Lembrete 🚀"
           publicarJa={launchRequest}
-          construirPayload={() => ({
-            launchType, launchTarget, prazo: launchPrazo || null, push: pushLaunch,
-          })}
+          construirPayload={() => {
+            if (!launchType) { alert("Escolhe primeiro o que queres lançar."); return null; }
+            if (launchType === "auto" && !window.confirm("Na hora marcada isto ABRE UMA RONDA NOVA de autoavaliação: quem já entregou terá de responder outra vez (as respostas atuais ficam no arquivo).\n\nAgendar mesmo assim?")) return null;
+            return { launchType, launchTarget, prazo: launchPrazo || null, push: pushLaunch };
+          }}
           rotuloItem={p => {
-            const LBL = { auto:"📊 Autoavaliação", satisf:"😊 Satisfação", pia:"📋 Atualizar PIA", roda:"🌸 Roda da Vida", swot:"🔍 Raio-X (SWOT)", pergunta:"💬 Lembrete Pergunta", lembreteQuiz:"🧠 Lembrete Quiz", lembreteGeral:"📢 Aviso Geral" };
+            const LBL = { auto:"📊 Autoavaliação (ronda nova)", lembreteAuto:"📊 Lembrete Autoavaliação", satisf:"😊 Satisfação", pia:"📋 Atualizar PIA", roda:"🌸 Roda da Vida", swot:"🔍 Raio-X (SWOT)", pergunta:"💬 Lembrete Pergunta", lembreteQuiz:"🧠 Lembrete Quiz", lembreteGeral:"📢 Aviso Geral" };
             const alvo = p.launchTarget === "all" ? "todos" : (JEEP_LIST.find(j => j.username === p.launchTarget)?.name || p.launchTarget);
             return `${LBL[p.launchType] || p.launchType} → ${alvo}`;
           }}

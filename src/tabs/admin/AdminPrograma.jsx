@@ -511,6 +511,12 @@ function AutoavAdmin({ allShared }) {
   const [fbTxts,    setFbTxts]    = useState({});
   const [fbOpen,    setFbOpen]    = useState({});
   const [fbPush,    setFbPush]    = useState({});
+  const [lancamentos, setLancamentos] = useState([]);
+
+  // Registo de quando (e como) cada ronda foi aberta — só existe a partir de agora.
+  useEffect(() => onSnapshot(doc(db, "config", "autoLancamentos"), s => {
+    setLancamentos([...(s.exists() ? s.data().lista || [] : [])].sort((a, b) => b.ts - a.ts));
+  }), []);
 
   async function enviarFbAutoav(j) {
     const txt = fbTxts[j.username]?.trim();
@@ -580,6 +586,17 @@ function AutoavAdmin({ allShared }) {
           borderRadius:10, padding:"6px 12px", fontSize:11, fontWeight:800, cursor:"pointer"
         }}>{guardando ? "A guardar..." : "📥 Arquivar estado atual"}</button>
       </div>
+      {lancamentos.length > 0 && (
+        <div style={{ fontSize:11, color:"#64748b", margin:"0 4px 10px", lineHeight:1.6 }}>
+          {lancamentos.slice(0, 5).map((l, i) => (
+            <div key={l.ts}>
+              {i === 0 ? "🟢 Ronda atual aberta a " : "· Ronda aberta a "}
+              {new Date(l.ts).toLocaleString("pt-PT", { day:"2-digit", month:"2-digit", year:"2-digit", hour:"2-digit", minute:"2-digit" })}
+              {" "}({l.origem}{l.alvo && l.alvo !== "all" ? `, só ${JEEP_LIST.find(j => j.username === l.alvo)?.name || l.alvo}` : ""})
+            </div>
+          ))}
+        </div>
+      )}
       {JEEP_8.map(j => {
         const uData = allShared[j.username] || {};
         const scores = uData.dScores || {};
