@@ -5,6 +5,7 @@ import { CARD, CYN, INP, TXT_MUT, PRP, Linkify } from "../../theme.jsx";
 import { nowFull, FORUM_REACTIONS, ALL_MEDALS, JEEP_LIST, CHANNELS } from "../../data.js";
 import { notificarMencoes, detetarMencao, inserirMencao, candidatosMencao } from "../../forumMencoes.js";
 import MencaoLista from "./MencaoLista.jsx";
+import ForumPergunta from "./ForumPergunta.jsx";
 
 export default function ForumPost({ post, user, canalAtivo, forumCollection = "forum", authorMedals = [], mencaoNotif = null }) {
   const [responderA,        setResponderA]        = useState(false);
@@ -299,11 +300,16 @@ export default function ForumPost({ post, user, canalAtivo, forumCollection = "f
               fontSize:11, color:responderA ? CYN : TXT_MUT, fontWeight:800,
               padding:"4px 8px", borderRadius:10, marginLeft:4, transition:"color 0.15s",
             }}>
-              💬 {(post.replies?.length||0) > 0 ? post.replies.length : ""} Responder
+              💬 {(post.replies?.length||0) > 0 ? post.replies.length : ""} {post.pergunta ? "Comentar" : "Responder"}
             </button>
           </div>
         </div>
       </div>
+
+      {/* Pergunta aberta: respostas de todos, com ❤️ e comentários */}
+      {post.pergunta && (
+        <ForumPergunta post={post} user={user} canal={canalAtivo} forumCollection={forumCollection} />
+      )}
 
       {/* ── THREAD ────────────────────────────────────────────────── */}
       {(post.replies?.length > 0 || responderA) && (

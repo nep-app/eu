@@ -273,18 +273,22 @@ async function enviarMensagem(payload) {
 
 // tipo "forum" — post no fórum + notificação (como AdminMural)
 async function publicarForum(payload) {
-  const { canal = "anuncios", texto, push = false } = payload || {};
+  const { canal = "anuncios", texto, push = false, target = null, pergunta = false, ocultarAteResponder = false } = payload || {};
   if (!texto) return;
   const agora = new Date();
   await db.collection("forum").doc(canal).collection("posts").add({
     user: "Teresa (GO)", username: "admin", color: "#22d3ee",
     text: texto, media: null, time: fmtFull(agora), ts: Date.now(),
     reactions: {}, reactedBy: {}, replies: [],
+    ...(target ? { target } : {}),
+    ...(pergunta ? { pergunta: true, respostas: {}, ...(ocultarAteResponder ? { ocultarAteResponder: true } : {}) } : {}),
   });
+  // Post de teste (só para uma pessoa) não notifica ninguém.
+  if (target) return;
   const preview = texto.substring(0, 80) + (texto.length > 80 ? "…" : "");
   await Promise.all(ALLOWED.filter(u => u !== "ricardo").map(u =>
     db.collection("notifications").doc(u).collection("items").add({
-      from: "teresa", text: `🌐 Teresa publicou em ${canal}: "${preview}"`,
+      from: "teresa", text: pergunta ? `❓ Teresa fez uma pergunta em ${canal}: "${preview}" — vai responder!` : `🌐 Teresa publicou em ${canal}: "${preview}"`,
       date: fmtFull(agora), read: false, ts: Date.now(), canal, push: !!push,
     })
   ));

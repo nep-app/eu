@@ -6,6 +6,7 @@ import { CARD, SL, CYN, PNK, INP } from "../../theme.jsx";
 import { nowLabel, nowFull, CHANNELS, JEEP_LIST, JEEP_ATIVOS, FORUM_REACTIONS, ALLOWED_USERNAMES, ALLOWED_ATIVOS } from "../../data.js";
 import { notificarMencoes, detetarMencao, inserirMencao, candidatosMencao } from "../../forumMencoes.js";
 import MencaoLista from "../forum/MencaoLista.jsx";
+import ForumPergunta from "../forum/ForumPergunta.jsx";
 import Agendador from "./Agendador.jsx";
 
 export default function AdminMural({ only = null }) {
@@ -27,6 +28,8 @@ export default function AdminMural({ only = null }) {
   const [pushForumPost,  setPushForumPost]  = useState(false);
   const [fTarget, setFTarget] = useState("all"); // "all" ou "teresa" (post de teste)
   const [fDestaque, setFDestaque] = useState(false); // aparecer em destaque no Início
+  const [fPergunta, setFPergunta] = useState(false); // pergunta aberta: todos respondem e veem as respostas
+  const [fOcultar,  setFOcultar]  = useState(false); // só veem as respostas dos outros depois de responder
   const [mencaoDropdown, setMencaoDropdown] = useState(false);
   const [mencaoFiltro,   setMencaoFiltro]   = useState("");
   const [mencaoStart,    setMencaoStart]    = useState(0);
@@ -198,6 +201,7 @@ export default function AdminMural({ only = null }) {
   // ── PUBLICAR POST ──
   async function postForum() {
     if (!fPost.trim() && mediaFiles.length === 0) return;
+    if (fPergunta && !fPost.trim()) { alert("Escreve a pergunta!"); return; }
     setIsUploading(true);
     let medias = [];
     try {
@@ -213,6 +217,7 @@ export default function AdminMural({ only = null }) {
         text:fPost, media: medias.find(m => m.tipo === "image")?.url || null, medias, time:nowFull(), ts:Date.now(),
         ...(fTarget !== "all" ? { target: fTarget } : {}),
         ...(fDestaque ? { destaque: true } : {}),
+        ...(fPergunta ? { pergunta: true, respostas: {}, ...(fOcultar ? { ocultarAteResponder: true } : {}) } : {}),
         reactions:{ heart:0, fire:0, clap:0, think:0 }, reactedBy:{}, replies:[]
       });
       // Notificações (só para posts "para todos"; posts de teste não notificam).
@@ -220,7 +225,9 @@ export default function AdminMural({ only = null }) {
         const ch = CHANNELS.find(c => c.id === channel);
         const preview = fPost.trim().substring(0, 80);
         const label = ch?.label || channel;
-        const texto = `${ch?.icon || "🌐"} Teresa publicou em ${label}: "${preview}${fPost.length > 80 ? "…" : ""}"`;
+        const texto = fPergunta
+          ? `${ch?.icon || "🌐"} Teresa fez uma pergunta em ${label}: "${preview}${fPost.length > 80 ? "…" : ""}" — vai responder!`
+          : `${ch?.icon || "🌐"} Teresa publicou em ${label}: "${preview}${fPost.length > 80 ? "…" : ""}"`;
         if (fDestaque) {
           // Já aparece em DESTAQUE no Início → não enche a lista de notificações.
           // Só dispara push, se selecionado (não vai para o feed: soPush=true).
@@ -241,7 +248,7 @@ export default function AdminMural({ only = null }) {
         // "avisar todos" já é a checkbox aqui em cima — não duplicar com @todos.
         permitirTodos: false,
       });
-      setFPost(""); setMediaFiles([]); setMencaoDropdown(false); setPushForumPost(false); setFTarget("all"); setFDestaque(false);
+      setFPost(""); setMediaFiles([]); setMencaoDropdown(false); setPushForumPost(false); setFTarget("all"); setFDestaque(false); setFPergunta(false); setFOcultar(false);
     } catch(e) { alert("Erro: " + e.message); }
     setIsUploading(false);
   }
@@ -487,7 +494,21 @@ export default function AdminMural({ only = null }) {
                 </div>
               )}
             </div>
-            {channel === "anuncios" && (
+            <label style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8, padding:"8px 10px", background: fPergunta ? "rgba(50,199,255,0.10)" : "rgba(255,255,255,0.03)", border: fPergunta ? `1px solid ${CYN}66` : "1px solid rgba(255,255,255,0.08)", borderRadius:10, cursor:"pointer" }}>
+              <input type="checkbox" checked={fPergunta} onChange={() => setFPergunta(v => !v)}
+                style={{ accentColor:CYN, width:15, height:15 }} />
+              <span style={{ fontSize:12, fontWeight:800, color: fPergunta ? CYN : "#94a3b8" }}>
+                ❓ É uma pergunta <span style={{ fontWeight:600, color:"#64748b" }}>(cada jovem responde, todos veem as respostas e podem comentar)</span>
+              </span>
+            </label>
+            {fPergunta && (
+              <label style={{ display:"flex", alignItems:"center", gap:8, margin:"-2px 0 8px 18px", fontSize:12, color:"#94a3b8", cursor:"pointer" }}>
+                <input type="checkbox" checked={fOcultar} onChange={() => setFOcultar(v => !v)}
+                  style={{ accentColor:CYN, width:14, height:14 }} />
+                🙈 Só veem as respostas dos outros depois de responderem (para não copiarem)
+              </label>
+            )}
+            {(
               <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8, padding:"8px 10px", background:"rgba(255,196,61,0.06)", border:"1px solid rgba(255,196,61,0.2)", borderRadius:10 }}>
                 <span style={{ fontSize:11, fontWeight:800, color:"#94a3b8", flexShrink:0 }}>Quem vê:</span>
                 {[["all","👥 Todos"],["teresa","🧪 Só teste (Teresa)"]].map(([val,lbl]) => (
@@ -550,10 +571,12 @@ export default function AdminMural({ only = null }) {
               construirPayload={() => {
                 if (!fPost.trim()) { alert("Escreve algo para publicar."); return null; }
                 if (mediaFiles.length) { alert("Agendar posts com foto/vídeo ainda não é suportado. Publica já, ou agenda sem anexos."); return null; }
-                return { canal: channel, texto: fPost.trim(), push: pushForumPost };
+                return { canal: channel, texto: fPost.trim(), push: pushForumPost,
+                  ...(fTarget !== "all" ? { target: fTarget } : {}),
+                  ...(fPergunta ? { pergunta: true, ocultarAteResponder: fOcultar } : {}) };
               }}
-              rotuloItem={p => `#${p.canal}: ${p.texto}`}
-              onAgendado={() => { setFPost(""); setMediaFiles([]); setPushForumPost(false); }}
+              rotuloItem={p => `${p.pergunta ? "❓ " : ""}${p.target ? "🧪 " : ""}#${p.canal}: ${p.texto}`}
+              onAgendado={() => { setFPost(""); setMediaFiles([]); setPushForumPost(false); setFTarget("all"); setFPergunta(false); setFOcultar(false); }}
             />
             {channel === "anuncios" && (
               <button onClick={limparNotificacoesAnuncios} style={{
@@ -620,6 +643,13 @@ export default function AdminMural({ only = null }) {
                       {p.editado && <span style={{ fontSize:10, color:"#64748b", marginLeft:6 }}>(editado)</span>}</div>
                   )}
                   {p.media && <img src={p.media} alt="" style={{ maxWidth:"100%", borderRadius:12, marginTop:8, border:"1px solid rgba(255,255,255,0.1)" }}/>}
+                  {p.target && p.target !== "all" && (
+                    <div style={{ fontSize:10, fontWeight:800, color:"#fbbf24", marginTop:6 }}>🧪 Teste — só a {JEEP_LIST.find(j => j.username === p.target)?.name || p.target} vê</div>
+                  )}
+                  {p.pergunta && (
+                    <ForumPergunta post={p} canal={channel} forumCollection="forum"
+                      user={{ username:"admin", realName:"Teresa (GO)", color:"#22d3ee" }} />
+                  )}
 
                   <div style={{ marginTop:10, display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" }}>
                     {FORUM_REACTIONS.map(r => {
