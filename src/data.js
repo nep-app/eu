@@ -63,7 +63,7 @@ export const ALLOWED_USERNAMES = ["nilton","erick","jucilina","carina","rudmilo"
 // registam e deixam de aparecer como opção em coisas novas (votações, menções,
 // mensagens, tarefas...). O que já existe fica guardado. Reversível: basta
 // tirar daqui.
-export const BLOCKED_USERNAMES = ["salimo", "erick"];
+export const BLOCKED_USERNAMES = ["salimo", "erick", "nilton"];
 export const SPECIAL_USERS = ["teresa","ricardo","demo"];
 export const USERS = [
   { username:"nilton",   realName:"Nilton",   color:"#22d3ee" },

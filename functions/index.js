@@ -12,7 +12,7 @@ const db = getFirestore();
 // no cliente). JOVENS = só os 8 participantes.
 // Quem saiu do programa (igual a BLOCKED_USERNAMES no cliente): já não recebe
 // nada do que é publicado a partir de agora.
-const BLOQUEADOS = ["salimo", "erick"];
+const BLOQUEADOS = ["salimo", "erick", "nilton"];
 const JOVENS  = ["nilton","erick","jucilina","carina","rudmilo","bruno","salimo","marisa","tamara"]
   .filter(u => !BLOQUEADOS.includes(u));
 const ALLOWED = [...JOVENS, "teresa", "ricardo", "demo"];
