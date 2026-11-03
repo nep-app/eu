@@ -4,6 +4,7 @@ import { db, notifyAdmin } from "../../firebase.js";
 import { CARD, SL, PNK, INP, Btn, CYN } from "../../theme.jsx";
 import { SURVEY_CATS, SEMOJIS, nowLabel } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
+import { aviso } from "../../aviso.jsx";
 
 export default function Satisfacao({ user, data }) {
   const light = useContext(ThemeCtx);
@@ -33,7 +34,7 @@ export default function Satisfacao({ user, data }) {
   async function submit() {
     const faltam = SURVEY_CATS.filter(c => !resps[c.id]?.score);
     if (faltam.length > 0) {
-      return alert("Por favor, avalia todas as categorias com as carinhas antes de submeter!");
+      return aviso("Por favor, avalia todas as categorias com as carinhas antes de submeter!");
     }
     if (uData.sSaved || localSaved || isSubmitting) return;
     setIsSubmitting(true);
@@ -64,10 +65,10 @@ export default function Satisfacao({ user, data }) {
       });
 
       setLocalSaved(true);
-      alert("Feedback anónimo recebido com sucesso! Ganhaste +30 XP 💖");
+      aviso("Feedback anónimo recebido com sucesso! Ganhaste +30 XP 💖");
     } catch (e) {
       console.error(e);
-      alert("Erro ao enviar feedback.");
+      aviso("Erro ao enviar feedback.");
     }
     setIsSubmitting(false);
   }

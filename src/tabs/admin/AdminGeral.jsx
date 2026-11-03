@@ -4,6 +4,7 @@ import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, Btn, INP, PNK } from "../../theme.jsx";
 import { nowLabel, nowFull, fmtDate, getWeekKey, buildAutoavEntry, ALLOWED_USERNAMES, ALLOWED_ATIVOS, JEEP_LIST, JEEP_ATIVOS } from "../../data.js";
 import Agendador from "./Agendador.jsx";
+import { aviso } from "../../aviso.jsx";
 
 export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdminTab }) {
   // Para onde levar ao clicar numa notificação, por tipo.
@@ -55,7 +56,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdm
   const [pushLaunch, setPushLaunch] = useState(false);
 
   async function launchRequest() {
-    if (!launchType) { alert("Escolhe primeiro o que queres lançar."); return; }
+    if (!launchType) { aviso("Escolhe primeiro o que queres lançar."); return; }
     if (aLancar.current) return; // já está a enviar (duplo toque)
     aLancar.current = true;
     try { await lancarPedidoAgora(); } finally { aLancar.current = false; }
@@ -81,7 +82,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdm
     // Lembrete de autoavaliação: só avisa quem ainda não entregou — não limpa nada.
     if (launchType === "lembreteAuto") {
       const porFazer = targets.filter(u => !allShared[u]?.autoSaved);
-      if (porFazer.length === 0) { alert("Já todos entregaram a autoavaliação desta ronda. 🎉"); return; }
+      if (porFazer.length === 0) { aviso("Já todos entregaram a autoavaliação desta ronda. 🎉"); return; }
       let txt = "📊 Lembrete: ainda tens a Autoavaliação por fazer! Está nos Desafios.";
       if (launchPrazo) txt += ` ⏰ Prazo: ${fmtDate(launchPrazo)}`;
       await Promise.all(porFazer.map(u => addDoc(collection(db, "notifications", u, "items"), {
@@ -89,7 +90,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdm
         ...(launchPrazo ? { prazo:launchPrazo } : {}),
       })));
       setLaunchPrazo(""); setPushLaunch(false);
-      alert(`Lembrete enviado a: ${porFazer.map(nomeDe).join(", ")}`);
+      aviso(`Lembrete enviado a: ${porFazer.map(nomeDe).join(", ")}`);
       return;
     }
 
@@ -139,7 +140,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdm
       await addDoc(collection(db, "notifications", u, "items"), notifData);
     }));
     setLaunchPrazo(""); setPushLaunch(false);
-    alert("Pedidos/Lembretes lançados com sucesso!");
+    aviso("Pedidos/Lembretes lançados com sucesso!");
   }
 
   async function sendFeedback(notif, msg, push = false) {
@@ -174,7 +175,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdm
     const label = fromMidnight ? "hoje à meia-noite" : "agora";
     if (!window.confirm(`Iniciar semana desde ${label}? Nenhum dado é apagado — o XP semanal passa a contar a partir desse momento.`)) return;
     await setDoc(doc(db, "config", "weekStart"), { ts, label: nowLabel() });
-    alert(`Semana iniciada desde ${label}! 🆕\nO ranking já está a calcular o XP a partir dessa hora.`);
+    aviso(`Semana iniciada desde ${label}! 🆕\nO ranking já está a calcular o XP a partir dessa hora.`);
   }
 
   async function markAdminNotifAsRead(notifId) {
@@ -267,7 +268,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdm
           await sd(d(db, "todos", "demo"), {});
           await ad(col(db, "todos", "demo", "items"), { text:"Pesquisar oportunidades de estágio", due:"", done:true, shared:false, ts:now-86400000 });
           await ad(col(db, "todos", "demo", "items"), { text:"Preparar apresentação do projeto", due:"2026-06-01", done:false, shared:true, ts:now-3600000 });
-          alert("Dados demo inicializados! ✅");
+          aviso("Dados demo inicializados! ✅");
         }} style={{ width:"100%", padding:"12px", background:`${CYN}18`, border:`1px solid ${CYN}30`, color:CYN, borderRadius:12, fontWeight:900, fontSize:13, cursor:"pointer" }}>
           🔄 Inicializar / Resetar Dados Demo
         </button>
@@ -403,7 +404,7 @@ export default function AdminGeral({ allShared, leaderboard, adminNotifs, setAdm
           rotuloJa="Enviar Pedido / Lembrete 🚀"
           publicarJa={launchRequest}
           construirPayload={() => {
-            if (!launchType) { alert("Escolhe primeiro o que queres lançar."); return null; }
+            if (!launchType) { aviso("Escolhe primeiro o que queres lançar."); return null; }
             if (launchType === "auto" && !window.confirm("Na hora marcada isto ABRE UMA RONDA NOVA de autoavaliação: quem já entregou terá de responder outra vez (as respostas atuais ficam no arquivo).\n\nAgendar mesmo assim?")) return null;
             return { launchType, launchTarget, prazo: launchPrazo || null, push: pushLaunch };
           }}

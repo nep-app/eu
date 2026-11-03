@@ -8,6 +8,7 @@ import { notificarMencoes, detetarMencao, inserirMencao, candidatosMencao } from
 import MencaoLista from "../forum/MencaoLista.jsx";
 import ForumPergunta from "../forum/ForumPergunta.jsx";
 import Agendador from "./Agendador.jsx";
+import { aviso } from "../../aviso.jsx";
 
 export default function AdminMural({ only = null }) {
   // `only` = "forum" ou "recursos": mostra só essa parte e esconde o switcher
@@ -159,7 +160,7 @@ export default function AdminMural({ only = null }) {
       await Promise.all(alvos.map(d => deleteDoc(doc(db, "notifications", u, "items", d.id))));
       total += alvos.length;
     }
-    alert(`${total} notificação(ões) de anúncios apagada(s) da lista dos jovens. ✓`);
+    aviso(`${total} notificação(ões) de anúncios apagada(s) da lista dos jovens. ✓`);
   }
 
   // Move os posts antigos do canal "backstage" para "monitor" (Super Monitores).
@@ -168,7 +169,7 @@ export default function AdminMural({ only = null }) {
   async function importarBackstage() {
     if (!window.confirm("Importar todos os posts antigos do Backstage para o Super Monitores?\n\nOs posts passam para este canal (mantêm autor, reações e comentários). É seguro — não se perde nada.")) return;
     const snap = await getDocs(collection(db, "forum", "backstage", "posts"));
-    if (snap.empty) { alert("Não há posts no Backstage para importar (ou já foram todos importados)."); return; }
+    if (snap.empty) { aviso("Não há posts no Backstage para importar (ou já foram todos importados)."); return; }
     let n = 0;
     for (const d of snap.docs) {
       const dados = d.data();
@@ -176,7 +177,7 @@ export default function AdminMural({ only = null }) {
       await deleteDoc(doc(db, "forum", "backstage", "posts", d.id));
       n++;
     }
-    alert(`${n} post(s) importado(s) do Backstage para o Super Monitores. ✓`);
+    aviso(`${n} post(s) importado(s) do Backstage para o Super Monitores. ✓`);
   }
 
   function adicionarFicheirosAdmin(e) {
@@ -188,8 +189,8 @@ export default function AdminMural({ only = null }) {
       const jaTemVideo = prev.some(f => f.type.startsWith("video/"));
       let novos = [...prev, ...imagens];
       if (videos.length > 0) {
-        if (jaTemVideo) alert("Só é permitido 1 vídeo por publicação.");
-        else { novos.push(videos[0]); if (videos.length > 1) alert("Só entra 1 vídeo — fica o primeiro."); }
+        if (jaTemVideo) aviso("Só é permitido 1 vídeo por publicação.");
+        else { novos.push(videos[0]); if (videos.length > 1) aviso("Só entra 1 vídeo — fica o primeiro."); }
       }
       return novos;
     });
@@ -201,7 +202,7 @@ export default function AdminMural({ only = null }) {
   // ── PUBLICAR POST ──
   async function postForum() {
     if (!fPost.trim() && mediaFiles.length === 0) return;
-    if (fPergunta && !fPost.trim()) { alert("Escreve a pergunta!"); return; }
+    if (fPergunta && !fPost.trim()) { aviso("Escreve a pergunta!"); return; }
     setIsUploading(true);
     let medias = [];
     try {
@@ -249,7 +250,7 @@ export default function AdminMural({ only = null }) {
         permitirTodos: false,
       });
       setFPost(""); setMediaFiles([]); setMencaoDropdown(false); setPushForumPost(false); setFTarget("all"); setFDestaque(false); setFPergunta(false); setFOcultar(false);
-    } catch(e) { alert("Erro: " + e.message); }
+    } catch(e) { aviso("Erro: " + e.message); }
     setIsUploading(false);
   }
 
@@ -361,8 +362,8 @@ export default function AdminMural({ only = null }) {
 
   // ── ADICIONAR RECURSO ──
   async function adicionarRecurso() {
-    if (!rTitulo.trim()) return alert("O título é obrigatório.");
-    if (!rUrl.trim() && !rFile) return alert("Indica um URL ou escolhe um ficheiro para carregar.");
+    if (!rTitulo.trim()) return aviso("O título é obrigatório.");
+    if (!rUrl.trim() && !rFile) return aviso("Indica um URL ou escolhe um ficheiro para carregar.");
     setEnviandoR(true);
     try {
       let url = rUrl.trim();
@@ -386,7 +387,7 @@ export default function AdminMural({ only = null }) {
         }
       }
       setRTitulo(""); setRUrl(""); setRDesc(""); setRIcone("📄"); setPushRecurso(false); setRFile(null); setRTarget("all"); setRCategoria("guia");
-    } catch(e) { alert("Erro: " + e.message); }
+    } catch(e) { aviso("Erro: " + e.message); }
     setEnviandoR(false);
   }
 
@@ -412,7 +413,7 @@ export default function AdminMural({ only = null }) {
   }
 
   async function guardarEdicaoRecurso(id) {
-    if (!editRDraft.titulo?.trim() || !editRDraft.url?.trim()) return alert("Título e URL são obrigatórios.");
+    if (!editRDraft.titulo?.trim() || !editRDraft.url?.trim()) return aviso("Título e URL são obrigatórios.");
     try {
       await updateDoc(doc(db, "recursos", id), {
         titulo: editRDraft.titulo.trim(),
@@ -421,7 +422,7 @@ export default function AdminMural({ only = null }) {
         desc: (editRDraft.desc || "").trim(),
       });
       setEditandoR(null);
-    } catch(e) { alert("Erro: " + e.message); }
+    } catch(e) { aviso("Erro: " + e.message); }
   }
 
   const activeChannelInfo = CHANNELS.find(c => c.id === channel);
@@ -569,8 +570,8 @@ export default function AdminMural({ only = null }) {
               rotuloJa={isUploading ? "A carregar..." : "Publicar"}
               publicarJa={postForum}
               construirPayload={() => {
-                if (!fPost.trim()) { alert("Escreve algo para publicar."); return null; }
-                if (mediaFiles.length) { alert("Agendar posts com foto/vídeo ainda não é suportado. Publica já, ou agenda sem anexos."); return null; }
+                if (!fPost.trim()) { aviso("Escreve algo para publicar."); return null; }
+                if (mediaFiles.length) { aviso("Agendar posts com foto/vídeo ainda não é suportado. Publica já, ou agenda sem anexos."); return null; }
                 return { canal: channel, texto: fPost.trim(), push: pushForumPost,
                   ...(fTarget !== "all" ? { target: fTarget } : {}),
                   ...(fPergunta ? { pergunta: true, ocultarAteResponder: fOcultar } : {}) };
@@ -707,7 +708,7 @@ export default function AdminMural({ only = null }) {
                       const preview = (p.text||"").trim().substring(0, 80);
                       const nome = p.username === "admin" ? "Teresa (GO)" : (p.user || p.username);
                       await notificarTodos(`${ch?.icon || "🌐"} ${nome} publicou em ${label}${preview ? `: "${preview}${p.text.length > 80 ? "…" : ""}"` : ""}`, channel, true);
-                      alert("Notificação enviada a todos (com push)! ✅");
+                      aviso("Notificação enviada a todos (com push)! ✅");
                     }} style={{ fontSize:12, color:CYN, cursor:"pointer", fontWeight:700 }}>🔔 Notificar</span>
                     {(p.username === "admin" || p.user === "Teresa (GO)") && editandoPost !== p.id && (
                       <span onClick={() => { setEditandoPost(p.id); setEditPostText(p.text || ""); }}

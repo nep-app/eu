@@ -3,6 +3,7 @@ import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc } from "fireb
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, INP, PNK } from "../../theme.jsx";
 import { nowFull, ALLOWED_ATIVOS } from "../../data.js";
+import { aviso } from "../../aviso.jsx";
 
 export default function AdminRecursos() {
   const [recursos, setRecursos] = useState([]);
@@ -23,7 +24,7 @@ export default function AdminRecursos() {
   }, []);
 
   async function adicionarRecurso() {
-    if (!titulo.trim() || !url.trim()) return alert("Título e URL são obrigatórios.");
+    if (!titulo.trim() || !url.trim()) return aviso("Título e URL são obrigatórios.");
     setEnviando(true);
     try {
       await addDoc(collection(db, "recursos"), {
@@ -39,8 +40,8 @@ export default function AdminRecursos() {
         ));
       }
       setTitulo(""); setUrl(""); setDesc(""); setIcone("📄"); setPushRecurso(false);
-      alert("Recurso adicionado!" + (notificar ? " Todos os jovens foram notificados." : ""));
-    } catch (e) { alert("Erro: " + e.message); }
+      aviso("Recurso adicionado!" + (notificar ? " Todos os jovens foram notificados." : ""));
+    } catch (e) { aviso("Erro: " + e.message); }
     setEnviando(false);
   }
 
@@ -50,7 +51,7 @@ export default function AdminRecursos() {
   }
 
   async function guardarEdicao(id) {
-    if (!editDraft.titulo?.trim() || !editDraft.url?.trim()) return alert("Título e URL são obrigatórios.");
+    if (!editDraft.titulo?.trim() || !editDraft.url?.trim()) return aviso("Título e URL são obrigatórios.");
     try {
       await updateDoc(doc(db, "recursos", id), {
         titulo: editDraft.titulo.trim(),
@@ -59,7 +60,7 @@ export default function AdminRecursos() {
         desc: editDraft.desc.trim(),
       });
       setEditando(null);
-    } catch (e) { alert("Erro: " + e.message); }
+    } catch (e) { aviso("Erro: " + e.message); }
   }
 
   async function eliminarRecurso(id) {

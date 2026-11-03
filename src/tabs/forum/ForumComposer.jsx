@@ -5,6 +5,7 @@ import { db, storage, notifyAdmin } from "../../firebase.js";
 import { CARD, SL, CYN, INP, TXT_MUT } from "../../theme.jsx";
 import { nowFull, ALLOWED_ATIVOS, CHANNELS, JEEP_ATIVOS } from "../../data.js";
 import { notificarMencoes } from "../../forumMencoes.js";
+import { aviso } from "../../aviso.jsx";
 
 export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollection = "forum" }) {
   const [textoPost,      setTextoPost]      = useState("");
@@ -20,8 +21,8 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
       const jaTemVideo = prev.some(f => f.type.startsWith("video/"));
       let novos = [...prev, ...imagens];
       if (videos.length > 0) {
-        if (jaTemVideo) alert("Só é permitido 1 vídeo por publicação.");
-        else { novos.push(videos[0]); if (videos.length > 1) alert("Só entra 1 vídeo — fica o primeiro."); }
+        if (jaTemVideo) aviso("Só é permitido 1 vídeo por publicação.");
+        else { novos.push(videos[0]); if (videos.length > 1) aviso("Só entra 1 vídeo — fica o primeiro."); }
       }
       return novos;
     });
@@ -84,7 +85,7 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
   }
 
   async function publicarPost() {
-    if (!textoPost.trim() && ficheirosMedia.length === 0) return alert("Escreve algo ou anexa uma foto/vídeo!");
+    if (!textoPost.trim() && ficheirosMedia.length === 0) return aviso("Escreve algo ou anexa uma foto/vídeo!");
     setEstaAEnviar(true);
     let medias = [];
     try {
@@ -138,7 +139,7 @@ export default function ForumComposer({ user, canalAtivo, infoCanal, forumCollec
       });
       darXPComStreak("Publicou uma partilha no Fórum");
       setTextoPost(""); setFicheirosMedia([]); setMencaoDropdown(false);
-    } catch (e) { alert("Erro ao publicar: " + e.message); }
+    } catch (e) { aviso("Erro ao publicar: " + e.message); }
     setEstaAEnviar(false);
   }
 

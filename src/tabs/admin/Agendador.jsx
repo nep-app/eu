@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { CYN, PRP, INP } from "../../theme.jsx";
+import { aviso } from "../../aviso.jsx";
 
 // Timestamp a partir de data (YYYY-MM-DD) + hora ("09:00"), em hora local.
 export function publishAtDe(dataStr, slot) {
@@ -45,14 +46,14 @@ export default function Agendador({ tipo, construirPayload, publicarJa, rotuloJa
   async function agendarAgora() {
     const payload = construirPayload();
     if (!payload) return; // construirPayload já mostrou o alerta
-    if (!agData) return alert("Escolhe a data para agendar!");
+    if (!agData) return aviso("Escolhe a data para agendar!");
     const publishAt = publishAtDe(agData, agSlot);
-    if (publishAt <= Date.now()) return alert("Essa data/hora já passou. Escolhe uma altura no futuro.");
+    if (publishAt <= Date.now()) return aviso("Essa data/hora já passou. Escolhe uma altura no futuro.");
     await addDoc(collection(db, "agendados"), {
       tipo, payload, publishAt, slot: agSlot, dataLabel: agData,
       done: false, criadoEm: Date.now(), criadoPor: "admin",
     });
-    alert(`Agendado para ${agData} às ${agSlot}! ⏰`);
+    aviso(`Agendado para ${agData} às ${agSlot}! ⏰`);
     setAgendar(false); setAgData("");
     onAgendado && onAgendado();
   }
@@ -69,9 +70,9 @@ export default function Agendador({ tipo, construirPayload, publicarJa, rotuloJa
   }
 
   async function guardarReagendamento(id) {
-    if (!editData) return alert("Escolhe a nova data!");
+    if (!editData) return aviso("Escolhe a nova data!");
     const publishAt = publishAtDe(editData, editSlot);
-    if (publishAt <= Date.now()) return alert("Essa data/hora já passou. Escolhe uma altura no futuro.");
+    if (publishAt <= Date.now()) return aviso("Essa data/hora já passou. Escolhe uma altura no futuro.");
     await updateDoc(doc(db, "agendados", id), {
       publishAt, slot: editSlot, dataLabel: editData,
     });
@@ -96,7 +97,7 @@ export default function Agendador({ tipo, construirPayload, publicarJa, rotuloJa
       await publicarPayload(a.payload);
       await deleteDoc(doc(db, "agendados", a.id));
     } catch (e) {
-      alert("Não foi possível publicar: " + (e?.message || e));
+      aviso("Não foi possível publicar: " + (e?.message || e));
     }
   }
 

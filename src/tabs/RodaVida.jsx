@@ -3,6 +3,7 @@ import { doc, setDoc, addDoc, collection } from "firebase/firestore";
 import { db, notifyAdmin } from "../firebase.js";
 import { CARD, SL, CYN, PNK, Btn, RadarChart } from "../theme.jsx";
 import { nowLabel, nowFull, RODA_DIMS, DEF_RODA } from "../data.js";
+import { aviso } from "../aviso.jsx";
 
 // Roda da Vida — extraída do Perfil para a aba de atividades. Lê/escreve os
 // mesmos campos em userData (roda, rodaSaves…), por isso os dados mantêm-se.
@@ -33,8 +34,8 @@ export default function RodaVida({ user, data, features = {} }) {
           tipo: "RODA", jovem: user.username, ts: Date.now(), lida: false
         });
       }
-      alert(share ? "Roda enviada para a Teresa! 🌸" : "Roda guardada no teu histórico.");
-    } catch (e) { alert("Erro ao guardar a roda."); }
+      aviso(share ? "Roda enviada para a Teresa! 🌸" : "Roda guardada no teu histórico.");
+    } catch (e) { aviso("Erro ao guardar a roda."); }
   }
 
   const updateRoda = (id, val) => {

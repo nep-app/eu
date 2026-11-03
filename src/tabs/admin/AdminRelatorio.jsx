@@ -30,12 +30,13 @@ function todasAsSemanas(primeiroTs) {
   return chaves;
 }
 
+// Datas de uma semana ISO: da segunda ao domingo.
 function weekLabel(wkStr) {
   try {
     const [y, w] = wkStr.split("-W").map(Number);
-    const jan1 = new Date(y, 0, 1);
-    const dow = jan1.getDay();
-    const start = new Date(jan1.getTime() + ((w - 1) * 7 - dow) * 86400000);
+    const jan4 = new Date(y, 0, 4);                    // 4 de janeiro é sempre da semana 1
+    const segDaSemana1 = new Date(y, 0, 4 - ((jan4.getDay() || 7) - 1));
+    const start = new Date(segDaSemana1.getTime() + (w - 1) * 7 * 86400000);
     const end = new Date(start.getTime() + 6 * 86400000);
     const fmt = d => `${d.getDate()}/${d.getMonth() + 1}`;
     return `${fmt(start)}–${fmt(end)}`;

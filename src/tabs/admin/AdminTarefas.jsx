@@ -3,6 +3,7 @@ import { collection, addDoc, onSnapshot, query, updateDoc, doc } from "firebase/
 import { db } from "../../firebase.js";
 import { CARD, SL, INP, Btn, CYN, GRN, PNK } from "../../theme.jsx";
 import { JEEP_LIST, JEEP_ATIVOS, ALLOWED_USERNAMES, fmtDate, nowFull, TASK_TYPES } from "../../data.js";
+import { aviso } from "../../aviso.jsx";
 
 export default function AdminTarefas() {
   const [adminTodoUsr, setAdminTodoUsr] = useState("nilton");
@@ -30,7 +31,7 @@ export default function AdminTarefas() {
     setFeedbackTxts(p => ({ ...p, [t.id]: "" }));
     setFeedbackOpen(p => ({ ...p, [t.id]: false }));
     setFeedbackPush(p => ({ ...p, [t.id]: false }));
-    alert("Feedback enviado! ✓");
+    aviso("Feedback enviado! ✓");
   }
 
   useEffect(() => {
@@ -80,7 +81,7 @@ export default function AdminTarefas() {
       from: "teresa", text: notifText, date: nowFull(), read: false, ts: Date.now(), tipo: "proposta", push: pushTarefa
     });
     setAdminSuggTxt(""); setAdminSuggDue(""); setPushTarefa(false);
-    alert(isForcar ? "Tarefa adicionada diretamente!" : "Sugestão de tarefa enviada!");
+    aviso(isForcar ? "Tarefa adicionada diretamente!" : "Sugestão de tarefa enviada!");
   }
 
   return (

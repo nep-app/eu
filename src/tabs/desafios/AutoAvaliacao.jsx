@@ -4,6 +4,7 @@ import { db, notifyAdmin } from "../../firebase.js";
 import { CARD, CYN, INP, Btn } from "../../theme.jsx";
 import { scoreLabel, getDimDesc, DIMS, nowLabel, getWeekKey } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
+import { aviso } from "../../aviso.jsx";
 
 export default function AutoAvaliacao({ user, data }) {
   const light = useContext(ThemeCtx);
@@ -46,11 +47,11 @@ export default function AutoAvaliacao({ user, data }) {
         });
       }
 
-      alert("Excelente reflexão! Ganhaste um belo boost de XP. 🏆");
+      aviso("Excelente reflexão! Ganhaste um belo boost de XP. 🏆");
     } catch (e) {
       // Na demo fingimos sucesso; nas contas reais mostramos o erro.
-      if (isDemo) { alert("Excelente reflexão! Ganhaste um belo boost de XP. 🏆"); }
-      else { alert("Erro: " + e.message); setLocalSaved(false); }
+      if (isDemo) { aviso("Excelente reflexão! Ganhaste um belo boost de XP. 🏆"); }
+      else { aviso("Erro: " + e.message); setLocalSaved(false); }
     } finally {
       setIsSubmitting(false);
     }

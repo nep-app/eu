@@ -4,6 +4,7 @@ import { db, notifyAdmin } from "../../firebase.js";
 import { CARD, SL, CYN, BLUE, INP, TXT_MUT } from "../../theme.jsx";
 import { EVT_COLORS, EVT_ICONS, nowLabel } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
+import { aviso } from "../../aviso.jsx";
 
 function toDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -61,7 +62,7 @@ export default function HomeAgenda({ user, data = {} }) {
   });
 
   async function criarEvento() {
-    if (!novoTitulo.trim()) return alert("Preenche o título.");
+    if (!novoTitulo.trim()) return aviso("Preenche o título.");
     await addDoc(collection(db, "events"), {
       title: novoTitulo, date: novaData, time: novaHora,
       userId: user.username, type: "personal",

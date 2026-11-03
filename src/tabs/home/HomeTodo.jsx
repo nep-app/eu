@@ -5,6 +5,7 @@ import { CARD, SL, CYN, PNK, INP, PS, TXT_MUT, Linkify } from "../../theme.jsx";
 import { nowLabel, nowFull, fmtDate, isOverdue, TASK_TYPES, CHANNELS } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
 import HomeVotacoes from "./HomeVotacoes.jsx";
+import { aviso } from "../../aviso.jsx";
 
 function fmtDatePt(str) {
   if (!str || typeof str !== "string") return "";
@@ -51,7 +52,7 @@ export default function HomeTodo({ user, data, setTab, setDesafiosSubTab, featur
       setRespostaEnviada(n.id);
       setResponderNotif(null); setRespostaTexto("");
     } catch (e) {
-      alert("Não foi possível enviar: " + e.message);
+      aviso("Não foi possível enviar: " + e.message);
     }
     setAEnviarResposta(false);
   }

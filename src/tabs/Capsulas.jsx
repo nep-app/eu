@@ -4,6 +4,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../firebase.js";
 import { CARD, SL, INP, PNK, Btn } from "../theme.jsx";
 import { nowFull, DEF_CAP } from "../data.js";
+import { aviso } from "../aviso.jsx";
 
 const DEF_CAP2 = { text:"", locked:false, revealed:false, lockedDate:"" };
 
@@ -39,7 +40,7 @@ function CapsuleWidget({ slot, capData, title, targetLabel, desc, cap, cap2, dat
         await setDoc(doc(db, "userData", user.username), {
           [fieldKey]: { ...capData, mediaUrl: url, mediaType: mtype }
         }, { merge: true });
-      } catch(e) { alert("Erro ao carregar: " + e.message); }
+      } catch(e) { aviso("Erro ao carregar: " + e.message); }
       setUploading(false);
     }
 
@@ -247,7 +248,7 @@ export default function Capsulas({ user, data }) {
   async function sealCapsule(slot) {
     const isSlot2 = slot === 2;
     const capData = isSlot2 ? cap2 : cap;
-    if (!capData.text?.trim()) return alert("Escreve primeiro a tua mensagem!");
+    if (!capData.text?.trim()) return aviso("Escreve primeiro a tua mensagem!");
     const ts = nowFull();
     const newCap = { ...capData, locked: true, sealedAt: ts, ...(isSlot2 ? {} : { lockedDate: "31/12/2026" }) };
     const newH = [...history, { date: ts, action: `Selou Cápsula ${isSlot2 ? "Final" : "de Dezembro"} 🔒`, ts: Date.now(), xp: 15 }];
@@ -256,7 +257,7 @@ export default function Capsulas({ user, data }) {
       history: newH,
       weekXp: (uData.weekXp || 0) + 15
     }, { merge: true });
-    alert(isSlot2 ? "Cápsula entregue à Teresa! 🔐" : "Cápsula selada! Abre em Dezembro 2026 🔒");
+    aviso(isSlot2 ? "Cápsula entregue à Teresa! 🔐" : "Cápsula selada! Abre em Dezembro 2026 🔒");
   }
 
 

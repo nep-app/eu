@@ -5,6 +5,7 @@ import { CARD, SL, INP, CYN, GRN, TXT_MUT, PNK } from "../theme.jsx";
 import { PIA_SECTIONS, PIA_CHIPS, inicioDeFrase, nowFull, nowLabel, getWeekKey } from "../data.js";
 import { ThemeCtx } from "../JovensApp.jsx";
 import { openPiaPrint } from "../piaPrint.js";
+import { aviso } from "../aviso.jsx";
 
 const SUB_TABS = [
   { id:"diag",  label:"🔍 Diagnóstico" },
@@ -71,14 +72,14 @@ function VoiceButton({ onResult }) {
     if (listening) { recRef.current?.stop(); return; }
 
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { alert("O teu browser não suporta reconhecimento de voz. Tenta no Chrome."); return; }
+    if (!SR) { aviso("O teu browser não suporta reconhecimento de voz. Tenta no Chrome."); return; }
 
     // Pedir permissão de microfone explicitamente primeiro
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach(t => t.stop()); // só para o trigger de permissão
     } catch {
-      alert("Precisas de autorizar o microfone nas definições do browser.");
+      aviso("Precisas de autorizar o microfone nas definições do browser.");
       return;
     }
 
@@ -91,11 +92,11 @@ function VoiceButton({ onResult }) {
     rec.onresult = e => { onResult(e.results[0][0].transcript); setListening(false); };
     rec.onerror = e => {
       const msg = VOICE_ERRORS[e.error];
-      if (msg !== null) alert(msg || `Erro: ${e.error}`);
+      if (msg !== null) aviso(msg || `Erro: ${e.error}`);
       setListening(false);
     };
     rec.onend = () => setListening(false);
-    try { rec.start(); } catch(e) { alert(`Não foi possível iniciar: ${e.message}`); setListening(false); }
+    try { rec.start(); } catch(e) { aviso(`Não foi possível iniciar: ${e.message}`); setListening(false); }
   }
 
   return (
@@ -313,11 +314,11 @@ export default function PiaTab({ user, data }) {
           tipo: "PIA", jovem: user.username, ts: Date.now(), lida: false, atualizado: jaEnviou, texto: seccoesNomes
         });
       }
-      alert(jaEnviou ? "PIA atualizado! 🔄" : "PIA enviado à Teresa! 🚀");
+      aviso(jaEnviou ? "PIA atualizado! 🔄" : "PIA enviado à Teresa! 🚀");
     } catch (e) {
       // Na demo fingimos que correu bem; nas contas reais avisamos do erro.
-      if (isDemo) alert(jaEnviou ? "PIA atualizado! 🔄" : "PIA enviado à Teresa! 🚀");
-      else alert("Não foi possível enviar agora. Verifica a ligação e tenta de novo.");
+      if (isDemo) aviso(jaEnviou ? "PIA atualizado! 🔄" : "PIA enviado à Teresa! 🚀");
+      else aviso("Não foi possível enviar agora. Verifica a ligação e tenta de novo.");
     } finally {
       setSending(false);
     }
@@ -632,7 +633,7 @@ export default function PiaTab({ user, data }) {
               })}
 
               <div style={{ display:"flex", gap:8, marginTop:8 }}>
-                <button onClick={() => alert("✓ As tuas respostas estão a ser guardadas automaticamente.")} style={{
+                <button onClick={() => aviso("✓ As tuas respostas estão a ser guardadas automaticamente.")} style={{
                   flex:1, padding:"14px", borderRadius:14,
                   background: isTeresa ? "rgba(80,40,140,0.14)" : "rgba(255,255,255,0.06)",
                   border: isTeresa ? "1.5px solid rgba(80,40,140,0.35)" : "1.5px solid rgba(255,255,255,0.12)",

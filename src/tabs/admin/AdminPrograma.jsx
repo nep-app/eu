@@ -9,6 +9,7 @@ import AdminVotacoes from './AdminVotacoes.jsx';
 import AdminMissoes from './AdminMissoes.jsx';
 import AdminAgenda from './AdminAgenda.jsx';
 import AdminTarefas from './AdminTarefas.jsx';
+import { aviso } from "../../aviso.jsx";
 
 const SUBTABS = [
   ["pergunta",   "💬 Pergunta"],
@@ -84,14 +85,14 @@ function PerguntaManager({ allShared, activeQ }) {
     await setDoc(doc(db, "userData", j.username), {
       answered: false, answerText: null, answerType: null, answerMedia: null, answerDate: null,
     }, { merge: true });
-    alert(`Resposta de ${j.name} reposta. ✓`);
+    aviso(`Resposta de ${j.name} reposta. ✓`);
   }
 
   // Restaura uma resposta "órfã": existe answerText mas answered ficou a false
   // (ex.: um lembrete antigo repôs o estado). Volta a marcar como respondida.
   async function restaurarResposta(j) {
     await setDoc(doc(db, "userData", j.username), { answered: true }, { merge: true });
-    alert(`Resposta de ${j.name} recuperada! ✓`);
+    aviso(`Resposta de ${j.name} recuperada! ✓`);
   }
 
   // Arquiva uma resposta antiga (de uma pergunta anterior que ficou "presa"):
@@ -110,7 +111,7 @@ function PerguntaManager({ allShared, activeQ }) {
     await setDoc(doc(db, "userData", j.username), {
       answered: false, answerText: null, answerType: null, answerMedia: null, answerDate: null,
     }, { merge: true });
-    if (!silencioso) alert(`Resposta antiga de ${j.name} arquivada. ✓`);
+    if (!silencioso) aviso(`Resposta antiga de ${j.name} arquivada. ✓`);
   }
 
   // Arquiva de uma vez TODAS as respostas órfãs (pendentes com texto antigo).
@@ -119,7 +120,7 @@ function PerguntaManager({ allShared, activeQ }) {
     if (orfaos.length === 0) return;
     if (!window.confirm(`Arquivar ${orfaos.length} resposta(s) antiga(s) de uma vez?\n\nVão todas para o histórico dos respetivos jovens e deixam de aparecer aqui. (Não mexe em quem respondeu esta semana.)`)) return;
     for (const j of orfaos) await arquivarRespostaAntiga(j, true);
-    alert(`${orfaos.length} resposta(s) antiga(s) arquivada(s). ✓`);
+    aviso(`${orfaos.length} resposta(s) antiga(s) arquivada(s). ✓`);
   }
 
   async function enviarFbPergunta(j, resposta) {
@@ -133,7 +134,7 @@ function PerguntaManager({ allShared, activeQ }) {
     setFbTxts(p => ({ ...p, [j.username]: "" }));
     setFbOpen(p => ({ ...p, [j.username]: false }));
     setFbPush(p => ({ ...p, [j.username]: false }));
-    alert("Feedback enviado! ✓");
+    aviso("Feedback enviado! ✓");
   }
 
   useEffect(() => {
@@ -162,9 +163,9 @@ function PerguntaManager({ allShared, activeQ }) {
   );
 
   async function publicar() {
-    if (!activeQEdit.trim()) return alert("Escreve a pergunta!");
+    if (!activeQEdit.trim()) return aviso("Escreve a pergunta!");
     const opcoes = opcoesPreenchidas();
-    if (selectedModes.length === 0 && opcoes.length === 0) return alert("Seleciona pelo menos um modo de resposta!");
+    if (selectedModes.length === 0 && opcoes.length === 0) return aviso("Seleciona pelo menos um modo de resposta!");
 
     // Archive current question + all answers before overwriting
     if (activeQ) {
@@ -194,7 +195,7 @@ function PerguntaManager({ allShared, activeQ }) {
         from:"teresa", text:"💬 Nova pergunta da semana!", date:nowLabel(), read:false, tipo:"proposta", push: pushNovaPergunta
       });
     }
-    alert("Pergunta publicada!");
+    aviso("Pergunta publicada!");
     setActiveQEdit(""); setOpcoesBtn(["", "", ""]); setPushNovaPergunta(false);
   }
 
@@ -222,7 +223,7 @@ function PerguntaManager({ allShared, activeQ }) {
         answerDate: r.answerDate ?? null,
       }, { merge: true });
     }
-    alert("Reposto! As respostas voltaram a aparecer.");
+    aviso("Reposto! As respostas voltaram a aparecer.");
   }
 
   return (
@@ -392,9 +393,9 @@ function PerguntaManager({ allShared, activeQ }) {
           rotuloJa="Publicar Desafio Semanal 💬"
           publicarJa={publicar}
           construirPayload={() => {
-            if (!activeQEdit.trim()) { alert("Escreve a pergunta!"); return null; }
+            if (!activeQEdit.trim()) { aviso("Escreve a pergunta!"); return null; }
             const opcoes = opcoesPreenchidas();
-            if (selectedModes.length === 0 && opcoes.length === 0) { alert("Seleciona pelo menos um modo de resposta!"); return null; }
+            if (selectedModes.length === 0 && opcoes.length === 0) { aviso("Seleciona pelo menos um modo de resposta!"); return null; }
             return { text: activeQEdit.trim(), options: opcoes, modes: selectedModes, push: pushNovaPergunta };
           }}
           rotuloItem={p => `💬 ${p.text}`}
@@ -528,7 +529,7 @@ function AutoavAdmin({ allShared }) {
     setFbTxts(p => ({ ...p, [j.username]: "" }));
     setFbOpen(p => ({ ...p, [j.username]: false }));
     setFbPush(p => ({ ...p, [j.username]: false }));
-    alert("Feedback enviado! ✓");
+    aviso("Feedback enviado! ✓");
   }
 
   const rondasAntigas = useMemo(() => {
@@ -573,7 +574,7 @@ function AutoavAdmin({ allShared }) {
       return updateDoc(doc(db, "userData", j.username), { autoAvaliacaoHistorico: arrayUnion(buildAutoavEntry(uData, ciclo)) });
     }));
     setGuardando(false);
-    alert("Ronda arquivada!");
+    aviso("Ronda arquivada!");
   }
 
   return (

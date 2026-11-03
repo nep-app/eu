@@ -3,6 +3,7 @@ import { doc, setDoc, getDoc, addDoc, collection, onSnapshot, updateDoc, deleteF
 import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PRP, GRN, RadarChart, INP } from "../../theme.jsx";
 import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, nowFull, PIA_FIELDS, PIA_SECTIONS, getWeekKey, fmtDate } from "../../data.js";
+import { aviso } from "../../aviso.jsx";
 
 // Janela do dossier do jovem. Vive FORA do AdminUsers de propósito: quando
 // estava lá dentro, era reconstruída de cada vez que os dados em tempo real
@@ -39,7 +40,7 @@ function DossierModal({ username, onClose, allShared, amMedals, weekStartTs, mis
         from: "teresa", text: `💬 Teresa (sobre o teu ${tipoLabel}): ${texto.trim()}`, date: nowFull(), read: false, ts: Date.now(), push: feedbackPush
       });
       setTexto(""); setFeedbackPush(false);
-      alert("Feedback enviado! ✓");
+      aviso("Feedback enviado! ✓");
     }
 
     const BTN_RESET = {

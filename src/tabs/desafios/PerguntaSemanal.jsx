@@ -4,6 +4,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage, notifyAdmin } from "../../firebase.js";
 import { CARD, SL, CYN, INP, Btn, PNK, Linkify } from "../../theme.jsx";
 import { nowFull, fmtDate, isOverdue } from "../../data.js";
+import { aviso } from "../../aviso.jsx";
 
 export default function PerguntaSemanal({ user, data }) {
   const isTeresa = user?.username === "teresa";
@@ -48,7 +49,7 @@ export default function PerguntaSemanal({ user, data }) {
         setMediaFile(new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' }));
       };
       mediaRecorder.start(); setIsRecording(true);
-    } catch (err) { alert("Microfone não disponível."); }
+    } catch (err) { aviso("Microfone não disponível."); }
   }
 
   function stopRecording() {
@@ -72,7 +73,7 @@ export default function PerguntaSemanal({ user, data }) {
     // Salvaguarda: não gravar uma resposta vazia (senão fica "respondido"
     // sem conteúdo e a resposta real perde-se). Exige opção, texto OU media.
     if (!mediaFile && !respostaFinal) {
-      alert("Escolhe uma opção, escreve algo ou grava/anexa antes de submeter. 🙂");
+      aviso("Escolhe uma opção, escreve algo ou grava/anexa antes de submeter. 🙂");
       return;
     }
 
@@ -118,8 +119,8 @@ export default function PerguntaSemanal({ user, data }) {
         tipo: "PERGUNTA", jovem: user.username, ts: Date.now(), lida: false,
         texto: (respostaFinal || "").substring(0, 60)
       });
-      alert("Resposta entregue! ✨");
-    } catch (e) { alert("Erro ao enviar."); }
+      aviso("Resposta entregue! ✨");
+    } catch (e) { aviso("Erro ao enviar."); }
     setIsUploading(false);
   }
 

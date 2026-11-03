@@ -5,6 +5,7 @@ import { db, storage } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, GRN, INP, Btn } from "../../theme.jsx";
 import { JEEP_ATIVOS, nowFull } from "../../data.js";
 import Agendador from "./Agendador.jsx";
+import { aviso } from "../../aviso.jsx";
 
 const JEEP_8 = JEEP_ATIVOS.filter(j => !["ricardo","demo"].includes(j.username));
 
@@ -87,7 +88,7 @@ export default function AdminVotacoes() {
     const f = (e.target.files || [])[0];
     e.target.value = "";
     if (!f) return;
-    if (!f.type.startsWith("image/")) return alert("Escolhe uma imagem (jpg, png...).");
+    if (!f.type.startsWith("image/")) return aviso("Escolhe uma imagem (jpg, png...).");
     setACarregarImg(true);
     try {
       const url = await carregarImagem(f);
@@ -98,13 +99,13 @@ export default function AdminVotacoes() {
         setImagemUrl(url);
       }
     } catch (err) {
-      alert("Não foi possível carregar a imagem: " + err.message);
+      aviso("Não foi possível carregar a imagem: " + err.message);
     }
     setACarregarImg(false);
   }
 
   async function criarVotacao() {
-    if (!titulo.trim()) return alert("Dá um título à votação!");
+    if (!titulo.trim()) return aviso("Dá um título à votação!");
 
     let opcoesFinais;
     const descricoes = {};
@@ -123,7 +124,7 @@ export default function AdminVotacoes() {
       });
     }
 
-    if (opcoesFinais.length < 2) return alert("Precisas de pelo menos 2 opções!");
+    if (opcoesFinais.length < 2) return aviso("Precisas de pelo menos 2 opções!");
 
     const votosIniciais = {};
     opcoesFinais.forEach(op => { votosIniciais[op] = []; });
@@ -154,7 +155,7 @@ export default function AdminVotacoes() {
       setPushVotacao(false); setMultipla(false); setPermiteOutros(false);
       setImagemUrl("");
     } catch(e) {
-      alert("Erro ao criar votação: " + e.message);
+      aviso("Erro ao criar votação: " + e.message);
     } finally {
       setSaving(false);
     }
@@ -206,7 +207,7 @@ export default function AdminVotacoes() {
       novosVotos[tt] = (poll.votes || {})[antigo] || [];
       if ((poll.votesTeste || {})[antigo]) novosVotosTeste[tt] = poll.votesTeste[antigo];
     });
-    if (!editTitulo.trim() || finais.length < 2) return alert("Título e pelo menos 2 opções são obrigatórios.");
+    if (!editTitulo.trim() || finais.length < 2) return aviso("Título e pelo menos 2 opções são obrigatórios.");
     await updateDoc(doc(db, "polls", poll.id), {
       title: editTitulo,
       options: finais,
@@ -251,7 +252,7 @@ export default function AdminVotacoes() {
         if (match) { await deleteDoc(doc(db, "notifications", u, "items", d.id)); apagadas++; }
       }));
     }));
-    alert(`${apagadas} notificação(ões) do resultado apagada(s).`);
+    aviso(`${apagadas} notificação(ões) do resultado apagada(s).`);
   }
 
   async function fecharVotacao(id, estadoAtual) {
@@ -478,12 +479,12 @@ export default function AdminVotacoes() {
           rotuloJa={saving ? "A criar..." : "LANÇAR VOTAÇÃO 🗳️"}
           publicarJa={criarVotacao}
           construirPayload={() => {
-            if (!titulo.trim()) { alert("Dá um título à votação!"); return null; }
+            if (!titulo.trim()) { aviso("Dá um título à votação!"); return null; }
             const descricoes = {};
             const opcoesFinais = tipo === "data"
               ? opcoesDatas.filter(o => o.date.trim()).map(o => fmtOpcaoData(o.date, o.time))
               : (() => { const f = []; opcoes.forEach((t, i) => { const tt = t.trim(); if (tt) { f.push(tt); const dd = (opcoesDesc[i]||"").trim(); if (dd) descricoes[tt] = dd; } }); return f; })();
-            if (opcoesFinais.length < 2) { alert("Precisas de pelo menos 2 opções!"); return null; }
+            if (opcoesFinais.length < 2) { aviso("Precisas de pelo menos 2 opções!"); return null; }
             return {
               title: titulo, type: tipo, options: opcoesFinais, descricoes,
               multipla: tipo === "data" ? true : multipla,

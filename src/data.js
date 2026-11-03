@@ -38,12 +38,27 @@ export function fmtDate(s) {
   return p[2] + " " + MTHS[parseInt(p[1], 10) - 1];
 }
 export function isOverdue(s) { return !s ? false : new Date(s) < new Date(); }
-// Chave da semana de uma data qualquer. Fonte única: o relatório e o resto da
-// app têm de concordar sobre em que semana cai cada registo.
+// Chave da semana de uma data qualquer, pela norma ISO: semanas de SEGUNDA a
+// DOMINGO (como cá se conta) e sempre com dois dígitos, para "W05" ficar antes
+// de "W10" ao ordenar. A fórmula antiga começava as semanas ao domingo e, na
+// passagem de ano, partia a mesma semana em duas (W53 e W1 com as mesmas datas).
 export function weekKeyFromTs(ts) {
-  const d = new Date(ts), jan1 = new Date(d.getFullYear(), 0, 1);
-  const wk = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
-  return d.getFullYear() + "-W" + wk;
+  const d = new Date(ts);
+  const q = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const diaDaSemana = q.getUTCDay() || 7;        // domingo = 7
+  q.setUTCDate(q.getUTCDate() + 4 - diaDaSemana); // quinta-feira da mesma semana
+  const jan1 = new Date(Date.UTC(q.getUTCFullYear(), 0, 1));
+  const wk = Math.ceil(((q - jan1) / 86400000 + 1) / 7);
+  return q.getUTCFullYear() + "-W" + String(wk).padStart(2, "0");
+}
+
+// Segunda-feira (00:00) da semana a que uma data pertence.
+export function inicioDaSemana(ts) {
+  const d = new Date(ts);
+  const diaDaSemana = d.getDay() || 7;
+  const seg = new Date(d.getFullYear(), d.getMonth(), d.getDate() - (diaDaSemana - 1));
+  seg.setHours(0, 0, 0, 0);
+  return seg;
 }
 
 export function getWeekKey() {

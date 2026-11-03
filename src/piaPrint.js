@@ -1,4 +1,5 @@
 import { PIA_SECTIONS } from "./data.js";
+import { aviso } from "./aviso.jsx";
 
 export function openPiaPrint(piaData, piaUnlocked, userName) {
   const today = new Date().toLocaleDateString("pt-PT", { day:"2-digit", month:"long", year:"numeric" });
@@ -122,7 +123,7 @@ ${sectionsHtml}
 </html>`;
 
   const w = window.open("", "_blank");
-  if (!w) { alert("Permite pop-ups para descarregar o PDF."); return; }
+  if (!w) { aviso("Permite pop-ups para descarregar o PDF."); return; }
   w.document.write(html);
   w.document.close();
 }

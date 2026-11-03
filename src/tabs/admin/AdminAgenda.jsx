@@ -3,6 +3,7 @@ import { addDoc, collection, deleteDoc, doc, updateDoc } from "firebase/firestor
 import { db } from "../../firebase.js";
 import { CARD, SL, INP, CYN, GRN, TXT_MUT } from "../../theme.jsx";
 import { JEEP_LIST, JEEP_ATIVOS, ALLOWED_ATIVOS, EVT_COLORS, EVT_ICONS, nowFull } from "../../data.js";
+import { aviso } from "../../aviso.jsx";
 
 function toDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -45,7 +46,7 @@ export default function AdminAgenda({ events = [] }) {
     setFeedbackTxts(p => ({ ...p, [ev.id]: "" }));
     setFeedbackOpen(p => ({ ...p, [ev.id]: false }));
     setFeedbackPush(p => ({ ...p, [ev.id]: false }));
-    alert("Feedback enviado! ✓");
+    aviso("Feedback enviado! ✓");
   }
 
   const TIPOS = [
@@ -67,7 +68,7 @@ export default function AdminAgenda({ events = [] }) {
   const passados = sorted.filter(e => e.date <  hoje);
 
   async function criarEvento() {
-    if (!titulo.trim()) return alert("Preenche o título.");
+    if (!titulo.trim()) return aviso("Preenche o título.");
     const isForcar = modo === "forcar";
     await addDoc(collection(db, "events"), {
       title: titulo, date: data, time: hora,
@@ -85,7 +86,7 @@ export default function AdminAgenda({ events = [] }) {
       });
     }
     setTitulo(""); setHora(""); setShowForm(false); setPushEvento(false);
-    alert(isForcar ? "Evento criado!" : "Proposta de evento enviada!");
+    aviso(isForcar ? "Evento criado!" : "Proposta de evento enviada!");
   }
 
   async function remover(id) {

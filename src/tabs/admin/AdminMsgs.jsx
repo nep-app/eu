@@ -4,6 +4,7 @@ import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, INP, Linkify } from "../../theme.jsx";
 import { nowFull, JEEP_LIST, ALLOWED_USERNAMES, ALLOWED_ATIVOS, MTHS } from "../../data.js";
 import Agendador from "./Agendador.jsx";
+import { aviso } from "../../aviso.jsx";
 
 // Timestamp de uma mensagem: usa ts se existir; senão faz parse da `date`
 // (aceita "23 Jul 2026, 14:30" e o formato antigo "Mai 2026").
@@ -68,7 +69,7 @@ export default function AdminMsgs() {
   }
 
   async function enviarNovaMsg() {
-    if (!novaMsgTexto.trim()) return alert("Escreve uma mensagem.");
+    if (!novaMsgTexto.trim()) return aviso("Escreve uma mensagem.");
     setEnviando(true);
     try {
       const targets = novaMsgDest === "all" ? ALLOWED_ATIVOS : [novaMsgDest];
@@ -80,8 +81,8 @@ export default function AdminMsgs() {
       }
       setNovaMsgTexto(""); setPushNovaMsg(false);
       const nome = novaMsgDest === "all" ? "todos" : JEEP_LIST.find(j => j.username === novaMsgDest)?.name || novaMsgDest;
-      alert(`Mensagem enviada a ${nome}! ✓`);
-    } catch (e) { alert("Erro: " + e.message); }
+      aviso(`Mensagem enviada a ${nome}! ✓`);
+    } catch (e) { aviso("Erro: " + e.message); }
     setEnviando(false);
   }
 
@@ -110,7 +111,7 @@ export default function AdminMsgs() {
           rotuloJa={enviando ? "A enviar..." : `Enviar${novaMsgDest === "all" ? " a todos" : ""}`}
           publicarJa={enviarNovaMsg}
           construirPayload={() => {
-            if (!novaMsgTexto.trim()) { alert("Escreve uma mensagem."); return null; }
+            if (!novaMsgTexto.trim()) { aviso("Escreve uma mensagem."); return null; }
             return { dest: novaMsgDest, texto: novaMsgTexto.trim(), push: pushNovaMsg };
           }}
           rotuloItem={p => `${p.dest === "all" ? "Todos" : (JEEP_LIST.find(j => j.username === p.dest)?.name || p.dest)}: ${p.texto}`}

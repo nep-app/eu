@@ -11,6 +11,7 @@ function AvisoPia({ texto }) {
   return <div style={{ fontSize:10, fontWeight:700, color:"#fbbf24", marginTop:2 }}>⚠️ {aviso}</div>;
 }
 import { openPiaPrint } from "../../piaPrint.js";
+import { aviso } from "../../aviso.jsx";
 
 const JEEP_8 = JEEP_LIST.filter(j => !["teresa","ricardo","demo"].includes(j.username));
 
@@ -40,7 +41,7 @@ export default function AdminPia({ allShared }) {
     setFbTxts(p => ({ ...p, [j.username]: "" }));
     setFbOpen(p => ({ ...p, [j.username]: false }));
     setFbPush(p => ({ ...p, [j.username]: false }));
-    alert("Feedback enviado! ✓");
+    aviso("Feedback enviado! ✓");
   }
 
   return (
@@ -64,7 +65,7 @@ export default function AdminPia({ allShared }) {
               <button onClick={async () => {
                 for (const u of ALLOWED_ATIVOS)
                   await setDoc(doc(db,"userData",u), { piaUnlocked:{ [sec.id]:true }, ...(prazo ? { piaSavedPrazo: prazo } : {}) }, { merge:true });
-                alert(`"${sec.title}" aberta para todos!${prazo ? ` Prazo: ${prazo}` : ""}`);
+                aviso(`"${sec.title}" aberta para todos!${prazo ? ` Prazo: ${prazo}` : ""}`);
               }} style={{ background:`${GRN}18`, border:`1px solid ${GRN}40`, color:GRN, borderRadius:8, padding:"5px 12px", fontWeight:900, fontSize:11, cursor:"pointer" }}>
                 🔓 Abrir a todos
               </button>

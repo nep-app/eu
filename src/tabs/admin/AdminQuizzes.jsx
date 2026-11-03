@@ -4,6 +4,7 @@ import { db } from "../../firebase.js";
 import { CARD, SL, CYN, Btn, INP } from "../../theme.jsx";
 import { JEEP_LIST } from "../../data.js";
 import Agendador from "./Agendador.jsx";
+import { aviso } from "../../aviso.jsx";
 
 const JEEP_8 = JEEP_LIST.filter(j => !["teresa","ricardo","demo"].includes(j.username));
 
@@ -109,8 +110,8 @@ export default function AdminQuizzes({ allShared = {} }) {
 
   async function salvarQuiz() {
     const { opts, correct } = prepararOpcoes(novo.opts, novo.correctIdx);
-    if (!novo.title || !novo.scenario) return alert("Preenche o título e o cenário!");
-    if (opts.length < 2) return alert("Precisas de pelo menos 2 opções!");
+    if (!novo.title || !novo.scenario) return aviso("Preenche o título e o cenário!");
+    if (opts.length < 2) return aviso("Precisas de pelo menos 2 opções!");
     try {
       await addDoc(collection(db, "quizzes"), {
         title: novo.title, badge: novo.badge, scenario: novo.scenario,
@@ -118,8 +119,8 @@ export default function AdminQuizzes({ allShared = {} }) {
         correct, opts, mock: mockDeOpcoes(opts), responses: {}
       });
       setNovo(NOVO_VAZIO);
-      alert("Novo Dilema publicado! 🚀");
-    } catch (e) { alert("Erro: " + e.message); }
+      aviso("Novo Dilema publicado! 🚀");
+    } catch (e) { aviso("Erro: " + e.message); }
   }
 
   // Publica um dilema a partir de um payload (usado no "Publicar já" dos agendados).
@@ -146,16 +147,16 @@ export default function AdminQuizzes({ allShared = {} }) {
 
   async function guardarEdicao(quizId) {
     const d = editDraft[quizId];
-    if (!d?.title || !d?.scenario) return alert("Título e cenário são obrigatórios.");
+    if (!d?.title || !d?.scenario) return aviso("Título e cenário são obrigatórios.");
     const { opts, correct } = prepararOpcoes(d.opts, d.correctIdx);
-    if (opts.length < 2) return alert("Precisas de pelo menos 2 opções!");
+    if (opts.length < 2) return aviso("Precisas de pelo menos 2 opções!");
     try {
       await updateDoc(doc(db, "quizzes", quizId), {
         title: d.title, badge: d.badge, scenario: d.scenario, prazo: d.prazo || null,
         correct, opts,
       });
       setEditando(p => ({ ...p, [quizId]: false }));
-    } catch (e) { alert("Erro: " + e.message); }
+    } catch (e) { aviso("Erro: " + e.message); }
   }
 
   async function apagarQuiz(id) {
@@ -164,15 +165,15 @@ export default function AdminQuizzes({ allShared = {} }) {
 
   async function resetarResposta(quizId, jovem) {
     const nome = jovem || resetInputs[quizId]?.trim();
-    if (!nome) return alert("Escreve o username primeiro.");
+    if (!nome) return aviso("Escreve o username primeiro.");
     if (!window.confirm(`Apagar a resposta de "${nome}"?`)) return;
     try {
       await updateDoc(doc(db, "userData", nome), { completedQuizzes: arrayRemove(quizId) });
       // Remover também do quiz.responses se existir
       try { await updateDoc(doc(db, "quizzes", quizId), { [`responses.${nome}`]: deleteField() }); } catch (_) {}
       setResetInputs(p => ({ ...p, [quizId]: "" }));
-      alert(`"${nome}" pode voltar a responder.`);
-    } catch (e) { alert("Erro: " + e.message); }
+      aviso(`"${nome}" pode voltar a responder.`);
+    } catch (e) { aviso("Erro: " + e.message); }
   }
 
   if (erro) return <div style={{ ...CARD, color: "#f43f5e" }}>⚠️ {erro}</div>;
@@ -221,8 +222,8 @@ export default function AdminQuizzes({ allShared = {} }) {
           publicarJa={salvarQuiz}
           construirPayload={() => {
             const { opts, correct } = prepararOpcoes(novo.opts, novo.correctIdx);
-            if (!novo.title || !novo.scenario) { alert("Preenche o título e o cenário!"); return null; }
-            if (opts.length < 2) { alert("Precisas de pelo menos 2 opções!"); return null; }
+            if (!novo.title || !novo.scenario) { aviso("Preenche o título e o cenário!"); return null; }
+            if (opts.length < 2) { aviso("Precisas de pelo menos 2 opções!"); return null; }
             return {
               title: novo.title, badge: novo.badge, scenario: novo.scenario, prazo: novo.prazo || null,
               correct, opts,

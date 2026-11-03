@@ -14,6 +14,7 @@ import AdminPiaMais from './tabs/admin/AdminPiaMais.jsx';
 import AdminSatisfacao from './tabs/admin/AdminSatisfacao.jsx';
 import AdminMsgs from './tabs/admin/AdminMsgs.jsx';
 import JovensApp from './JovensApp.jsx';
+import { aviso } from "./aviso.jsx";
 
 const JEEP_8 = JEEP_LIST.filter(j => !["teresa","ricardo","demo"].includes(j.username));
 
@@ -52,14 +53,14 @@ export default function TeresaAdmin({ user, onLogout }) {
     setAtivandoPush(true);
     const res = await registarPushNotifications(user.username);
     setAtivandoPush(false);
-    if (res.ok) { setPushStatus("on"); alert("✓ Notificações push do admin ativadas neste aparelho!"); }
+    if (res.ok) { setPushStatus("on"); aviso("✓ Notificações push do admin ativadas neste aparelho!"); }
     else {
       if (res.reason === "permissao-denied") setPushStatus("blocked");
       const msgs = {
         "permissao-denied": "Bloqueaste as notificações. Vai às definições do browser/telemóvel e permite para este site.",
         "permissao-default": "Não confirmaste a permissão. Tenta outra vez.",
       };
-      alert("Não foi possível ativar: " + (msgs[res.reason] || res.reason));
+      aviso("Não foi possível ativar: " + (msgs[res.reason] || res.reason));
     }
   }
 

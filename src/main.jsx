@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
+import Avisos from './aviso.jsx';
 
 // When a new service worker takes over, reload so users always run latest code
 if ('serviceWorker' in navigator) {
@@ -12,5 +13,6 @@ if ('serviceWorker' in navigator) {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
+    <Avisos />
   </StrictMode>
 );

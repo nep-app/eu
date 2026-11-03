@@ -3,6 +3,7 @@ import { doc, updateDoc, addDoc, collection, arrayUnion, arrayRemove, deleteFiel
 import { db, notifyAdmin } from "../../firebase.js";
 import { CYN, INP, TXT_MUT, Linkify } from "../../theme.jsx";
 import { nowFull } from "../../data.js";
+import { aviso } from "../../aviso.jsx";
 
 // Pergunta aberta dentro de um post do fórum: cada um responde (uma resposta
 // por pessoa, editável), todos veem as respostas uns dos outros e podem dar ❤️
@@ -55,7 +56,7 @@ export default function ForumPergunta({ post, user, canal, forumCollection = "fo
       }
       setTexto(""); setEditar(false);
     } catch (e) {
-      alert("Não foi possível enviar: " + (e?.message || e));
+      aviso("Não foi possível enviar: " + (e?.message || e));
     } finally {
       setAEnviar(false);
     }

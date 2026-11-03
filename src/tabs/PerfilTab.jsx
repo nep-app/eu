@@ -6,6 +6,7 @@ import { CARD, SL, CYN, PNK, INP, Btn, SubTabs, RadarChart, BG, TXT_MUT } from "
 import {
   upd, nowLabel, nowFull, RODA_DIMS, ALL_MEDALS, DEF_RODA, DEF_CAP, getWeekKey
 } from "../data.js";
+import { aviso } from "../aviso.jsx";
 
 const DEF_CAP2 = { text:"", locked:false, revealed:false, lockedDate:"" };
 
@@ -44,10 +45,10 @@ export default function PerfilTab({ user, data, features = {} }) {
     setAtivandoPush(false);
     if (res.ok) {
       setPushStatus("on");
-      alert("✓ Notificações push ativadas com sucesso!");
+      aviso("✓ Notificações push ativadas com sucesso!");
     } else {
       if (res.reason === "permissao-denied") setPushStatus("blocked");
-      alert("Não foi possível ativar: " + (PUSH_ERROS[res.reason] || res.reason));
+      aviso("Não foi possível ativar: " + (PUSH_ERROS[res.reason] || res.reason));
     }
   }
 
@@ -109,7 +110,7 @@ export default function PerfilTab({ user, data, features = {} }) {
       todosSnap.forEach(async (d) => { await deleteDoc(d.ref); });
       const evtsSnap = await getDocs(query(collection(db, "events"), where("userId", "==", user.username)));
       evtsSnap.forEach(async (d) => { await deleteDoc(d.ref); });
-      alert("Limpeza efetuada com sucesso! A página vai recarregar.");
+      aviso("Limpeza efetuada com sucesso! A página vai recarregar.");
       window.location.reload();
     }
   }

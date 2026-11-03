@@ -4,6 +4,7 @@ import { db } from "../../firebase.js";
 import { CARD, SL, CYN, GRN, INP, Btn } from "../../theme.jsx";
 import { getWeekKey, fmtDate, nowFull, ALLOWED_ATIVOS, JEEP_ATIVOS } from "../../data.js";
 import Agendador from "./Agendador.jsx";
+import { aviso } from "../../aviso.jsx";
 
 const JOVENS_MISSAO = JEEP_ATIVOS.filter(j => !["ricardo","demo"].includes(j.username));
 
@@ -24,7 +25,7 @@ export default function AdminMissoes({ missions, allShared = {} }) {
   }
   function cancelEdit() { setEditId(null); }
   async function saveEdit() {
-    if (!editTxt.trim()) { alert("A missão não pode ficar sem descrição."); return; }
+    if (!editTxt.trim()) { aviso("A missão não pode ficar sem descrição."); return; }
     await updateDoc(doc(db, "missions", editId), {
       text: editTxt.trim(), xp: editXp, prazo: editPrazo || null,
     });
@@ -52,7 +53,7 @@ export default function AdminMissoes({ missions, allShared = {} }) {
       })
     ));
     setAdminMissionTxt(""); setAdminMissionPrazo(""); setPushMissao(false);
-    alert("Missão lançada!");
+    aviso("Missão lançada!");
   }
 
   async function deleteAdminMission(id) {
@@ -87,7 +88,7 @@ export default function AdminMissoes({ missions, allShared = {} }) {
           rotuloJa="Lançar Missão Especial 🎯"
           publicarJa={addAdminMission}
           construirPayload={() => {
-            if (!adminMissionTxt.trim()) { alert("Escreve a descrição da missão."); return null; }
+            if (!adminMissionTxt.trim()) { aviso("Escreve a descrição da missão."); return null; }
             return { text: adminMissionTxt.trim(), xp: adminMissionXp, prazo: adminMissionPrazo || null, push: pushMissao };
           }}
           rotuloItem={p => `🎯 ${p.text} (${p.xp} XP)`}

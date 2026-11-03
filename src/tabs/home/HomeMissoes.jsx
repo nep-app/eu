@@ -4,6 +4,7 @@ import { db, notifyAdmin } from "../../firebase.js";
 import { CARD, SL, CYN, INP, GRN, Linkify } from "../../theme.jsx";
 import { nowFull, getWeekKey, fmtDate, isOverdue } from "../../data.js";
 import { ThemeCtx } from "../../JovensApp.jsx";
+import { aviso } from "../../aviso.jsx";
 
 // Missão Especial — aparece no topo do Início dos jovens.
 export default function HomeMissoes({ user, data }) {
@@ -46,7 +47,7 @@ export default function HomeMissoes({ user, data }) {
       ts: Date.now(), lida: false,
     });
     setMissaoAberta(null); setNotaMissao("");
-    alert("Missão concluída! ✨");
+    aviso("Missão concluída! ✨");
   }
 
   if (missoesSemana.length === 0) return null;

@@ -96,7 +96,6 @@ export async function registarPushNotifications(username) {
       if (perm !== "granted") return { ok:false, reason:`permissao-${perm}` };
     }
     const swReg = await navigator.serviceWorker.ready;
-    console.log("SW ready:", swReg.scope, swReg.active?.state);
     const messaging = await getMessagingInstance();
     if (!messaging) return { ok:false, reason:"messaging-nao-suportado" };
     const { getToken } = await import("firebase/messaging");
