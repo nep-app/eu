@@ -62,7 +62,9 @@ function buildWeeklyData(allShared) {
       if (act.includes("desafio semanal")) e.pergunta = 1;
       if (act.includes("satisfa")) e.satisfacao = 1;
       if (act.includes("autoavalia")) e.autoAv = 1;
-      if (act.includes("pia") || act.includes("plano individual")) e.pia = 1;
+      // Correspondência estreita de propósito: "pia" sozinho apanharia por engano
+      // qualquer ação futura com essa sequência de letras (ex.: "copiada").
+      if (act.includes("o pia") || act.includes("(pia)") || act.includes("plano individual")) e.pia = 1;
       if (act.includes("cumpriu a missão")) e.missoes++;
       if (act.includes("dilema:")) e.dilemas++;
       if ((h.xp || 0) > 0) e.xp += h.xp;

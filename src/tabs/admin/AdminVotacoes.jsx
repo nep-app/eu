@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot, getDocs } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { db, storage } from "../../firebase.js";
 import { CARD, SL, CYN, PNK, GRN, INP, Btn } from "../../theme.jsx";
 import { JEEP_ATIVOS, nowFull } from "../../data.js";
@@ -75,6 +75,14 @@ export default function AdminVotacoes() {
     return await getDownloadURL(fileRef);
   }
 
+  // Apaga do armazenamento uma imagem que foi carregada mas nunca chegou a ser
+  // publicada (trocada ou removida antes de criar a votação), para não deixar
+  // ficheiros órfãos lá. Falhar aqui não tem importância nenhuma.
+  async function limparImagemNaoPublicada(url) {
+    if (!url) return;
+    try { await deleteObject(ref(storage, url)); } catch (_) {}
+  }
+
   async function escolherImagem(e, destino = "nova") {
     const f = (e.target.files || [])[0];
     e.target.value = "";
@@ -83,7 +91,12 @@ export default function AdminVotacoes() {
     setACarregarImg(true);
     try {
       const url = await carregarImagem(f);
-      if (destino === "edit") setEditImagem(url); else setImagemUrl(url);
+      if (destino === "edit") {
+        setEditImagem(url);
+      } else {
+        limparImagemNaoPublicada(imagemUrl);   // a anterior, se trocou
+        setImagemUrl(url);
+      }
     } catch (err) {
       alert("Não foi possível carregar a imagem: " + err.message);
     }
@@ -442,7 +455,7 @@ export default function AdminVotacoes() {
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
               <img src={imagemUrl} alt="" style={{ width:64, height:64, objectFit:"cover", borderRadius:10, border:`1px solid ${CYN}40` }} />
               <label htmlFor="votacao-img" style={{ fontSize:12, fontWeight:800, color:CYN, cursor:"pointer" }}>Trocar</label>
-              <button onClick={() => setImagemUrl("")}
+              <button onClick={() => { limparImagemNaoPublicada(imagemUrl); setImagemUrl(""); }}
                 style={{ background:"none", border:"none", color:"#f87171", fontSize:12, fontWeight:800, cursor:"pointer" }}>✕ Tirar</button>
             </div>
           ) : (

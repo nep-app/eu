@@ -9,32 +9,10 @@ const DEF_CAP2 = { text:"", locked:false, revealed:false, lockedDate:"" };
 
 // Cápsulas do Tempo — extraídas do Perfil. Lê/escreve os mesmos campos (cap, cap2)
 // em userData, por isso os dados mantêm-se todos.
-export default function Capsulas({ user, data }) {
-  const uData = data.userData || {};
-  const isDemo = user.username === "demo";
-  // Na demo, a 1ª cápsula está desbloqueada (a 2ª fica bloqueada, como exemplo).
-  const cap  = isDemo ? { ...(uData.cap || DEF_CAP), unlocked: true } : (uData.cap || DEF_CAP);
-  const cap2 = uData.cap2 || DEF_CAP2;
-  const history = data.history || [];
-  const light = user.username === "teresa";
-  const thm = { card:CARD, sl:SL, text:"#f1f5f9", muted:"#94a3b8", sub:"#64748b", inp:INP };
-
-  async function sealCapsule(slot) {
-    const isSlot2 = slot === 2;
-    const capData = isSlot2 ? cap2 : cap;
-    if (!capData.text?.trim()) return alert("Escreve primeiro a tua mensagem!");
-    const ts = nowFull();
-    const newCap = { ...capData, locked: true, sealedAt: ts, ...(isSlot2 ? {} : { lockedDate: "31/12/2026" }) };
-    const newH = [...history, { date: ts, action: `Selou Cápsula ${isSlot2 ? "Final" : "de Dezembro"} 🔒`, ts: Date.now(), xp: 15 }];
-    await setDoc(doc(db, "userData", user.username), {
-      [isSlot2 ? "cap2" : "cap"]: newCap,
-      history: newH,
-      weekXp: (uData.weekXp || 0) + 15
-    }, { merge: true });
-    alert(isSlot2 ? "Cápsula entregue à Teresa! 🔐" : "Cápsula selada! Abre em Dezembro 2026 🔒");
-  }
-
-  function CapsuleWidget({ slot, capData, title, targetLabel, desc }) {
+// Fica FORA do componente Capsulas de propósito: lá dentro era reconstruído
+// a cada atualização dos dados, o que podia deitar fora uma gravação ou um
+// upload a meio.
+function CapsuleWidget({ slot, capData, title, targetLabel, desc, cap, cap2, data, light, sealCapsule, thm, user }) {
     const isSlot2  = slot === 2;
     const accent   = isSlot2 ? "#a855f7" : PNK;
     const fieldKey = isSlot2 ? "cap2" : "cap";
@@ -256,6 +234,32 @@ export default function Capsulas({ user, data }) {
     );
   }
 
+export default function Capsulas({ user, data }) {
+  const uData = data.userData || {};
+  const isDemo = user.username === "demo";
+  // Na demo, a 1ª cápsula está desbloqueada (a 2ª fica bloqueada, como exemplo).
+  const cap  = isDemo ? { ...(uData.cap || DEF_CAP), unlocked: true } : (uData.cap || DEF_CAP);
+  const cap2 = uData.cap2 || DEF_CAP2;
+  const history = data.history || [];
+  const light = user.username === "teresa";
+  const thm = { card:CARD, sl:SL, text:"#f1f5f9", muted:"#94a3b8", sub:"#64748b", inp:INP };
+
+  async function sealCapsule(slot) {
+    const isSlot2 = slot === 2;
+    const capData = isSlot2 ? cap2 : cap;
+    if (!capData.text?.trim()) return alert("Escreve primeiro a tua mensagem!");
+    const ts = nowFull();
+    const newCap = { ...capData, locked: true, sealedAt: ts, ...(isSlot2 ? {} : { lockedDate: "31/12/2026" }) };
+    const newH = [...history, { date: ts, action: `Selou Cápsula ${isSlot2 ? "Final" : "de Dezembro"} 🔒`, ts: Date.now(), xp: 15 }];
+    await setDoc(doc(db, "userData", user.username), {
+      [isSlot2 ? "cap2" : "cap"]: newCap,
+      history: newH,
+      weekXp: (uData.weekXp || 0) + 15
+    }, { merge: true });
+    alert(isSlot2 ? "Cápsula entregue à Teresa! 🔐" : "Cápsula selada! Abre em Dezembro 2026 🔒");
+  }
+
+
   return (
     <div>
       <div style={{ ...thm.card, marginBottom:20 }}>
@@ -266,7 +270,7 @@ export default function Capsulas({ user, data }) {
         </div>
       </div>
 
-      <CapsuleWidget
+      <CapsuleWidget cap={cap} cap2={cap2} data={data} light={light} sealCapsule={sealCapsule} thm={thm} user={user}
         slot={1}
         capData={cap}
         title="Cápsula de Meio-Caminho"
@@ -274,7 +278,7 @@ export default function Capsulas({ user, data }) {
         desc="Uma mensagem para ti próprio/a quando chegar ao meio do programa. Vai ficar trancada — só tu consegues abrir."
       />
 
-      <CapsuleWidget
+      <CapsuleWidget cap={cap} cap2={cap2} data={data} light={light} sealCapsule={sealCapsule} thm={thm} user={user}
         slot={2}
         capData={cap2}
         title="Cápsula Final"

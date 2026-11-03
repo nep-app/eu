@@ -4,196 +4,10 @@ import { db } from "../../firebase.js";
 import { CARD, SL, CYN, PRP, GRN, RadarChart, INP } from "../../theme.jsx";
 import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, nowFull, PIA_FIELDS, PIA_SECTIONS, getWeekKey, fmtDate } from "../../data.js";
 
-export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStartTs = 0 }) {
-  // Todas as missões (por id) para poder mostrar o texto/prazo das que cada jovem cumpriu.
-  const [missoesPorId, setMissoesPorId] = useState({});
-  useEffect(() => {
-    return onSnapshot(collection(db, "missions"), snap => {
-      const map = {};
-      snap.docs.forEach(d => { map[d.id] = { id: d.id, ...d.data() }; });
-      setMissoesPorId(map);
-    });
-  }, []);
-  // Última entrada de cada jovem (guardada em users/{username}.lastLogin).
-  const [usersMeta, setUsersMeta] = useState({});
-  useEffect(() => {
-    return onSnapshot(collection(db, "users"), snap => {
-      const map = {};
-      snap.docs.forEach(d => { map[d.id] = d.data(); });
-      setUsersMeta(map);
-    });
-  }, []);
-  const [userSelecionado, setUserSelecionado] = useState(null);
-  const [medalModal, setMedalModal]           = useState(null);
-  const [medalMsg,   setMedalMsg]             = useState("");
-  const [medalPush,  setMedalPush]            = useState(true);
-  const [piaPrazoExt, setPiaPrazoExt]         = useState("");
-
-  function ultimaEntrada(iso) {
-    if (!iso) return "nunca entrou";
-    const d = new Date(iso);
-    const dias = Math.floor((Date.now() - d.getTime()) / 86400000);
-    if (dias <= 0) return "hoje";
-    if (dias === 1) return "ontem";
-    if (dias < 7) return `há ${dias} dias`;
-    return d.toLocaleDateString("pt-PT", { day:"2-digit", month:"2-digit", year:"2-digit" });
-  }
-
-  function formatarDataHora(ts, dataAntiga) {
-    if (!ts) return dataAntiga;
-    const d = new Date(ts);
-    return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} às ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-  }
-
-  // ── ATRIBUIR MEDALHA ──────────────────────────────────────────────────────
-  async function assignMedal(username, mid, msg, push = true) {
-    const medalDoc  = amMedals[username] || {};
-    const weekKey   = getWeekKey();
-    const curWeek   = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
-    const allTime   = medalDoc.allTime || [];
-    if (curWeek.includes(mid)) return;
-
-    const newMedalDoc = { week:[...curWeek, mid], weekKey, allTime: allTime.includes(mid) ? allTime : [...allTime, mid] };
-    setAmMedals(p => upd(p, username, newMedalDoc));
-    await setDoc(doc(db, "medals", username), newMedalDoc);
-
-    const medal   = ALL_MEDALS.find(m => m.id === mid);
-    const userRef = doc(db, "userData", username);
-    const snap    = await getDoc(userRef);
-    const uData   = snap.exists() ? snap.data() : {};
-    const newHistory = [...(uData.history || []),
-      { date: nowLabel(), action: `Recebeste a medalha ${medal?.icon} ${medal?.label}! 🏅`, ts: Date.now(), xp: 50 }];
-    await setDoc(userRef, { history: newHistory, weekXp: (uData.weekXp || 0) + 50 }, { merge: true });
-
-    const notifText = `🏅 A Teresa atribuiu-te a medalha ${medal?.icon} ${medal?.label}!${msg ? ` "${msg}"` : ""}`;
-    await addDoc(collection(db, "notifications", username, "items"), { from:"teresa", text:notifText, date:nowFull(), read:false, ts:Date.now(), push });
-  }
-
-  // ── REMOVER MEDALHA (semana + allTime + histórico + XP) ──────────────────
-  async function removeMedal(username, mid) {
-    if (!window.confirm("Remover esta medalha completamente?\n(semana + histórico + XP devolvido)")) return;
-    const isStreak  = mid.startsWith("streak");
-    const medalDoc  = amMedals[username] || {};
-    const weekKey   = getWeekKey();
-    const curWeek   = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
-    // Medalhas de streak vivem em userData.streakMedals; as restantes em medals/{username}.
-    if (!isStreak) {
-      const newMedalDoc = {
-        ...medalDoc,
-        week:    curWeek.filter(m => m !== mid),
-        allTime: (medalDoc.allTime || []).filter(m => m !== mid),
-        weekKey,
-      };
-      setAmMedals(p => upd(p, username, newMedalDoc));
-      await setDoc(doc(db, "medals", username), newMedalDoc);
-    }
-
-    // Remove história + devolve XP (usa o XP real da entrada)
-    const medal   = ALL_MEDALS.find(m => m.id === mid);
-    const userRef = doc(db, "userData", username);
-    const snap    = await getDoc(userRef);
-    if (snap.exists()) {
-      const uData   = snap.data();
-      const history = uData.history || [];
-      // Remove a entrada mais recente que mencione esta medalha
-      let removedXp = null;
-      const newHistory = [...history].reverse().filter(h => {
-        if (removedXp === null && h.action?.includes(medal?.label)) { removedXp = h.xp || 0; return false; }
-        return true;
-      }).reverse();
-      const xpRemoved = removedXp === null ? (isStreak ? 0 : 50) : removedXp;
-      await setDoc(userRef, {
-        history: newHistory,
-        weekXp: Math.max(0, (uData.weekXp || 0) - xpRemoved),
-        ...(isStreak ? { streakMedals: (uData.streakMedals || []).filter(m => m !== mid) } : {}),
-      }, { merge: true });
-    }
-  }
-
-  // ── APAGAR ENTRADA DO HISTÓRICO (por ts) ─────────────────────────────────
-  async function deleteHistoryEntry(username, entry) {
-    if (!window.confirm(`Apagar esta entrada?\n"${entry.action}"`)) return;
-    const userRef = doc(db, "userData", username);
-    const snap    = await getDoc(userRef);
-    if (!snap.exists()) return;
-    const uData      = snap.data();
-    const newHistory = (uData.history || []).filter(h =>
-      entry.ts ? h.ts !== entry.ts : h.action !== entry.action
-    );
-    // Recalcula weekXp a partir do histórico restante (evita erros acumulados)
-    const newWeekXp = newHistory.reduce((s, h) => s + (h.xp || 0), 0);
-    await setDoc(userRef, { history: newHistory, weekXp: newWeekXp }, { merge: true });
-  }
-
-  // ── RESET TOTAL (XP + histórico + missões + medalhas + entregas) ──────────
-  async function resetTotal(username) {
-    if (!window.confirm(`RESET TOTAL do ${username}?\n\nApaga: todo o XP, histórico, missões concluídas, medalhas (semana + histórico), autoavaliação e pergunta semanal.\n\nEsta ação não tem volta!`)) return;
-    const userRef = doc(db, "userData", username);
-    await setDoc(userRef, {
-      weekXp: 0, history: [], completedMissions: [],
-      autoSaved: false, autoDate: null,
-      answered: false, qAnswer: null,
-    }, { merge: true });
-    const newMedalDoc = { week: [], weekKey: getWeekKey(), allTime: [] };
-    setAmMedals(p => upd(p, username, newMedalDoc));
-    await setDoc(doc(db, "medals", username), newMedalDoc);
-  }
-
-  // ── RESET MISSÕES CONCLUÍDAS ──────────────────────────────────────────────
-  async function resetMissoes(username) {
-    if (!window.confirm("Limpar todas as missões concluídas deste jovem?")) return;
-    await setDoc(doc(db, "userData", username), { completedMissions: [] }, { merge: true });
-  }
-
-  // ── RESET AUTOAVALIAÇÃO ───────────────────────────────────────────────────
-  async function resetAutoavaliacao(username) {
-    if (!window.confirm("Repor a autoavaliação? O jovem poderá submeter de novo. A versão atual fica guardada no histórico.")) return;
-    const uData = allShared[username] || {};
-    if (uData.autoSaved || Object.keys(uData.dScores || {}).length > 0) {
-      await updateDoc(doc(db, "userData", username), {
-        autoAvaliacaoHistorico: arrayUnion({
-          week: getWeekKey(), scores: uData.dScores || {},
-          notas: uData.dNotas || {}, date: uData.autoDate || null,
-          saved: !!uData.autoSaved, ts: Date.now()
-        })
-      });
-    }
-    await setDoc(doc(db, "userData", username), { autoSaved: false, autoDate: null, dScores: {}, dNotas: {} }, { merge: true });
-  }
-
-  // ── RESET PERGUNTA SEMANAL ────────────────────────────────────────────────
-  async function resetPergunta(username) {
-    if (!window.confirm("Repor a pergunta semanal? O jovem poderá responder de novo. A resposta atual fica guardada no histórico.")) return;
-    const uData = allShared[username] || {};
-    if (uData.answerText || uData.answerMedia) {
-      await updateDoc(doc(db, "userData", username), {
-        perguntasHistorico: arrayUnion({
-          week: getWeekKey(), answer: uData.answerText || "",
-          type: uData.answerType || "texto", media: uData.answerMedia || null, ts: Date.now()
-        })
-      });
-    }
-    await setDoc(doc(db, "userData", username), { answered: false, qAnswer: null }, { merge: true });
-  }
-
-  // ── RESET SATISFAÇÃO ──────────────────────────────────────────────────────
-  async function resetSatisfacao(username) {
-    if (!window.confirm("Repor a satisfação? O jovem poderá submeter de novo. A versão atual fica guardada no histórico.")) return;
-    const uData = allShared[username] || {};
-    if (uData.sSaved) {
-      await updateDoc(doc(db, "userData", username), {
-        satisfacaoHistorico: arrayUnion({
-          week: getWeekKey(), ratings: uData.sRatings || {},
-          chips: uData.sChips || [], mudaria: uData.sMudaria || "",
-          ts: Date.now()
-        })
-      });
-    }
-    await setDoc(doc(db, "userData", username), { sSaved: false, sRatings: {}, sChips: [], sMudaria: "" }, { merge: true });
-  }
-
-  // ── DOSSIER MODAL ─────────────────────────────────────────────────────────
-  function DossierModal({ username, onClose }) {
+// Janela do dossier do jovem. Vive FORA do AdminUsers de propósito: quando
+// estava lá dentro, era reconstruída de cada vez que os dados em tempo real
+// mudavam e o texto que a Teresa estava a escrever (feedback, XP) perdia-se.
+function DossierModal({ username, onClose, allShared, amMedals, weekStartTs, missoesPorId, usersMeta, piaPrazoExt, setPiaPrazoExt, setMedalModal, setMedalMsg, deleteHistoryEntry, formatarDataHora, removeMedal, resetAutoavaliacao, resetMissoes, resetPergunta, resetSatisfacao, resetTotal }) {
     const uData         = allShared[username] || {};
     const medalDoc      = amMedals[username] || {};
     const weekKey       = getWeekKey();
@@ -882,6 +696,196 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
     );
   }
 
+export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStartTs = 0 }) {
+  // Todas as missões (por id) para poder mostrar o texto/prazo das que cada jovem cumpriu.
+  const [missoesPorId, setMissoesPorId] = useState({});
+  useEffect(() => {
+    return onSnapshot(collection(db, "missions"), snap => {
+      const map = {};
+      snap.docs.forEach(d => { map[d.id] = { id: d.id, ...d.data() }; });
+      setMissoesPorId(map);
+    });
+  }, []);
+  // Última entrada de cada jovem (guardada em users/{username}.lastLogin).
+  const [usersMeta, setUsersMeta] = useState({});
+  useEffect(() => {
+    return onSnapshot(collection(db, "users"), snap => {
+      const map = {};
+      snap.docs.forEach(d => { map[d.id] = d.data(); });
+      setUsersMeta(map);
+    });
+  }, []);
+  const [userSelecionado, setUserSelecionado] = useState(null);
+  const [medalModal, setMedalModal]           = useState(null);
+  const [medalMsg,   setMedalMsg]             = useState("");
+  const [medalPush,  setMedalPush]            = useState(true);
+  const [piaPrazoExt, setPiaPrazoExt]         = useState("");
+
+  function ultimaEntrada(iso) {
+    if (!iso) return "nunca entrou";
+    const d = new Date(iso);
+    const dias = Math.floor((Date.now() - d.getTime()) / 86400000);
+    if (dias <= 0) return "hoje";
+    if (dias === 1) return "ontem";
+    if (dias < 7) return `há ${dias} dias`;
+    return d.toLocaleDateString("pt-PT", { day:"2-digit", month:"2-digit", year:"2-digit" });
+  }
+
+  function formatarDataHora(ts, dataAntiga) {
+    if (!ts) return dataAntiga;
+    const d = new Date(ts);
+    return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} às ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+
+  // ── ATRIBUIR MEDALHA ──────────────────────────────────────────────────────
+  async function assignMedal(username, mid, msg, push = true) {
+    const medalDoc  = amMedals[username] || {};
+    const weekKey   = getWeekKey();
+    const curWeek   = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
+    const allTime   = medalDoc.allTime || [];
+    if (curWeek.includes(mid)) return;
+
+    const newMedalDoc = { week:[...curWeek, mid], weekKey, allTime: allTime.includes(mid) ? allTime : [...allTime, mid] };
+    setAmMedals(p => upd(p, username, newMedalDoc));
+    await setDoc(doc(db, "medals", username), newMedalDoc);
+
+    const medal   = ALL_MEDALS.find(m => m.id === mid);
+    const userRef = doc(db, "userData", username);
+    const snap    = await getDoc(userRef);
+    const uData   = snap.exists() ? snap.data() : {};
+    const newHistory = [...(uData.history || []),
+      { date: nowLabel(), action: `Recebeste a medalha ${medal?.icon} ${medal?.label}! 🏅`, ts: Date.now(), xp: 50 }];
+    await setDoc(userRef, { history: newHistory, weekXp: (uData.weekXp || 0) + 50 }, { merge: true });
+
+    const notifText = `🏅 A Teresa atribuiu-te a medalha ${medal?.icon} ${medal?.label}!${msg ? ` "${msg}"` : ""}`;
+    await addDoc(collection(db, "notifications", username, "items"), { from:"teresa", text:notifText, date:nowFull(), read:false, ts:Date.now(), push });
+  }
+
+  // ── REMOVER MEDALHA (semana + allTime + histórico + XP) ──────────────────
+  async function removeMedal(username, mid) {
+    if (!window.confirm("Remover esta medalha completamente?\n(semana + histórico + XP devolvido)")) return;
+    const isStreak  = mid.startsWith("streak");
+    const medalDoc  = amMedals[username] || {};
+    const weekKey   = getWeekKey();
+    const curWeek   = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
+    // Medalhas de streak vivem em userData.streakMedals; as restantes em medals/{username}.
+    if (!isStreak) {
+      const newMedalDoc = {
+        ...medalDoc,
+        week:    curWeek.filter(m => m !== mid),
+        allTime: (medalDoc.allTime || []).filter(m => m !== mid),
+        weekKey,
+      };
+      setAmMedals(p => upd(p, username, newMedalDoc));
+      await setDoc(doc(db, "medals", username), newMedalDoc);
+    }
+
+    // Remove história + devolve XP (usa o XP real da entrada)
+    const medal   = ALL_MEDALS.find(m => m.id === mid);
+    const userRef = doc(db, "userData", username);
+    const snap    = await getDoc(userRef);
+    if (snap.exists()) {
+      const uData   = snap.data();
+      const history = uData.history || [];
+      // Remove a entrada mais recente que mencione esta medalha
+      let removedXp = null;
+      const newHistory = [...history].reverse().filter(h => {
+        if (removedXp === null && h.action?.includes(medal?.label)) { removedXp = h.xp || 0; return false; }
+        return true;
+      }).reverse();
+      const xpRemoved = removedXp === null ? (isStreak ? 0 : 50) : removedXp;
+      await setDoc(userRef, {
+        history: newHistory,
+        weekXp: Math.max(0, (uData.weekXp || 0) - xpRemoved),
+        ...(isStreak ? { streakMedals: (uData.streakMedals || []).filter(m => m !== mid) } : {}),
+      }, { merge: true });
+    }
+  }
+
+  // ── APAGAR ENTRADA DO HISTÓRICO (por ts) ─────────────────────────────────
+  async function deleteHistoryEntry(username, entry) {
+    if (!window.confirm(`Apagar esta entrada?\n"${entry.action}"`)) return;
+    const userRef = doc(db, "userData", username);
+    const snap    = await getDoc(userRef);
+    if (!snap.exists()) return;
+    const uData      = snap.data();
+    const newHistory = (uData.history || []).filter(h =>
+      entry.ts ? h.ts !== entry.ts : h.action !== entry.action
+    );
+    // Recalcula weekXp a partir do histórico restante (evita erros acumulados)
+    const newWeekXp = newHistory.reduce((s, h) => s + (h.xp || 0), 0);
+    await setDoc(userRef, { history: newHistory, weekXp: newWeekXp }, { merge: true });
+  }
+
+  // ── RESET TOTAL (XP + histórico + missões + medalhas + entregas) ──────────
+  async function resetTotal(username) {
+    if (!window.confirm(`RESET TOTAL do ${username}?\n\nApaga: todo o XP, histórico, missões concluídas, medalhas (semana + histórico), autoavaliação e pergunta semanal.\n\nEsta ação não tem volta!`)) return;
+    const userRef = doc(db, "userData", username);
+    await setDoc(userRef, {
+      weekXp: 0, history: [], completedMissions: [],
+      autoSaved: false, autoDate: null,
+      answered: false, qAnswer: null,
+    }, { merge: true });
+    const newMedalDoc = { week: [], weekKey: getWeekKey(), allTime: [] };
+    setAmMedals(p => upd(p, username, newMedalDoc));
+    await setDoc(doc(db, "medals", username), newMedalDoc);
+  }
+
+  // ── RESET MISSÕES CONCLUÍDAS ──────────────────────────────────────────────
+  async function resetMissoes(username) {
+    if (!window.confirm("Limpar todas as missões concluídas deste jovem?")) return;
+    await setDoc(doc(db, "userData", username), { completedMissions: [] }, { merge: true });
+  }
+
+  // ── RESET AUTOAVALIAÇÃO ───────────────────────────────────────────────────
+  async function resetAutoavaliacao(username) {
+    if (!window.confirm("Repor a autoavaliação? O jovem poderá submeter de novo. A versão atual fica guardada no histórico.")) return;
+    const uData = allShared[username] || {};
+    if (uData.autoSaved || Object.keys(uData.dScores || {}).length > 0) {
+      await updateDoc(doc(db, "userData", username), {
+        autoAvaliacaoHistorico: arrayUnion({
+          week: getWeekKey(), scores: uData.dScores || {},
+          notas: uData.dNotas || {}, date: uData.autoDate || null,
+          saved: !!uData.autoSaved, ts: Date.now()
+        })
+      });
+    }
+    await setDoc(doc(db, "userData", username), { autoSaved: false, autoDate: null, dScores: {}, dNotas: {} }, { merge: true });
+  }
+
+  // ── RESET PERGUNTA SEMANAL ────────────────────────────────────────────────
+  async function resetPergunta(username) {
+    if (!window.confirm("Repor a pergunta semanal? O jovem poderá responder de novo. A resposta atual fica guardada no histórico.")) return;
+    const uData = allShared[username] || {};
+    if (uData.answerText || uData.answerMedia) {
+      await updateDoc(doc(db, "userData", username), {
+        perguntasHistorico: arrayUnion({
+          week: getWeekKey(), answer: uData.answerText || "",
+          type: uData.answerType || "texto", media: uData.answerMedia || null, ts: Date.now()
+        })
+      });
+    }
+    await setDoc(doc(db, "userData", username), { answered: false, qAnswer: null }, { merge: true });
+  }
+
+  // ── RESET SATISFAÇÃO ──────────────────────────────────────────────────────
+  async function resetSatisfacao(username) {
+    if (!window.confirm("Repor a satisfação? O jovem poderá submeter de novo. A versão atual fica guardada no histórico.")) return;
+    const uData = allShared[username] || {};
+    if (uData.sSaved) {
+      await updateDoc(doc(db, "userData", username), {
+        satisfacaoHistorico: arrayUnion({
+          week: getWeekKey(), ratings: uData.sRatings || {},
+          chips: uData.sChips || [], mudaria: uData.sMudaria || "",
+          ts: Date.now()
+        })
+      });
+    }
+    await setDoc(doc(db, "userData", username), { sSaved: false, sRatings: {}, sChips: [], sMudaria: "" }, { merge: true });
+  }
+
+  // ── DOSSIER MODAL ─────────────────────────────────────────────────────────
+
   const demoEntradas = [...((usersMeta.demo || {}).logins || [])].sort((a, b) => (b.ts || 0) - (a.ts || 0));
   return (
     <>
@@ -952,7 +956,8 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
       })}
 
       {userSelecionado && (
-        <DossierModal username={userSelecionado} onClose={() => setUserSelecionado(null)} />
+        <DossierModal username={userSelecionado} onClose={() => setUserSelecionado(null)}
+                    allShared={allShared} amMedals={amMedals} weekStartTs={weekStartTs} missoesPorId={missoesPorId} usersMeta={usersMeta} piaPrazoExt={piaPrazoExt} setPiaPrazoExt={setPiaPrazoExt} setMedalModal={setMedalModal} setMedalMsg={setMedalMsg} deleteHistoryEntry={deleteHistoryEntry} formatarDataHora={formatarDataHora} removeMedal={removeMedal} resetAutoavaliacao={resetAutoavaliacao} resetMissoes={resetMissoes} resetPergunta={resetPergunta} resetSatisfacao={resetSatisfacao} resetTotal={resetTotal} />
       )}
 
       {/* MODAL DE ATRIBUIÇÃO DE MEDALHA */}
