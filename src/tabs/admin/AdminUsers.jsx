@@ -200,9 +200,13 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
     const weekMedals    = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
     const allTimeMedals = [...new Set([...(medalDoc.allTime || []), ...(uData.streakMedals || [])])];
     const publicHistory = (uData.history || []).filter(h => !h.private);
-    const totalXp       = publicHistory.reduce((s, h) => s + (h.xp || 0), 0);
+    // O XP soma o histórico TODO, incluindo as entradas privadas (a Satisfação
+    // vale 30 XP e é privada) — senão este número não batia certo com o
+    // ranking do Geral nem com o que o jovem vê no perfil dele.
+    const todoHistorico = uData.history || [];
+    const totalXp       = todoHistorico.reduce((s, h) => s + (h.xp || 0), 0);
     const semanaXp      = weekStartTs > 0
-      ? publicHistory.filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
+      ? todoHistorico.filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
       : (uData.weekXp || 0);
     const jeep          = JEEP_LIST.find(j => j.username === username);
     const [xpEdit, setXpEdit] = useState(String(uData.weekXp || 0));
@@ -916,10 +920,10 @@ export default function AdminUsers({ amMedals, setAmMedals, allShared, weekStart
         const wMedals     = (medalDoc.weekKey === weekKey ? medalDoc.week : []) || [];
         const uData       = allShared[j.username] || {};
         const atMedals    = [...new Set([...(medalDoc.allTime || []), ...(uData.streakMedals || [])])];
-        const pubHistory   = (uData.history || []).filter(h => !h.private);
-        const totalXpCard  = pubHistory.reduce((s, h) => s + (h.xp || 0), 0);
+        const histCompleto = uData.history || [];   // XP conta tudo (ver DossierModal)
+        const totalXpCard  = histCompleto.reduce((s, h) => s + (h.xp || 0), 0);
         const semanaXpCard = weekStartTs > 0
-          ? pubHistory.filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
+          ? histCompleto.filter(h => (h.ts || 0) >= weekStartTs && (h.xp || 0) > 0).reduce((s, h) => s + (h.xp || 0), 0)
           : (uData.weekXp || 0);
 
         return (

@@ -38,10 +38,16 @@ export function fmtDate(s) {
   return p[2] + " " + MTHS[parseInt(p[1], 10) - 1];
 }
 export function isOverdue(s) { return !s ? false : new Date(s) < new Date(); }
+// Chave da semana de uma data qualquer. Fonte única: o relatório e o resto da
+// app têm de concordar sobre em que semana cai cada registo.
+export function weekKeyFromTs(ts) {
+  const d = new Date(ts), jan1 = new Date(d.getFullYear(), 0, 1);
+  const wk = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  return d.getFullYear() + "-W" + wk;
+}
+
 export function getWeekKey() {
-  let d = new Date(), jan1 = new Date(d.getFullYear(),0,1);
-  let wk = Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7);
-  return d.getFullYear()+"-W"+wk;
+  return weekKeyFromTs(Date.now());
 }
 
 export function buildAutoavEntry(uData, ciclo) {

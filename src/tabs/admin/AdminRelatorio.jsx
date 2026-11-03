@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CARD, SL, CYN, GRN, PNK } from "../../theme.jsx";
-import { JEEP_LIST, getWeekKey } from "../../data.js";
+import { JEEP_LIST, BLOCKED_USERNAMES, getWeekKey, weekKeyFromTs } from "../../data.js";
 
 const JEEP_8 = JEEP_LIST.filter(j => !["teresa", "ricardo", "demo"].includes(j.username));
 
@@ -15,11 +15,19 @@ const COLS = [
   { key: "xp",         short: "XP",     label: "XP ganho",           bool: false },
 ];
 
-function tsToWeekKey(ts) {
-  const d = new Date(ts);
-  const jan1 = new Date(d.getFullYear(), 0, 1);
-  const wk = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
-  return d.getFullYear() + "-W" + wk;
+// Todas as semanas entre a primeira com registos e a atual — assim as semanas
+// sem atividade nenhuma aparecem a zeros em vez de desaparecerem da lista.
+function todasAsSemanas(primeiroTs) {
+  const chaves = [];
+  const vistas = new Set();
+  const fim = Date.now();
+  for (let t = primeiroTs; t <= fim + 86400000; t += 86400000) {
+    const k = weekKeyFromTs(t);
+    if (!vistas.has(k)) { vistas.add(k); chaves.push(k); }
+  }
+  const atual = getWeekKey();
+  if (!vistas.has(atual)) chaves.push(atual);
+  return chaves;
 }
 
 function weekLabel(wkStr) {
@@ -36,16 +44,19 @@ function weekLabel(wkStr) {
 
 function buildWeeklyData(allShared) {
   const weeks = {};
-  const currentWk = getWeekKey();
+  let primeiroTs = Infinity;
+
+  const novo = () => ({ pergunta: 0, satisfacao: 0, autoAv: 0, pia: 0, missoes: 0, dilemas: 0, xp: 0 });
 
   JEEP_8.forEach(j => {
     const ud = allShared[j.username] || {};
     const history = (ud.history || []).filter(h => h.ts);
 
     history.forEach(h => {
-      const wk = tsToWeekKey(h.ts);
+      const wk = weekKeyFromTs(h.ts);
+      if (h.ts < primeiroTs) primeiroTs = h.ts;
       if (!weeks[wk]) weeks[wk] = {};
-      if (!weeks[wk][j.username]) weeks[wk][j.username] = { pergunta: 0, satisfacao: 0, autoAv: 0, pia: 0, missoes: 0, dilemas: 0, xp: 0 };
+      if (!weeks[wk][j.username]) weeks[wk][j.username] = novo();
       const e = weeks[wk][j.username];
       const act = (h.action || "").toLowerCase();
       if (act.includes("desafio semanal")) e.pergunta = 1;
@@ -56,29 +67,35 @@ function buildWeeklyData(allShared) {
       if (act.includes("dilema:")) e.dilemas++;
       if ((h.xp || 0) > 0) e.xp += h.xp;
     });
-
-    // Supplement current week with live boolean states
-    if (!weeks[currentWk]) weeks[currentWk] = {};
-    if (!weeks[currentWk][j.username]) weeks[currentWk][j.username] = { pergunta: 0, satisfacao: 0, autoAv: 0, pia: 0, missoes: 0, dilemas: 0, xp: 0 };
-    const cur = weeks[currentWk][j.username];
-    if (ud.answered)  cur.pergunta   = 1;
-    if (ud.sSaved)    cur.satisfacao = 1;
-    if (ud.autoSaved) cur.autoAv     = 1;
-    if (ud.piaSaved)  cur.pia        = 1;
   });
 
-  if (!weeks[currentWk]) weeks[currentWk] = {};
+  // NOTA: a semana atual conta SÓ o que foi feito nesta semana, tal como as
+  // anteriores. Antes juntava-se aqui o estado atual (respondeu/entregou,
+  // mesmo que tivesse sido há meses) e a semana atual media outra coisa.
+  if (primeiroTs === Infinity) primeiroTs = Date.now();
+  todasAsSemanas(primeiroTs).forEach(wk => { if (!weeks[wk]) weeks[wk] = {}; });
+
   return weeks;
+}
+
+// Quem conta numa dada semana: os jovens ativos, mais quem já saiu do programa
+// mas tem registos nessa semana (para o histórico não se perder nem os totais
+// ficarem sobre 9 quando já só há 7 pessoas).
+function jovensDaSemana(wkData) {
+  return JEEP_8.filter(j =>
+    !BLOCKED_USERNAMES.includes(j.username) || !!wkData[j.username]
+  );
 }
 
 function buildCSV(weeks) {
   const sortedWks = Object.keys(weeks).sort().reverse();
 
-  // One row per (week × user)
+  // Uma linha por (semana × jovem). Todas as semanas medem o mesmo: o que foi
+  // feito NESSA semana (não o estado acumulado).
   const headers = ["Semana", "Datas", "Jovem", ...COLS.map(c => c.label)];
   const rows = [];
   sortedWks.forEach(wk => {
-    JEEP_8.forEach(j => {
+    jovensDaSemana(weeks[wk]).forEach(j => {
       const d = weeks[wk][j.username] || {};
       rows.push([
         wk,
@@ -95,7 +112,7 @@ function buildCSV(weeks) {
   const csv = [headers, ...rows]
     .map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(","))
     .join("\n");
-  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -140,6 +157,11 @@ export default function AdminRelatorio({ allShared }) {
         </button>
       </div>
 
+      <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.5, marginBottom: 14, marginTop: -8 }}>
+        Cada linha conta o que foi feito <b>nessa semana</b> — não o estado acumulado.
+        Uma semana a zeros quer dizer que não houve atividade nenhuma nesses dias.
+      </div>
+
       {sortedWks.length === 0 && (
         <div style={{ textAlign: "center", color: "#94a3b8", padding: "40px 0", fontSize: 13 }}>
           Ainda não há dados registados.
@@ -153,9 +175,10 @@ export default function AdminRelatorio({ allShared }) {
 
         // Summary: how many users did each bool activity
         const boolCols = COLS.filter(c => c.bool);
+        const jovens = jovensDaSemana(wkData);
         const completed = {};
         boolCols.forEach(c => {
-          completed[c.key] = JEEP_8.filter(j => (wkData[j.username] || {})[c.key]).length;
+          completed[c.key] = jovens.filter(j => (wkData[j.username] || {})[c.key]).length;
         });
         return (
           <div key={wk} style={{
@@ -173,8 +196,8 @@ export default function AdminRelatorio({ allShared }) {
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ fontSize: 11, fontWeight: 900, color: isCurrent ? CYN : "#94a3b8" }}>
-                  {isCurrent ? "🟢 SEMANA ATUAL" : "●"}&nbsp;
-                  {wk.replace("-W", " · Sem.&nbsp;")}
+                  {isCurrent ? "🟢 SEMANA ATUAL" : "●"}{"\u00a0"}
+                  {wk.replace("-W", " · Sem.\u00a0")}
                 </span>
                 <span style={{ fontSize: 11, color: "#64748b" }}>({weekLabel(wk)})</span>
               </div>
@@ -183,9 +206,9 @@ export default function AdminRelatorio({ allShared }) {
                 {boolCols.map(c => (
                   <span key={c.key} style={{
                     fontSize: 10, fontWeight: 800,
-                    color: completed[c.key] === JEEP_8.length ? GRN : completed[c.key] > 0 ? "#fbbf24" : "#475569",
+                    color: completed[c.key] === jovens.length ? GRN : completed[c.key] > 0 ? "#fbbf24" : "#475569",
                   }}>
-                    {completed[c.key]}/{JEEP_8.length}
+                    {completed[c.key]}/{jovens.length}
                   </span>
                 ))}
                 <span style={{ fontSize: 11, color: "#94a3b8", marginLeft: 4 }}>{isOpen ? "▲" : "▼"}</span>
@@ -207,7 +230,7 @@ export default function AdminRelatorio({ allShared }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {JEEP_8.map(j => {
+                    {jovens.map(j => {
                       const d = wkData[j.username] || {};
                       const anyDone = COLS.some(c => (d[c.key] || 0) > 0);
                       return (
@@ -235,16 +258,16 @@ export default function AdminRelatorio({ allShared }) {
                       <td style={{ padding: "6px 12px", fontSize: 10, color: "#64748b", fontWeight: 800 }}>TOTAL</td>
                       {COLS.map(c => {
                         const total = c.bool
-                          ? JEEP_8.filter(j => (wkData[j.username] || {})[c.key]).length
-                          : JEEP_8.reduce((s, j) => s + ((wkData[j.username] || {})[c.key] || 0), 0);
+                          ? jovens.filter(j => (wkData[j.username] || {})[c.key]).length
+                          : jovens.reduce((s, j) => s + ((wkData[j.username] || {})[c.key] || 0), 0);
                         return (
                           <td key={c.key} style={{
                             padding: "6px 6px", textAlign: "center", fontSize: 11, fontWeight: 900,
                             color: c.bool
-                              ? (total === JEEP_8.length ? GRN : total > 0 ? "#fbbf24" : "#475569")
+                              ? (total === jovens.length ? GRN : total > 0 ? "#fbbf24" : "#475569")
                               : (total > 0 ? CYN : "#475569"),
                           }}>
-                            {c.bool ? `${total}/${JEEP_8.length}` : (total || "–")}
+                            {c.bool ? `${total}/${jovens.length}` : (total || "–")}
                           </td>
                         );
                       })}

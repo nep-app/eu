@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { collection, onSnapshot, doc, getDoc, setDoc, query, orderBy } from "firebase/firestore";
 import { db, registarPushNotifications } from "./firebase.js";
 import { BG, CYN, AppIcon } from "./theme.jsx";
-import { upd, getWeekKey, nowLabel, ALLOWED_USERNAMES, JEEP_LIST } from "./data.js";
+import { upd, getWeekKey, nowLabel, ALLOWED_USERNAMES, JEEP_LIST, SPECIAL_USERS } from "./data.js";
 
 // ── IMPORTAÇÃO DAS FATIAS ──
 import AdminGeral from './tabs/admin/AdminGeral.jsx';
@@ -127,7 +127,9 @@ export default function TeresaAdmin({ user, onLogout }) {
     clearTimeout(lbTimer.current);
     lbTimer.current = setTimeout(() => {
       const scores = {};
-      JEEP_LIST.forEach(j => {
+      // Só jovens: a teresa, o ricardo e a demo são contas de teste/gestão e
+      // não entram no ranking (apareciam misturadas com o grupo).
+      JEEP_LIST.filter(j => !SPECIAL_USERS.includes(j.username)).forEach(j => {
         const d = allShared[j.username] || {};
         const hist = d.history || [];
         const xp = weekStartTs > 0
