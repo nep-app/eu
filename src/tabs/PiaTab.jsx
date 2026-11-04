@@ -276,21 +276,80 @@ export default function PiaTab({ user, data }) {
 
   useEffect(() => { setWizStep(0); }, [subTab]);
 
-  function saveField(sectionId, key, val) {
-    const newSectionData = { ...(piaData[sectionId] || {}), [key]: val };
-    setDoc(doc(db, "userData", user.username), { piaData: { ...piaData, [sectionId]: newSectionData } }, { merge: true });
+  // ── Gravação do PIA ───────────────────────────────────────────────────
+  // Antes gravava a CADA TECLA e reenviava o PIA inteiro de cada vez: lento no
+  // telemóvel, e se duas gravações chegassem trocadas o texto recuava sozinho.
+  // Agora o que se escreve fica num rascunho local (o ecrã responde logo) e só
+  // vai para o servidor ~1 segundo depois de parar de escrever — e só o campo
+  // que mudou. Se falhar, a pessoa é avisada em vez de perder o texto em silêncio.
+  const [rascunho, setRascunho] = useState({});      // { "seccao.campo": valor }
+  const porGravar = useRef({});                      // o que ainda falta enviar
+  const timer     = useRef(null);
+  const [erroAGravar, setErroAGravar] = useState(false);
+
+  async function gravarPendentes() {
+    const pendentes = porGravar.current;
+    porGravar.current = {};
+    const chaves = Object.keys(pendentes);
+    if (chaves.length === 0) return;
+    const payload = {};
+    chaves.forEach(k => {
+      const [sectionId, campo] = k.split(/\.(.+)/);
+      payload[sectionId] = { ...(payload[sectionId] || {}), [campo]: pendentes[k] };
+    });
+    try {
+      // merge:true funde mapa a mapa — não toca nos outros campos nem noutras secções.
+      await setDoc(doc(db, "userData", user.username), { piaData: payload }, { merge: true });
+      setErroAGravar(false);
+    } catch (e) {
+      // Volta a pôr na fila para a próxima tentativa não perder o texto.
+      porGravar.current = { ...pendentes, ...porGravar.current };
+      setErroAGravar(true);
+      aviso("Não foi possível guardar o que escreveste. Verifica a ligação — o texto ainda está aí.");
+    }
   }
+
+  function saveField(sectionId, key, val) {
+    setRascunho(r => ({ ...r, [`${sectionId}.${key}`]: val }));
+    porGravar.current[`${sectionId}.${key}`] = val;
+    clearTimeout(timer.current);
+    timer.current = setTimeout(gravarPendentes, 1000);
+  }
+
+  // Lê um campo: o que está no rascunho ganha ao que veio do servidor.
+  function campo(sectionId, key, def = "") {
+    const k = `${sectionId}.${key}`;
+    if (k in rascunho) return rascunho[k];
+    return (piaData[sectionId] || {})[key] ?? def;
+  }
+
+  // Secção inteira já com o rascunho por cima (usado na vista de lista).
+  function seccaoComRascunho(sectionId) {
+    const base = { ...(piaData[sectionId] || {}) };
+    Object.keys(rascunho).forEach(k => {
+      const [sec, campoNome] = k.split(/\.(.+)/);
+      if (sec === sectionId) base[campoNome] = rascunho[k];
+    });
+    return base;
+  }
+
+  // Ao sair da página, grava já o que estiver pendente.
+  useEffect(() => () => { clearTimeout(timer.current); gravarPendentes(); }, []);
 
   async function enviarTeresa() {
     const jaEnviou = uData.piaSaved;
     if (!window.confirm(jaEnviou ? "Atualizar o PIA enviado à Teresa?" : "Enviar o PIA à Teresa?")) return;
     setSending(true);
+    // Garante que o que foi escrito nos últimos segundos já está gravado
+    // antes de contar as secções preenchidas e de avisar a Teresa.
+    clearTimeout(timer.current);
+    await gravarPendentes();
     const ts = nowFull();
     const submittedSections = uData.piaSubmittedSections || [];
     const novasSeccoes = PIA_SECTIONS.filter(sec =>
       piaUnlocked[sec.id] &&
       !submittedSections.includes(sec.id) &&
-      sec.fields.some(f => fieldFilled(f, piaData[sec.id] || {}))
+      sec.fields.some(f => fieldFilled(f, seccaoComRascunho(sec.id)))
     );
     const xpGanho = novasSeccoes.length * 30;
     const todasSeccoes = [...submittedSections, ...novasSeccoes.map(s => s.id)];
@@ -328,7 +387,7 @@ export default function PiaTab({ user, data }) {
   const totalFields   = PIA_SECTIONS.reduce((s, sec) => piaUnlocked[sec.id] ? s + sec.fields.length : s, 0);
   const filledFields  = PIA_SECTIONS.reduce((s, sec) => {
     if (!piaUnlocked[sec.id]) return s;
-    const sd = piaData[sec.id] || {};
+    const sd = seccaoComRascunho(sec.id);
     return s + sec.fields.filter(f => fieldFilled(f, sd)).length;
   }, 0);
   const progress   = totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0;
@@ -340,7 +399,7 @@ export default function PiaTab({ user, data }) {
   function tabAllFilled(tabId) {
     return PIA_SECTIONS.filter(s => s.sub === tabId).every(sec => {
       if (!piaUnlocked[sec.id]) return true;
-      const sd = piaData[sec.id] || {};
+      const sd = seccaoComRascunho(sec.id);
       return sec.fields.filter(f => !f.semConclusao).every(f => fieldFilled(f, sd));
     });
   }
@@ -363,7 +422,7 @@ export default function PiaTab({ user, data }) {
   const currentQ   = wizardQuestions[safeStep];
 
   function appendChip(q, chip) {
-    const cur = piaData[q.sectionId]?.[q.key] || "";
+    const cur = campo(q.sectionId, q.key);
     // Recursos: lista de coisas → junta com vírgulas, como antes.
     if (q.chipsItens) { saveField(q.sectionId, q.key, cur ? cur + ", " + chip : chip); return; }
     // Restantes: é um começo de frase → nova linha e o cursor fica lá para completar.
@@ -406,6 +465,12 @@ export default function PiaTab({ user, data }) {
               <span style={{ color: light ? "#475569" : TXT_MUT }}>PROGRESSO GLOBAL</span>
               <span style={{ color:CYN }}>{progress}% ({filledFields}/{totalFields})</span>
             </div>
+            {erroAGravar && (
+              <div style={{ marginTop:10, padding:"8px 12px", borderRadius:10, fontSize:11, fontWeight:800,
+                background:"rgba(244,63,94,0.12)", border:"1px solid rgba(244,63,94,0.35)", color:"#fda4af", lineHeight:1.4 }}>
+                ⚠️ Sem ligação — o que escreveste ainda não foi guardado. Não feches a app; assim que houver rede, volta a escrever uma letra para tentar outra vez.
+              </div>
+            )}
           </>
         )}
       </div>
@@ -475,12 +540,12 @@ export default function PiaTab({ user, data }) {
 
                     {currentQ.type === "activities" ? (
                       <AtividadesEditor
-                        list={piaData[currentQ.sectionId]?.[currentQ.key] || []}
+                        list={campo(currentQ.sectionId, currentQ.key, [])}
                         onChange={val => saveField(currentQ.sectionId, currentQ.key, val)}
                       />
                     ) : currentQ.type === "revisoes" ? (
                       <RevisoesEditor
-                        list={piaData[currentQ.sectionId]?.[currentQ.key] || []}
+                        list={campo(currentQ.sectionId, currentQ.key, [])}
                         onChange={val => saveField(currentQ.sectionId, currentQ.key, val)}
                       />
                     ) : (
@@ -506,7 +571,7 @@ export default function PiaTab({ user, data }) {
                         <div style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
                           {currentQ.rows === 1 ? (
                             <input
-                              value={piaData[currentQ.sectionId]?.[currentQ.key] || ""}
+                              value={campo(currentQ.sectionId, currentQ.key)}
                               onChange={e => saveField(currentQ.sectionId, currentQ.key, e.target.value)}
                               placeholder={currentQ.ph}
                               style={{ ...INP, flex:1, marginBottom:0 }}
@@ -514,7 +579,7 @@ export default function PiaTab({ user, data }) {
                           ) : (
                             <textarea
                               ref={campoRef}
-                              value={piaData[currentQ.sectionId]?.[currentQ.key] || ""}
+                              value={campo(currentQ.sectionId, currentQ.key)}
                               onChange={e => saveField(currentQ.sectionId, currentQ.key, e.target.value)}
                               placeholder={currentQ.ph}
                               rows={currentQ.rows || 3}
@@ -522,7 +587,7 @@ export default function PiaTab({ user, data }) {
                             />
                           )}
                           <VoiceButton onResult={text => {
-                            const cur = piaData[currentQ.sectionId]?.[currentQ.key] || "";
+                            const cur = campo(currentQ.sectionId, currentQ.key);
                             saveField(currentQ.sectionId, currentQ.key, cur ? cur + " " + text : text);
                           }} />
                         </div>
@@ -577,7 +642,7 @@ export default function PiaTab({ user, data }) {
             <>
               {sectionsForTab.map((sec) => {
                 const unlocked = piaUnlocked[sec.id];
-                const secData  = piaData[sec.id] || {};
+                const secData  = seccaoComRascunho(sec.id);
                 const visibleFields = sec.fields;
                 const filled = visibleFields.filter(f => fieldFilled(f, secData)).length;
 

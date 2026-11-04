@@ -61,8 +61,10 @@ async function escutarPushEmPrimeiroPlano(messaging) {
         body:  d.body  || "",
         icon:  d.icon  || "/eu/logo.png",
         badge: d.badge || "/eu/logo.png",
-        tag:   "jeep-push",
+        // Etiqueta própria por aviso — com uma fixa, um aviso novo apagava o anterior.
+        tag:   "jeep-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
         renotify: true,
+        data:  { link: d.link || "/eu/" },
       });
     } catch {}
   });

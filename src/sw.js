@@ -36,16 +36,33 @@ const messaging = firebase.messaging();
 // notificação sozinho E este código mostrava outra, duplicando o aviso.
 messaging.onBackgroundMessage(payload => {
   const d = payload.data || {};
+  // Cada aviso tem a SUA etiqueta: com uma etiqueta fixa para todos, um aviso
+  // novo substituía o anterior e perdia-se o que ainda não tinha sido visto.
+  const etiqueta = 'jeep-' + (d.tag || Date.now() + '-' + Math.random().toString(36).slice(2, 8));
   self.registration.showNotification(d.title || 'JEEP EDUCA+', {
     body:  d.body  || '',
     icon:  d.icon  || '/eu/logo.png',
     badge: d.badge || '/eu/logo.png',
-    tag:   'jeep-push',
+    tag:   etiqueta,
     renotify: true,
+    data:  { link: d.link || '/eu/' },
   });
 });
 
+// Tocar no aviso: se a app já estiver aberta, salta para esse separador em vez
+// de abrir mais um; só abre janela nova se não houver nenhuma.
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  e.waitUntil(self.clients.openWindow('/eu/'));
+  const destino = (e.notification.data && e.notification.data.link) || '/eu/';
+  e.waitUntil((async () => {
+    const janelas = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const j of janelas) {
+      if (j.url.includes('/eu/')) {
+        if ('focus' in j) { await j.focus(); }
+        if ('navigate' in j && destino !== j.url) { try { await j.navigate(destino); } catch (_) {} }
+        return;
+      }
+    }
+    await self.clients.openWindow(destino);
+  })());
 });
