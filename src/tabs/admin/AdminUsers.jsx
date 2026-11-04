@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { doc, setDoc, getDoc, addDoc, collection, onSnapshot, updateDoc, deleteField, arrayUnion } from "firebase/firestore";
-import { db } from "../../firebase.js";
+import { db, reporPasswordJovem } from "../../firebase.js";
 import { CARD, SL, CYN, PRP, GRN, RadarChart, INP } from "../../theme.jsx";
 import { JEEP_LIST, ALL_MEDALS, upd, nowLabel, nowFull, PIA_FIELDS, PIA_SECTIONS, getWeekKey, fmtDate } from "../../data.js";
 import { aviso } from "../../aviso.jsx";
@@ -30,6 +30,25 @@ function DossierModal({ username, onClose, allShared, amMedals, weekStartTs, mis
     const [feedbackAuto, setFeedbackAuto] = useState("");
     const [feedbackPia, setFeedbackPia]   = useState("");
     const [feedbackPush, setFeedbackPush] = useState(false);
+    const [novaPass, setNovaPass]   = useState("");
+    const [aRepor, setAReporPass]   = useState(false);
+
+    // Repor a password: a nova é temporária — a app obriga o jovem a escolher
+    // outra assim que entrar (a Cloud Function marca isso).
+    async function reporPassword() {
+      const pw = novaPass.trim();
+      if (pw.length < 6) return aviso("A password temporária tem de ter pelo menos 6 caracteres.");
+      if (!window.confirm(`Repor a password de ${jeep?.name || username}?\n\nA password dele(a) passa a ser:\n${pw}\n\nAo entrar, a app pede-lhe logo para escolher outra.`)) return;
+      setAReporPass(true);
+      const res = await reporPasswordJovem(username, pw);
+      setAReporPass(false);
+      if (res.ok) {
+        aviso(`Password reposta! Diz ao/à ${jeep?.name || username}: ${pw}`);
+        setNovaPass("");
+      } else {
+        aviso("Erro: " + res.erro);
+      }
+    }
     const piaPrazo = piaPrazoExt;
     const setPiaPrazo = setPiaPrazoExt;
 
@@ -597,6 +616,28 @@ function DossierModal({ username, onClose, allShared, amMedals, weekStartTs, mis
               🗑 RESET TOTAL — apagar tudo deste jovem
             </button>
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {/* REPOR PASSWORD */}
+              <div style={{ padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
+                <div style={{ fontSize:12, fontWeight:800, marginBottom:2 }}>🔑 Repor password</div>
+                <div style={{ fontSize:10, color:"#64748b", marginBottom:8, lineHeight:1.45 }}>
+                  Para quando se esquecem. Escolhe uma password temporária, diz-lha, e ao entrar
+                  a app pede-lhe logo para criar a dela. Não se perde nada.
+                </div>
+                <div style={{ display:"flex", gap:6 }}>
+                  <input
+                    value={novaPass} onChange={e => setNovaPass(e.target.value)}
+                    placeholder="Password temporária (mín. 6)"
+                    style={{ flex:1, background:"rgba(0,0,0,0.4)", border:"1px solid rgba(50,199,255,0.3)",
+                      color:"#fff", borderRadius:8, padding:"6px 10px", fontSize:12, fontWeight:700 }}
+                  />
+                  <button onClick={() => setNovaPass("jeep" + Math.floor(1000 + Math.random() * 9000))}
+                    title="Sugerir uma password"
+                    style={{ ...BTN_RESET, padding:"6px 10px" }}>🎲</button>
+                  <button onClick={reporPassword} disabled={aRepor}
+                    style={{ ...BTN_RESET, padding:"6px 12px" }}>{aRepor ? "A repor..." : "Repor"}</button>
+                </div>
+              </div>
+
               {/* XP DIRETO */}
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", background:"rgba(0,0,0,0.2)", borderRadius:12 }}>
                 <div>

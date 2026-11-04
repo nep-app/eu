@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, fetchSignInMethodsForEmail } from "firebase/auth";
-import { doc, setDoc, onSnapshot, arrayUnion, deleteDoc } from "firebase/firestore";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, fetchSignInMethodsForEmail, updatePassword } from "firebase/auth";
+import { doc, setDoc, onSnapshot, arrayUnion, deleteDoc, updateDoc, deleteField } from "firebase/firestore";
 import { auth, db } from "./firebase.js";
 import { AppIcon, BG, CYN } from "./theme.jsx";
 import { ALLOWED_USERNAMES, BLOCKED_USERNAMES, USERS, nowLabel, GDPR_TEXT } from "./data.js";
@@ -33,6 +33,37 @@ export default function App() {
   const [novoUser, setNovoUser] = useState("");
   const [novoErr, setNovoErr] = useState("");
   const [showGdpr, setShowGdpr] = useState(false);
+  // Password reposta pela Teresa → obrigar a escolher uma nova antes de entrar.
+  const [temQueMudarPw, setTemQueMudarPw] = useState(false);
+  const [novaPw, setNovaPw]   = useState("");
+  const [novaPw2, setNovaPw2] = useState("");
+  const [pwErr, setPwErr]     = useState("");
+  const [pwAGuardar, setPwAGuardar] = useState(false);
+
+  // Fica atento à marca que a Cloud Function deixa ao repor a password.
+  useEffect(() => {
+    if (!user?.username || user.isAdmin) { setTemQueMudarPw(false); return; }
+    return onSnapshot(doc(db, "userData", user.username), s => {
+      setTemQueMudarPw(!!(s.exists() && s.data().temQueMudarPassword));
+    }, () => {});
+  }, [user?.username, user?.isAdmin]);
+
+  async function guardarNovaPassword() {
+    setPwErr("");
+    if (novaPw.trim().length < 6) { setPwErr("A password tem de ter pelo menos 6 caracteres."); return; }
+    if (novaPw !== novaPw2)       { setPwErr("As duas passwords não são iguais."); return; }
+    setPwAGuardar(true);
+    try {
+      await updatePassword(auth.currentUser, novaPw);
+      await updateDoc(doc(db, "userData", user.username), { temQueMudarPassword: deleteField() });
+      setNovaPw(""); setNovaPw2("");
+    } catch (e) {
+      setPwErr(e.code === "auth/requires-recent-login"
+        ? "Por segurança, volta a entrar e tenta outra vez."
+        : "Não foi possível guardar: " + e.message);
+    }
+    setPwAGuardar(false);
+  }
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (fbUser) => {
@@ -114,7 +145,8 @@ export default function App() {
   }
 
   async function doRegister() {
-    if (regPw.trim().length < 4) { setRegErr("Mínimo 4 caracteres."); return; }
+    // O Firebase exige 6 — com menos, dava "weak-password" e a pessoa não percebia porquê.
+    if (regPw.trim().length < 6) { setRegErr("A password tem de ter pelo menos 6 caracteres."); return; }
     if (regPw !== regPw2) { setRegErr("As passwords não coincidem."); return; }
     if (!gdprOk) { setRegErr("Tens de aceitar a política de privacidade."); return; }
     try {
@@ -236,6 +268,32 @@ export default function App() {
   }
 
   if (user?.isAdmin) return <TeresaAdmin user={user} onLogout={doLogout} />;
+
+  // A Teresa repôs a password: escolher uma nova é obrigatório para seguir.
+  if (user && temQueMudarPw) return (
+    <div style={{ minHeight:"100vh", background:BG, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"system-ui,sans-serif", padding:16, boxSizing:"border-box" }}>
+      <div style={{ background:"rgba(30, 41, 59, 0.7)", borderRadius:24, padding:"36px 30px", width:"100%", maxWidth:340, border:"1px solid rgba(34, 211, 238, 0.2)", backdropFilter:"blur(10px)", boxSizing:"border-box" }}>
+        <div style={{ textAlign:"center", marginBottom:20 }}>
+          <div style={{ fontSize:40, marginBottom:8 }}>🔑</div>
+          <div style={{ fontSize:19, fontWeight:900, color:"white" }}>Cria a tua password</div>
+          <div style={{ fontSize:12, color:"#94a3b8", marginTop:8, lineHeight:1.6 }}>
+            A password que usaste foi a que a Teresa te deu — é temporária e ela conhece-a.
+            Escolhe agora uma só tua, que mais ninguém saiba.
+          </div>
+        </div>
+        <input type="password" value={novaPw} onChange={e=>setNovaPw(e.target.value)} placeholder="Nova password (mín. 6)"
+          style={{ width:"100%", padding:"12px", borderRadius:12, marginBottom:10, background:"rgba(0,0,0,0.3)", border:"1px solid rgba(255,255,255,0.1)", color:"white", boxSizing:"border-box", outline:"none" }}/>
+        <input type="password" value={novaPw2} onChange={e=>setNovaPw2(e.target.value)}
+          onKeyDown={e=>{ if(e.key==="Enter") guardarNovaPassword(); }} placeholder="Repete a password"
+          style={{ width:"100%", padding:"12px", borderRadius:12, marginBottom:14, background:"rgba(0,0,0,0.3)", border:"1px solid rgba(255,255,255,0.1)", color:"white", boxSizing:"border-box", outline:"none" }}/>
+        {pwErr && <div style={{ color:"#f43f5e", fontSize:12, marginBottom:12, lineHeight:1.5 }}>{pwErr}</div>}
+        <button onClick={guardarNovaPassword} disabled={pwAGuardar} style={{ width:"100%", padding:"13px", background:CYN, color:"#071529", border:"none", borderRadius:14, fontSize:14, fontWeight:900, cursor:"pointer", boxSizing:"border-box" }}>
+          {pwAGuardar ? "A guardar..." : "Guardar e entrar"}
+        </button>
+        <button onClick={doLogout} style={{ width:"100%", marginTop:10, padding:"10px", background:"transparent", color:"#64748b", border:"none", fontSize:12, fontWeight:700, cursor:"pointer" }}>Sair</button>
+      </div>
+    </div>
+  );
 
   if (emManutencao && user?.username !== "teresa") return (
     <div style={{ minHeight:"100vh", background:BG, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"system-ui,sans-serif", padding:24 }}>

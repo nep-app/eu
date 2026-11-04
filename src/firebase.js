@@ -118,3 +118,17 @@ export async function registarPushNotifications(username) {
     return { ok:false, reason: detalhe || "erro-desconhecido" };
   }
 }
+
+// ── Repor a password de um jovem (só a conta admin) ───────────────────
+// Chama a Cloud Function `reporPassword`: o cliente não pode mudar a password
+// de outra pessoa, só o servidor. Devolve { ok } ou { ok:false, erro }.
+export async function reporPasswordJovem(username, novaPassword) {
+  try {
+    const { getFunctions, httpsCallable } = await import("firebase/functions");
+    const fns = getFunctions(app, "europe-west1");
+    await httpsCallable(fns, "reporPassword")({ username, novaPassword });
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, erro: err?.message || "Não foi possível repor a password." };
+  }
+}

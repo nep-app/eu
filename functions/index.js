@@ -1,4 +1,6 @@
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { onCall, HttpsError }  = require("firebase-functions/v2/https");
+const { getAuth }             = require("firebase-admin/auth");
 const { onSchedule }        = require("firebase-functions/v2/scheduler");
 const { logger }            = require("firebase-functions");
 const { initializeApp }     = require("firebase-admin/app");
@@ -137,6 +139,37 @@ exports.notificarJovem = onDocumentCreated(
     await Promise.all(alvos.map(entry => enviarPush(username, entry, payload)));
   }
 );
+
+
+// ─── REPOR A PASSWORD DE UM JOVEM ─────────────────────────────────────
+// Só o servidor pode mudar a password de outra pessoa, por isso isto vive
+// aqui. A Teresa escolhe uma password temporária no painel; o jovem entra
+// com ela e a app obriga-o logo a escolher outra (flag temQueMudarPassword).
+exports.reporPassword = onCall({ region: "europe-west1" }, async (req) => {
+  const quemPede = req.auth && req.auth.token && req.auth.token.email;
+  if (quemPede !== "admin@jeep.app") {
+    throw new HttpsError("permission-denied", "Só a conta de administração pode repor passwords.");
+  }
+  const username = String((req.data && req.data.username) || "").toLowerCase().trim();
+  const novaPassword = String((req.data && req.data.novaPassword) || "");
+  if (!username) throw new HttpsError("invalid-argument", "Falta o nome do jovem.");
+  if (novaPassword.length < 6) {
+    throw new HttpsError("invalid-argument", "A password tem de ter pelo menos 6 caracteres.");
+  }
+
+  let utilizador;
+  try {
+    utilizador = await getAuth().getUserByEmail(username + "@jeep.app");
+  } catch (_) {
+    throw new HttpsError("not-found", "Esse jovem ainda não criou conta — não há password para repor.");
+  }
+
+  await getAuth().updateUser(utilizador.uid, { password: novaPassword });
+  // Marca para a app pedir uma password nova logo a seguir ao login.
+  await db.collection("userData").doc(username).set({ temQueMudarPassword: true }, { merge: true });
+  logger.info("password reposta", { username });
+  return { ok: true };
+});
 
 // ─── PUBLICAÇÃO AGENDADA ──────────────────────────────────────────────
 // Cada documento em `agendados` tem { tipo, payload, publishAt (ms), done }.
