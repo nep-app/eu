@@ -48,6 +48,69 @@ trocarTexto('<title>Arcade EDUCA+</title>', '<title>Como te vês · EDUCA Mediad
 trocarTexto("'Autoavaliação · EDUCA+'", "'Autoavaliação · EDUCA Mediadores'");
 trocarTexto("paOpen('Como te vês'", "paOpen('Como te vês · Mediadores'", false);
 
+// ── RESULTADO MUITO MAIS SIMPLES ────────────────────────────────────
+// O resultado do jogo dos monitores tem notas de 1 a 9, barras duplas, caixas
+// explicativas e a revisão de todas as perguntas. Para este público é demasiado:
+// aqui fica só o essencial — o que correu melhor, o que falta trabalhar, e uma
+// palavra por competência. Sem números.
+{
+  // Âncora exata: quebra de linha + DOIS espaços. Sem a quebra de linha,
+  // apanhava por engano o "if(G4_SIMPLES){" indentado com quatro espaços,
+  // que é o do ecrã de introdução e não o do resultado.
+  const ini = s.indexOf('\n  if(G4_SIMPLES){') + 1;
+  const fim = s.indexOf('    return;\n  }', ini);
+  if (!s.includes('\n  if(G4_SIMPLES){')) { erros.push('resultado simples: âncora não encontrada'); }
+  if (ini < 1 || fim < 0) { erros.push('bloco do resultado simples não encontrado'); }
+  else {
+    s = s.slice(0, ini) + `  if(G4_SIMPLES){
+    const PALAVRA=[[2,'Ainda não lá está','#E2574C'],[4,'Está a meio caminho','#E8894C'],[5,'Está razoável','#E4BE45'],[7,'Está bom','#8FB964'],[9,'Está muito bom','#2E9E7B'],[10,'Está excelente','#2E9E7B']];
+    const pal=v=>PALAVRA.find(x=>v<=x[0])||PALAVRA[PALAVRA.length-1];
+    const comparar=k=>{const d=dl[k];
+      if(d===null)return '';
+      if(d>0)return '<div style="font-size:12.5px;color:var(--chalk);margin-top:5px">Achas que a escola te vê <b>melhor</b> do que tu te vês.</div>';
+      if(d<0)return '<div style="font-size:12.5px;color:var(--chalk);margin-top:5px">Achas que a escola te vê <b>pior</b> do que tu te vês.</div>';
+      return '<div style="font-size:12.5px;color:var(--chalk);margin-top:5px">Vês-te <b>igual</b> ao que achas que a escola vê.</div>';};
+    b.innerHTML=\`
+      <div style="background:rgba(143,166,255,.1);border:1px solid rgba(143,166,255,.4);border-radius:14px;padding:13px 15px;margin-bottom:18px">
+        <p style="margin:0;font-size:14.5px;line-height:1.5"><b style="color:var(--postit)">Isto não é uma nota. 🙂</b> É só para te ajudar a ver onde estás.</p>
+      </div>
+
+      <div style="background:rgba(46,158,123,.12);border:1px solid rgba(46,158,123,.45);border-radius:16px;padding:16px;margin-bottom:12px">
+        <div style="font-size:12px;font-weight:800;color:#7fd6b3;margin-bottom:6px">💪 O QUE TE SAIU MELHOR</div>
+        <b style="font-size:17px;line-height:1.25;display:block;color:\${DIMS[alta[0]].c}">\${DIMS[alta[0]].n}</b>
+      </div>
+
+      <div style="background:rgba(255,216,77,.1);border:1px solid rgba(255,216,77,.45);border-radius:16px;padding:16px;margin-bottom:22px">
+        <div style="font-size:12px;font-weight:800;color:var(--postit);margin-bottom:6px">🎯 ONDE PODES MELHORAR</div>
+        <b style="font-size:17px;line-height:1.25;display:block;color:\${DIMS[baixa[0]].c}">\${DIMS[baixa[0]].n}</b>
+        <div style="font-size:13.5px;color:var(--chalk);margin-top:8px;line-height:1.45">É nesta que vale a pena focares-te primeiro.</div>
+      </div>
+
+      <span class="eyebrow">As seis, uma a uma</span>
+      <div style="margin-top:10px">
+      \${Object.keys(DIMS).map(k=>{const v=g4Num(D[k]);const [,txt,cor]=pal(v);
+        return \`<div style="background:rgba(247,242,231,.04);border:1px solid rgba(247,242,231,.1);border-radius:14px;padding:14px 15px;margin-bottom:9px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="width:11px;height:11px;border-radius:50%;background:\${DIMS[k].c};flex-shrink:0"></span><b style="font-size:14.5px;line-height:1.25">\${DIMS[k].n}</b></div>
+          <div style="height:12px;background:rgba(247,242,231,.07);border-radius:6px;overflow:hidden;margin-bottom:7px"><div style="height:100%;width:\${Math.round(v/9*100)}%;background:\${cor};border-radius:6px"></div></div>
+          <div style="font-size:14px;font-weight:800;color:\${cor}">\${txt}</div>
+          \${comparar(k)}
+        </div>\`;}).join('')}
+      </div>
+
+      <div style="background:rgba(143,166,255,.08);border:1px solid rgba(143,166,255,.3);border-radius:14px;padding:13px 15px;margin-top:14px">
+        <p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--paper)">Ninguém está no máximo em tudo — nem é suposto. Se estivesses, não havia mais nada para aprender.</p>
+      </div>
+
+      <div style="display:grid;gap:9px;margin-top:20px">
+        <button class="btn btn-solid" onclick="g4PDF()">Guardar em PDF</button>
+        <button class="btn btn-yellow" onclick="g4Reset();window.scrollTo(0,0)">Fazer outra vez</button>
+      </div>\`;
+    return;
+  }
+` + s.slice(fim + '    return;\n  }\n'.length);
+  }
+}
+
 // Ficheiro autónomo: abre sempre e só o "Como te vês".
 const oldIIFE = `(function(){
   var p=new URLSearchParams(location.search).get('jogo');
