@@ -35,13 +35,13 @@ export const SITUACOES = {
       [7, "Peço desculpa, e remarco ali mesmo com dia e hora."],
       [9, "Peço desculpa, remarco, e explico-lhe porque é que falhei."],
       [10, "Remarco, e passo a apontar tudo o que combino com eles."]] },
-    { q: "Na segunda-feira pediram-te uma coisa para entregar na sexta. Agora é quinta à noite. Em que ponto está?", o: [
-      [2, "Não comecei, e vou dizer que não tive tempo."],
-      [4, "Fiz uma versão à pressa, só para poder dizer que entreguei."],
-      [5, "Entrego amanhã; fico acordado hoje para acabar aquilo."],
-      [7, "Fiz com calma ao longo da semana, e está pronto."],
-      [9, "Está pronto, e já mostrei a alguém para ver se falta algo."],
-      [10, "Está pronto, e entreguei antes para dar tempo de mudarem."]] },
+    { q: "É quarta-feira, dia de supervisão. Não tens de ir à escola e ninguém te vai buscar a casa…", o: [
+      [2, "Não vou, e nem aviso que não vou."],
+      [4, "Vou quando me apetece; umas vezes sim, outras não."],
+      [5, "Vou, mas chego tarde e fico calado a ver as horas."],
+      [7, "Vou, chego a horas, e oiço o que ali se fala."],
+      [9, "Vou, e levo as dúvidas que me apareceram no recreio."],
+      [10, "Vou, levo as minhas dúvidas, e uso na escola o que dali trago."]] },
     { q: "As rotinas da escola — estar no recreio, arrumar, acompanhar os miúdos. Como é que isso corre contigo?", o: [
       [2, "Não pego nelas, que há sempre alguém que acaba por fazer."],
       [4, "Faço, mas alguém tem de me lembrar todos os dias."],
@@ -61,8 +61,8 @@ export const SITUACOES = {
       [4, "Aviso só quando já devia lá estar."],
       [5, "Aviso a tempo, e fica para a escola resolver."],
       [7, "Aviso logo o gestor de proximidade, com tempo."],
-      [9, "Aviso o gestor de proximidade e também a escola."],
-      [10, "Aviso os dois, e combino como é que reponho essas horas."]] },
+      [9, "Aviso o gestor de proximidade, e peço-lhe que avise a escola."],
+      [10, "Aviso o gestor de proximidade e a escola, e combino com eles como reponho essas horas."]] },
     { q: "Chegaste atrasado pela terceira vez este mês. Ninguém te disse nada…", o: [
       [2, "Se ninguém diz nada, é porque não faz diferença."],
       [4, "Penso que tenho de melhorar, mas fica por aí."],
@@ -116,13 +116,13 @@ export const SITUACOES = {
       [7, "Peço em concreto: o quê, para quando, para quantos."],
       [9, "Peço em concreto, e explico o que a turma ganha com isso."],
       [10, "Peço em concreto, e proponho fechar já dia e hora."]] },
-    { q: "Tens de dizer a um encarregado de educação uma coisa sobre o filho que ele não quer ouvir…", o: [
-      [2, "Não digo nada; aquilo não me compete a mim."],
-      [4, "Digo à pressa, à porta da escola, e saio dali depressa."],
-      [5, "Digo por alto, e ele fica sem perceber a gravidade."],
-      [7, "Digo com calma e em concreto, num sítio onde dê para falar."],
-      [9, "Digo, e pergunto-lhe como é que ele vê aquilo em casa."],
-      [10, "Digo, ouço-o, e combinamos o que cada um faz a seguir."]] },
+    { q: "Na sessão de projeto de vida, o técnico de território pergunta-te o que queres fazer depois disto…", o: [
+      [2, "Digo que não sei, e mudo de assunto."],
+      [4, "Digo o primeiro que me vem à cabeça, só para responder."],
+      [5, "Digo uma ideia vaga, e não falo mais nisso."],
+      [7, "Digo o que me passa pela cabeça, mesmo sem ter a certeza."],
+      [9, "Digo o que gostava, e pergunto-lhe o que é preciso para lá chegar."],
+      [10, "Digo o que gostava, pergunto o que falta, e saio dali com uma coisa para fazer."]] },
     { q: "Explicas uma regra a um miúdo e vê-se logo que ele não percebeu nada…", o: [
       [2, "Digo que é assim e pronto, e sigo em frente."],
       [4, "Repito exatamente a mesma coisa, mais alto."],
@@ -155,13 +155,13 @@ export const SITUACOES = {
       [7, "Digo ali que a ideia foi minha, e sigo em frente."],
       [9, "Digo ali que foi minha, e falo com ele a sós no fim."],
       [10, "Digo que foi minha, e proponho prepararmos a próxima juntos."]] },
-    { q: "Um colega faz uma coisa que te prejudica e não parece dar por isso…", o: [
-      [2, "Não digo nada, e vou ficando com aquilo entalado."],
-      [4, "Digo-lhe com má cara, mas sem explicar o que me incomodou."],
-      [5, "Peço a outro mediador que lhe diga por mim."],
-      [7, "Digo-lhe eu, na primeira vez que acontece, sem drama."],
-      [9, "Digo-lhe, e pergunto se há alguma razão que eu não veja."],
-      [10, "Digo-lhe, e combinamos avisar-nos quando isso acontecer."]] },
+    { q: "Uma auxiliar trata-te como se fosses mais um miúdo da escola…", o: [
+      [2, "Respondo-lhe torto, e passo a evitá-la."],
+      [4, "Não digo nada, e fico a remoer aquilo todos os dias."],
+      [5, "Faço queixa dela aos outros mediadores, e fica por aí."],
+      [7, "Falo com ela a sós, com calma, e digo o que ali faço."],
+      [9, "Falo com ela, e mostro-lhe no dia a dia o trabalho que faço."],
+      [10, "Falo com ela, e peço ao gestor de proximidade que explique à escola o meu papel."]] },
     { q: "És novo na escola e ninguém te apresenta a ninguém…", o: [
       [2, "Fico no meu canto, que me custa muito conhecer gente nova."],
       [4, "Espero que venham ter comigo, e levo a mal que não venham."],
@@ -208,7 +208,7 @@ export const SITUACOES = {
 
   // ── D4 · Gestão emocional e de conflitos ─────────────────────────
   D4: [
-    { q: "Dois miúdos começam à porrada à tua frente…", o: [
+    { q: "Dois miúdos começam à luta à tua frente…", o: [
       [2, "Fico sem reação, e chamo por ajuda sem me mexer dali."],
       [4, "Grito «parem» de longe, mas não me meto no meio."],
       [5, "Separo aos gritos, e a coisa fica por ali."],
@@ -252,11 +252,11 @@ export const SITUACOES = {
       [10, "Puxo um jogo, e combino com a auxiliar o que fazer nos próximos dias de chuva."]] },
     { q: "Avisam-te de véspera que a partir de amanhã passas a estar noutra escola. Ninguém te explica porquê…", o: [
       [2, "Entro em pânico, e falto nos primeiros dias."],
-      [4, "Apareço, e trato aqueles miúdos como tratava os de antes."],
-      [5, "Lá vou andando, sempre a queixar-me de que não avisaram."],
-      [7, "Começo do zero com eles, e ao fim de uma semana já me conhecem."],
-      [9, "Começo do zero, e peço uma conversa para perceber porque mudei."],
-      [10, "Começo do zero, e pergunto à escola nova o que ali faz mais falta."]] },
+      [4, "Vou, e ando sempre a queixar-me de que ninguém me explicou nada."],
+      [5, "Vou calado, mas fico com aquilo atravessado o mês todo."],
+      [7, "Pergunto ao gestor de proximidade porque é que mudei, e vou."],
+      [9, "Pergunto porquê, digo que gostava de ter sido avisado antes, e começo do zero com os novos miúdos."],
+      [10, "Pergunto porquê, começo do zero, e pergunto à escola nova o que ali faz mais falta."]] },
     { q: "Estás a mediar uma discussão e um dos miúdos começa a atirar-se a ti…", o: [
       [2, "Perco a cabeça e respondo-lhe no mesmo tom."],
       [4, "Mando-o embora dali, e a conversa fica por fazer."],
@@ -275,7 +275,7 @@ export const SITUACOES = {
       [7, "Faço, porque estava à vista e era preciso."],
       [9, "Faço, e aviso a auxiliar para não se fazer duas vezes."],
       [10, "Faço, e proponho uma forma de aquilo não voltar a ficar."]] },
-    { q: "O recreio está calmo, ninguém está à porrada e ninguém te chamou…", o: [
+    { q: "O recreio está calmo, não há confusão nenhuma e ninguém te chamou…", o: [
       [2, "Fico no telemóvel até dar a hora de ir embora."],
       [4, "Fico a olhar de longe, a ver se aparece alguma coisa."],
       [5, "Pergunto à auxiliar se precisa de mim; se não, fico parado."],
@@ -303,13 +303,13 @@ export const SITUACOES = {
       [7, "Decido eu o que vamos fazer, monto, e levo por diante."],
       [9, "Monto-a com eles, e são eles a decidir o que vamos fazer."],
       [10, "Monto com eles, e no fim vemos juntos o que muda para a próxima."]] },
-    { q: "Ninguém te pediu nada, mas podias criar uma atividade nova de raiz…", o: [
-      [2, "Nunca me passou pela cabeça inventar seja o que for."],
-      [4, "Tenho ideias, mas nunca as chego a dizer a ninguém."],
-      [5, "Proponho a ideia, e espero que alguém a organize por mim."],
-      [7, "Proponho, e monto-a eu do princípio ao fim."],
-      [9, "Construo a ideia com os miúdos, e montamo-la juntos."],
-      [10, "Monto, e deixo-a a andar com outra pessoa a dinamizá-la."]] },
+    { q: "O gestor de proximidade vem visitar-te à escola e pergunta como é que aquilo vai…", o: [
+      [2, "Digo que está tudo bem, mesmo não estando."],
+      [4, "Queixo-me de tudo, sem dar um exemplo concreto."],
+      [5, "Conto o que correu bem, e calo o que me está a custar."],
+      [7, "Conto como está, o bom e o mau, com exemplos."],
+      [9, "Conto como está, e peço-lhe ajuda no que me anda a custar."],
+      [10, "Conto, peço ajuda, e proponho-lhe uma coisa que acho que ali resultava."]] },
     { q: "Achas que uma regra da escola está a criar mais conflitos do que a resolver…", o: [
       [2, "Não digo nada; regras são regras e não é comigo."],
       [4, "Queixo-me aos colegas, mas nunca a quem decide."],
@@ -319,7 +319,7 @@ export const SITUACOES = {
       [10, "Levo exemplos, e proponho uma forma diferente de fazer."]] },
     { q: "Uma auxiliar pede-te para levares um jogo para o recreio de amanhã. Ninguém te obriga…", o: [
       [2, "Digo que não dá, que isso não é comigo."],
-      [4, "Digo que levo, e no dia apareço de mãos a abanar."],
+      [4, "Levo sempre o mesmo jogo, mesmo que eles já estejam fartos dele."],
       [5, "Invento um jogo qualquer na hora, ali no recreio."],
       [7, "Levo um dos jogos que aprendi na formação."],
       [9, "Levo um, e penso antes em como o explicar àqueles miúdos."],
@@ -349,7 +349,7 @@ export const SITUACOES = {
       [7, "Digo-lhes que não vou escolher lado, e oiço um de cada vez."],
       [9, "Oiço um de cada vez até ao fim, sem o outro interromper."],
       [10, "Oiço os dois, e ponho-os a dizer um ao outro o que sentiram."]] },
-    { q: "Numa mediação, os dois miúdos chegaram a um acordo. E agora?", o: [
+    { q: "Estavas a ajudar dois miúdos a resolver uma discussão, e eles chegaram a um acordo. E agora?", o: [
       [2, "Fica por ali; o importante era pararem de discutir."],
       [4, "Digo-lhes que está tudo bem agora, e sigo em frente."],
       [5, "Repito eu o que acho que eles combinaram."],
