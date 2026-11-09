@@ -103,8 +103,7 @@ trocarTexto(
         ? 'Deu o <b>mesmo</b> nas duas.'
         : 'Há aqui uma <b>diferença</b>. Fica para pensares — e para falares sobre isso na supervisão ou com o teu técnico de território.';
       return '<div style="margin-top:9px;padding:10px 12px;border-radius:10px;background:rgba(247,242,231,.05);font-size:13px;line-height:1.5">'
-        + '<b>Pelo que respondeste, deu ' + meu + ' em 5.</b><br>'
-        + '<b>Achaste que a escola te daria ' + dela + ' em 5.</b><br>' + frase + '</div>';};
+        + frase + '</div>';};
     b.innerHTML=\`
       <div style="background:rgba(143,166,255,.1);border:1px solid rgba(143,166,255,.4);border-radius:14px;padding:13px 15px;margin-bottom:18px">
         <p style="margin:0;font-size:14.5px;line-height:1.5"><b style="color:var(--postit)">Isto não é uma nota. 🙂</b> É só para te ajudar a ver onde estás.</p>
@@ -124,13 +123,21 @@ trocarTexto(
       <span class="eyebrow">As seis, uma a uma</span>
       <div style="margin-top:10px">
       \${Object.keys(DIMS).map(k=>{const v=g4Num(D[k]);const [cor,txt]=pal(v);
-        return \`<div style="background:rgba(247,242,231,.04);border:1px solid rgba(247,242,231,.1);border-radius:14px;padding:14px 15px;margin-bottom:9px">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="width:11px;height:11px;border-radius:50%;background:\${DIMS[k].c};flex-shrink:0"></span><b style="font-size:14.5px;line-height:1.25">\${DIMS[k].n}</b></div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-            <div style="flex:1;height:14px;background:rgba(247,242,231,.07);border-radius:7px;overflow:hidden"><div style="height:100%;width:\${v*20}%;background:\${cor};border-radius:7px"></div></div>
-            <b style="font-size:17px;color:\${cor};white-space:nowrap">\${v} em 5</b>
-          </div>
-          <div style="font-size:14px;font-weight:800;color:\${cor}">\${txt}</div>
+        const lb=G4.loc[k]; const dela=lb?Number(lb):null;
+        // Duas barras lado a lado, cada uma dita por extenso: o que as respostas
+        // deram, e o que ele acha que a escola lhe daria.
+        const linha=(rot,n,c)=>\`<div style="margin-bottom:9px">
+            <div style="font-size:12.5px;color:var(--chalk);margin-bottom:4px">\${rot}</div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="flex:1;height:16px;background:rgba(247,242,231,.07);border-radius:8px;overflow:hidden"><div style="height:100%;width:\${n*20}%;background:\${c};border-radius:8px"></div></div>
+              <b style="font-size:18px;color:\${c};white-space:nowrap;min-width:60px;text-align:right">\${n} em 5</b>
+            </div>
+          </div>\`;
+        return \`<div style="background:rgba(247,242,231,.04);border:1px solid rgba(247,242,231,.1);border-radius:14px;padding:15px;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="width:11px;height:11px;border-radius:50%;background:\${DIMS[k].c};flex-shrink:0"></span><b style="font-size:15px;line-height:1.25">\${DIMS[k].n}</b></div>
+          \${linha('<b style="color:var(--paper)">As tuas respostas dão</b>', v, cor)}
+          \${dela!==null?linha('<b style="color:var(--paper)">Achas que a escola te dava</b>', dela, '#8a8298'):''}
+          <div style="font-size:14px;font-weight:800;color:\${cor};margin-top:2px">\${txt}</div>
           \${comparar(k,v)}
         </div>\`;}).join('')}
       </div>
