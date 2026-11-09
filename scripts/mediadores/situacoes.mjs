@@ -156,9 +156,9 @@ export const SITUACOES = {
       [9, "Digo ali que foi minha, e falo com ele a sós no fim."],
       [10, "Digo que foi minha, e proponho prepararmos a próxima juntos."]] },
     { q: "Uma auxiliar trata-te como se fosses mais um miúdo da escola…", o: [
-      [2, "Respondo-lhe torto; não estou ali para levar com isso."],
-      [4, "Não digo nada, e fico a remoer aquilo todos os dias."],
-      [5, "Desabafo com os outros mediadores, e fica por aí."],
+      [2, "Respondo-lhe torto, ali na hora, sem pensar duas vezes."],
+      [4, "Não digo nada; a escola é dela e eu ali sou o novo."],
+      [5, "Desabafo com os outros mediadores, que passam pelo mesmo."],
       [7, "Falo com ela a sós, com calma, e digo o que ali faço."],
       [9, "Falo com ela, e mostro-lhe no dia a dia o trabalho que faço."],
       [10, "Falo com ela, e peço ao gestor de proximidade que explique à escola o meu papel."]] },
@@ -221,7 +221,7 @@ export const SITUACOES = {
       [5, "Sigo em frente a engolir aquilo, com aquele nó na garganta."],
       [7, "Sigo com o que estava a fazer, sem lhe dar troco nenhum."],
       [9, "Sigo, e no fim chamo-o à parte para perceber."],
-      [10, "Sigo, e na próxima vez trago uma coisa escolhida por eles."]] },
+      [10, "Sigo, e na próxima vez levo um jogo escolhido por eles."]] },
     { q: "Levas uma semana em que tudo corre mal e apetece-te desistir…", o: [
       [2, "Falto uns dias, para arejar a cabeça."],
       [4, "Continuo a aparecer, mas ando com pouca paciência."],
@@ -257,7 +257,7 @@ export const SITUACOES = {
       [7, "Pergunto ao gestor de proximidade porque é que mudei, e vou."],
       [9, "Pergunto porquê, digo que gostava de ter sido avisado antes, e começo do zero com os novos miúdos."],
       [10, "Pergunto porquê, começo do zero, e pergunto à escola nova o que ali faz mais falta."]] },
-    { q: "Estás a mediar uma discussão e um dos miúdos começa a atirar-se a ti…", o: [
+    { q: "Estás a ajudar dois miúdos a resolver uma discussão, e um deles vira-se contra ti e começa a mandar-te bocas…", o: [
       [2, "Respondo-lhe no mesmo tom; senão ele passa-me por cima."],
       [4, "Mando-o embora dali; assim não há conversa possível."],
       [5, "Faço de conta que não ouvi, e continuo como se nada fosse."],
@@ -305,7 +305,7 @@ export const SITUACOES = {
       [10, "Escolho com eles, e no fim vemos juntos o que muda para a próxima."]] },
     { q: "O gestor de proximidade vem visitar-te à escola e pergunta como é que aquilo vai…", o: [
       [2, "Digo que está tudo bem, mesmo não estando."],
-      [4, "Queixo-me de tudo, sem dar um exemplo concreto."],
+      [4, "Conto só o que me tem corrido mal; é isso que me está a pesar."],
       [5, "Conto o que correu bem, e calo o que me está a custar."],
       [7, "Conto como está, o bom e o mau, com exemplos."],
       [9, "Conto como está, e peço-lhe ajuda no que me anda a custar."],
