@@ -49,7 +49,7 @@ export const SITUACOES = {
       [7, "Faço sozinho, sem ninguém me ter de dizer nada."],
       [9, "Faço as minhas, e quando falta alguém pego na parte dele."],
       [10, "Faço, e já mudei a maneira de fazer para aquilo correr melhor."]] },
-    { q: "Hoje não te apetece nada ir à escola. Ninguém te vai buscar a casa…", o: [
+    { q: "Hoje não te apetece nada ir à escola. Isto não é voluntariado — recebes uma bolsa para lá estares…", o: [
       [2, "Não vou; um dia não faz diferença nenhuma."],
       [4, "Aviso que não vou, e digo que estou doente."],
       [5, "Vou, mas fico as duas horas mais no meu canto."],

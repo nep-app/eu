@@ -53,7 +53,7 @@ export const POOL = {
     { f: "presenca", t: "Falto sem avisar ninguém.", rev: true, freq: true },
     { f: "presenca", t: "Às quartas de supervisão apareço, tal como apareço nos dias de escola.", freq: true },
     { f: "presenca", t: "Quando me comprometo com um dia, apareço — mesmo que esteja sem vontade.", freq: true },
-    { f: "presenca", t: "Aparecer nos dias combinados é obrigação minha, não um favor." },
+    { f: "presenca", t: "Recebo uma bolsa para fazer este trabalho. Aparecer nos dias combinados é obrigação minha, não um favor." },
     { f: "cumpre", t: "Deixo tarefas a meio e começo outras.", rev: true, freq: true },
     { f: "cumpre", t: "Entrego as coisas em cima da hora.", rev: true, freq: true },
     { f: "cumpre", t: "Preciso que me lembrem do que combinei.", rev: true, freq: true },
