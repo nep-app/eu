@@ -2322,7 +2322,7 @@ function g4HTML(){
       <div class="pa-meta"><span class="pa-badge">Autoavaliação</span></div></div>
     <div class="pa-note"><b>Isto não é ciência!</b> É só um jogo para te ajudar a pensar na forma como te avalias a ti e em como achas que a tua Escola te vê. Quem te avalia a sério é uma pessoa que te viu trabalhar, não este documento.</div>
     <h2>As duas colunas, lado a lado</h2>
-    <p class="pa-desc">À esquerda, o <b>resultado das tuas respostas</b> (um número de 1 a 9) — não é uma nota que deste, saiu do que respondeste. À direita, a nota que achas que a <b>Escola</b> te daria (o degrau que escolheste).</p>
+    <p class="pa-desc">À esquerda, o <b>resultado das tuas respostas</b> (um número de 1 a 9) — não é uma nota que deste, saiu do que respondeste. À direita, a nota que achas que a <b>Escola</b> te daria (o nível de 1 a 5 que escolheste).</p>
     <table style="width:100%;border-collapse:collapse;font-size:9pt;margin:6px 0 10px">
       <thead><tr><th style="text-align:left;padding:5px 6px;border-bottom:1.5px solid #cfc7de;font-size:8pt;text-transform:uppercase;color:#7a7490">Dimensão</th><th style="padding:5px 6px;border-bottom:1.5px solid #cfc7de;font-size:8pt;text-transform:uppercase;color:#7a7490">O teu resultado</th><th style="padding:5px 6px;border-bottom:1.5px solid #cfc7de;font-size:8pt;text-transform:uppercase;color:#7a7490">Palpite da Escola</th><th style="padding:5px 6px;border-bottom:1.5px solid #cfc7de;font-size:8pt;text-transform:uppercase;color:#7a7490">Dif.</th></tr></thead>
       <tbody>${linhas}</tbody>
@@ -3545,13 +3545,16 @@ function g4Result(){
   if(G4_SIMPLES){
     const CORES=['#E2574C','#E8894C','#E4BE45','#8FB964','#2E9E7B'];
     const pal=n=>[CORES[n-1]||'#E4BE45', (G4_BANDAS[n-1]||['','—'])[1]];
+    // O número NÃO foi escolhido por eles: saiu das respostas que deram. E o jogo
+    // não tira conclusões sobre a pessoa — só devolve o que está lá e convida a pensar.
     const comparar=(k,meu)=>{const lb=G4.loc[k]; if(!lb) return '';
       const dela=Number(lb), d=dela-meu;
-      const frase = d===0 ? 'Vês-te <b>igual</b> ao que achas que a escola vê. Boa — estão a olhar para o mesmo.'
-        : d>0 ? 'Achas que a escola te vê <b>melhor</b> do que tu te vês. Se calhar és duro/a de mais contigo.'
-        : 'Achas que a escola te vê <b>pior</b> do que tu te vês. Vale a pena falar disto com a Teresa.';
+      const frase = d===0
+        ? 'Deu o <b>mesmo</b> nas duas.'
+        : 'Há aqui uma <b>diferença</b>. Fica para pensares — e para falares sobre isso na supervisão ou com o teu técnico de território.';
       return '<div style="margin-top:9px;padding:10px 12px;border-radius:10px;background:rgba(247,242,231,.05);font-size:13px;line-height:1.5">'
-        + '<b>Tu deste-te ' + meu + ' em 5. A escola, achas tu, dava-te ' + dela + ' em 5.</b><br>' + frase + '</div>';};
+        + '<b>Pelo que respondeste, deu ' + meu + ' em 5.</b><br>'
+        + '<b>Achaste que a escola te daria ' + dela + ' em 5.</b><br>' + frase + '</div>';};
     b.innerHTML=`
       <div style="background:rgba(143,166,255,.1);border:1px solid rgba(143,166,255,.4);border-radius:14px;padding:13px 15px;margin-bottom:18px">
         <p style="margin:0;font-size:14.5px;line-height:1.5"><b style="color:var(--postit)">Isto não é uma nota. 🙂</b> É só para te ajudar a ver onde estás.</p>
@@ -3665,7 +3668,7 @@ function g4Result(){
       <button class="btn btn-solid" onclick="g4PDF()">Guardar PDF</button>
       <button class="btn btn-yellow" onclick="g4Reset();window.scrollTo(0,0)">Outra vez, com outras afirmações</button>
       <button class="btn" onclick="go('home')">Menu</button></div>
-    <p class="hint" style="margin-top:12px;max-width:60ch;opacity:.7">Se quiseres, depois de guardares o PDF podes partilhá-lo com a Teresa — mas só se te apetecer. Isto é teu.</p>`;
+    <p class="hint" style="margin-top:12px;max-width:60ch;opacity:.7">Se quiseres, depois de guardares o PDF podes partilhá-lo com o teu técnico de território — mas só se te apetecer. Isto é teu.</p>`;
   window.scrollTo(0,0);
 }
 

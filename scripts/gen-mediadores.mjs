@@ -48,6 +48,11 @@ trocarTexto('<title>Arcade EDUCA+</title>', '<title>Como te vês · EDUCA Mediad
 trocarTexto("'Autoavaliação · EDUCA+'", "'Autoavaliação · EDUCA Mediadores'");
 trocarTexto("paOpen('Como te vês'", "paOpen('Como te vês · Mediadores'", false);
 
+// Quem os acompanha não é a Teresa — é o técnico de território, ou a supervisão.
+trocarTexto('partilhá-lo com a Teresa', 'partilhá-lo com o teu técnico de território', false);
+
+trocarTexto('(o degrau que escolheste)', '(o nível de 1 a 5 que escolheste)', false);
+
 // ── ESCALA DE 1 A 5 ─────────────────────────────────────────────────
 // Os monitores são avaliados numa grelha de 1 a 10; os mediadores num
 // formulário de 1 a 5. Aqui passa tudo para 1 a 5 — as respostas do próprio E
@@ -90,13 +95,16 @@ trocarTexto(
     s = s.slice(0, ini) + `  if(G4_SIMPLES){
     const CORES=['#E2574C','#E8894C','#E4BE45','#8FB964','#2E9E7B'];
     const pal=n=>[CORES[n-1]||'#E4BE45', (G4_BANDAS[n-1]||['','—'])[1]];
+    // O número NÃO foi escolhido por eles: saiu das respostas que deram. E o jogo
+    // não tira conclusões sobre a pessoa — só devolve o que está lá e convida a pensar.
     const comparar=(k,meu)=>{const lb=G4.loc[k]; if(!lb) return '';
       const dela=Number(lb), d=dela-meu;
-      const frase = d===0 ? 'Vês-te <b>igual</b> ao que achas que a escola vê. Boa — estão a olhar para o mesmo.'
-        : d>0 ? 'Achas que a escola te vê <b>melhor</b> do que tu te vês. Se calhar és duro/a de mais contigo.'
-        : 'Achas que a escola te vê <b>pior</b> do que tu te vês. Vale a pena falar disto com a Teresa.';
+      const frase = d===0
+        ? 'Deu o <b>mesmo</b> nas duas.'
+        : 'Há aqui uma <b>diferença</b>. Fica para pensares — e para falares sobre isso na supervisão ou com o teu técnico de território.';
       return '<div style="margin-top:9px;padding:10px 12px;border-radius:10px;background:rgba(247,242,231,.05);font-size:13px;line-height:1.5">'
-        + '<b>Tu deste-te ' + meu + ' em 5. A escola, achas tu, dava-te ' + dela + ' em 5.</b><br>' + frase + '</div>';};
+        + '<b>Pelo que respondeste, deu ' + meu + ' em 5.</b><br>'
+        + '<b>Achaste que a escola te daria ' + dela + ' em 5.</b><br>' + frase + '</div>';};
     b.innerHTML=\`
       <div style="background:rgba(143,166,255,.1);border:1px solid rgba(143,166,255,.4);border-radius:14px;padding:13px 15px;margin-bottom:18px">
         <p style="margin:0;font-size:14.5px;line-height:1.5"><b style="color:var(--postit)">Isto não é uma nota. 🙂</b> É só para te ajudar a ver onde estás.</p>
