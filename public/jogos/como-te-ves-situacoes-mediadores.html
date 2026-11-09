@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Como te vês · Situações · EDUCA Mediadores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#071529;--cyn:#32C7FF;--post:#FFD84D;--chalk:#B8C7DA}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:#fff;font-family:Inter,system-ui,sans-serif;
+    background-image:linear-gradient(rgba(50,199,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(50,199,255,.04) 1px,transparent 1px);
+    background-size:32px 32px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:640px;margin:0 auto;padding:22px 16px 60px}
+  .card{background:rgba(255,255,255,.04);border:1px solid rgba(50,199,255,.18);border-radius:20px;padding:20px;margin-bottom:16px}
+  .eyebrow{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#7da3c4}
+  h1{font-size:23px;font-weight:900;margin:8px 0 6px;line-height:1.2}
+  .lead{font-size:14px;color:var(--chalk);line-height:1.6;margin:0}
+  .dim{display:inline-block;font-size:11px;font-weight:800;padding:4px 11px;border-radius:999px;margin-bottom:10px}
+  .sit{font-size:17px;font-weight:800;line-height:1.4;margin:0 0 16px}
+  .opt{display:block;width:100%;text-align:left;padding:14px 16px;margin-bottom:9px;border-radius:14px;
+    background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);color:#fff;
+    font-size:14px;line-height:1.45;font-family:inherit;cursor:pointer;transition:all .15s}
+  .opt:hover{background:rgba(255,255,255,.09)}
+  .opt.on{background:rgba(50,199,255,.16);border-color:var(--cyn)}
+  .btn{display:block;width:100%;padding:15px;border:none;border-radius:16px;font-size:15px;font-weight:900;
+    cursor:pointer;font-family:inherit;margin-top:10px}
+  .btn-main{background:var(--cyn);color:#071529}
+  .btn-post{background:var(--post);color:#071529}
+  .btn-ghost{background:transparent;color:var(--cyn);border:1.5px solid rgba(50,199,255,.45)}
+  .btn[disabled]{opacity:.35;cursor:not-allowed}
+  .prog{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;margin-bottom:18px}
+  .prog>div{height:100%;background:var(--cyn);border-radius:3px;transition:width .3s}
+  .conta{font-size:11.5px;color:#64748b;text-align:center;margin-top:14px}
+  @media print{ body{background:#fff;color:#000;background-image:none}
+    .card{border:1px solid #ccc;background:#fff;break-inside:avoid} .lead{color:#444} .btn,.no-print{display:none!important} h1{color:#000} }
+</style>
+</head>
+<body><div class="wrap" id="app"></div>
+<script>
+const DIMS = [
+ {
+  "id": "D1",
+  "n": "Responsabilidade e Compromisso",
+  "c": "#E2574C",
+  "sits": [
+   {
+    "q": "Combinaste uma coisa com um miúdo e no dia esqueceste-te…",
+    "o": [
+     [
+      2,
+      "Deixo passar; se ele não disser nada, fica por ali."
+     ],
+     [
+      4,
+      "Desconverso quando ele me vem perguntar por aquilo."
+     ],
+     [
+      5,
+      "Peço desculpa, e digo que fazemos qualquer dia destes."
+     ],
+     [
+      7,
+      "Peço desculpa, e remarco ali mesmo com dia e hora."
+     ],
+     [
+      9,
+      "Peço desculpa, remarco, e explico-lhe porque é que falhei."
+     ],
+     [
+      10,
+      "Remarco, e passo a apontar tudo o que combino com eles."
+     ]
+    ]
+   },
+   {
+    "q": "Na segunda-feira pediram-te uma coisa para entregar na sexta. Agora é quinta à noite. Em que ponto está?",
+    "o": [
+     [
+      2,
+      "Não comecei, e vou dizer que não tive tempo."
+     ],
+     [
+      4,
+      "Fiz uma versão à pressa, só para poder dizer que entreguei."
+     ],
+     [
+      5,
+      "Entrego amanhã; fico acordado hoje para acabar aquilo."
+     ],
+     [
+      7,
+      "Fiz com calma ao longo da semana, e está pronto."
+     ],
+     [
+      9,
+      "Está pronto, e já mostrei a alguém para ver se falta algo."
+     ],
+     [
+      10,
+      "Está pronto, e entreguei antes para dar tempo de mudarem."
+     ]
+    ]
+   },
+   {
+    "q": "As rotinas da escola — estar no recreio, arrumar, acompanhar os miúdos. Como é que isso corre contigo?",
+    "o": [
+     [
+      2,
+      "Não pego nelas, que há sempre alguém que acaba por fazer."
+     ],
+     [
+      4,
+      "Faço, mas alguém tem de me lembrar todos os dias."
+     ],
+     [
+      5,
+      "Já sei fazer, mas confirmo sempre com alguém antes."
+     ],
+     [
+      7,
+      "Faço sozinho, sem ninguém me ter de dizer nada."
+     ],
+     [
+      9,
+      "Faço as minhas, e quando falta alguém pego na parte dele."
+     ],
+     [
+      10,
+      "Faço, e mudei a forma de fazer para ninguém se esquecer."
+     ]
+    ]
+   },
+   {
+    "q": "Hoje de manhã não te apetece nada ir à escola. Ninguém te vai descontar nada se faltares…",
+    "o": [
+     [
+      2,
+      "Não vou, e não digo nada a ninguém."
+     ],
+     [
+      4,
+      "Mando mensagem à hora de entrar a dizer que estou doente."
+     ],
+     [
+      5,
+      "Vou, mas fico o dia todo a arrastar-me pelos cantos."
+     ],
+     [
+      7,
+      "Vou, porque combinei ir, e faço o que tenho a fazer."
+     ],
+     [
+      9,
+      "Vou, e digo a alguém da equipa que hoje estou em baixo."
+     ],
+     [
+      10,
+      "Vou, e peço para ficar hoje com uma tarefa mais calma."
+     ]
+    ]
+   },
+   {
+    "q": "Ficaste mesmo doente e tens uma sessão marcada daqui a duas horas…",
+    "o": [
+     [
+      2,
+      "Não apareço, e explico depois se alguém perguntar."
+     ],
+     [
+      4,
+      "Aviso só quando já devia lá estar."
+     ],
+     [
+      5,
+      "Aviso a tempo, e fica para quem estiver lá resolver."
+     ],
+     [
+      7,
+      "Aviso logo a coordenação e digo o que estava planeado."
+     ],
+     [
+      9,
+      "Aviso, explico o plano, e deixo o material pronto a usar."
+     ],
+     [
+      10,
+      "Aviso, passo o plano a um colega, e combino quando reponho."
+     ]
+    ]
+   },
+   {
+    "q": "Chegaste atrasado pela terceira vez este mês. Ninguém te disse nada…",
+    "o": [
+     [
+      2,
+      "Se ninguém diz nada, é porque não faz diferença."
+     ],
+     [
+      4,
+      "Penso que tenho de melhorar, mas fica por aí."
+     ],
+     [
+      5,
+      "Peço desculpa das próximas vezes que me atrasar."
+     ],
+     [
+      7,
+      "Reconheço que está a virar hábito, e mudo a hora a que saio."
+     ],
+     [
+      9,
+      "Mudo o que me atrasa, e aviso sempre que não vou conseguir."
+     ],
+     [
+      10,
+      "Mudo, e falo com a coordenação antes de serem eles a falar."
+     ]
+    ]
+   },
+   {
+    "q": "Prometeste ao grupo uma coisa para hoje e afinal não dá para fazer…",
+    "o": [
+     [
+      2,
+      "Não digo nada, a ver se eles se esquecem."
+     ],
+     [
+      4,
+      "Digo que não dá, e mudo logo de assunto."
+     ],
+     [
+      5,
+      "Digo que não dá, e prometo para qualquer dia destes."
+     ],
+     [
+      7,
+      "Digo que não dá e explico-lhes porquê."
+     ],
+     [
+      9,
+      "Explico porquê, e marco ali o dia em que vai ser."
+     ],
+     [
+      10,
+      "Explico, marco, e faço com eles outra coisa hoje."
+     ]
+    ]
+   },
+   {
+    "q": "A escola pede-te uma coisa que tu achas que não é bem a tua função…",
+    "o": [
+     [
+      2,
+      "Digo que sim e depois não faço."
+     ],
+     [
+      4,
+      "Faço, mas a queixar-me a toda a gente de que não é comigo."
+     ],
+     [
+      5,
+      "Faço calado, mesmo achando que não devia ser eu."
+     ],
+     [
+      7,
+      "Faço, e depois pergunto à coordenação se aquilo é mesmo meu."
+     ],
+     [
+      9,
+      "Digo ali que tenho dúvidas se é comigo, e combinamos."
+     ],
+     [
+      10,
+      "Combinamos o que é meu e o que não é, e fica claro para todos."
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "D2",
+  "n": "Capacidade de Comunicação",
+  "c": "#F0932B",
+  "sits": [
+   {
+    "q": "Tens de dar uma opinião difícil sobre o trabalho de um colega que também é teu amigo…",
+    "o": [
+     [
+      2,
+      "Digo-lhe que está tudo bem, como lhe tenho dito sempre."
+     ],
+     [
+      4,
+      "Não lhe digo nada, e comento com os outros quando ele sai."
+     ],
+     [
+      5,
+      "Digo-lhe por alto, e ele fica a achar que era um elogio."
+     ],
+     [
+      7,
+      "Digo-lhe a sós, e sou concreto sobre o que está mal."
+     ],
+     [
+      9,
+      "Digo-lhe o que está mal, e ouço a versão dele antes de fechar."
+     ],
+     [
+      10,
+      "Digo-lhe, e combinamos passar a rever o trabalho um do outro."
+     ]
+    ]
+   },
+   {
+    "q": "Um professor fala contigo como se não soubesses nada…",
+    "o": [
+     [
+      2,
+      "Faço como ele manda, mesmo quando sei que está errado."
+     ],
+     [
+      4,
+      "Digo que sim à frente dele, e faço à minha maneira depois."
+     ],
+     [
+      5,
+      "Discordo uma vez, e assim que ele insiste deixo cair."
+     ],
+     [
+      7,
+      "Digo-lhe na altura que vejo aquilo de outra maneira."
+     ],
+     [
+      9,
+      "Digo como vejo, e peço-lhe que me conte como aprendeu."
+     ],
+     [
+      10,
+      "Digo como vejo, e combinamos o que cada um traz ao trabalho."
+     ]
+    ]
+   },
+   {
+    "q": "Numa reunião em que discordas de toda a gente…",
+    "o": [
+     [
+      2,
+      "Alinho com a maioria, que não vale a pena ser o único contra."
+     ],
+     [
+      4,
+      "Calo-me na reunião, e depois desabafo com quem me aparece."
+     ],
+     [
+      5,
+      "Digo que tenho dúvidas, mas não chego a dizer quais são."
+     ],
+     [
+      7,
+      "Digo ali o que penso e porquê, mesmo estando sozinho."
+     ],
+     [
+      9,
+      "Digo o que penso, e peço as razões deles antes de fechar."
+     ],
+     [
+      10,
+      "Digo o que penso e, se a decisão for outra, ajudo à mesma."
+     ]
+    ]
+   },
+   {
+    "q": "Tens de pedir uma coisa a um professor que mal te conhece…",
+    "o": [
+     [
+      2,
+      "Não peço, e arranjo maneira de aquilo passar a outra pessoa."
+     ],
+     [
+      4,
+      "Abordo-o sem preparar nada, e vou vendo o que sai dali."
+     ],
+     [
+      5,
+      "Peço vagamente, e fico à espera que seja ele a propor."
+     ],
+     [
+      7,
+      "Peço em concreto: o quê, para quando, para quantos."
+     ],
+     [
+      9,
+      "Peço em concreto, e explico o que a turma ganha com isso."
+     ],
+     [
+      10,
+      "Peço em concreto, e proponho fechar já dia e hora."
+     ]
+    ]
+   },
+   {
+    "q": "Tens de dizer a um encarregado de educação uma coisa sobre o filho que ele não quer ouvir…",
+    "o": [
+     [
+      2,
+      "Não digo nada; aquilo não me compete a mim."
+     ],
+     [
+      4,
+      "Digo à pressa, à porta da escola, e saio dali depressa."
+     ],
+     [
+      5,
+      "Digo por alto, e ele fica sem perceber a gravidade."
+     ],
+     [
+      7,
+      "Digo com calma e em concreto, num sítio onde dê para falar."
+     ],
+     [
+      9,
+      "Digo, e pergunto-lhe como é que ele vê aquilo em casa."
+     ],
+     [
+      10,
+      "Digo, ouço-o, e combinamos o que cada um faz a seguir."
+     ]
+    ]
+   },
+   {
+    "q": "Explicas uma regra a um miúdo e vê-se logo que ele não percebeu nada…",
+    "o": [
+     [
+      2,
+      "Digo que é assim e pronto, e sigo em frente."
+     ],
+     [
+      4,
+      "Repito exatamente a mesma coisa, mais alto."
+     ],
+     [
+      5,
+      "Repito igual, mais devagar, até ele dizer que sim."
+     ],
+     [
+      7,
+      "Explico de outra maneira, com um exemplo que ele conheça."
+     ],
+     [
+      9,
+      "Explico de outra maneira, e peço-lhe que me diga por palavras dele."
+     ],
+     [
+      10,
+      "Explico, confirmo que percebeu, e vejo com ele como se faz."
+     ]
+    ]
+   },
+   {
+    "q": "Precisas de travar um miúdo que está a passar das marcas à frente do grupo…",
+    "o": [
+     [
+      2,
+      "Levanto a voz ali, à frente de toda a gente."
+     ],
+     [
+      4,
+      "Deixo andar, e ao fim de uma hora explodo por uma coisa pequena."
+     ],
+     [
+      5,
+      "Paro um instante, e sigo em frente quando ele não me liga."
+     ],
+     [
+      7,
+      "Paro aquilo, e digo com firmeza que não pode ser."
+     ],
+     [
+      9,
+      "Paro aquilo, e chamo-o à parte para lhe explicar porquê."
+     ],
+     [
+      10,
+      "Paro aquilo, e depois combino a regra com o grupo todo."
+     ]
+    ]
+   },
+   {
+    "q": "Um miúdo está a contar-te uma história longa e tu já percebeste onde aquilo vai dar…",
+    "o": [
+     [
+      2,
+      "Corto e digo-lhe logo o que ele tem de fazer."
+     ],
+     [
+      4,
+      "Vou dizendo que sim, já a pensar noutra coisa."
+     ],
+     [
+      5,
+      "Deixo-o acabar, mas noto-se que estou com pressa."
+     ],
+     [
+      7,
+      "Deixo-o acabar sem o interromper."
+     ],
+     [
+      9,
+      "Deixo-o acabar, e pergunto-lhe para perceber melhor."
+     ],
+     [
+      10,
+      "Oiço até ao fim, repito o que percebi, e confirmo com ele."
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "D3",
+  "n": "Espírito de Equipa e Cooperação",
+  "c": "#FFD84D",
+  "sits": [
+   {
+    "q": "Numa reunião, um colega apresenta como dele uma ideia que era tua…",
+    "o": [
+     [
+      2,
+      "Deixo passar, e não volto a levar ideias àquela reunião."
+     ],
+     [
+      4,
+      "Não digo nada ali, e depois queixo-me aos outros colegas."
+     ],
+     [
+      5,
+      "Digo por alto que também já tinha pensado naquilo."
+     ],
+     [
+      7,
+      "Digo ali que a ideia foi minha, e sigo com a reunião."
+     ],
+     [
+      9,
+      "Digo ali que foi minha, e falo com ele a sós no fim."
+     ],
+     [
+      10,
+      "Digo que foi minha, e proponho prepararmos a próxima juntos."
+     ]
+    ]
+   },
+   {
+    "q": "Um colega faz uma coisa que te prejudica e não parece dar por isso…",
+    "o": [
+     [
+      2,
+      "Não digo nada, e vou ficando com aquilo entalado."
+     ],
+     [
+      4,
+      "Digo-lhe com má cara, mas sem explicar o que me incomodou."
+     ],
+     [
+      5,
+      "Peço a outra pessoa da equipa que lhe diga por mim."
+     ],
+     [
+      7,
+      "Digo-lhe eu, na primeira vez que acontece, sem drama."
+     ],
+     [
+      9,
+      "Digo-lhe, e pergunto se há alguma razão que eu não veja."
+     ],
+     [
+      10,
+      "Digo-lhe, e combinamos avisar-nos quando isso acontecer."
+     ]
+    ]
+   },
+   {
+    "q": "És novo na escola e ninguém te apresenta a ninguém…",
+    "o": [
+     [
+      2,
+      "Fico no meu canto, que me custa muito conhecer gente nova."
+     ],
+     [
+      4,
+      "Espero que venham ter comigo, e levo a mal que não venham."
+     ],
+     [
+      5,
+      "Apresento-me só a quem me cruza sozinho, nunca ao grupo."
+     ],
+     [
+      7,
+      "Apresento-me a cada um, e pergunto o que faz ali."
+     ],
+     [
+      9,
+      "Apresento-me, e peço a alguém que me mostre como aquilo funciona."
+     ],
+     [
+      10,
+      "Apresento-me, e passo a fazer isso aos que chegam depois de mim."
+     ]
+    ]
+   },
+   {
+    "q": "Há uma coisa atrasada que é da equipa toda, e ninguém lhe pega…",
+    "o": [
+     [
+      2,
+      "Também não pego naquilo, que não é problema meu."
+     ],
+     [
+      4,
+      "Vou dizendo por aí que ali ninguém faz nada."
+     ],
+     [
+      5,
+      "Pego só na parte que me toca, e deixo o resto como está."
+     ],
+     [
+      7,
+      "Pego eu naquilo, mesmo que me dê trabalho a mais."
+     ],
+     [
+      9,
+      "Pego, e chamo mais alguém para dividirmos aquilo."
+     ],
+     [
+      10,
+      "Pego, e ponho a equipa a combinar quem é que faz o quê."
+     ]
+    ]
+   },
+   {
+    "q": "Dão-te uma tarefa que nunca fizeste e não fazes ideia de como se faz…",
+    "o": [
+     [
+      2,
+      "Digo que não sou capaz, e passo-a a outra pessoa."
+     ],
+     [
+      4,
+      "Digo que sei fazer, e depois entrego o que calhar."
+     ],
+     [
+      5,
+      "Vou tentando às cegas, sem dizer que estou perdido."
+     ],
+     [
+      7,
+      "Digo que nunca fiz, e vou procurar como é que se faz."
+     ],
+     [
+      9,
+      "Peço a quem já fez que me mostre, e faço com aquilo à frente."
+     ],
+     [
+      10,
+      "Faço, e deixo escrito o passo a passo para o próximo."
+     ]
+    ]
+   },
+   {
+    "q": "Um colega teu acabou de apanhar com uma situação dura e vê-se que ficou mal…",
+    "o": [
+     [
+      2,
+      "Não digo nada; cada um sabe de si."
+     ],
+     [
+      4,
+      "Comento com outro colega que ele não aguenta nada."
+     ],
+     [
+      5,
+      "Digo-lhe «então, está tudo?» e sigo o meu caminho."
+     ],
+     [
+      7,
+      "Pergunto-lhe se está bem, e fico ali um bocado."
+     ],
+     [
+      9,
+      "Pergunto como está, e ofereço-me para ficar com a parte dele."
+     ],
+     [
+      10,
+      "Fico com ele, e no fim do dia volto a perguntar como ficou."
+     ]
+    ]
+   },
+   {
+    "q": "No grupo da equipa, começam a gozar com um colega que não está lá…",
+    "o": [
+     [
+      2,
+      "Entro na piada, que é só uma brincadeira."
+     ],
+     [
+      4,
+      "Não digo nada, mas também não saio do grupo."
+     ],
+     [
+      5,
+      "Fico calado, e depois digo-lhe a ele o que andaram a dizer."
+     ],
+     [
+      7,
+      "Digo ali que não acho piada e mudo de assunto."
+     ],
+     [
+      9,
+      "Digo que não acho piada, e explico porquê."
+     ],
+     [
+      10,
+      "Digo ali, e falo depois com ele para ver se soube."
+     ]
+    ]
+   },
+   {
+    "q": "Aprendeste na formação uma coisa que ia dar jeito aos teus colegas…",
+    "o": [
+     [
+      2,
+      "Guardo para mim; assim sou eu que sei fazer aquilo."
+     ],
+     [
+      4,
+      "Uso, e se alguém perguntar explico — mas não digo nada."
+     ],
+     [
+      5,
+      "Falo disso por alto, no meio de outra conversa."
+     ],
+     [
+      7,
+      "Conto à equipa o que aprendi e como se faz."
+     ],
+     [
+      9,
+      "Conto, e mostro na prática a quem quiser experimentar."
+     ],
+     [
+      10,
+      "Mostro, e combinamos passar a partilhar o que cada um aprende."
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "D4",
+  "n": "Gestão Emocional e de Conflitos",
+  "c": "#B79CE8",
+  "sits": [
+   {
+    "q": "Dois miúdos começam à porrada à tua frente…",
+    "o": [
+     [
+      2,
+      "Fico sem reação, e chamo por ajuda sem me mexer dali."
+     ],
+     [
+      4,
+      "Grito «parem» de longe, mas não me meto no meio."
+     ],
+     [
+      5,
+      "Separo aos gritos, e a coisa fica por ali."
+     ],
+     [
+      7,
+      "Separo, tiro-os dali, e falo com os dois a seguir."
+     ],
+     [
+      9,
+      "Separo, e oiço cada um sozinho antes de falar com os dois."
+     ],
+     [
+      10,
+      "Separo, e depois trabalho com o grupo o que esteve por trás."
+     ]
+    ]
+   },
+   {
+    "q": "Um miúdo diz-te à frente de todos que és uma seca e que ninguém te liga…",
+    "o": [
+     [
+      2,
+      "Respondo-lhe à letra, ali à frente de toda a gente."
+     ],
+     [
+      4,
+      "Saio dali, e deixo o grupo entregue a si próprio."
+     ],
+     [
+      5,
+      "Sigo em frente a engolir aquilo, com um nó na garganta."
+     ],
+     [
+      7,
+      "Sigo com o que estava a fazer, sem lhe dar troco nenhum."
+     ],
+     [
+      9,
+      "Sigo, e no fim chamo-o à parte para perceber."
+     ],
+     [
+      10,
+      "Sigo, e na próxima vez trago uma coisa escolhida por eles."
+     ]
+    ]
+   },
+   {
+    "q": "Levas uma semana em que tudo corre mal e apetece-te desistir…",
+    "o": [
+     [
+      2,
+      "Falto uns dias, e não aviso ninguém de que não vou."
+     ],
+     [
+      4,
+      "Continuo a aparecer, mas respondo mal por tudo e por nada."
+     ],
+     [
+      5,
+      "Aguento calado, e digo a toda a gente que está tudo bem."
+     ],
+     [
+      7,
+      "Digo a alguém da equipa como estou, e peço ajuda."
+     ],
+     [
+      9,
+      "Falo com a coordenação, e vemos juntos o que dá para mudar."
+     ],
+     [
+      10,
+      "Peço ajuda, e separo o meu feitio do que está mal montado."
+     ]
+    ]
+   },
+   {
+    "q": "Um miúdo que já estava a mudar volta a faltar, a responder mal e a desistir de tudo…",
+    "o": [
+     [
+      2,
+      "Penso que o problema sou eu, e perco a vontade de insistir."
+     ],
+     [
+      4,
+      "Vou-me afastando, e ponho a energia nos que dão menos trabalho."
+     ],
+     [
+      5,
+      "Continuo com a mesma conversa, à espera que aquilo lhe passe."
+     ],
+     [
+      7,
+      "Digo-lhe que continuo cá, e continuo a contar com ele."
+     ],
+     [
+      9,
+      "Vou ter com ele, e pergunto o que mudou desde a última vez."
+     ],
+     [
+      10,
+      "Percebo o que mudou, e mudo o que faço com ele por causa disso."
+     ]
+    ]
+   },
+   {
+    "q": "Preparaste uma coisa a semana inteira e ela corre mal à frente de toda a gente…",
+    "o": [
+     [
+      2,
+      "Fico com vergonha, e não proponho nada durante meses."
+     ],
+     [
+      4,
+      "Digo que correu mal por causa do grupo, que não ajudou."
+     ],
+     [
+      5,
+      "Assumo que correu mal, encolho os ombros, e passo à frente."
+     ],
+     [
+      7,
+      "Assumo que correu mal, e revejo o plano para ver onde falhou."
+     ],
+     [
+      9,
+      "Assumo, e pergunto aos miúdos o que não resultou para eles."
+     ],
+     [
+      10,
+      "Assumo, e volto a propô-la montada de outra maneira."
+     ]
+    ]
+   },
+   {
+    "q": "Um plano teu foi por água abaixo por algo que não controlavas — chuva, sala ocupada…",
+    "o": [
+     [
+      2,
+      "Fico sem reação, e aquilo acaba por morrer ali."
+     ],
+     [
+      4,
+      "Digo-lhes que hoje não há nada, que a culpa não é minha."
+     ],
+     [
+      5,
+      "Agarro na primeira coisa que me lembro, sem pensar muito."
+     ],
+     [
+      7,
+      "Adapto ali o que já tinha preparado, e faço à mesma."
+     ],
+     [
+      9,
+      "Pego no plano B que trazia de casa, e faço à mesma."
+     ],
+     [
+      10,
+      "Faço à mesma, e depois trato da causa com quem a resolve."
+     ]
+    ]
+   },
+   {
+    "q": "Avisam-te de véspera que mudas de escola, de horário e de grupo — e ninguém te explica porquê…",
+    "o": [
+     [
+      2,
+      "Entro em pânico, e falto nos primeiros dias."
+     ],
+     [
+      4,
+      "Apareço, e faço tudo como fazia no sítio antigo."
+     ],
+     [
+      5,
+      "Adapto-me aos poucos, sempre a queixar-me de que não avisaram."
+     ],
+     [
+      7,
+      "Reorganizo-me sozinho, e ao fim de uma semana já funciono."
+     ],
+     [
+      9,
+      "Adapto-me, e peço uma conversa para perceber porque mudaram."
+     ],
+     [
+      10,
+      "Adapto-me, e aproveito para largar rotinas que já não serviam."
+     ]
+    ]
+   },
+   {
+    "q": "Estás a mediar uma discussão e um dos miúdos começa a atirar-se a ti…",
+    "o": [
+     [
+      2,
+      "Perco a cabeça e respondo-lhe no mesmo tom."
+     ],
+     [
+      4,
+      "Mando-o embora dali, e a conversa fica por fazer."
+     ],
+     [
+      5,
+      "Faço de conta que não ouvi, e continuo como se nada fosse."
+     ],
+     [
+      7,
+      "Digo-lhe com calma que assim não dá, e paro a conversa."
+     ],
+     [
+      9,
+      "Paro, dou um tempo aos dois, e retomo quando acalmarem."
+     ],
+     [
+      10,
+      "Paro, retomo depois, e digo-lhe o que senti quando ele fez aquilo."
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "D5",
+  "n": "Iniciativa",
+  "c": "#4A6CF0",
+  "sits": [
+   {
+    "q": "Vês uma coisa que precisa de ser feita na escola, mas não é a tua função…",
+    "o": [
+     [
+      2,
+      "Não faço, que não é a minha função. Deixo para quem é."
+     ],
+     [
+      4,
+      "Digo a alguém que aquilo devia ser feito, e fico à espera."
+     ],
+     [
+      5,
+      "Faço aquilo, mas só depois de alguém me vir pedir."
+     ],
+     [
+      7,
+      "Faço, porque estava à vista e era preciso."
+     ],
+     [
+      9,
+      "Faço, e aviso a equipa para não se fazer duas vezes."
+     ],
+     [
+      10,
+      "Faço, e proponho uma forma de aquilo não voltar a ficar."
+     ]
+    ]
+   },
+   {
+    "q": "Acabaste o que tinhas para fazer e ainda sobra tempo…",
+    "o": [
+     [
+      2,
+      "Fico no telemóvel, até dar a hora de sair."
+     ],
+     [
+      4,
+      "Dou voltas a parecer ocupado, para não me arranjarem nada."
+     ],
+     [
+      5,
+      "Pergunto se há coisas; se disserem que não, paro por ali."
+     ],
+     [
+      7,
+      "Procuro eu o que há por fazer, e faço."
+     ],
+     [
+      9,
+      "Vou ter com um colega atolado, e pergunto o que precisa."
+     ],
+     [
+      10,
+      "Faço uma coisa que faz falta e que nunca ninguém chega a fazer."
+     ]
+    ]
+   },
+   {
+    "q": "Do outro lado do recreio, um grupo começa a aquecer. Ainda não é briga…",
+    "o": [
+     [
+      2,
+      "Não é comigo; só vou lá se aquilo rebentar mesmo."
+     ],
+     [
+      4,
+      "Fico a olhar de longe, a ver no que dá."
+     ],
+     [
+      5,
+      "Grito dali para eles se acalmarem."
+     ],
+     [
+      7,
+      "Vou até lá, e fico por perto a ver o que se passa."
+     ],
+     [
+      9,
+      "Vou até lá, meto conversa, e corto aquilo antes de crescer."
+     ],
+     [
+      10,
+      "Corto aquilo, e depois falo com eles sobre o que esteve por trás."
+     ]
+    ]
+   },
+   {
+    "q": "Há um miúdo que anda sempre sozinho no recreio e ninguém parece dar por isso…",
+    "o": [
+     [
+      2,
+      "Se ele não se queixa, é porque gosta de estar assim."
+     ],
+     [
+      4,
+      "Reparo, mas não sei bem o que fazer, e deixo andar."
+     ],
+     [
+      5,
+      "Digo-lhe para ir brincar com os outros."
+     ],
+     [
+      7,
+      "Vou ter com ele e meto conversa."
+     ],
+     [
+      9,
+      "Falo com ele, percebo do que gosta, e ligo-o a quem gosta do mesmo."
+     ],
+     [
+      10,
+      "Faço a ponte, e falo com o professor dele sobre o que notei."
+     ]
+    ]
+   },
+   {
+    "q": "Deram-te liberdade total para fazeres uma atividade do zero…",
+    "o": [
+     [
+      2,
+      "Espero que me digam o que fazer, e acabo por não fazer nada."
+     ],
+     [
+      4,
+      "Monto uma coisa que já vi noutro sítio, sem ver se serve a estes."
+     ],
+     [
+      5,
+      "Faço, mas vou perguntando a cada passo se está bem assim."
+     ],
+     [
+      7,
+      "Decido eu o que vamos fazer, monto, e levo por diante."
+     ],
+     [
+      9,
+      "Monto-a com eles, e são eles a decidir o que vamos fazer."
+     ],
+     [
+      10,
+      "Monto com eles, e no fim vemos juntos o que muda para a próxima."
+     ]
+    ]
+   },
+   {
+    "q": "Ninguém te pediu nada, mas podias criar uma atividade nova de raiz…",
+    "o": [
+     [
+      2,
+      "Nunca me passou pela cabeça inventar seja o que for."
+     ],
+     [
+      4,
+      "Tenho ideias, mas nunca as chego a dizer a ninguém."
+     ],
+     [
+      5,
+      "Proponho a ideia, e espero que alguém a organize por mim."
+     ],
+     [
+      7,
+      "Proponho, e monto-a eu do princípio ao fim."
+     ],
+     [
+      9,
+      "Construo a ideia com os miúdos, e montamo-la juntos."
+     ],
+     [
+      10,
+      "Monto, e deixo-a a andar com outra pessoa a dinamizá-la."
+     ]
+    ]
+   },
+   {
+    "q": "Achas que uma regra da escola está a criar mais conflitos do que a resolver…",
+    "o": [
+     [
+      2,
+      "Não digo nada; regras são regras e não é comigo."
+     ],
+     [
+      4,
+      "Queixo-me aos colegas, mas nunca a quem decide."
+     ],
+     [
+      5,
+      "Digo por alto que aquilo não resulta, sem explicar."
+     ],
+     [
+      7,
+      "Levo o assunto à coordenação e digo o que tenho visto."
+     ],
+     [
+      9,
+      "Levo, e dou exemplos concretos do que vi acontecer."
+     ],
+     [
+      10,
+      "Levo exemplos, e proponho uma forma diferente de fazer."
+     ]
+    ]
+   },
+   {
+    "q": "Só te avisam na véspera de que tens uma sessão para dinamizar no dia seguinte…",
+    "o": [
+     [
+      2,
+      "Digo que não consigo fazer aquilo em cima da hora."
+     ],
+     [
+      4,
+      "Ponho um filme, e deixo a tarde andar."
+     ],
+     [
+      5,
+      "Preparo um jogo qualquer de que me lembre na hora."
+     ],
+     [
+      7,
+      "Preparo alguma coisa à noite, mesmo que seja simples."
+     ],
+     [
+      9,
+      "Preparo, e levo um plano B para o caso de o grupo ser outro."
+     ],
+     [
+      10,
+      "Preparo, e chego mais cedo para ajustar a quem apareceu."
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "D6",
+  "n": "Qualidade da Intervenção com as Crianças",
+  "c": "#2E9E7B",
+  "sits": [
+   {
+    "q": "Um miúdo conta-te em segredo uma coisa grave que se passa em casa dele…",
+    "o": [
+     [
+      2,
+      "Prometo que não conto a ninguém, e cumpro."
+     ],
+     [
+      4,
+      "Conto a um colega no corredor, sem ser a quem devia."
+     ],
+     [
+      5,
+      "Falo com ele outra vez, mas não digo nada a mais ninguém."
+     ],
+     [
+      7,
+      "Falo nesse mesmo dia com o adulto responsável na escola."
+     ],
+     [
+      9,
+      "Falo com esse adulto, e escrevo aquilo nas palavras dele."
+     ],
+     [
+      10,
+      "Falo, e digo ao miúdo o que vai acontecer a seguir."
+     ]
+    ]
+   },
+   {
+    "q": "Um miúdo aparece com uma nódoa negra e, quando perguntas, muda de assunto…",
+    "o": [
+     [
+      2,
+      "Acredito que caiu, e não penso mais no assunto."
+     ],
+     [
+      4,
+      "Fico com um aperto, mas digo a mim mesmo que não é comigo."
+     ],
+     [
+      5,
+      "Falo com um colega ao lado, e fica entre nós os dois."
+     ],
+     [
+      7,
+      "Falo nesse mesmo dia com o adulto responsável na escola."
+     ],
+     [
+      9,
+      "Falo, e escrevo o que vi e o que ele me disse."
+     ],
+     [
+      10,
+      "Falo, e combinamos como é que ficamos de olho nele."
+     ]
+    ]
+   },
+   {
+    "q": "Dois miúdos estão zangados e cada um te puxa para o seu lado, à espera que lhe dês razão…",
+    "o": [
+     [
+      2,
+      "Dou razão ao que me parece melhor pessoa."
+     ],
+     [
+      4,
+      "Digo que a culpa é dos dois, e mando-os embora."
+     ],
+     [
+      5,
+      "Oiço os dois ao mesmo tempo, aos gritos um por cima do outro."
+     ],
+     [
+      7,
+      "Digo-lhes que não vou escolher lado, e oiço um de cada vez."
+     ],
+     [
+      9,
+      "Oiço um de cada vez até ao fim, sem o outro interromper."
+     ],
+     [
+      10,
+      "Oiço os dois, e ponho-os a dizer um ao outro o que sentiram."
+     ]
+    ]
+   },
+   {
+    "q": "Numa mediação, os dois miúdos chegaram a um acordo. E agora?",
+    "o": [
+     [
+      2,
+      "Fica por ali; o importante era pararem de discutir."
+     ],
+     [
+      4,
+      "Digo-lhes que está tudo bem agora, e sigo em frente."
+     ],
+     [
+      5,
+      "Repito eu o que acho que eles combinaram."
+     ],
+     [
+      7,
+      "Peço-lhes que digam em voz alta o que ficou combinado."
+     ],
+     [
+      9,
+      "Confirmo com os dois, e fica claro o que cada um vai fazer."
+     ],
+     [
+      10,
+      "Confirmo, e combino com eles um dia para ver se resultou."
+     ]
+    ]
+   },
+   {
+    "q": "Tens de mediar uma discussão entre dois miúdos, e com um deles dás-te muito melhor…",
+    "o": [
+     [
+      2,
+      "Acabo por dar razão ao que me dou melhor, e nem dou por isso."
+     ],
+     [
+      4,
+      "Tento ser justo, mas vê-se de que lado estou."
+     ],
+     [
+      5,
+      "Trato os dois igual, mas por dentro já decidi quem tem razão."
+     ],
+     [
+      7,
+      "Ponho de lado o que sinto, e oiço os dois da mesma maneira."
+     ],
+     [
+      9,
+      "Oiço os dois igual, e digo-lhes que me dou bem com os dois."
+     ],
+     [
+      10,
+      "Peço a outra pessoa para mediar, por eu estar demasiado perto."
+     ]
+    ]
+   },
+   {
+    "q": "Chega um miúdo novo, não conhece ninguém, e fica de fora…",
+    "o": [
+     [
+      2,
+      "Não dou por isso; tenho mais que fazer naquela hora."
+     ],
+     [
+      4,
+      "Digo aos outros para o incluírem, e sigo em frente."
+     ],
+     [
+      5,
+      "Apresento-o ao grupo, e deixo-o à vontade dele."
+     ],
+     [
+      7,
+      "Ponho-o numa tarefa com outros, e vou ficando de olho."
+     ],
+     [
+      9,
+      "Falo com ele a sós, e ponho-o onde o que gosta encaixa."
+     ],
+     [
+      10,
+      "Recebo-o eu, e passa a haver alguém do grupo a fazer isso."
+     ]
+    ]
+   },
+   {
+    "q": "Tens de trabalhar com um miúdo de quem, sinceramente, não gostas…",
+    "o": [
+     [
+      2,
+      "Evito-o o mais que posso, sem dar muito nas vistas."
+     ],
+     [
+      4,
+      "Custa-me esconder o que sinto, e acho que ele nota."
+     ],
+     [
+      5,
+      "Faço o que tenho a fazer com ele, mas sem vontade nenhuma."
+     ],
+     [
+      7,
+      "Ponho o que sinto de lado, e faço o meu trabalho."
+     ],
+     [
+      9,
+      "Faço o trabalho, e procuro conhecê-lo melhor a ver se mudo."
+     ],
+     [
+      10,
+      "Faço o trabalho, e dou-lhe uma tarefa para fazermos os dois."
+     ]
+    ]
+   },
+   {
+    "q": "A meio de uma atividade percebes que os miúdos estão a detestar aquilo…",
+    "o": [
+     [
+      2,
+      "Continuo à mesma até ao fim."
+     ],
+     [
+      4,
+      "Zango-me com eles por não estarem a colaborar."
+     ],
+     [
+      5,
+      "Mudo para uma coisa mais curta, e acabo mais cedo."
+     ],
+     [
+      7,
+      "Mudo ali para outra coisa que eu sei que os agarra."
+     ],
+     [
+      9,
+      "Paro, e pergunto-lhes o que é que preferiam fazer."
+     ],
+     [
+      10,
+      "Mudo com eles ali, e no fim vemos o que falhou no plano."
+     ]
+    ]
+   }
+  ]
+ }
+];
+const PALAVRA=[[2,'Ainda não lá está','#E2574C'],[4,'Está a meio caminho','#E8894C'],[5,'Está razoável','#E4BE45'],[7,'Está bom','#8FB964'],[10,'Está muito bom','#2E9E7B']];
+const pal=v=>PALAVRA.find(x=>v<=x[0])||PALAVRA[PALAVRA.length-1];
+function baralhar(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+let jogo = null;
+function comecar(){
+  jogo = { passo: 0, resp: {}, perguntas: DIMS.map(d => {
+    const s = d.sits[Math.floor(Math.random()*d.sits.length)];
+    return { id: d.id, nome: d.n, cor: d.c, q: s.q, o: baralhar(s.o) };
+  }) };
+  desenhar();
+}
+
+function responder(i, v){ jogo.resp[i] = (jogo.resp[i] === v) ? undefined : v; desenhar(); }
+
+function desenhar(){
+  const app = document.getElementById('app');
+  if (!jogo) {
+    app.innerHTML = `<div class="card" style="text-align:center">
+      <div class="eyebrow">Como te vês · Situações</div>
+      <h1>O que é que tu farias?</h1>
+      <p class="lead">Seis situações do teu dia a dia na escola. Em cada uma, seis maneiras de reagir.<br><br>
+        <b>Escolhe a que mais se parece com o que tu farias mesmo.</b> Não a mais bonita — a verdadeira.</p>
+      <p class="lead" style="margin-top:14px;color:#7da3c4">Não há resposta certa, e isto não é um teste. Ninguém vê o que respondes.</p>
+      <button class="btn btn-post" onclick="comecar()">Começar →</button>
+    </div>`;
+    return;
+  }
+  if (jogo.passo < 6) {
+    const i = jogo.passo, P = jogo.perguntas[i], escolhida = jogo.resp[i];
+    app.innerHTML = `
+      <div class="prog"><div style="width:${Math.round(i/6*100)}%"></div></div>
+      <div class="card">
+        <span class="dim" style="color:${P.cor};background:${P.cor}1f;border:1px solid ${P.cor}66">${P.nome}</span>
+        <p class="sit">${P.q}</p>
+        ${P.o.map(([v,t]) => `<button class="opt ${escolhida===v?'on':''}" onclick="responder(${i},${v})">${t}</button>`).join('')}
+        <div class="conta">Situação ${i+1} de 6</div>
+      </div>
+      <button class="btn btn-main" ${escolhida===undefined?'disabled':''} onclick="jogo.passo++;desenhar();window.scrollTo(0,0)">${i===5?'Ver o meu resultado':'Seguinte →'}</button>
+      ${i>0?'<button class="btn btn-ghost" onclick="jogo.passo--;desenhar();window.scrollTo(0,0)">← Voltar</button>':''}`;
+    return;
+  }
+  // ── Resultado ──
+  const vals = jogo.perguntas.map((P,i) => ({ ...P, v: jogo.resp[i] }));
+  const ord = [...vals].sort((a,b) => b.v - a.v);
+  const alta = ord[0], baixa = ord[ord.length-1];
+  app.innerHTML = `
+    <div class="card" style="background:rgba(143,166,255,.1);border-color:rgba(143,166,255,.4)">
+      <p class="lead" style="color:#fff"><b style="color:var(--post)">Isto não é uma nota. 🙂</b> É só para te ajudar a ver onde estás.</p>
+    </div>
+    <div class="card" style="background:rgba(46,158,123,.12);border-color:rgba(46,158,123,.45)">
+      <div style="font-size:12px;font-weight:800;color:#7fd6b3;margin-bottom:6px">💪 O QUE TE SAIU MELHOR</div>
+      <b style="font-size:18px;line-height:1.25;display:block;color:${alta.c}">${alta.nome}</b>
+    </div>
+    <div class="card" style="background:rgba(255,216,77,.1);border-color:rgba(255,216,77,.45)">
+      <div style="font-size:12px;font-weight:800;color:var(--post);margin-bottom:6px">🎯 ONDE PODES MELHORAR</div>
+      <b style="font-size:18px;line-height:1.25;display:block;color:${baixa.c}">${baixa.nome}</b>
+      <div style="font-size:14px;color:var(--chalk);margin-top:8px">É nesta que vale a pena focares-te primeiro.</div>
+    </div>
+    <span class="eyebrow">As seis, uma a uma</span>
+    <div style="margin-top:10px">
+    ${vals.map(P => { const [,txt,cor] = pal(P.v);
+      return `<div class="card" style="padding:15px;margin-bottom:9px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="width:11px;height:11px;border-radius:50%;background:${P.c};flex-shrink:0"></span><b style="font-size:14.5px;line-height:1.25">${P.nome}</b></div>
+        <div style="height:12px;background:rgba(255,255,255,.07);border-radius:6px;overflow:hidden;margin-bottom:7px"><div style="height:100%;width:${Math.round(P.v/10*100)}%;background:${cor};border-radius:6px"></div></div>
+        <div style="font-size:14px;font-weight:800;color:${cor}">${txt}</div>
+        <div style="font-size:12.5px;color:#64748b;margin-top:8px;line-height:1.45">A tua resposta: «${P.o.find(x=>x[0]===P.v)[1]}»</div>
+      </div>`; }).join('')}
+    </div>
+    <div class="card" style="background:rgba(143,166,255,.08);border-color:rgba(143,166,255,.3)">
+      <p class="lead" style="color:#fff">Ninguém faz tudo da melhor maneira — nem é suposto. Se fizesses, não havia nada para aprender.</p>
+    </div>
+    <div class="no-print">
+      <button class="btn btn-main" onclick="window.print()">Guardar em PDF</button>
+      <button class="btn btn-post" onclick="comecar();window.scrollTo(0,0)">Fazer outra vez</button>
+      <p class="conta">Da próxima vez saem situações diferentes — há oito por competência.</p>
+    </div>`;
+}
+desenhar();
+</script>
+</body>
+</html>
