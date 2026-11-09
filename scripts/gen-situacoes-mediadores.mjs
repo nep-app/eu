@@ -8,7 +8,14 @@ import { DIMS } from './mediadores/dados.mjs';
 import { SITUACOES } from './mediadores/situacoes.mjs';
 
 const out = 'public/jogos/como-te-ves-situacoes-mediadores.html';
-const dims = Object.keys(DIMS).map(id => ({ id, ...DIMS[id], sits: SITUACOES[id] }));
+// A avaliação dos mediadores é de 1 a 5 — por isso cada situação tem CINCO
+// maneiras de reagir, não seis. Das seis escritas, deixa-se cair a penúltima
+// (era quase igual à última) e as outras passam a valer 1, 2, 3, 4 e 5.
+const para5 = o => o.filter((_, i) => i !== 4).map(([, t], i) => [i + 1, t]);
+const dims = Object.keys(DIMS).map(id => ({
+  id, ...DIMS[id],
+  sits: SITUACOES[id].map(c => ({ q: c.q, o: para5(c.o) })),
+}));
 
 const html = `<!DOCTYPE html>
 <html lang="pt-PT">
@@ -56,16 +63,18 @@ const DIMS = ${JSON.stringify(dims, null, 1)};
 // Resultado de 1 a 5 — a mesma escala do formulário com que a escola os avalia.
 const NIVEIS=[[1,'Ainda não lá está','#E2574C'],[2,'Está a meio caminho','#E8894C'],[3,'Está razoável','#E4BE45'],[4,'Está bom','#8FB964'],[5,'Está muito bom','#2E9E7B']];
 // As seis respostas de cada situação (2,4,5,7,9,10) em níveis de 1 a 5.
-const nivel=v=>({2:1,4:2,5:3,7:4,9:5,10:5})[v]||3;
+const nivel=v=>v;   /* as respostas já valem 1 a 5 */
 const pal=n=>NIVEIS[n-1]||NIVEIS[2];
 function baralhar(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
 let jogo = null;
 function comecar(){
-  jogo = { passo: 0, resp: {}, perguntas: DIMS.map(d => {
-    const s = d.sits[Math.floor(Math.random()*d.sits.length)];
-    return { id: d.id, nome: d.n, cor: d.c, q: s.q, o: baralhar(s.o) };
-  }) };
+  // Duas situações por competência (12 ao todo) — com uma só, uma resposta
+  // infeliz decidia a competência inteira.
+  const perguntas = [];
+  DIMS.forEach(d => baralhar(d.sits).slice(0, 2).forEach(s =>
+    perguntas.push({ id: d.id, nome: d.n, cor: d.c, q: s.q, o: baralhar(s.o) })));
+  jogo = { passo: 0, resp: {}, perguntas };
   desenhar();
 }
 
@@ -77,30 +86,36 @@ function desenhar(){
     app.innerHTML = \`<div class="card" style="text-align:center">
       <div class="eyebrow">Como te vês · Situações</div>
       <h1>O que é que tu farias?</h1>
-      <p class="lead">Seis situações do teu dia a dia na escola. Em cada uma, seis maneiras de reagir.<br><br>
+      <p class="lead">Doze situações do teu dia a dia na escola. Em cada uma, cinco maneiras de reagir.<br><br>
         <b>Escolhe a que mais se parece com o que tu farias mesmo.</b> Não a mais bonita — a verdadeira.</p>
       <p class="lead" style="margin-top:14px;color:#7da3c4">Não há resposta certa, e isto não é um teste. Ninguém vê o que respondes.</p>
       <button class="btn btn-post" onclick="comecar()">Começar →</button>
     </div>\`;
     return;
   }
-  if (jogo.passo < 6) {
+  if (jogo.passo < jogo.perguntas.length) {
     const i = jogo.passo, P = jogo.perguntas[i], escolhida = jogo.resp[i];
     app.innerHTML = \`
-      <div class="prog"><div style="width:\${Math.round(i/6*100)}%"></div></div>
+      <div class="prog"><div style="width:\${Math.round(i/jogo.perguntas.length*100)}%"></div></div>
       <div class="card">
-        <span class="dim" style="color:\${P.cor};background:\${P.cor}1f;border:1px solid \${P.cor}66">\${P.nome}</span>
         <p class="sit">\${P.q}</p>
         \${P.o.map(([v,t]) => \`<button class="opt \${escolhida===v?'on':''}" onclick="responder(\${i},\${v})">\${t}</button>\`).join('')}
-        <div class="conta">Situação \${i+1} de 6</div>
+        <div class="conta">Situação \${i+1} de \${jogo.perguntas.length}</div>
       </div>
-      <button class="btn btn-main" \${escolhida===undefined?'disabled':''} onclick="jogo.passo++;desenhar();window.scrollTo(0,0)">\${i===5?'Ver o meu resultado':'Seguinte →'}</button>
+      <button class="btn btn-main" \${escolhida===undefined?'disabled':''} onclick="jogo.passo++;desenhar();window.scrollTo(0,0)">\${i===jogo.perguntas.length-1?'Ver o meu resultado':'Seguinte →'}</button>
       \${i>0?'<button class="btn btn-ghost" onclick="jogo.passo--;desenhar();window.scrollTo(0,0)">← Voltar</button>':''}\`;
     return;
   }
   // ── Resultado ──
-  const vals = jogo.perguntas.map((P,i) => ({ ...P, bruto: jogo.resp[i], v: nivel(jogo.resp[i]) }));
-  const ord = [...vals].sort((a,b) => b.bruto - a.bruto);
+  // Cada competência tem duas situações: a nota é a média das duas.
+  const porDim = {};
+  jogo.perguntas.forEach((P,i) => {
+    (porDim[P.id] = porDim[P.id] || { ...P, respostas: [] }).respostas.push({ v: jogo.resp[i], q: P.q, o: P.o });
+  });
+  const vals = Object.values(porDim).map(P => ({
+    ...P, v: Math.round(P.respostas.reduce((s,r) => s + r.v, 0) / P.respostas.length),
+  }));
+  const ord = [...vals].sort((a,b) => b.v - a.v);
   const alta = ord[0], baixa = ord[ord.length-1];
   app.innerHTML = \`
     <div class="card" style="background:rgba(143,166,255,.1);border-color:rgba(143,166,255,.4)">
@@ -125,7 +140,7 @@ function desenhar(){
           <b style="font-size:17px;color:\${cor};white-space:nowrap">\${P.v} em 5</b>
         </div>
         <div style="font-size:14px;font-weight:800;color:\${cor}">\${txt}</div>
-        <div style="font-size:12.5px;color:#64748b;margin-top:8px;line-height:1.45">A tua resposta: «\${P.o.find(x=>x[0]===P.bruto)[1]}»</div>
+        \${P.respostas.map(r => \`<div style="font-size:12.5px;color:#64748b;margin-top:8px;line-height:1.45">A tua resposta: «\${r.o.find(x=>x[0]===r.v)[1]}»</div>\`).join('')}
       </div>\`; }).join('')}
     </div>
     <div class="card" style="background:rgba(143,166,255,.08);border-color:rgba(143,166,255,.3)">
