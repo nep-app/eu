@@ -48,6 +48,31 @@ trocarTexto('<title>Arcade EDUCA+</title>', '<title>Como te vês · EDUCA Mediad
 trocarTexto("'Autoavaliação · EDUCA+'", "'Autoavaliação · EDUCA Mediadores'");
 trocarTexto("paOpen('Como te vês'", "paOpen('Como te vês · Mediadores'", false);
 
+// ── ESCALA DE 1 A 5 ─────────────────────────────────────────────────
+// Os monitores são avaliados numa grelha de 1 a 10; os mediadores num
+// formulário de 1 a 5. Aqui passa tudo para 1 a 5 — as respostas do próprio E
+// o palpite sobre a escola — para as duas metades ficarem comparáveis.
+trocarTexto(
+  'const G4_BANDAS=[["1-2","Insuficiente"],["3-4","Abaixo do esperado"],["5","Suficiente"],["6-7","Bom"],["8-9","Muito Bom"],["10","Excelente"]];',
+  'const G4_BANDAS=[["1","Ainda não lá está"],["2","Está a meio caminho"],["3","Está razoável"],["4","Está bom"],["5","Está muito bom"]];');
+trocarTexto(
+  'function banda(v){if(v<=2)return"1-2";if(v<=4)return"3-4";if(v<=5)return"5";if(v<=7)return"6-7";if(v<=9)return"8-9";return"10";}',
+  '/* média interna (1 a 9) → nível de 1 a 5 */\nfunction banda(v){if(v<=2)return"1";if(v<=4)return"2";if(v<=5)return"3";if(v<=7)return"4";return"5";}');
+trocarTexto(
+  "function g4Cap(v){const b=banda(Math.round(v));return b==='10'?'8-9':b;}",
+  'function g4Cap(v){return banda(Math.round(v));}');
+trocarTexto(
+  'function g4Num(v){return Math.max(1,Math.min(9,Math.round(v)));}',
+  '/* média interna → o número de 1 a 5 que se mostra */\nfunction g4Num(v){return Number(banda(v));}');
+trocarTexto(
+  "const locMid=b=>({'1-2':1.5,'3-4':3.5,'5':5,'6-7':6.5,'8-9':8.5,'10':9})[b]||5;",
+  "const locMid=b=>({'1':1,'2':2,'3':3,'4':4,'5':5})[b]||3;");
+
+// A escada da escola: cinco degraus numerados 1 a 5, sem o degrau trancado.
+trocarTexto(
+  '${G4_BANDAS.map(([bn,cl],idx)=>idx===5',
+  '${G4_BANDAS.map(([bn,cl],idx)=>false');
+
 // ── RESULTADO MUITO MAIS SIMPLES ────────────────────────────────────
 // O resultado do jogo dos monitores tem notas de 1 a 9, barras duplas, caixas
 // explicativas e a revisão de todas as perguntas. Para este público é demasiado:
@@ -63,13 +88,15 @@ trocarTexto("paOpen('Como te vês'", "paOpen('Como te vês · Mediadores'", fals
   if (ini < 1 || fim < 0) { erros.push('bloco do resultado simples não encontrado'); }
   else {
     s = s.slice(0, ini) + `  if(G4_SIMPLES){
-    const PALAVRA=[[2,'Ainda não lá está','#E2574C'],[4,'Está a meio caminho','#E8894C'],[5,'Está razoável','#E4BE45'],[7,'Está bom','#8FB964'],[9,'Está muito bom','#2E9E7B'],[10,'Está excelente','#2E9E7B']];
-    const pal=v=>PALAVRA.find(x=>v<=x[0])||PALAVRA[PALAVRA.length-1];
-    const comparar=k=>{const d=dl[k];
-      if(d===null)return '';
-      if(d>0)return '<div style="font-size:12.5px;color:var(--chalk);margin-top:5px">Achas que a escola te vê <b>melhor</b> do que tu te vês.</div>';
-      if(d<0)return '<div style="font-size:12.5px;color:var(--chalk);margin-top:5px">Achas que a escola te vê <b>pior</b> do que tu te vês.</div>';
-      return '<div style="font-size:12.5px;color:var(--chalk);margin-top:5px">Vês-te <b>igual</b> ao que achas que a escola vê.</div>';};
+    const CORES=['#E2574C','#E8894C','#E4BE45','#8FB964','#2E9E7B'];
+    const pal=n=>[CORES[n-1]||'#E4BE45', (G4_BANDAS[n-1]||['','—'])[1]];
+    const comparar=(k,meu)=>{const lb=G4.loc[k]; if(!lb) return '';
+      const dela=Number(lb), d=dela-meu;
+      const frase = d===0 ? 'Vês-te <b>igual</b> ao que achas que a escola vê. Boa — estão a olhar para o mesmo.'
+        : d>0 ? 'Achas que a escola te vê <b>melhor</b> do que tu te vês. Se calhar és duro/a de mais contigo.'
+        : 'Achas que a escola te vê <b>pior</b> do que tu te vês. Vale a pena falar disto com a Teresa.';
+      return '<div style="margin-top:9px;padding:10px 12px;border-radius:10px;background:rgba(247,242,231,.05);font-size:13px;line-height:1.5">'
+        + '<b>Tu deste-te ' + meu + ' em 5. A escola, achas tu, dava-te ' + dela + ' em 5.</b><br>' + frase + '</div>';};
     b.innerHTML=\`
       <div style="background:rgba(143,166,255,.1);border:1px solid rgba(143,166,255,.4);border-radius:14px;padding:13px 15px;margin-bottom:18px">
         <p style="margin:0;font-size:14.5px;line-height:1.5"><b style="color:var(--postit)">Isto não é uma nota. 🙂</b> É só para te ajudar a ver onde estás.</p>
@@ -88,12 +115,15 @@ trocarTexto("paOpen('Como te vês'", "paOpen('Como te vês · Mediadores'", fals
 
       <span class="eyebrow">As seis, uma a uma</span>
       <div style="margin-top:10px">
-      \${Object.keys(DIMS).map(k=>{const v=g4Num(D[k]);const [,txt,cor]=pal(v);
+      \${Object.keys(DIMS).map(k=>{const v=g4Num(D[k]);const [cor,txt]=pal(v);
         return \`<div style="background:rgba(247,242,231,.04);border:1px solid rgba(247,242,231,.1);border-radius:14px;padding:14px 15px;margin-bottom:9px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="width:11px;height:11px;border-radius:50%;background:\${DIMS[k].c};flex-shrink:0"></span><b style="font-size:14.5px;line-height:1.25">\${DIMS[k].n}</b></div>
-          <div style="height:12px;background:rgba(247,242,231,.07);border-radius:6px;overflow:hidden;margin-bottom:7px"><div style="height:100%;width:\${Math.round(v/9*100)}%;background:\${cor};border-radius:6px"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <div style="flex:1;height:14px;background:rgba(247,242,231,.07);border-radius:7px;overflow:hidden"><div style="height:100%;width:\${v*20}%;background:\${cor};border-radius:7px"></div></div>
+            <b style="font-size:17px;color:\${cor};white-space:nowrap">\${v} em 5</b>
+          </div>
           <div style="font-size:14px;font-weight:800;color:\${cor}">\${txt}</div>
-          \${comparar(k)}
+          \${comparar(k,v)}
         </div>\`;}).join('')}
       </div>
 

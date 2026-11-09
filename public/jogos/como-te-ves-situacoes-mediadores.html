@@ -1476,8 +1476,11 @@ const DIMS = [
   ]
  }
 ];
-const PALAVRA=[[2,'Ainda não lá está','#E2574C'],[4,'Está a meio caminho','#E8894C'],[5,'Está razoável','#E4BE45'],[7,'Está bom','#8FB964'],[10,'Está muito bom','#2E9E7B']];
-const pal=v=>PALAVRA.find(x=>v<=x[0])||PALAVRA[PALAVRA.length-1];
+// Resultado de 1 a 5 — a mesma escala do formulário com que a escola os avalia.
+const NIVEIS=[[1,'Ainda não lá está','#E2574C'],[2,'Está a meio caminho','#E8894C'],[3,'Está razoável','#E4BE45'],[4,'Está bom','#8FB964'],[5,'Está muito bom','#2E9E7B']];
+// As seis respostas de cada situação (2,4,5,7,9,10) em níveis de 1 a 5.
+const nivel=v=>({2:1,4:2,5:3,7:4,9:5,10:5})[v]||3;
+const pal=n=>NIVEIS[n-1]||NIVEIS[2];
 function baralhar(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
 let jogo = null;
@@ -1519,8 +1522,8 @@ function desenhar(){
     return;
   }
   // ── Resultado ──
-  const vals = jogo.perguntas.map((P,i) => ({ ...P, v: jogo.resp[i] }));
-  const ord = [...vals].sort((a,b) => b.v - a.v);
+  const vals = jogo.perguntas.map((P,i) => ({ ...P, bruto: jogo.resp[i], v: nivel(jogo.resp[i]) }));
+  const ord = [...vals].sort((a,b) => b.bruto - a.bruto);
   const alta = ord[0], baixa = ord[ord.length-1];
   app.innerHTML = `
     <div class="card" style="background:rgba(143,166,255,.1);border-color:rgba(143,166,255,.4)">
@@ -1540,9 +1543,12 @@ function desenhar(){
     ${vals.map(P => { const [,txt,cor] = pal(P.v);
       return `<div class="card" style="padding:15px;margin-bottom:9px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="width:11px;height:11px;border-radius:50%;background:${P.c};flex-shrink:0"></span><b style="font-size:14.5px;line-height:1.25">${P.nome}</b></div>
-        <div style="height:12px;background:rgba(255,255,255,.07);border-radius:6px;overflow:hidden;margin-bottom:7px"><div style="height:100%;width:${Math.round(P.v/10*100)}%;background:${cor};border-radius:6px"></div></div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div style="flex:1;height:14px;background:rgba(255,255,255,.07);border-radius:7px;overflow:hidden"><div style="height:100%;width:${P.v*20}%;background:${cor};border-radius:7px"></div></div>
+          <b style="font-size:17px;color:${cor};white-space:nowrap">${P.v} em 5</b>
+        </div>
         <div style="font-size:14px;font-weight:800;color:${cor}">${txt}</div>
-        <div style="font-size:12.5px;color:#64748b;margin-top:8px;line-height:1.45">A tua resposta: «${P.o.find(x=>x[0]===P.v)[1]}»</div>
+        <div style="font-size:12.5px;color:#64748b;margin-top:8px;line-height:1.45">A tua resposta: «${P.o.find(x=>x[0]===P.bruto)[1]}»</div>
       </div>`; }).join('')}
     </div>
     <div class="card" style="background:rgba(143,166,255,.08);border-color:rgba(143,166,255,.3)">

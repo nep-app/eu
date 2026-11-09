@@ -948,7 +948,8 @@ const DIMS={
  }
 };
 function limpo(t){return String(t).replace(/<br[^>]*>/gi,'\n      ').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ');}
-function banda(v){if(v<=2)return"1-2";if(v<=4)return"3-4";if(v<=5)return"5";if(v<=7)return"6-7";if(v<=9)return"8-9";return"10";}
+/* média interna (1 a 9) → nível de 1 a 5 */
+function banda(v){if(v<=2)return"1";if(v<=4)return"2";if(v<=5)return"3";if(v<=7)return"4";return"5";}
 
 const AUTO_POOL={
  D1:[
@@ -3047,7 +3048,7 @@ const G4_POOL={
   },
   {
    "f": "adapta",
-   "t": "Consigo adaptar-me se aparecerem o dobro dos miúdos que eu esperava."
+   "t": "Quando um miúdo me aparece com um problema a meio de outra coisa, consigo parar e tratar daquilo."
   }
  ],
  "D5": [
@@ -3287,7 +3288,7 @@ const G4_PORQUE={
  "postura": "A forma como estás com as crianças — nos dias bons e nos maus — é o que define o teu trabalho.",
  "ativ": "Preparar, adaptar e perceber se resultou é o que separa fazer por fazer de fazer bem."
 };
-const G4_BANDAS=[["1-2","Insuficiente"],["3-4","Abaixo do esperado"],["5","Suficiente"],["6-7","Bom"],["8-9","Muito Bom"],["10","Excelente"]];
+const G4_BANDAS=[["1","Ainda não lá está"],["2","Está a meio caminho"],["3","Está razoável"],["4","Está bom"],["5","Está muito bom"]];
 const G4_ESCC=["#E2574C","#E8894C","#E4BE45","#8FB964","#2E9E7B"]; /* escada: vermelho→verde (sobe = melhor) */
 const G4_ESCH=[60,82,102,122,146];                                 /* alturas crescentes dos degraus dáveis */
 /* Modo simplificado (linguagem fácil) — agora é a versão para TODOS, por isso é o
@@ -3300,52 +3301,46 @@ const G4_EMBED=(function(){try{return window.parent&&window.parent!==window;}cat
    Autoavaliação — JEEP», versão revista). Texto tal e qual. */
 const G4_DESC={
  "D1": {
-  "5": "Cumpro o horário e aviso quando não posso ir. Às vezes precisam de me lembrar das coisas.",
-  "10": "Sou um exemplo para os outros. O que passa por mim fica feito.",
-  "1-2": "Falto e chego tarde sem avisar. O que combino fica por fazer.",
-  "3-4": "Às vezes falho: não aviso, ou deixo coisas a meio. É preciso andarem atrás de mim.",
-  "6-7": "Chego a horas, aviso sempre e acabo o que começo.",
-  "8-9": "Podem contar comigo sem terem de confirmar. Aviso a tempo quando não vou conseguir."
+  "1": "Falto e chego tarde sem avisar. O que combino fica por fazer.",
+  "2": "Às vezes falho: não aviso, ou deixo coisas a meio. É preciso andarem atrás de mim.",
+  "3": "Cumpro o horário e aviso quando não posso ir. Às vezes precisam de me lembrar das coisas.",
+  "4": "Chego a horas, aviso sempre e acabo o que começo.",
+  "5": "Podem contar comigo sem terem de confirmar. Aviso a tempo quando não vou conseguir."
  },
  "D2": {
-  "5": "Falo bem no dia a dia e trato todos com respeito. Nas conversas difíceis ainda me custa.",
-  "10": "Chamam-me para estar presente nas conversas difíceis, porque a minha forma de falar resolve.",
-  "1-2": "Ou fico calado/a, ou digo as coisas de uma forma que magoa. Não me faço entender.",
-  "3-4": "Faço-me entender nas coisas simples. Fujo das conversas difíceis.",
-  "6-7": "Explico-me bem e falo de maneira diferente com uma criança, um colega ou um professor. Ouço até ao fim.",
-  "8-9": "Digo o que é preciso mesmo quando é difícil, sem magoar ninguém. As pessoas sentem-se ouvidas."
+  "1": "Ou fico calado/a, ou digo as coisas de uma forma que magoa. Não me faço entender.",
+  "2": "Faço-me entender nas coisas simples. Fujo das conversas difíceis.",
+  "3": "Falo bem no dia a dia e trato todos com respeito. Nas conversas difíceis ainda me custa.",
+  "4": "Explico-me bem e falo de maneira diferente com uma criança, um colega ou um professor. Ouço até ao fim.",
+  "5": "Digo o que é preciso mesmo quando é difícil, sem magoar ninguém. As pessoas sentem-se ouvidas."
  },
  "D3": {
-  "5": "Dou-me bem com os colegas e ajudo quando me pedem. Peço ajuda tarde.",
-  "10": "Faço a equipa toda funcionar melhor. Os colegas procuram-me.",
-  "1-2": "Ando sozinho/a. Não ajudo ninguém e o meu mau humor estraga o ambiente.",
-  "3-4": "Faço a minha parte e mais nada. Custa-me pedir ajuda.",
-  "6-7": "Ajudo os colegas sem eles pedirem e partilho o que aprendo. Peço ajuda quando preciso.",
-  "8-9": "A equipa conta comigo. Pergunto como estou a correr e uso o que me dizem."
+  "1": "Ando sozinho/a. Não ajudo ninguém e o meu mau humor estraga o ambiente.",
+  "2": "Faço a minha parte e mais nada. Custa-me pedir ajuda.",
+  "3": "Dou-me bem com os colegas e ajudo quando me pedem. Peço ajuda tarde.",
+  "4": "Ajudo os colegas sem eles pedirem e partilho o que aprendo. Peço ajuda quando preciso.",
+  "5": "A equipa conta comigo. Pergunto como estou a correr e uso o que me dizem."
  },
  "D4": {
-  "5": "Mantenho a calma nas situações normais. Nas difíceis fico desconfortável, mas não pioro nada.",
-  "10": "Sou a pessoa a quem recorrem quando a coisa está difícil. A minha presença baixa a tensão.",
-  "1-2": "Perco a cabeça, ou fujo. Quando há tensão, pioro o que já estava mau.",
-  "3-4": "No dia a dia vou aguentando. Quando aquece, nota-se logo que fico alterado/a.",
-  "6-7": "Mantenho a cabeça fria no conflito. Sei o que posso resolver e o que tenho de passar a um adulto.",
-  "8-9": "A minha calma acalma os outros. No dia seguinte volto inteiro/a."
+  "1": "Perco a cabeça, ou fujo. Quando há tensão, pioro o que já estava mau.",
+  "2": "No dia a dia vou aguentando. Quando aquece, nota-se logo que fico alterado/a.",
+  "3": "Mantenho a calma nas situações normais. Nas difíceis fico desconfortável, mas não pioro nada.",
+  "4": "Mantenho a cabeça fria no conflito. Sei o que posso resolver e o que tenho de passar a um adulto.",
+  "5": "A minha calma acalma os outros. No dia seguinte volto inteiro/a."
  },
  "D5": {
-  "5": "Faço o que é preciso quando vejo à minha frente. Em coisas novas, pergunto primeiro.",
-  "10": "A minha presença muda o que acontece na escola. As minhas ideias acabam adotadas por todos.",
-  "1-2": "Faço o que me mandam e mais nada. Só vejo os problemas quando já rebentaram.",
-  "3-4": "Reparo nalgumas coisas, mas espero sempre que me digam para avançar.",
-  "6-7": "Vejo o que falta e trato disso. Trago ideias em vez de repetir sempre o mesmo.",
-  "8-9": "Vejo as coisas antes de rebentarem e ajo. Proponho mudanças e aprendo por minha conta."
+  "1": "Faço o que me mandam e mais nada. Só vejo os problemas quando já rebentaram.",
+  "2": "Reparo nalgumas coisas, mas espero sempre que me digam para avançar.",
+  "3": "Faço o que é preciso quando vejo à minha frente. Em coisas novas, pergunto primeiro.",
+  "4": "Vejo o que falta e trato disso. Trago ideias em vez de repetir sempre o mesmo.",
+  "5": "Vejo as coisas antes de rebentarem e ajo. Proponho mudanças e aprendo por minha conta."
  },
  "D6": {
-  "5": "Uso os passos nas situações simples. Sou justo/a, mas às vezes nota-se de que lado estou.",
-  "10": "A minha forma de trabalhar serve de exemplo aos outros. As crianças confiam em mim.",
-  "1-2": "Não uso o que aprendi. Mando calar, tomo partido, e as crianças não me procuram.",
-  "3-4": "Sei os passos da mediação, mas na hora esqueço-me e faço à minha maneira.",
-  "6-7": "Uso o que aprendi com naturalidade. Fico no meio e deixo as crianças chegarem ao acordo delas.",
-  "8-9": "Consigo mediar situações difíceis até ao fim. As crianças procuram-me."
+  "1": "Não uso o que aprendi. Mando calar, tomo partido, e as crianças não me procuram.",
+  "2": "Sei os passos da mediação, mas na hora esqueço-me e faço à minha maneira.",
+  "3": "Uso os passos nas situações simples. Sou justo/a, mas às vezes nota-se de que lado estou.",
+  "4": "Uso o que aprendi com naturalidade. Fico no meio e deixo as crianças chegarem ao acordo delas.",
+  "5": "Consigo mediar situações difíceis até ao fim. As crianças procuram-me."
  }
 };
 const G4_SCALE={
@@ -3361,8 +3356,9 @@ function g4KickCor(A){return A.cap?'#3FBF97':A.freq?'#FFD84D':'#8FA6FF';}  /* co
 const G4_FWD=[1,3,5,7,9];                 /* 5 níveis → 1..9 (nunca chega a 10) */
 function g4Val(item,idx){return item.rev?G4_FWD[4-idx]:G4_FWD[idx];}
 function g4BandIdx(b){return G4_BANDAS.findIndex(x=>x[0]===b);}
-function g4Cap(v){const b=banda(Math.round(v));return b==='10'?'8-9':b;}   /* arredonda a média ao degrau mais perto (4.3 → 4 → "3-4"); a autoavaliação nunca coroa um 10 */
-function g4Num(v){return Math.max(1,Math.min(9,Math.round(v)));}   /* média → número inteiro 1..9 (8.3 → 8) para mostrar na coluna, em vez do degrau */
+function g4Cap(v){return banda(Math.round(v));}   /* arredonda a média ao degrau mais perto (4.3 → 4 → "3-4"); a autoavaliação nunca coroa um 10 */
+/* média interna → o número de 1 a 5 que se mostra */
+function g4Num(v){return Number(banda(v));}   /* média → número inteiro 1..9 (8.3 → 8) para mostrar na coluna, em vez do degrau */
 function g4Reset(){
   const qs=[];
   Object.keys(DIMS).forEach(k=>{
@@ -3464,52 +3460,46 @@ function g4Draw(){
 }
 const G4_DESC_LOCAL={
  "D1": {
-  "5": "Cumpre o horário e avisa quando não pode vir. Precisa de algumas chamadas de atenção.",
-  "10": "É uma referência para os outros. O compromisso dele/a é um dado adquirido.",
-  "1-2": "Falta e chega tarde sem avisar. Não se pode contar com ele/a.",
-  "3-4": "Aparece, mas falha a assiduidade e a pontualidade. É preciso andar atrás dele/a.",
-  "6-7": "É de confiança. Chega a horas, avisa sempre e termina o que começa.",
-  "8-9": "Já não é preciso confirmar o trabalho dele/a. Avisa a tempo quando vai faltar."
+  "1": "Falta e chega tarde sem avisar. Não se pode contar com ele/a.",
+  "2": "Aparece, mas falha a assiduidade e a pontualidade. É preciso andar atrás dele/a.",
+  "3": "Cumpre o horário e avisa quando não pode vir. Precisa de algumas chamadas de atenção.",
+  "4": "É de confiança. Chega a horas, avisa sempre e termina o que começa.",
+  "5": "Já não é preciso confirmar o trabalho dele/a. Avisa a tempo quando vai faltar."
  },
  "D2": {
-  "5": "Comunica bem no dia a dia e trata todos com respeito. Nas conversas exigentes precisa de apoio.",
-  "10": "É chamado/a para estar presente nas conversas difíceis com famílias e professores.",
-  "1-2": "Não se faz entender, nem pelas crianças nem pelos adultos.",
-  "3-4": "Faz-se entender no básico. Usa muitas vezes o tom errado e foge das conversas difíceis.",
-  "6-7": "Explica-se com clareza e adapta a forma de falar a quem tem à frente. Ouve antes de responder.",
-  "8-9": "Comunica bem mesmo sob tensão. As pessoas sentem-se ouvidas por ele/a."
+  "1": "Não se faz entender, nem pelas crianças nem pelos adultos.",
+  "2": "Faz-se entender no básico. Usa muitas vezes o tom errado e foge das conversas difíceis.",
+  "3": "Comunica bem no dia a dia e trata todos com respeito. Nas conversas exigentes precisa de apoio.",
+  "4": "Explica-se com clareza e adapta a forma de falar a quem tem à frente. Ouve antes de responder.",
+  "5": "Comunica bem mesmo sob tensão. As pessoas sentem-se ouvidas por ele/a."
  },
  "D3": {
-  "5": "Dá-se bem com a equipa e ajuda quando lhe pedem.",
-  "10": "Faz a equipa toda funcionar melhor. Os colegas recorrem a ele/a.",
-  "1-2": "Não se integra e o comportamento dele/a prejudica o ambiente.",
-  "3-4": "Faz a sua parte, mas isola-se e não pede ajuda.",
-  "6-7": "Ajuda os colegas por iniciativa própria e partilha o que aprende.",
-  "8-9": "É alguém em que a equipa se apoia. Procura opinião e usa-a."
+  "1": "Não se integra e o comportamento dele/a prejudica o ambiente.",
+  "2": "Faz a sua parte, mas isola-se e não pede ajuda.",
+  "3": "Dá-se bem com a equipa e ajuda quando lhe pedem.",
+  "4": "Ajuda os colegas por iniciativa própria e partilha o que aprende.",
+  "5": "É alguém em que a equipa se apoia. Procura opinião e usa-a."
  },
  "D4": {
-  "5": "Mantém a calma no dia a dia. Nas situações duras não piora nada, mas fica desconfortável.",
-  "10": "É a quem a escola recorre quando a situação está difícil.",
-  "1-2": "Perde o controlo ou foge. A presença dele/a em momentos de tensão agrava o problema.",
-  "3-4": "Em situações tensas fica visivelmente alterado/a.",
-  "6-7": "Mantém a cabeça fria e intervém cedo. Sabe o que encaminhar para um adulto.",
-  "8-9": "A postura dele/a acalma quem está à volta. Recupera bem do que corre mal."
+  "1": "Perde o controlo ou foge. A presença dele/a em momentos de tensão agrava o problema.",
+  "2": "Em situações tensas fica visivelmente alterado/a.",
+  "3": "Mantém a calma no dia a dia. Nas situações duras não piora nada, mas fica desconfortável.",
+  "4": "Mantém a cabeça fria e intervém cedo. Sabe o que encaminhar para um adulto.",
+  "5": "A postura dele/a acalma quem está à volta. Recupera bem do que corre mal."
  },
  "D5": {
-  "5": "Faz o que é preciso quando lhe aparece à frente.",
-  "10": "A presença dele/a altera o que acontece na escola. As ideias dele/a são adotadas.",
-  "1-2": "Limita-se ao que lhe mandam. Não vê os problemas antes de acontecerem.",
-  "3-4": "Repara nalgumas coisas, mas espera sempre por indicação.",
-  "6-7": "Antecipa-se e resolve. Traz ideias para o trabalho.",
-  "8-9": "Deteta situações antes de rebentarem e age. Procura aprender por conta própria."
+  "1": "Limita-se ao que lhe mandam. Não vê os problemas antes de acontecerem.",
+  "2": "Repara nalgumas coisas, mas espera sempre por indicação.",
+  "3": "Faz o que é preciso quando lhe aparece à frente.",
+  "4": "Antecipa-se e resolve. Traz ideias para o trabalho.",
+  "5": "Deteta situações antes de rebentarem e age. Procura aprender por conta própria."
  },
  "D6": {
-  "5": "Aplica os passos em situações simples. É justo/a, mas nem sempre esconde de que lado está.",
-  "10": "A prática dele/a serve de exemplo aos outros mediadores.",
-  "1-2": "Não aplica o que aprendeu. Toma partido e impõe soluções.",
-  "3-4": "Conhece as ferramentas mas não as usa. Resolve por ele/a em vez de mediar.",
-  "6-7": "Usa o que aprendeu com naturalidade, fica no meio e leva as crianças a construir o acordo.",
-  "8-9": "Medeia situações exigentes até ao fim. É procurado/a pelas crianças."
+  "1": "Não aplica o que aprendeu. Toma partido e impõe soluções.",
+  "2": "Conhece as ferramentas mas não as usa. Resolve por ele/a em vez de mediar.",
+  "3": "Aplica os passos em situações simples. É justo/a, mas nem sempre esconde de que lado está.",
+  "4": "Usa o que aprendeu com naturalidade, fica no meio e leva as crianças a construir o acordo.",
+  "5": "Medeia situações exigentes até ao fim. É procurado/a pelas crianças."
  }
 };
 
@@ -3528,7 +3518,7 @@ function g4Local(){
     ${Object.keys(DIMS).map(k=>`<div class="autoq">
       <span class="autoq-dim" style="color:${DIMS[k].c}">${k}</span>
       <p class="autoq-q">${DIMS[k].n}</p>
-      <div class="g4esc">${G4_BANDAS.map(([bn,cl],idx)=>idx===5
+      <div class="g4esc">${G4_BANDAS.map(([bn,cl],idx)=>false
         ?`<button class="lk" style="height:146px" disabled title="O 10 não se dá — reconhece-se."><span class="n">🔒 ${bn}</span></button>`
         :`<button class="${G4.loc[k]===bn?'on':''}" style="background:${G4_ESCC[idx]};height:${G4_ESCH[idx]}px" onclick="if(G4.loc['${k}']==='${bn}'){delete G4.loc['${k}'];}else{G4.loc['${k}']='${bn}';}g4Draw()"><span class="n">${bn}</span></button>`).join('')}</div>
       <div class="g4escn">${G4_BANDAS.map(([bn,cl])=>`<span class="${G4.loc[k]===bn?'on':''}">${cl}</span>`).join('')}</div>
@@ -3549,17 +3539,19 @@ function g4Result(){
   const dl={}; Object.keys(DIMS).forEach(k=>{ const l=G4.loc[k]; dl[k]=(l===undefined)?null:g4BandIdx(l)-g4BandIdx(g4Cap(D[k])); });
   const acima=Object.keys(DIMS).filter(k=>dl[k]>0), abaixo=Object.keys(DIMS).filter(k=>dl[k]<0), igual=Object.keys(DIMS).filter(k=>dl[k]===0);
   const deltaTxt=d=>d===null?'':d===0?'exatamente o mesmo degrau':d>0?`${d} degrau${d>1?'s':''} acima do que te deste`:`${-d} degrau${d<-1?'s':''} abaixo do que te deste`;
-  const locMid=b=>({'1-2':1.5,'3-4':3.5,'5':5,'6-7':6.5,'8-9':8.5,'10':9})[b]||5;
+  const locMid=b=>({'1':1,'2':2,'3':3,'4':4,'5':5})[b]||3;
   const temL=Object.keys(DIMS).some(k=>G4.loc[k]);
   const barra=(v,c,lab)=>`<div style="flex:1;height:18px;background:rgba(247,242,231,.07);border-radius:9px;overflow:hidden"><div style="height:100%;width:${Math.round(Math.min(v,9)/9*100)}%;background:${c};border-radius:9px"></div></div><span style="font-size:13.5px;font-weight:800;min-width:30px;text-align:right;white-space:nowrap">${lab}</span>`;
   if(G4_SIMPLES){
-    const PALAVRA=[[2,'Ainda não lá está','#E2574C'],[4,'Está a meio caminho','#E8894C'],[5,'Está razoável','#E4BE45'],[7,'Está bom','#8FB964'],[9,'Está muito bom','#2E9E7B'],[10,'Está excelente','#2E9E7B']];
-    const pal=v=>PALAVRA.find(x=>v<=x[0])||PALAVRA[PALAVRA.length-1];
-    const comparar=k=>{const d=dl[k];
-      if(d===null)return '';
-      if(d>0)return '<div style="font-size:12.5px;color:var(--chalk);margin-top:5px">Achas que a escola te vê <b>melhor</b> do que tu te vês.</div>';
-      if(d<0)return '<div style="font-size:12.5px;color:var(--chalk);margin-top:5px">Achas que a escola te vê <b>pior</b> do que tu te vês.</div>';
-      return '<div style="font-size:12.5px;color:var(--chalk);margin-top:5px">Vês-te <b>igual</b> ao que achas que a escola vê.</div>';};
+    const CORES=['#E2574C','#E8894C','#E4BE45','#8FB964','#2E9E7B'];
+    const pal=n=>[CORES[n-1]||'#E4BE45', (G4_BANDAS[n-1]||['','—'])[1]];
+    const comparar=(k,meu)=>{const lb=G4.loc[k]; if(!lb) return '';
+      const dela=Number(lb), d=dela-meu;
+      const frase = d===0 ? 'Vês-te <b>igual</b> ao que achas que a escola vê. Boa — estão a olhar para o mesmo.'
+        : d>0 ? 'Achas que a escola te vê <b>melhor</b> do que tu te vês. Se calhar és duro/a de mais contigo.'
+        : 'Achas que a escola te vê <b>pior</b> do que tu te vês. Vale a pena falar disto com a Teresa.';
+      return '<div style="margin-top:9px;padding:10px 12px;border-radius:10px;background:rgba(247,242,231,.05);font-size:13px;line-height:1.5">'
+        + '<b>Tu deste-te ' + meu + ' em 5. A escola, achas tu, dava-te ' + dela + ' em 5.</b><br>' + frase + '</div>';};
     b.innerHTML=`
       <div style="background:rgba(143,166,255,.1);border:1px solid rgba(143,166,255,.4);border-radius:14px;padding:13px 15px;margin-bottom:18px">
         <p style="margin:0;font-size:14.5px;line-height:1.5"><b style="color:var(--postit)">Isto não é uma nota. 🙂</b> É só para te ajudar a ver onde estás.</p>
@@ -3578,12 +3570,15 @@ function g4Result(){
 
       <span class="eyebrow">As seis, uma a uma</span>
       <div style="margin-top:10px">
-      ${Object.keys(DIMS).map(k=>{const v=g4Num(D[k]);const [,txt,cor]=pal(v);
+      ${Object.keys(DIMS).map(k=>{const v=g4Num(D[k]);const [cor,txt]=pal(v);
         return `<div style="background:rgba(247,242,231,.04);border:1px solid rgba(247,242,231,.1);border-radius:14px;padding:14px 15px;margin-bottom:9px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="width:11px;height:11px;border-radius:50%;background:${DIMS[k].c};flex-shrink:0"></span><b style="font-size:14.5px;line-height:1.25">${DIMS[k].n}</b></div>
-          <div style="height:12px;background:rgba(247,242,231,.07);border-radius:6px;overflow:hidden;margin-bottom:7px"><div style="height:100%;width:${Math.round(v/9*100)}%;background:${cor};border-radius:6px"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <div style="flex:1;height:14px;background:rgba(247,242,231,.07);border-radius:7px;overflow:hidden"><div style="height:100%;width:${v*20}%;background:${cor};border-radius:7px"></div></div>
+            <b style="font-size:17px;color:${cor};white-space:nowrap">${v} em 5</b>
+          </div>
           <div style="font-size:14px;font-weight:800;color:${cor}">${txt}</div>
-          ${comparar(k)}
+          ${comparar(k,v)}
         </div>`;}).join('')}
       </div>
 
