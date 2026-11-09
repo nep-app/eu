@@ -274,3 +274,14 @@ export const DESC_ESCOLA = {
     "10": "A prática dele/a serve de exemplo aos outros mediadores. Tem autoridade junto das crianças sem nunca a impor.",
   },
 };
+
+// Definição de cada competência, tal como aparece no formulário de avaliação
+// dos mediadores — alargada, para o mediador perceber o que está a avaliar.
+export const DEFS = {
+  D1: "Cumpre o horário combinado e avisa com antecedência quando não pode ir. Faz o que combina com a escola e com as crianças, e leva até ao fim o que começa. Prepara-se antes de começar, cuida do material e do espaço, e sabe o que lhe compete e o que não lhe compete.",
+  D2: "Diz o que pensa com clareza e com respeito — com crianças e com adultos. Ouve até ao fim antes de responder e pergunta até perceber mesmo. Adapta a forma de falar a quem tem à frente: uma criança, um colega, um professor ou uma família.",
+  D3: "Integra-se na equipa da escola e não trabalha isolado. Apoia os colegas sem esperar que peçam, partilha o que aprende e contribui para um bom ambiente. Pede ajuda quando precisa e diz o que pensa nas reuniões.",
+  D4: "Mantém a calma em momentos de tensão e não deixa que o conflito o/a arraste. Não foge das situações nem as agrava: aproxima-se cedo, sabe o que pode mediar e o que tem de encaminhar para um adulto da escola. Recupera do que correu mal.",
+  D5: "Vê o que é preciso fazer e faz, sem esperar que lhe digam — dentro do que lhe compete. Repara nas situações antes de rebentarem, traz ideias novas e procura aprender para além do que dão na formação.",
+  D6: "Usa na prática as ferramentas de mediação que aprendeu na formação: ouvir as duas partes, não dar a solução, ajudar a construir o acordo e confirmar o que ficou combinado. Mantém-se imparcial e constrói uma relação de confiança com as crianças.",
+};

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/gen-jogos.mjs && node scripts/gen-mediadores.mjs && vite build",
+    "build": "node scripts/gen-jogos.mjs && node scripts/gen-mediadores.mjs && node scripts/gen-autoavaliacao-mediadores.mjs && vite build",
     "preview": "vite preview",
     "gen:jogos": "node scripts/gen-jogos.mjs"
   },

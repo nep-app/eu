@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Autoavaliação · EDUCA Mediadores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#071529; --cyn:#32C7FF; --txt:#fff; --mut:#B8C7DA; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif;
+    background-image:linear-gradient(rgba(50,199,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(50,199,255,.04) 1px,transparent 1px);
+    background-size:32px 32px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:640px;margin:0 auto;padding:22px 16px 60px}
+  .card{background:rgba(255,255,255,.04);border:1px solid rgba(50,199,255,.18);border-radius:20px;
+    padding:20px;margin-bottom:16px;backdrop-filter:blur(8px)}
+  .eyebrow{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#7da3c4}
+  h1{font-size:22px;font-weight:900;margin:8px 0 6px;line-height:1.2}
+  .lead{font-size:13.5px;color:var(--mut);line-height:1.6;margin:0}
+  .dimid{font-size:9px;font-weight:900;color:#64748b;letter-spacing:1.5}
+  .dimlabel{font-weight:900;font-size:15px;margin:4px 0 6px;line-height:1.3}
+  .dimdesc{font-size:12px;color:#94a3b8;line-height:1.55;margin-bottom:18px}
+  input[type=range]{width:100%;height:28px;background:transparent;cursor:pointer}
+  .badge{font-size:10px;font-weight:900;padding:2px 8px;border-radius:6px;text-transform:uppercase}
+  .notabox{display:flex;align-items:center;gap:12px;margin:16px 0;padding:14px 18px;border-radius:16px}
+  .notanum{font-size:40px;font-weight:900;line-height:1}
+  .desctxt{background:rgba(15,23,42,.45);padding:16px;border-radius:16px;font-size:13px;
+    color:#e2e8f0;line-height:1.6;margin-bottom:14px}
+  textarea{width:100%;border-radius:14px;padding:12px 14px;font-size:12.5px;font-family:inherit;
+    background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.12);color:#fff;resize:vertical;outline:none}
+  textarea::placeholder{color:rgba(255,255,255,.35)}
+  .btn{display:block;width:100%;padding:15px;border:none;border-radius:16px;font-size:14.5px;
+    font-weight:900;cursor:pointer;font-family:inherit;margin-top:10px}
+  .btn-main{background:var(--cyn);color:#071529}
+  .btn-ghost{background:transparent;color:var(--cyn);border:1.5px solid rgba(50,199,255,.45)}
+  .hint{font-size:11.5px;color:#64748b;line-height:1.5;text-align:center;margin-top:12px}
+  .aviso{background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:20px;margin-bottom:18px}
+  .resumo{font-size:13px;line-height:1.7}
+  .resumo .ln{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);top:14px;z-index:99;background:rgba(16,40,66,.97);
+    border:1.5px solid var(--cyn);color:#fff;border-radius:14px;padding:12px 16px;font-size:13px;font-weight:700;
+    box-shadow:0 10px 30px rgba(0,0,0,.45);display:none}
+  @media print{
+    body{background:#fff;color:#000;background-image:none}
+    .card,.aviso{border:1px solid #ccc;background:#fff;break-inside:avoid}
+    .dimdesc,.lead,.hint{color:#444}
+    .desctxt{background:#f4f4f5;color:#000}
+    .dimlabel,.notanum,h1{color:#000}
+    textarea{border:1px solid #ccc;color:#000;background:#fff}
+    .btn,.no-print{display:none !important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card" style="text-align:center">
+    <div class="eyebrow">Autoavaliação · EDUCA Mediadores</div>
+    <h1>Como te avalias?</h1>
+    <p class="lead">Seis competências. Em cada uma, dá-te uma nota de 1 a 10 e explica porquê.</p>
+  </div>
+
+  <div class="aviso">
+    <div style="font-size:15px;font-weight:900;margin-bottom:10px">🔒 Isto é teu.</div>
+    <div style="font-size:13px;color:#cbd5e1;line-height:1.6;margin-bottom:10px">
+      Nada fica guardado em lado nenhum automaticamente. Só sai daqui o que <b>tu</b> enviares no fim.
+      Não serve para te avaliarem — serve para perceberes onde estás e para onde queres ir.
+    </div>
+    <div style="font-size:13px;font-weight:800;line-height:1.6">
+      Sê honesto/a. Ninguém é bom em tudo, nem é suposto. Se deres tudo 10, não sobra margem para crescer. 🌱
+    </div>
+  </div>
+
+  <div id="dims"></div>
+
+  <div class="card no-print">
+    <div style="font-size:15px;font-weight:900;margin-bottom:6px">Quando acabares</div>
+    <p class="lead" style="margin-bottom:14px">Guarda em PDF (ou imprime) e entrega à Teresa. Também podes copiar o texto e enviá-lo por mensagem.</p>
+    <button class="btn btn-main" onclick="guardarPDF()">📄 Guardar em PDF / Imprimir</button>
+    <button class="btn btn-ghost" onclick="copiarResumo()">📋 Copiar resumo</button>
+    <button class="btn btn-ghost" style="border-color:rgba(244,63,94,.4);color:#f87171" onclick="limpar()">🗑 Começar de novo</button>
+    <p class="hint">As tuas respostas ficam guardadas neste telemóvel/computador até as apagares. Se mudares de aparelho, não vão contigo.</p>
+  </div>
+
+  <div class="card" id="resumo-print" style="display:none">
+    <div class="eyebrow">Resumo</div>
+    <div class="resumo" id="resumo-corpo"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DIMS = [
+ {
+  "id": "D1",
+  "n": "Responsabilidade e Compromisso",
+  "c": "#E2574C",
+  "def": "Cumpre o horário combinado e avisa com antecedência quando não pode ir. Faz o que combina com a escola e com as crianças, e leva até ao fim o que começa. Prepara-se antes de começar, cuida do material e do espaço, e sabe o que lhe compete e o que não lhe compete.",
+  "s": {
+   "5": "Cumpro o horário e aviso quando não posso ir. Faço o que combino, embora precise que me lembrem de algumas coisas.",
+   "10": "Sou uma referência de compromisso para os outros mediadores. O que passa por mim fica tratado, e sabe-se isso sem ser preciso perguntar.",
+   "1-2": "Falto e chego tarde sem avisar. O que combino fica por fazer e já ninguém conta comigo.",
+   "3-4": "Vou cumprindo, mas com falhas: às vezes não aviso a tempo ou deixo coisas por acabar. É preciso andarem atrás de mim.",
+   "6-7": "Sou de confiança: chego a horas, aviso sempre e levo até ao fim aquilo a que me comprometo. Preparo-me antes de começar.",
+   "8-9": "A escola conta comigo sem ter de confirmar. Digo a tempo quando não vou conseguir e cuido do que é da escola como se fosse meu."
+  }
+ },
+ {
+  "id": "D2",
+  "n": "Capacidade de Comunicação",
+  "c": "#F0932B",
+  "def": "Diz o que pensa com clareza e com respeito — com crianças e com adultos. Ouve até ao fim antes de responder e pergunta até perceber mesmo. Adapta a forma de falar a quem tem à frente: uma criança, um colega, um professor ou uma família.",
+  "s": {
+   "5": "Explico-me bem no dia a dia e trato as pessoas com respeito. Nas conversas mais difíceis, ainda me falta à-vontade.",
+   "10": "A forma como comunico desarma situações. Sou procurado/a para estar presente em conversas difíceis, com crianças e com adultos.",
+   "1-2": "Tenho muita dificuldade em dizer o que penso: ou me calo, ou digo de uma forma que magoa. Com os adultos da escola, não me faço ouvir.",
+   "3-4": "Comunico com esforço. Às vezes uso o tom errado ou fujo das conversas difíceis. Ouço, mas já vou a responder por dentro.",
+   "6-7": "Falo com clareza e mudo a forma de falar consoante tenha à frente uma criança, um colega ou uma família. Ouço até ao fim antes de responder.",
+   "8-9": "Digo o que é preciso mesmo quando é desconfortável, sem agredir ninguém. Pergunto até perceber mesmo, e as pessoas sentem-se ouvidas por mim."
+  }
+ },
+ {
+  "id": "D3",
+  "n": "Espírito de Equipa e Cooperação",
+  "c": "#FFD84D",
+  "def": "Integra-se na equipa da escola e não trabalha isolado. Apoia os colegas sem esperar que peçam, partilha o que aprende e contribui para um bom ambiente. Pede ajuda quando precisa e diz o que pensa nas reuniões.",
+  "s": {
+   "5": "Dou-me bem com os colegas e ajudo quando me pedem. Peço ajuda só quando já não tenho outra saída.",
+   "10": "Faço a equipa funcionar melhor. Os colegas procuram-me, e o que sei não fica em mim — passa para os outros.",
+   "1-2": "Não me integro. Trabalho isolado/a, não ajudo ninguém, e a forma como estou pesa no ambiente do grupo.",
+   "3-4": "Faço a minha parte e pouco mais. Custa-me pedir ajuda e admitir dificuldades. Às vezes alimento mau ambiente sem dar por isso.",
+   "6-7": "Apoio os colegas sem esperar que peçam, partilho o que aprendo e contribuo para o grupo funcionar. Peço ajuda com naturalidade.",
+   "8-9": "Sou alguém com quem a equipa conta. Puxo pelo ambiente nos dias maus e procuro opinião sobre o meu trabalho para melhorar."
+  }
+ },
+ {
+  "id": "D4",
+  "n": "Gestão Emocional e de Conflitos",
+  "c": "#B79CE8",
+  "def": "Mantém a calma em momentos de tensão e não deixa que o conflito o/a arraste. Não foge das situações nem as agrava: aproxima-se cedo, sabe o que pode mediar e o que tem de encaminhar para um adulto da escola. Recupera do que correu mal.",
+  "s": {
+   "5": "Nas situações normais mantenho a calma. Quando aquece a sério ainda me custa, mas não agravo.",
+   "10": "Sou a pessoa a quem recorrem quando a situação está difícil. Baixo a tensão de uma sala só com a forma como entro nela.",
+   "1-2": "Perco a cabeça com facilidade, ou fujo. Quando há tensão, acabo por piorar o que já estava mau.",
+   "3-4": "Aguento o dia a dia, mas em momentos de tensão nota-se que fico alterado/a. Ou intervenho a mais, ou não intervenho de todo.",
+   "6-7": "Mantenho a cabeça fria quando há conflito e aproximo-me cedo, antes de crescer. Sei o que posso mediar e o que tenho de passar a um adulto da escola.",
+   "8-9": "A minha calma acalma os outros. Encaixo o que correu mal, penso nisso, e no dia seguinte volto inteiro/a."
+  }
+ },
+ {
+  "id": "D5",
+  "n": "Iniciativa",
+  "c": "#4A6CF0",
+  "def": "Vê o que é preciso fazer e faz, sem esperar que lhe digam — dentro do que lhe compete. Repara nas situações antes de rebentarem, traz ideias novas e procura aprender para além do que dão na formação.",
+  "s": {
+   "5": "Faço o que é preciso quando o vejo à minha frente. Em coisas novas, prefiro perguntar primeiro.",
+   "10": "A minha presença muda o que acontece na escola. Trago ideias que acabam por ser feitas por todos.",
+   "1-2": "Faço o que me mandam e mais nada. Só dou pelos problemas quando já rebentaram.",
+   "3-4": "Reparo nalgumas coisas, mas espero que me digam para avançar. Tenho receio de tomar iniciativa e errar.",
+   "6-7": "Antecipo-me: vejo o que falta e trato disso, dentro do que me compete. Trago ideias em vez de repetir sempre o mesmo.",
+   "8-9": "Vejo a situação antes de rebentar — a criança que ficou de fora, o recreio a aquecer — e ajo. Proponho mudanças e continuo a aprender por minha conta."
+  }
+ },
+ {
+  "id": "D6",
+  "n": "Qualidade da Intervenção com as Crianças",
+  "c": "#2E9E7B",
+  "def": "Usa na prática as ferramentas de mediação que aprendeu na formação: ouvir as duas partes, não dar a solução, ajudar a construir o acordo e confirmar o que ficou combinado. Mantém-se imparcial e constrói uma relação de confiança com as crianças.",
+  "s": {
+   "5": "Uso os passos da mediação nas situações simples. Sou justo/a, embora às vezes se note de que lado estou.",
+   "10": "A forma como intervenho serve de exemplo aos outros. Ponho limites sem humilhar, e as crianças confiam em mim mesmo quando lhes digo o que não querem ouvir.",
+   "1-2": "Não uso o que aprendi na formação. Tomo partido, dou ordens em vez de mediar, e as crianças não me procuram.",
+   "3-4": "Tento aplicar as ferramentas, mas na hora esqueço-me e faço à minha maneira. Dou eu a solução, em vez de as ajudar a encontrá-la.",
+   "6-7": "Uso as ferramentas da formação com naturalidade. Fico no meio sem tomar partido e ajudo as crianças a chegarem ao acordo delas.",
+   "8-9": "Conduzo mediações difíceis até ao fim e confirmo o que ficou combinado. As crianças procuram-me — incluindo as mais caladas."
+  }
+ }
+];
+const CHAVE = 'educa-mediadores-autoavaliacao';
+let estado = {};
+try { estado = JSON.parse(localStorage.getItem(CHAVE) || '{}'); } catch (e) { estado = {}; }
+
+function nivel(v){
+  if(v<=2) return ['Insuficiente','#f43f5e','a'];
+  if(v<=4) return ['Abaixo do esperado','#fb923c','b'];
+  if(v===5) return ['Suficiente','#fbbf24','c'];
+  if(v<=7) return ['Bom','#60a5fa','d'];
+  if(v<=9) return ['Muito Bom','#a855f7','e'];
+  return ['Excelente','#22d3ee','f'];
+}
+const BANDA={a:'1-2',b:'3-4',c:'5',d:'6-7',e:'8-9',f:'10'};
+
+function guardar(){ try{ localStorage.setItem(CHAVE, JSON.stringify(estado)); }catch(e){} }
+function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.style.display='block';
+  clearTimeout(window._tt); window._tt=setTimeout(()=>el.style.display='none',3200); }
+
+function desenhar(){
+  document.getElementById('dims').innerHTML = DIMS.map(d => {
+    const v = estado['n_'+d.id] || 0;
+    const posto = v > 0;
+    const [rot, cor, chave] = nivel(posto ? v : 1);
+    const texto = d.s[BANDA[chave]];
+    return `<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <span class="dimid">${d.id}</span>
+        ${posto ? `<span class="badge" style="color:${cor};background:${cor}15;border:1px solid ${cor}40">${rot}</span>` : ''}
+      </div>
+      <div class="dimlabel" style="color:${d.c}">${d.n}</div>
+      <div class="dimdesc">${d.def}</div>
+      <input type="range" min="1" max="10" value="${posto ? v : 1}"
+        style="accent-color:${posto ? cor : '#475569'}"
+        oninput="poeNota('${d.id}', this.value)">
+      ${posto ? `
+        <div class="notabox" style="background:${cor}12;border:1px solid ${cor}30">
+          <span class="notanum">${v}</span>
+          <div>
+            <div style="font-size:13px;font-weight:900;color:${cor};text-transform:uppercase">${rot}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:2px">em 10 possíveis</div>
+          </div>
+        </div>
+        <div class="desctxt" style="border-left:4px solid ${cor}">${texto}</div>`
+      : '<div style="text-align:center;font-size:11px;color:#475569;margin-top:4px;font-weight:700">Arrasta para te avaliares</div>'}
+      <textarea rows="2" placeholder="Queres dar um exemplo ou explicar esta nota?"
+        oninput="poeNotaTexto('${d.id}', this.value)">${(estado['t_'+d.id]||'').replace(/</g,'&lt;')}</textarea>
+    </div>`;
+  }).join('');
+}
+
+function poeNota(id, v){ estado['n_'+id] = Number(v); guardar(); desenhar(); }
+function poeNotaTexto(id, t){ estado['t_'+id] = t; guardar(); }
+
+function porPreencher(){ return DIMS.filter(d => !estado['n_'+d.id]); }
+
+function textoResumo(){
+  const linhas = DIMS.map(d => {
+    const v = estado['n_'+d.id] || 0;
+    const r = v ? nivel(v)[0] : 'por responder';
+    const nota = (estado['t_'+d.id]||'').trim();
+    return '• ' + d.n + ': ' + (v ? v + '/10 (' + r + ')' : r) + (nota ? '\n   "' + nota + '"' : '');
+  });
+  const postas = DIMS.map(d => estado['n_'+d.id]).filter(Boolean);
+  const media = postas.length ? (postas.reduce((a,b)=>a+b,0)/postas.length).toFixed(1) : '—';
+  return 'AUTOAVALIAÇÃO — EDUCA MEDIADORES\n' + new Date().toLocaleDateString('pt-PT') +
+    '\n\n' + linhas.join('\n') + '\n\nMédia: ' + media + '/10';
+}
+
+function guardarPDF(){
+  const f = porPreencher();
+  if (f.length && !confirm('Ainda tens ' + f.length + ' por responder. Queres guardar na mesma?')) return;
+  const postas = DIMS.map(d => estado['n_'+d.id]).filter(Boolean);
+  const media = postas.length ? (postas.reduce((a,b)=>a+b,0)/postas.length).toFixed(1) : '—';
+  document.getElementById('resumo-corpo').innerHTML =
+    DIMS.map(d => { const v = estado['n_'+d.id] || 0;
+      return '<div class="ln"><span>' + d.n + '</span><b>' + (v ? v + '/10' : '—') + '</b></div>'; }).join('') +
+    '<div class="ln" style="border:0"><span><b>Média</b></span><b>' + media + '/10</b></div>';
+  document.getElementById('resumo-print').style.display = 'block';
+  setTimeout(() => window.print(), 80);
+}
+
+async function copiarResumo(){
+  const t = textoResumo();
+  try { await navigator.clipboard.writeText(t); toast('Resumo copiado! Já podes colar numa mensagem.'); }
+  catch (e) { prompt('Copia daqui:', t); }
+}
+
+function limpar(){
+  if (!confirm('Apagar tudo o que respondeste e começar de novo?')) return;
+  estado = {}; guardar(); desenhar(); toast('Apagado. Podes começar de novo.');
+}
+
+desenhar();
+</script>
+</body>
+</html>
