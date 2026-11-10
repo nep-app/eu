@@ -698,7 +698,7 @@ export default function AdminPrograma({ allShared, events, missions, activeQ }) 
   const [sub, setSub] = useState("pergunta");
   return (
     <div>
-      <div style={{ display:"flex", gap:4, marginBottom:20, overflowX:"auto", background:"rgba(0,0,0,0.3)", borderRadius:14, padding:4 }}>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:4, rowGap:4, marginBottom:20, background:"rgba(0,0,0,0.3)", borderRadius:14, padding:4 }}>
         {SUBTABS.map(([id, label]) => (
           <button key={id} onClick={() => setSub(id)} style={{
             flexShrink:0, padding:"9px 14px", borderRadius:10, border:"none", cursor:"pointer", whiteSpace:"nowrap",
